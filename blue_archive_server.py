@@ -441,10 +441,35 @@ class BlueArchiveServer:
             import flatbuffers  # noqa: F401
             import xxhash       # noqa: F401
             from Crypto.Util.strxor import strxor  # noqa: F401
+            # Import K0lb3's encryption helper
+            from lib import TableEncryptionService
+            self.table_crypto = TableEncryptionService
             return True
         except ImportError as e:
             print_colored(f"Advanced crypto not available: {e}", YELLOW)
             return False
+
+    def _encrypt_nexon_response(self, json_data, endpoint_name="default"):
+        """Encrypt JSON response using K0lb3's TableEncryptionService for Nexon ToySDK"""
+        if not self.crypto_available:
+            return json.dumps(json_data).encode('utf-8')
+        
+        try:
+            # Convert JSON to string
+            json_str = json.dumps(json_data, separators=(',', ':'))
+            
+            # Use TableEncryptionService to encrypt the string
+            # The endpoint name is used as the encryption key seed
+            encrypted_bytes = self.table_crypto.XOR(endpoint_name, json_str.encode('utf-8'))
+            
+            # Return base64 encoded encrypted data
+            import base64
+            return base64.b64encode(encrypted_bytes)
+            
+        except Exception as e:
+            print_colored(f"Encryption failed for {endpoint_name}: {e}", RED)
+            # Fall back to plain JSON if encryption fails
+            return json.dumps(json_data).encode('utf-8')
 
     def create_flask_app(self):
         try:
@@ -586,7 +611,8 @@ class BlueArchiveServer:
                 "errorCode": 0
             }
 
-            data = json.dumps(country_response).encode('utf-8')
+            # Use proper encryption for crypto-enabled responses
+            data = server_instance._encrypt_nexon_response(country_response, "getCountry")
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -629,15 +655,101 @@ class BlueArchiveServer:
             if payload and self.crypto_available:
                 self.analyze_flatbuffer_payload(payload)
             print_colored("enterToy called. Initializing.", BOLD + GREEN)
-            # Exact body and headers from requests/4.txt
-            body = (
-                '{"errorCode":0,"result":{"service":{"title":"Blue Archive","buildVer":"2","policyApiVer":"2","termsApiVer":"2","useTPA":0,"useGbNpsn":1,"useGbKrpc":1,"useGbArena":1,"useGbJppc":0,"useGamania":0,"useToyBanDialog":0,"grbRating":"","networkCheckSampleRate":"3","nkMemberAccessCode":"0","useIdfaCollection":0,"useIdfaDialog":0,"useIdfaDialogNTest":0,"useNexonOTP":0,"useRegionLock":0,"usePcDirectRun":0,"useArenaCSByRegion":0,"usePlayNow":0,"methinksUsage":{"useAlwaysOnRecording":0,"useScreenshot":0,"useStreaming":0,"useSurvey":0},"livestreamUsage":{"useIM":0},"useExactAlarmActivation":0,"useCollectUserActivity":0,"userActivityDataPushNotification":{"changePoints":[],"notificationType":""},"appAppAuthLoginIconUrl":"","useGuidCreationBlk":0,"guidCreationBlkWlCo":[],"useArena2FA":0,"usePrimary":1,"loginUIType":"1","clientId":"MjcwOA","useMemberships":[101,103,110,107,9999],"useMembershipsInfo":{"nexonNetSecretKey":"","nexonNetProductId":"","nexonNetRedirectUri":""}},"endBanner":{},"country":"GB","idfa":{"dialog":[],"imgUrl":"","language":""},"useLocalPolicy":["0","0"],"enableLogging":false,"enablePlexLogging":false,"enableForcePingLogging":false,"userArenaRegion":1,"offerwall":{"id":0,"title":""},"useYoutubeRewardEvent":false,"gpgCycle":0,"eve":{"domain":"https://eve.nexon.com","g-api":"https://g-eve-apis.nexon.com"},"insign":{"useSimpleSignup":0,"useKrpcSimpleSignup":0,"useArenaSimpleSignup":0}},"errorText":"Success","errorDetail":""}'
-            )
-            data = body.encode('utf-8')
+            
+            # Build the response as a proper JSON object instead of hardcoded string
+            enter_toy_response = {
+                "errorCode": 0,
+                "result": {
+                    "service": {
+                        "title": "Blue Archive",
+                        "buildVer": "2",
+                        "policyApiVer": "2",
+                        "termsApiVer": "2",
+                        "useTPA": 0,
+                        "useGbNpsn": 1,
+                        "useGbKrpc": 1,
+                        "useGbArena": 1,
+                        "useGbJppc": 0,
+                        "useGamania": 0,
+                        "useToyBanDialog": 0,
+                        "grbRating": "",
+                        "networkCheckSampleRate": "3",
+                        "nkMemberAccessCode": "0",
+                        "useIdfaCollection": 0,
+                        "useIdfaDialog": 0,
+                        "useIdfaDialogNTest": 0,
+                        "useNexonOTP": 0,
+                        "useRegionLock": 0,
+                        "usePcDirectRun": 0,
+                        "useArenaCSByRegion": 0,
+                        "usePlayNow": 0,
+                        "methinksUsage": {
+                            "useAlwaysOnRecording": 0,
+                            "useScreenshot": 0,
+                            "useStreaming": 0,
+                            "useSurvey": 0
+                        },
+                        "livestreamUsage": {
+                            "useIM": 0
+                        },
+                        "useExactAlarmActivation": 0,
+                        "useCollectUserActivity": 0,
+                        "userActivityDataPushNotification": {
+                            "changePoints": [],
+                            "notificationType": ""
+                        },
+                        "appAppAuthLoginIconUrl": "",
+                        "useGuidCreationBlk": 0,
+                        "guidCreationBlkWlCo": [],
+                        "useArena2FA": 0,
+                        "usePrimary": 1,
+                        "loginUIType": "1",
+                        "clientId": "MjcwOA",
+                        "useMemberships": [101, 103, 110, 107, 9999],
+                        "useMembershipsInfo": {
+                            "nexonNetSecretKey": "",
+                            "nexonNetProductId": "",
+                            "nexonNetRedirectUri": ""
+                        }
+                    },
+                    "endBanner": {},
+                    "country": "GB",
+                    "idfa": {
+                        "dialog": [],
+                        "imgUrl": "",
+                        "language": ""
+                    },
+                    "useLocalPolicy": ["0", "0"],
+                    "enableLogging": False,
+                    "enablePlexLogging": False,
+                    "enableForcePingLogging": False,
+                    "userArenaRegion": 1,
+                    "offerwall": {
+                        "id": 0,
+                        "title": ""
+                    },
+                    "useYoutubeRewardEvent": False,
+                    "gpgCycle": 0,
+                    "eve": {
+                        "domain": "https://eve.nexon.com",
+                        "g-api": "https://g-eve-apis.nexon.com"
+                    },
+                    "insign": {
+                        "useSimpleSignup": 0,
+                        "useKrpcSimpleSignup": 0,
+                        "useArenaSimpleSignup": 0
+                    }
+                },
+                "errorText": "Success",
+                "errorDetail": ""
+            }
+            
+            # Encrypt the response using K0lb3's helper
+            data = server_instance._encrypt_nexon_response(enter_toy_response, "enterToy")
             date_val = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
             hdrs = [
                 ('Content-Type', 'text/html; charset=UTF-8'),
-                ('Content-Length', '1449'),
+                ('Content-Length', str(len(data))),
                 ('Connection', 'keep-alive'),
                 ('date', date_val),
                 ('access-control-allow-origin', '*'),
@@ -692,8 +804,11 @@ class BlueArchiveServer:
 
             print_colored("Promotion request.", CYAN)
 
-            return Response(json.dumps(promotion_response), status=200, headers={
+            # Use proper encryption for crypto-enabled responses
+            data = server_instance._encrypt_nexon_response(promotion_response, "getPromotion")
+            return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
+                'Content-Length': str(len(data)),
                 'errorcode': '0',
                 'access-control-allow-origin': '*',
                 'cache-control': 'private'
@@ -867,7 +982,9 @@ class BlueArchiveServer:
                     "expireIn": 3600
                 }
             }
-            data = json.dumps(body).encode('utf-8')
+            
+            # Use proper encryption for crypto-enabled responses
+            data = server_instance._encrypt_nexon_response(body, "webtoken")
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -985,7 +1102,9 @@ class BlueArchiveServer:
                 "errorText": "Success",
                 "errorDetail": ""
             }
-            data = json.dumps(body).encode('utf-8')
+            
+            # Use proper encryption for crypto-enabled responses
+            data = server_instance._encrypt_nexon_response(body, "signInWithTicket")
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -1015,7 +1134,9 @@ class BlueArchiveServer:
                 "errorText": "Success",
                 "errorDetail": ""
             }
-            data = json.dumps(resp).encode('utf-8')
+            
+            # Use proper encryption for crypto-enabled responses
+            data = server_instance._encrypt_nexon_response(resp, "terms")
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
