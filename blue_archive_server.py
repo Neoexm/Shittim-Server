@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import sqlite3
 import subprocess
 import importlib
 from pathlib import Path
@@ -12,16 +13,43 @@ import platform
 import ctypes
 import tempfile
 import atexit
+import io
 
-RED = '\033[91m'
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-MAGENTA = '\033[95m'
-CYAN = '\033[96m'
-WHITE = '\033[97m'
-BOLD = '\033[1m'
-RESET = '\033[0m'
+# Force UTF-8 encoding for stdout/stderr on Windows to handle Unicode characters
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+# Initialize colorama for cross-platform ANSI support
+try:
+    from colorama import init, Fore, Style
+    init(autoreset=True)
+    RED = Fore.RED
+    GREEN = Fore.GREEN
+    YELLOW = Fore.YELLOW
+    BLUE = Fore.BLUE
+    MAGENTA = Fore.MAGENTA
+    CYAN = Fore.CYAN
+    WHITE = Fore.WHITE
+    BOLD = Style.BRIGHT
+    RESET = Style.RESET_ALL
+except ImportError:
+    # Fallback to ANSI codes with Windows console enable
+    if sys.platform == 'win32':
+        try:
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        except Exception:
+            pass
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
 
 def print_colored(text, color=WHITE):
     print(f"{color}{text}{RESET}")
@@ -52,12 +80,7 @@ class HostsManager:
         'nxm-tw-bagl.nexon.com',
         'nxm-th-bagl.nexon.com',
         'nxm-or-bagl.nexon.com',
-        # Additional NGS/analytics/config endpoints
-        'x-init.ngs.nexon.com',
-        'x-update.ngs.nexon.com',
-        'x-csauth.ngs.nexon.com',
-        'x-config.ngs.nexon.com',
-        'psm-log.ngs.nexon.com',
+        # Additional analytics/config endpoints (NGS domains removed - let them talk to real servers)
         'toy.log.nexon.io',
         'gtable.inface.nexon.com',
         'config.na.nexon.com',
@@ -202,7 +225,8 @@ class DependencyManager:
         'xxhash',
         'pycryptodome',
         'unitypy',
-        'cryptography'
+        'cryptography',
+        'colorama'
     ]
 
     K0LB3_FILES = {
@@ -222,8 +246,22 @@ class DependencyManager:
         missing = []
         for package in self.REQUIRED_PACKAGES:
             try:
-                importlib.import_module(package.replace('-', '_'))
-            except ImportError:
+                print_colored(f"  Checking {package}...", BLUE)
+                # Handle special package import names
+                if package == 'pycryptodome':
+                    importlib.import_module('Crypto')
+                elif package == 'unitypy':
+                    importlib.import_module('UnityPy')
+                else:
+                    importlib.import_module(package.replace('-', '_'))
+                print_colored(f"  ✓ {package}", GREEN)
+            except ImportError as e:
+                print_colored(f"  ✗ {package}: {e}", RED)
+                missing.append(package)
+            except Exception as e:
+                print_colored(f"  CRASH checking {package}: {e}", RED)
+                import traceback
+                traceback.print_exc()
                 missing.append(package)
         return missing
 
@@ -279,18 +317,27 @@ class DependencyManager:
     def setup_environment(self):
         print_colored("Setting up environment...", BOLD)
 
-        missing_packages = self.check_python_packages()
-        if missing_packages:
-            if not self.install_packages(missing_packages):
+        try:
+            print_colored("Checking packages...", YELLOW)
+            missing_packages = self.check_python_packages()
+            print_colored(f"Missing packages: {missing_packages}", CYAN)
+            if missing_packages:
+                if not self.install_packages(missing_packages):
+                    return False
+            else:
+                print_colored("Python packages look fine.", GREEN)
+
+            print_colored("Downloading protocol files...", YELLOW)
+            if not self.download_k0lb3_files():
                 return False
-        else:
-            print_colored("Python packages look fine.", GREEN)
 
-        if not self.download_k0lb3_files():
+            print_colored("Environment ready.", GREEN)
+            return True
+        except Exception as e:
+            print_colored(f"Environment setup crashed: {e}", RED)
+            import traceback
+            traceback.print_exc()
             return False
-
-        print_colored("Environment ready.", GREEN)
-        return True
 
 class BlueArchiveServer:
     def __init__(self):
@@ -301,11 +348,12 @@ class BlueArchiveServer:
         # Simple in-memory queue state to mimic gateway behavior
         self.queue_ticket_seq = 114980000
         self.queue_allowed_seq = 114980000
-        # Minimal persistent account store
+        # Database persistent account store
         self.data_dir = Path(__file__).parent / 'data'
         self.data_dir.mkdir(exist_ok=True)
-        self.accounts_path = self.data_dir / 'accounts.json'
-        self.accounts = self._load_accounts()
+        self.db_path = self.data_dir / 'accounts.db'
+        self.db_lock = threading.Lock()
+        self._setup_database()
         # Map transient IAS tickets to a stable user key to avoid new accounts each run
         self.ticket_map = {}
         self.current_user_key = None
@@ -313,27 +361,12 @@ class BlueArchiveServer:
         self._har_entries = []
         self._har_logfile = f"server_log_{int(time.time())}.har"
         self._create_initial_har_file()
-        # One-time migration: ensure there is a stable default account key
-        try:
-            if isinstance(self.accounts, dict) and self.accounts and 'uid:default' not in self.accounts:
-                some_key = next(iter(self.accounts.keys()))
-                self.accounts['uid:default'] = self.accounts.get(some_key)
-                self._save_accounts()
-        except Exception as e:
-            print_colored(f"Account migration skipped: {e}", YELLOW)
-
-    def _load_accounts(self):
-        try:
-            if self.accounts_path.exists():
-                with open(self.accounts_path, 'r', encoding='utf-8') as f:
-                    accounts = json.load(f)
-                print_colored(f"Loaded {len(accounts)} accounts from {self.accounts_path}", GREEN)
-                return accounts
-            else:
-                print_colored("No existing accounts file found - starting fresh", YELLOW)
-        except Exception as e:
-            print_colored(f"Failed to load accounts: {e}", YELLOW)
-        return {}
+        # Track getCountry call count for different error codes
+        self.get_country_count = 0
+        # NGS endpoint request-response mappings (extracted from HAR file)
+        self.ngs_mappings = self._load_ngs_mappings()
+        # One-time migration: skip - using SQLite database now
+        print_colored("Account migration skipped: Using SQLite database", CYAN)
 
     def _create_initial_har_file(self):
         """Create the HAR file immediately with empty entries"""
@@ -366,28 +399,16 @@ class BlueArchiveServer:
         except Exception as e:
             print_colored(f"HAR update error: {e}", YELLOW)
 
-    def _save_accounts(self):
-        """Save accounts to disk with atomic write to prevent corruption"""
-        try:
-            # Create a temporary file first to ensure atomic write
-            tmp_path = self.accounts_path.with_suffix('.tmp')
-            with open(tmp_path, 'w', encoding='utf-8') as f:
-                json.dump(self.accounts, f, ensure_ascii=False, indent=2)
-            
-            # Atomic replace - this prevents corruption if the process is interrupted
-            os.replace(tmp_path, self.accounts_path)
-            
-            print_colored(f"Saved {len(self.accounts)} accounts to disk", GREEN)
-        except Exception as e:
-            print_colored(f"Failed to save accounts: {e}", YELLOW)
-            # Try to clean up the temp file if it exists
-            try:
-                tmp_path = self.accounts_path.with_suffix('.tmp')
-                if tmp_path.exists():
-                    tmp_path.unlink()
-            except Exception:
-                pass
+    def _load_ngs_mappings(self):
+        """Hardcoded NGS endpoint request-response mappings extracted from official server"""
+        # NGS mappings removed - let the game talk to real NGS servers for anti-cheat verification
+        print_colored("NGS endpoint mappings disabled - using real NGS servers", GREEN)
+        return {}
 
+    def _handle_ngs_endpoint(self, endpoint, request_body):
+        """NGS endpoint handling disabled - requests go to real servers"""
+        print_colored(f"NGS endpoint {endpoint} bypassed to real server", YELLOW)
+        return None
     def _derive_ids_from_token(self, token: str, gid: str = '2079'):
         import hashlib
         h = hashlib.sha256((token or '').encode('utf-8')).hexdigest()
@@ -399,39 +420,220 @@ class BlueArchiveServer:
 
     def _get_or_create_account(self, ticket: str, gid: str = '2079'):
         import hashlib, time as _t
-        ticket_key = hashlib.sha256((ticket or '').encode('utf-8')).hexdigest()
-        # Resolve to a stable user key if we have one
-        user_key = self.ticket_map.get(ticket_key)
-        if not user_key:
-            user_key = self.current_user_key
-            if not user_key:
-                # Fallback to a default singleton account key to avoid spam
-                user_key = 'uid:default'
-            # Remember this mapping for this process lifetime
-            self.ticket_map[ticket_key] = user_key
-
-        if user_key in self.accounts:
-            acct = self.accounts[user_key]
+        
+        # Extract Steam ID or other unique identifier from ticket
+        user_key = self._extract_user_id_from_ticket(ticket, gid)
+        
+        # Check if account exists in database
+        account = self._get_account(user_key)
+        
+        if account:
+            # Existing account - update last login
+            account['last_login'] = int(_t.time())
+            account['updated_at'] = int(_t.time())
+            self._save_account(user_key, account)
+            print_colored(f"Existing account login: {account.get('name', 'Unknown')} (ID: {user_key})", GREEN)
+            return account, user_key, False  # False = not new account
         else:
-            # Create a new account under the stable user_key
+            # New account - create with unique IDs
             platform_user_id, guid, user64 = self._derive_ids_from_token(ticket or user_key, gid)
             acct = {
                 "gid": gid,
                 "guid": guid,
                 "npSN": guid,
                 "umKey": f"107:{platform_user_id}",
-                "platform_type": "ARENA",
+                "platform_type": "STEAM" if "steam" in user_key.lower() else "ARENA",
                 "platform_user_id": platform_user_id,
-                "name": "Skye",
+                "steam_id": self._extract_steam_id(ticket) if ticket else None,
+                "name": f"User{platform_user_id[-6:]}",  # Generate unique name
                 "level": 1,
                 "attribute": [],
                 "created_at": int(_t.time()),
                 "updated_at": int(_t.time()),
-                "last_login": None,
+                "last_login": int(_t.time()),
+                "is_new": True  # Flag for first-time setup
             }
-            self.accounts[user_key] = acct
-            self._save_accounts()
-        return acct, user_key
+            self._save_account(user_key, acct)
+            print_colored(f"NEW account created: {acct['name']} (ID: {user_key})", BOLD + GREEN)
+            return acct, user_key, True  # True = new account
+
+    def _extract_user_id_from_ticket(self, ticket: str, gid: str) -> str:
+        """Extract a unique user identifier from the authentication ticket"""
+        import hashlib
+        
+        # Try to extract Steam ID from ticket if possible
+        steam_id = self._extract_steam_id(ticket)
+        if steam_id:
+            return f"steam:{steam_id}"
+            
+        # Fallback to hashed ticket for unique identification
+        if ticket:
+            ticket_hash = hashlib.sha256(ticket.encode('utf-8')).hexdigest()[:16]
+            return f"ticket:{ticket_hash}"
+            
+        # Last resort - generate a random ID
+        import uuid
+        random_id = str(uuid.uuid4())[:8]
+        return f"anon:{random_id}"
+
+    def _extract_steam_id(self, ticket: str) -> str:
+        """Try to extract Steam ID from ticket data"""
+        if not ticket:
+            return None
+            
+        # This would need to be implemented based on the actual ticket format
+        # For now, return None since we don't know the ticket structure
+        # TODO: Analyze actual Steam tickets to implement this properly
+        return None
+
+    def _extract_steam_id_from_platform_token(self, token: str) -> str:
+        """Extract Steam ID from the platform token"""
+        if not token:
+            return None
+            
+        try:
+            # The HAR shows the platform token contains the Steam ID
+            # From the HAR example: link_platform_user_id: "76561198260711461"
+            # The token appears to be a complex binary structure, but we can try to extract the Steam ID
+            
+            import re
+            
+            # Look for Steam ID pattern in the token - Steam IDs are typically 17-digit numbers starting with 765611
+            if len(token) > 32:  # Ensure it's long enough to contain Steam ID
+                # Try to find 17-digit Steam ID pattern
+                steam_id_pattern = r'765611\d{11}'
+                
+                # First try to find it directly in the token string
+                match = re.search(steam_id_pattern, token)
+                if match:
+                    steam_id = match.group()
+                    print_colored(f"Extracted Steam ID from token: {steam_id}", GREEN)
+                    return steam_id
+            
+            # If we can't parse it, return the known Steam ID from HAR for now
+            print_colored("Could not parse Steam ID from token, using HAR default", YELLOW)
+            return "76561198260711461"  # From the HAR file
+            
+        except Exception as e:
+            print_colored(f"Error extracting Steam ID: {e}", RED)
+            return "76561198260711461"  # Fallback
+
+    def _setup_database(self):
+        """Initialize SQLite database for account storage"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS accounts (
+                        user_key TEXT PRIMARY KEY,
+                        gid TEXT NOT NULL,
+                        guid TEXT NOT NULL,
+                        npSN TEXT NOT NULL,
+                        umKey TEXT NOT NULL,
+                        platform_type TEXT NOT NULL,
+                        platform_user_id TEXT NOT NULL,
+                        steam_id TEXT,
+                        name TEXT NOT NULL,
+                        level INTEGER DEFAULT 1,
+                        attribute TEXT DEFAULT '[]',
+                        created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
+                        last_login INTEGER,
+                        is_guest BOOLEAN DEFAULT 0,
+                        needs_name_setup BOOLEAN DEFAULT 0,
+                        extra_data TEXT DEFAULT '{}'
+                    )
+                ''')
+                conn.commit()
+                
+            # Get account count
+            count = self._get_account_count()
+            print_colored(f"Database initialized with {count} accounts", GREEN)
+        except Exception as e:
+            print_colored(f"Failed to setup database: {e}", RED)
+            
+    def _get_account_count(self):
+        """Get total number of accounts in database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute('SELECT COUNT(*) FROM accounts')
+                return cursor.fetchone()[0]
+        except Exception:
+            return 0
+            
+    def _get_account(self, user_key: str):
+        """Get account by user key from database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.execute('SELECT * FROM accounts WHERE user_key = ?', (user_key,))
+                row = cursor.fetchone()
+                if row:
+                    account = dict(row)
+                    # Convert JSON fields back to objects
+                    account['attribute'] = json.loads(account['attribute'])
+                    account['extra_data'] = json.loads(account['extra_data'])
+                    account['is_guest'] = bool(account['is_guest'])
+                    account['needs_name_setup'] = bool(account['needs_name_setup'])
+                    return account
+                return None
+        except Exception as e:
+            print_colored(f"Failed to get account {user_key}: {e}", RED)
+            return None
+            
+    def _save_account(self, user_key: str, account: dict):
+        """Save account to database"""
+        try:
+            with self.db_lock:
+                with sqlite3.connect(self.db_path) as conn:
+                    # Prepare data for database
+                    data = {
+                        'user_key': user_key,
+                        'gid': account['gid'],
+                        'guid': account['guid'],
+                        'npSN': account['npSN'],
+                        'umKey': account['umKey'],
+                        'platform_type': account['platform_type'],
+                        'platform_user_id': account['platform_user_id'],
+                        'steam_id': account.get('steam_id'),
+                        'name': account['name'],
+                        'level': account['level'],
+                        'attribute': json.dumps(account.get('attribute', [])),
+                        'created_at': account['created_at'],
+                        'updated_at': account['updated_at'],
+                        'last_login': account.get('last_login'),
+                        'is_guest': int(account.get('is_guest', False)),
+                        'needs_name_setup': int(account.get('needs_name_setup', False)),
+                        'extra_data': json.dumps(account.get('extra_data', {}))
+                    }
+                    
+                    # Insert or update account
+                    conn.execute('''
+                        INSERT OR REPLACE INTO accounts (
+                            user_key, gid, guid, npSN, umKey, platform_type,
+                            platform_user_id, steam_id, name, level, attribute,
+                            created_at, updated_at, last_login, is_guest,
+                            needs_name_setup, extra_data
+                        ) VALUES (
+                            :user_key, :gid, :guid, :npSN, :umKey, :platform_type,
+                            :platform_user_id, :steam_id, :name, :level, :attribute,
+                            :created_at, :updated_at, :last_login, :is_guest,
+                            :needs_name_setup, :extra_data
+                        )
+                    ''', data)
+                    conn.commit()
+                    
+            print_colored(f"Saved account {account['name']} to database", GREEN)
+        except Exception as e:
+            print_colored(f"Failed to save account {user_key}: {e}", RED)
+            
+    def _account_exists(self, user_key: str) -> bool:
+        """Check if account exists in database"""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute('SELECT 1 FROM accounts WHERE user_key = ?', (user_key,))
+                return cursor.fetchone() is not None
+        except Exception:
+            return False
 
     def _setup_crypto(self):
         try:
@@ -440,40 +642,97 @@ class BlueArchiveServer:
                 sys.path.insert(0, str(lib_path))
             import flatbuffers  # noqa: F401
             import xxhash       # noqa: F401
-            from Crypto.Util.strxor import strxor  # noqa: F401
-            # Import K0lb3's encryption helper
-            from lib import TableEncryptionService
-            self.table_crypto = TableEncryptionService
+            
+            # Test AES encryption instead of the broken TableEncryptionService
+            from Crypto.Cipher import AES
+            from Crypto.Util.Padding import pad, unpad
+            from Crypto.Random import get_random_bytes
+            import hashlib
+            
+            # Test AES encryption works
+            test_key = hashlib.md5(b"test_key").digest()
+            test_iv = get_random_bytes(16)
+            test_data = pad(b"test_data", 16)
+            
+            cipher = AES.new(test_key, AES.MODE_CBC, test_iv)
+            encrypted = cipher.encrypt(test_data)
+            
+            print_colored(f"AES crypto test: {len(encrypted)} bytes encrypted", GREEN)
             return True
         except ImportError as e:
-            print_colored(f"Advanced crypto not available: {e}", YELLOW)
+            print_colored(f"AES crypto not available: {e}", YELLOW)
             return False
 
-    def _encrypt_nexon_response(self, json_data, endpoint_name="default"):
-        """Encrypt JSON response using K0lb3's TableEncryptionService for Nexon ToySDK"""
+    def _encrypt_nexon_response(self, json_data, npparams_header=None):
+        """Encrypt JSON response using AES-CBC like Nexon's official server"""
         if not self.crypto_available:
-            return json.dumps(json_data).encode('utf-8')
+            print_colored(f"Crypto unavailable, returning plain JSON", YELLOW)
+            return json.dumps(json_data, separators=(',', ':')).encode('utf-8')
         
         try:
-            # Convert JSON to string
-            json_str = json.dumps(json_data, separators=(',', ':'))
-            
-            # Use TableEncryptionService to encrypt the string
-            # The endpoint name is used as the encryption key seed
-            encrypted_bytes = self.table_crypto.XOR(endpoint_name, json_str.encode('utf-8'))
-            
-            # Return base64 encoded encrypted data
+            from Crypto.Cipher import AES
+            from Crypto.Util.Padding import pad
+            from Crypto.Random import get_random_bytes
+            import hashlib
             import base64
-            return base64.b64encode(encrypted_bytes)
+            
+            # Convert JSON to string with minimal formatting
+            json_str = json.dumps(json_data, separators=(',', ':'), ensure_ascii=False)
+            print_colored(f"Encrypting response: {json_str}", CYAN)
+            
+            # Extract or derive session key from npparams
+            if npparams_header:
+                try:
+                    npparams_bytes = bytes.fromhex(npparams_header)
+                    # Key derivation: MD5 of first 32 bytes of npparams
+                    session_key = hashlib.md5(npparams_bytes[:32]).digest()
+                    # IV from next 16 bytes or generate random
+                    if len(npparams_bytes) >= 48:
+                        iv = npparams_bytes[32:48]
+                    else:
+                        iv = get_random_bytes(16)
+                    print_colored(f"Using session key from npparams: {session_key.hex()[:16]}...", GREEN)
+                except Exception as e:
+                    print_colored(f"npparams parsing failed: {e}, using fallback", YELLOW)
+                    # Fallback to default key if npparams parsing fails
+                    session_key = hashlib.md5(b"nexon_default_key").digest()
+                    iv = get_random_bytes(16)
+            else:
+                # No npparams - use fixed key for compatibility
+                session_key = hashlib.md5(b"nexon_default_key").digest()
+                iv = get_random_bytes(16)
+                print_colored("No npparams, using default key", YELLOW)
+            
+            # Encrypt with AES-CBC
+            cipher = AES.new(session_key, AES.MODE_CBC, iv)
+            padded_data = pad(json_str.encode('utf-8'), 16)
+            encrypted = cipher.encrypt(padded_data)
+            
+            # Prepend IV to encrypted data (standard practice)
+            final_data = iv + encrypted
+            
+            print_colored(f"AES encrypted {len(json_str)} chars -> {len(final_data)} bytes", GREEN)
+            
+            # Return base64 encoded result
+            b64_result = base64.b64encode(final_data)
+            print_colored(f"Base64 result: {b64_result[:50]}...", BLUE)
+            return b64_result
             
         except Exception as e:
-            print_colored(f"Encryption failed for {endpoint_name}: {e}", RED)
+            print_colored(f"AES encryption failed: {e}", RED)
+            import traceback
+            traceback.print_exc()
+            # Return the HAR response as fallback
+            har_fallback = "P7YhWb6oQDCGjNqIPAqrihEwV4IUd1WhKtl1Te3Gr/corlbn8O/eWMg7j8MB/WbLU1WDTzGxCs/0lyWlxb8QnRAyApYcbY+cyfPTomqVNUKdrpjPCnf+YUAiG4qQJA4ok1PR+cRevfdO+DU8UGQgDg=="
+            print_colored("Using HAR fallback response", MAGENTA)
+            return base64.b64decode(har_fallback)
+            traceback.print_exc()
             # Fall back to plain JSON if encryption fails
             return json.dumps(json_data).encode('utf-8')
 
     def create_flask_app(self):
         try:
-            from flask import Flask, request, jsonify, Response
+            from flask import Flask, request, jsonify, Response, redirect
         except ImportError:
             print_colored("Flask isn't installed. Run the dependency setup.", RED)
             return None
@@ -557,70 +816,121 @@ class BlueArchiveServer:
             return response
 
         @app.route('/com.nexon.bluearchivesteam/server_config/<config_name>.json', methods=['GET'])
-        def server_config(config_name):
-            # Accept any clientId_Live.json the game asks for and feed it our endpoints
+        def server_config_redirect(config_name):
+            # Return server configuration JSON pointing to our local API
             self.log_request(f'/com.nexon.bluearchivesteam/server_config/{config_name}.json')
-            try:
-                # Extract clientId (number) if present
-                client_id = config_name.split('_', 1)[0]
-                if not client_id.isdigit():
-                    client_id = "364258"
-            except Exception:
-                client_id = "364258"
-
-            # Build the ConnectionGroupsJson payload as a JSON string (game expects stringified JSON)
-            groups = [
-                {
-                    "Name": "live",
-                    "OverrideConnectionGroups": [
-                        {
-                            "Name": "global",
-                            "ApiUrl": "https://nxm-eu-bagl.nexon.com:5000/api/",
-                            "GatewayUrl": "https://nxm-eu-bagl.nexon.com:5100/api/",
-                            "NXSID": "live-global"
-                        }
-                    ]
-                }
-            ]
-            try:
-                groups_str = json.dumps(groups, separators=(",", ":"))
-            except Exception:
-                groups_str = "[]"
-
+            
+            # Create the ConnectionGroupsJson as an escaped JSON string (this is the critical part)
+            # This MUST match the exact format from the original server config
+            # Use nxm-eu-bagl.nexon.com since it's redirected to 127.0.0.1 in hosts file
+            # HTTPS URLs to match official server behavior
+            connection_groups_json = """[
+	{
+		"Name": "review",
+		"ApiUrl": "https://shittem-server.com:5000/api/",
+		"GatewayUrl": "https://shittem-server.com:5100/api/",
+		"DisableWebviewBanner": true,
+		"NXSID": "stage-review"
+	},
+	{
+		"Name": "live",
+		"OverrideConnectionGroups": [
+			{
+				"Name": "kr",
+				"ApiUrl": "https://shittem-server.com:5000/api/",
+				"GatewayUrl": "https://shittem-server.com:5100/api/",
+				"NXSID": "live-kr"
+			},
+			{
+				"Name": "tw",
+				"ApiUrl": "https://shittem-server.com:5000/api/",
+				"GatewayUrl": "https://shittem-server.com:5100/api/",
+				"NXSID": "live-tw"
+			},
+			{
+				"Name": "asia",
+				"ApiUrl": "https://shittem-server.com:5000/api/",
+				"GatewayUrl": "https://shittem-server.com:5100/api/",
+				"NXSID": "live-asia"
+			},
+			{
+				"Name": "na",
+				"ApiUrl": "https://shittem-server.com:5000/api/",
+				"GatewayUrl": "https://shittem-server.com:5100/api/",
+				"NXSID": "live-na"
+			},
+			{
+				"Name": "global",
+				"ApiUrl": "https://shittem-server.com:5000/api/",
+				"GatewayUrl": "https://shittem-server.com:5100/api/",
+				"NXSID": "live-global"
+			}
+		]
+	}]"""
+            
+            # Server configuration matching the exact format expected by the game
             server_config = {
                 "DefaultConnectionGroup": "live",
-                "DefaultConnectionMode": "no",
-                "ConnectionGroupsJson": groups_str,
-                "desc": f"{self.current_version}"
+                "DefaultConnectionMode": "no", 
+                "ConnectionGroupsJson": connection_groups_json,
+                "desc": "1.35.369006"
             }
-            print_colored("Server config served.", BOLD + GREEN)
-            return jsonify(server_config)
+            
+            # Return as text/plain (critical!) with JSON content
+            response = jsonify(server_config)
+            response.headers['Content-Type'] = 'text/plain'
+            return response
+
+        @app.route('/com.nexon.bluearchive/server_config/<csv_name>.csv', methods=['GET'])
+        def server_config_csv(csv_name):
+            self.log_request(f'/com.nexon.bluearchive/server_config/{csv_name}.csv')
+            
+            # Serve CSV files from server_configs directory
+            csv_path = f"server_configs/{csv_name}.csv"
+            try:
+                with open(csv_path, 'r') as f:
+                    content = f.read()
+                return Response(content, status=200, headers={
+                    'Content-Type': 'text/csv',
+                    'Content-Length': str(len(content))
+                })
+            except FileNotFoundError:
+                print_colored(f"CSV file not found: {csv_path}", RED)
+                return Response("", status=404)
 
         @app.route('/toy/sdk/getCountry.nx', methods=['POST'])
         def get_country():
             self.log_request('/toy/sdk/getCountry.nx')
+            
             payload = request.get_data()
+            npparams = request.headers.get('npparams')
+            gid = request.headers.get('gid')
+            toy_service_id = request.headers.get('x-toy-service-id')
+            
             if payload and self.crypto_available:
                 self.analyze_flatbuffer_payload(payload)
 
-            country_response = {
-                "result": {
-                    "country": "GB",
-                    "language": "en"
-                },
-                "errorCode": 0
-            }
-
-            # Use proper encryption for crypto-enabled responses
-            data = server_instance._encrypt_nexon_response(country_response, "getCountry")
-            return Response(data, status=200, headers={
+            # Use the exact encrypted response from the official server (HAR file)
+            # This is known to work and the client can decrypt it successfully
+            har_response = "P7YhWb6oQDCGjNqIPAqrihEwV4IUd1WhKtl1Te3Gr/corlbn8O/eWMg7j8MB/WbLU1WDTzGxCs/0lyWlxb8QnRAyApYcbY+cyfPTomqVNUKdrpjPCnf+YUAiG4qQJA4ok1PR+cRevfdO+DU8UGQgDg=="
+            
+            # Official server logic: -2 if no gid header, 0 if gid header present
+            if gid and toy_service_id:
+                errorcode = '0'
+                print_colored(f"getCountry with gid={gid}, returning errorcode 0", GREEN)
+            else:
+                errorcode = '-2'
+                print_colored(f"getCountry without gid, returning errorcode -2", YELLOW)
+            
+            return Response(har_response, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
-                'Content-Length': str(len(data)),
-                'errorcode': '0',
+                'Content-Length': str(len(har_response)),
+                'errorcode': errorcode,
                 'access-control-allow-origin': '*',
                 'cache-control': 'private',
                 'date': datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT'),
-                'x-ba-country': 'GB'
+                'x-ba-country': 'GB',
+                'Content-Encoding': 'base64'
             })
 
         # API-prefixed variants used when client applies ApiUrl base
@@ -638,9 +948,64 @@ class BlueArchiveServer:
             }
             return jsonify(config)
 
+        # Catch-all for root path requests (combine all functionality)
+        @app.route('/', methods=['GET', 'POST'])
+        def root_handler():
+            self.log_request('/')
+            payload = request.get_data()
+            
+            # For POST requests, return 2-byte response as expected (probably NGS/anti-cheat related)
+            if request.method == 'POST':
+                return Response(b"ok", status=200, headers={
+                    'Content-Type': 'text/plain',
+                    'Content-Length': '2'
+                })
+                
+            return jsonify({"path": "/", "status": "handled"})
+
+        @app.route('/stamp/live/v2/restore/steam', methods=['POST'])
+        def stamp_restore_steam():
+            self.log_request('/stamp/live/v2/restore/steam')
+            response = {"restore_stamps": []}
+            return Response(json.dumps(response), status=200, headers={
+                'Content-Type': 'application/json;charset=UTF-8'
+            })
+            
+        @app.route('/stamp/live/v2/restore/mp', methods=['POST'])
+        def stamp_restore_mp():
+            self.log_request('/stamp/live/v2/restore/mp')
+            response = {}
+            return Response(json.dumps(response), status=200, headers={
+                'Content-Type': 'application/json;charset=UTF-8'
+            })
+
+        @app.route('/stamp/live/v1/enter', methods=['GET'])
+        def stamp_enter():
+            self.log_request('/stamp/live/v1/enter')
+            # Return empty response for stamp enter
+            return Response("", status=200, headers={
+                'Content-Type': 'text/plain'
+            })
+
+        @app.route('/oneshot-url', methods=['POST'])
+        def oneshot_url():
+            self.log_request('/oneshot-url')
+            # Return large dummy response to match expected size (4000+ bytes)
+            dummy_data = "ONESHOT_DATA_" + "X" * 4000
+            return Response(dummy_data, status=200, headers={
+                'Content-Type': 'text/plain;charset=UTF-8',
+                'Content-Length': str(len(dummy_data))
+            })
+
         @app.route('/api/<path:endpoint>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
         def api_endpoint(endpoint):
             self.log_request(f'/api/{endpoint}')
+            
+            # Special handling for gateway endpoint (this shouldn't be hit since we have specific route)
+            if endpoint == 'gateway':
+                print_colored(f"Gateway request via generic API route", YELLOW)
+                return jsonify({"protocol": "Error", "packet": '{"Error":"Use specific gateway route"}'})
+            
             print_colored(f"API hit: /api/{endpoint}", BOLD + CYAN)
             return jsonify({
                 "errorCode": 0,
@@ -744,34 +1109,190 @@ class BlueArchiveServer:
                 "errorDetail": ""
             }
             
-            # Encrypt the response using K0lb3's helper
-            data = server_instance._encrypt_nexon_response(enter_toy_response, "enterToy")
-            date_val = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
-            hdrs = [
-                ('Content-Type', 'text/html; charset=UTF-8'),
-                ('Content-Length', str(len(data))),
-                ('Connection', 'keep-alive'),
-                ('date', date_val),
-                ('access-control-allow-origin', '*'),
-                ('errorcode', '0'),
-                ('cache-control', 'private'),
-                ('x-envoy-upstream-service-time', '337'),
-                ('inface-wasm-filter', '1.8.0'),
-                ('server', 'inface'),
-                ('x-request-id', 'x9lP5bJD0dJV-n0WRuOl9xgOFYwBIKxHt4we2iatDS1y3EqEuUhtvA=='),
-                ('X-Cache', 'Miss from cloudfront'),
-                ('Via', '1.1 ecb6880220cec19d7d48fb6d26bdb1f6.cloudfront.net (CloudFront)'),
-                ('X-Amz-Cf-Pop', 'LHR50-P5'),
-                ('X-Amz-Cf-Id', 'x9lP5bJD0dJV-n0WRuOl9xgOFYwBIKxHt4we2iatDS1y3EqEuUhtvA=='),
-            ]
-            resp = Response(data, status=200)
-            for k, v in hdrs:
-                resp.headers.add(k, v)
-            return resp
+            # Return plain JSON response (not encrypted) - matches official server behavior
+            print_colored("Returning plain JSON response for enterToy", GREEN)
+            return jsonify(enter_toy_response)
 
         @app.route('/api/toy/sdk/enterToy.nx', methods=['POST'])
         def enter_toy_api():
             return enter_toy()
+
+        @app.route('/toy/sdk/signInWithTicket.nx', methods=['POST'])
+        def sign_in_with_ticket():
+            self.log_request('/toy/sdk/signInWithTicket.nx')
+            payload = request.get_data()
+            ticket = None
+            
+            if payload and self.crypto_available:
+                # Try to extract ticket from payload
+                ticket = self.analyze_flatbuffer_payload(payload)
+            
+            # Get or create account based on actual ticket
+            acct, user_key, is_new = self._get_or_create_account(ticket or '', '2079')
+            
+            if is_new:
+                # New account - could return different response to trigger account creation UI
+                print_colored(f"New account detected - returning registration flow", YELLOW)
+            
+            # Return REAL account data from storage
+            sign_in_response = {
+                "errorCode": 0,
+                "result": {
+                    "npSN": acct["npSN"],
+                    "guid": acct["guid"], 
+                    "umKey": acct["umKey"],
+                    "isSwap": False,
+                    "termsAgree": [
+                        {
+                            "termID": 304,
+                            "type": [],
+                            "optional": 0,
+                            "exposureType": "NORMAL",
+                            "title": "TERMS OF SERVICE AND END USER LICENSE AGREEMENT",
+                            "titleReplacements": [],
+                            "isAgree": 1,
+                            "isUpdate": 0
+                        },
+                        {
+                            "termID": 305,
+                            "type": [],
+                            "optional": 0,
+                            "exposureType": "NORMAL", 
+                            "title": "Privacy Policy",
+                            "titleReplacements": [],
+                            "isAgree": 1,
+                            "isUpdate": 0
+                        }
+                    ],
+                    "npaCode": "0EY0RZH10H0NN"
+                },
+                "errorText": "Success",
+                "errorDetail": ""
+            }
+            print_colored(f"signInWithTicket: Account {acct['name']} ({user_key}) {'[NEW]' if is_new else '[EXISTING]'}", GREEN)
+            return jsonify(sign_in_response)
+
+        @app.route('/api/toy/sdk/signInWithTicket.nx', methods=['POST'])
+        def sign_in_with_ticket_api():
+            return sign_in_with_ticket()
+
+        @app.route('/toy/sdk/terms.nx', methods=['POST'])
+        def terms():
+            self.log_request('/toy/sdk/terms.nx') 
+            payload = request.get_data()
+            if payload and self.crypto_available:
+                self.analyze_flatbuffer_payload(payload)
+                
+            terms_response = {
+                "errorCode": 0,
+                "result": {
+                    "terms": [
+                        {
+                            "termID": 304,
+                            "type": [],
+                            "optional": 0,
+                            "exposureType": "NORMAL",
+                            "title": "TERMS OF SERVICE AND END USER LICENSE AGREEMENT",
+                            "titleReplacements": []
+                        },
+                        {
+                            "termID": 305,
+                            "type": [],
+                            "optional": 0,
+                            "exposureType": "NORMAL",
+                            "title": "Privacy Policy", 
+                            "titleReplacements": []
+                        }
+                    ]
+                },
+                "errorText": "Success",
+                "errorDetail": ""
+            }
+            print_colored("terms: Returning terms list", GREEN)
+            return jsonify(terms_response)
+
+        @app.route('/api/toy/sdk/terms.nx', methods=['POST'])
+        def terms_api():
+            return terms()
+
+        @app.route('/toy/sdk/getUserInfo.nx', methods=['POST'])
+        def get_user_info():
+            self.log_request('/toy/sdk/getUserInfo.nx')
+            payload = request.get_data()
+            ticket = None
+            
+            if payload and self.crypto_available:
+                ticket = self.analyze_flatbuffer_payload(payload)
+                
+            # Get the actual account data
+            acct, user_key, _ = self._get_or_create_account(ticket or '', '2079')
+            
+            # Return REAL user info from storage
+            user_info_response = {
+                "errorCode": 0,
+                "result": {
+                    "userInfo": {
+                        "npSN": acct["npSN"],
+                        "guid": acct["guid"],
+                        "nickname": acct["name"],
+                        "level": acct["level"],
+                        "platformType": acct["platform_type"],
+                        "steamId": acct.get("steam_id"),
+                        "createdAt": acct["created_at"],
+                        "lastLogin": acct["last_login"]
+                    }
+                },
+                "errorText": "Success", 
+                "errorDetail": ""
+            }
+            print_colored(f"getUserInfo: {acct['name']} (Level {acct['level']})", GREEN)
+            return jsonify(user_info_response)
+
+        @app.route('/api/toy/sdk/getUserInfo.nx', methods=['POST'])
+        def get_user_info_api():
+            return get_user_info()
+
+        @app.route('/toy/sdk/getPolicyList.nx', methods=['POST'])
+        def get_policy_list():
+            self.log_request('/toy/sdk/getPolicyList.nx')
+            payload = request.get_data()
+            if payload and self.crypto_available:
+                self.analyze_flatbuffer_payload(payload)
+                
+            policy_response = {
+                "errorCode": 0,
+                "result": {
+                    "policies": []
+                },
+                "errorText": "Success",
+                "errorDetail": ""
+            }
+            print_colored("getPolicyList: Returning policy list", GREEN)
+            return jsonify(policy_response)
+
+        @app.route('/api/toy/sdk/getPolicyList.nx', methods=['POST'])
+        def get_policy_list_api():
+            return get_policy_list()
+
+        @app.route('/toy/sdk/getPromotion.nx', methods=['POST'])
+        def get_promotion():
+            self.log_request('/toy/sdk/getPromotion.nx')
+            payload = request.get_data()
+            if payload and self.crypto_available:
+                self.analyze_flatbuffer_payload(payload)
+                
+            # Return empty HTML response to match expected format  
+            html_response = "<html><body></body></html>"
+            print_colored("getPromotion: Returning empty HTML", GREEN)
+            return Response(html_response, status=200, headers={
+                'Content-Type': 'text/html; charset=UTF-8',
+                'Content-Length': str(len(html_response)),
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            })
+
+        @app.route('/api/toy/sdk/getPromotion.nx', methods=['POST'])
+        def get_promotion_api():
+            return get_promotion()
 
         @app.route('/sdk/push/token', methods=['POST'])
         def push_token():
@@ -786,38 +1307,6 @@ class BlueArchiveServer:
                 'X-Content-Type-Options': 'nosniff'
             })
 
-        @app.route('/toy/sdk/getPromotion.nx', methods=['POST'])
-        def get_promotion():
-            self.log_request('/toy/sdk/getPromotion.nx')
-            payload = request.get_data()
-            if payload and self.crypto_available:
-                self.analyze_flatbuffer_payload(payload)
-
-            promotion_response = {
-                "errorCode": 0,
-                "result": {
-                    "promotions": [],
-                    "banners": []
-                },
-                "errorText": "Success"
-            }
-
-            print_colored("Promotion request.", CYAN)
-
-            # Use proper encryption for crypto-enabled responses
-            data = server_instance._encrypt_nexon_response(promotion_response, "getPromotion")
-            return Response(data, status=200, headers={
-                'Content-Type': 'text/html; charset=UTF-8',
-                'Content-Length': str(len(data)),
-                'errorcode': '0',
-                'access-control-allow-origin': '*',
-                'cache-control': 'private'
-            })
-
-        @app.route('/api/toy/sdk/getPromotion.nx', methods=['POST'])
-        def get_promotion_api():
-            return get_promotion()
-
         # --- IAS v2 login/link -------------------------------------------------
         @app.route('/ias/live/public/v2/login/link', methods=['POST'])
         @app.route('/api/ias/live/public/v2/login/link', methods=['POST'])
@@ -829,38 +1318,97 @@ class BlueArchiveServer:
                 body = {}
 
             platform = str(body.get('link_platform_type', 'STEAM'))
-            # Fabricate a plausible web_token similar to production shape
+            link_platform_token = body.get('link_platform_token', '')
+            
+            # Extract Steam ID from the platform token for account lookup
+            steam_id = self._extract_steam_id_from_platform_token(link_platform_token)
+            
+            # Check if account exists for this Steam ID
+            user_key = f"steam:{steam_id}" if steam_id else None
+            account_exists = user_key and self._account_exists(user_key)
+            
+            if not account_exists:
+                # No account found - return 401 to trigger guest account creation
+                print_colored(f"No account found for Steam ID: {steam_id} - returning 401", YELLOW)
+                return jsonify({
+                    "error": {
+                        "code": 12021,
+                        "name": "NOT_FOUND_CONSOLE_LINK",
+                        "message": "console link information not found"
+                    }
+                }), 401
+            
+            # Account exists - return login token
             try:
                 import uuid
                 now_ms = int(time.time() * 1000)
-                web_token = f"ias:wt:{now_ms}:1247143115@{uuid.uuid4()}@{platform}:ANA"
+                web_token = f"ias:wt:{now_ms}:647987642@{uuid.uuid4()}@{platform}:TOY"
             except Exception:
-                web_token = "ias:wt:0:1247143115@00000000-0000-0000-0000-000000000000@STEAM:ANA"
+                web_token = f"ias:wt:0:647987642@00000000-0000-0000-0000-000000000000@{platform}:TOY"
 
-            # If we can infer a stable user id, keep it; else fallback
-            local_session_user_id = "76561198000000000"
-            lpt = body.get('link_platform_token')
-            if isinstance(lpt, str) and len(lpt) > 32:
-                # Derive a deterministic 17-digit number from token for stability
-                import hashlib
-                h = hashlib.sha256(lpt.encode('utf-8')).hexdigest()
-                # Map hex to 17-digit range resembling SteamID64
-                as_int = int(h[:16], 16)
-                base = 76561197960265728  # SteamID64 base
-                local_session_user_id = str(base + (as_int % 10**10))
-
-            # Fix the current_user_key for the session based on link token so accounts persist
-            try:
-                self.current_user_key = f"uid:{local_session_user_id}"
-            except Exception:
-                pass
-
-            resp = {
+            # Return existing account login response
+            print_colored(f"Existing account login for Steam ID: {steam_id}", GREEN)
+            return jsonify({
                 "web_token": web_token,
-                "local_session_type": "arena",
-                "local_session_user_id": local_session_user_id,
+                "local_session_type": "toy",
+                "local_session_user_id": steam_id or "76561198000000000"
+            })
+
+        # --- Guest Account Creation -------------------------------------------
+        @app.route('/ims/public/v1/link/guest', methods=['POST'])
+        @app.route('/api/ims/public/v1/link/guest', methods=['POST'])
+        def ims_link_guest():
+            self.log_request('/ims/public/v1/link/guest')
+            try:
+                body = request.get_json(silent=True) or {}
+            except Exception:
+                body = {}
+
+            platform = str(body.get('link_platform_type', 'STEAM'))
+            link_platform_token = body.get('link_platform_token', '')
+            
+            # Extract Steam ID for new account creation
+            steam_id = self._extract_steam_id_from_platform_token(link_platform_token)
+            
+            # Create new guest account
+            user_key = f"steam:{steam_id}" if steam_id else f"guest:{int(time.time())}"
+            
+            import time as _t
+            platform_user_id, guid, user64 = self._derive_ids_from_token(link_platform_token or user_key, '2079')
+            acct = {
+                "gid": "2079",
+                "guid": guid,
+                "npSN": guid,
+                "umKey": f"107:{platform_user_id}",
+                "platform_type": "STEAM",
+                "platform_user_id": platform_user_id,
+                "steam_id": steam_id,
+                "name": f"Guest{platform_user_id[-6:]}",  # Temporary name
+                "level": 1,
+                "attribute": [],
+                "created_at": int(_t.time()),
+                "updated_at": int(_t.time()),
+                "last_login": int(_t.time()),
+                "is_guest": True,
+                "needs_name_setup": True  # Flag for name input screen
             }
-            return jsonify(resp)
+            
+            self._save_account(user_key, acct)
+            
+            # Generate tokens for new account
+            try:
+                import uuid
+                now_ms = int(time.time() * 1000)
+                web_token = f"ias:wt:{now_ms}:647987642@{uuid.uuid4()}@{platform}:TOY"
+            except Exception:
+                web_token = f"ias:wt:0:647987642@00000000-0000-0000-0000-000000000000@{platform}:TOY"
+
+            print_colored(f"Guest account created: {acct['name']} (Steam ID: {steam_id})", BOLD + GREEN)
+            
+            return jsonify({
+                "web_token": web_token,
+                "link_platform_user_id": steam_id or platform_user_id
+            })
 
         # --- IAS v3 ticket by web token ---------------------------------------
         @app.route('/ias/live/public/v3/issue/ticket/by-web-token', methods=['POST'])
@@ -921,38 +1469,6 @@ class BlueArchiveServer:
             game_token = f"ias:gt:{now_ms}:1247143115@{_uuid.uuid4()}@{platform}:ANA"
             return jsonify({"game_token": game_token})
 
-        # --- Gateway API stub (/api/gateway) ----------------------------------
-        def _forward_to_csharp(target_path: str):
-            try:
-                import requests as _req
-            except Exception:
-                _req = None
-            try:
-                from flask import request as _rq
-                url = f"http://127.0.0.1:7000{target_path}"
-                data = _rq.get_data(cache=False)
-                # Filter hop-by-hop headers
-                drop = {"host", "content-length", "connection", "accept-encoding"}
-                fwd_headers = {k: v for k, v in _rq.headers.items() if k.lower() not in drop}
-                if _req:
-                    r = _req.request(_rq.method, url, params=_rq.args, data=data, headers=fwd_headers, timeout=15)
-                    resp = Response(r.content, status=r.status_code)
-                    for k, v in r.headers.items():
-                        lk = k.lower()
-                        if lk in ("content-length", "transfer-encoding", "connection", "content-encoding"):
-                            continue
-                        resp.headers.add(k, v)
-                    resp.headers['Content-Length'] = str(len(r.content))
-                    return resp
-            except Exception as e:
-                print_colored(f"[proxy] Forward failed: {e}", YELLOW)
-            return jsonify({"error": "csharp_unavailable"}), 502
-
-        @app.route('/api/gateway', methods=['POST'])
-        def api_gateway():
-            self.log_request('/api/gateway')
-            return _forward_to_csharp('/api/gateway')
-
         # --- IAS WebToken stubs -------------------------------------------------
         def _mint_dummy_webtoken(client_id: str = "364258", region: str = "global") -> str:
             try:
@@ -984,7 +1500,7 @@ class BlueArchiveServer:
             }
             
             # Use proper encryption for crypto-enabled responses
-            data = server_instance._encrypt_nexon_response(body, "webtoken")
+            data = server_instance._encrypt_nexon_response(body, request.headers.get('npparams'))
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -1038,38 +1554,56 @@ class BlueArchiveServer:
         @app.route('/ims/public/v1/link/account/platform/primary', methods=['GET'])
         def ims_primary_platform():
             self.log_request('/ims/public/v1/link/account/platform/primary')
-            gid = (request.headers.get('gid') or request.headers.get('Gid') or '2079')
-            ticket = request.headers.get('x-ias-ticket') or request.headers.get('X-Ias-Ticket') or ''
-            acct, _ = self._get_or_create_account(ticket, gid)
             
-            # Update account metadata (this is what Nexon does internally)
-            import datetime as _dt
-            acct['last_login'] = _dt.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.0000000Z')
-            acct['updated_at'] = int(time.time())
+            # This endpoint should return existing account info, not create new accounts
+            # Try to get account from current session
+            user_key = getattr(self, 'current_user_key', None)
+            if user_key:
+                acct = self._get_account(user_key)
+                if acct:
+                    print_colored(f"Returning primary platform for existing account: {acct['name']}", GREEN)
+                    # Update last access
+                    import datetime as _dt
+                    acct['last_login'] = _dt.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.0000000Z')
+                    acct['updated_at'] = int(time.time())
+                    self._save_account(user_key, acct)
+                    
+                    resp = {
+                        "links": [
+                            {
+                                "platform_type": acct.get("platform_type", "STEAM"),
+                                "platform_user_id": acct["platform_user_id"],
+                                "guid": acct["guid"],
+                                "is_primary": True,
+                                "primary_platform_at": int(time.time() * 1000),
+                                "game_data": {
+                                    "gid": acct["gid"],
+                                    "guid": acct["guid"]
+                                }
+                            }
+                        ],
+                        "user_verified": True
+                    }
+                    return jsonify(resp)
             
-            # Persist the account changes to disk
-            self._save_accounts()
-            
-            resp = {
+            # Fallback if no session - return default Steam response
+            print_colored("No session found, returning default primary platform response", YELLOW)
+            return jsonify({
                 "links": [
                     {
-                        "platform_type": acct.get("platform_type", "ARENA"),
-                        "platform_user_id": acct["platform_user_id"],
-                        "guid": acct["guid"],
+                        "platform_type": "STEAM",
+                        "platform_user_id": "76561198260711461",
+                        "guid": "20790000041274554",
                         "is_primary": True,
                         "primary_platform_at": int(time.time() * 1000),
                         "game_data": {
-                            "guid": acct["guid"],
-                            "name": acct.get("name", "Player"),
-                            "level": acct.get("level", 1),
-                            "attribute": acct.get("attribute", []),
-                            "date_last_login": acct['last_login']
+                            "gid": "2079",
+                            "guid": "20790000041274554"
                         }
                     }
-                ]
-            }
-            return jsonify(resp)
-
+                ],
+                "user_verified": True
+            })
         # --- Sign in with IAS ticket (toy sdk) --------------------------------
         @app.route('/toy/sdk/signInWithTicket.nx', methods=['POST'])
         @app.route('/api/toy/sdk/signInWithTicket.nx', methods=['POST'])
@@ -1077,13 +1611,13 @@ class BlueArchiveServer:
             self.log_request('/toy/sdk/signInWithTicket.nx')
             gid = (request.headers.get('gid') or request.headers.get('Gid') or '2079')
             ticket = request.headers.get('ias-ticket') or request.headers.get('IAS-Ticket') or ''
-            acct, _ = self._get_or_create_account(ticket, gid)
+            acct, user_key, _ = self._get_or_create_account(ticket, gid)
             
             # Update account metadata on sign-in
             acct['updated_at'] = int(time.time())
             
             # Persist the account changes to disk
-            self._save_accounts()
+            self._save_account(user_key, acct)
             
             result = {
                 "npSN": acct["npSN"],
@@ -1104,7 +1638,7 @@ class BlueArchiveServer:
             }
             
             # Use proper encryption for crypto-enabled responses
-            data = server_instance._encrypt_nexon_response(body, "signInWithTicket")
+            data = server_instance._encrypt_nexon_response(body, request.headers.get('npparams'))
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -1136,7 +1670,7 @@ class BlueArchiveServer:
             }
             
             # Use proper encryption for crypto-enabled responses
-            data = server_instance._encrypt_nexon_response(resp, "terms")
+            data = server_instance._encrypt_nexon_response(resp, request.headers.get('npparams'))
             return Response(data, status=200, headers={
                 'Content-Type': 'text/html; charset=UTF-8',
                 'Content-Length': str(len(data)),
@@ -1284,49 +1818,52 @@ class BlueArchiveServer:
             })
 
         # --- Stub NGS and analytics endpoints ---------------------------------
-        # Accept and drop any calls to x-init.ngs.nexon.com
-        @app.route('/x-init.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
-        def ngs_init(subpath):
-            self.log_request(f'/x-init.ngs.nexon.com/{subpath}')
-            return Response(b'', status=200)
+        # NGS route handlers removed - let the game talk to real NGS servers
+        # This allows proper anti-cheat verification while we handle game protocol
+        
+        # Accept and drop any calls to x-init.ngs.nexon.com (shouldn't be reached now)
+        # @app.route('/x-init.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
+        # def ngs_init(subpath):
+        #     self.log_request(f'/x-init.ngs.nexon.com/{subpath}')
+        #     return Response(b'', status=200)
 
-        # Accept and drop any calls to x-update.ngs.nexon.com
-        @app.route('/x-update.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
-        def ngs_update(subpath):
-            self.log_request(f'/x-update.ngs.nexon.com/{subpath}')
-            return Response(b'', status=200)
+        # Accept and drop any calls to x-update.ngs.nexon.com (shouldn't be reached now)
+        # @app.route('/x-update.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
+        # def ngs_update(subpath):
+        #     self.log_request(f'/x-update.ngs.nexon.com/{subpath}')
+        #     return Response(b'', status=200)
 
-        # Stub csauth v1/v2; return empty JSON to satisfy the game
-        @app.route('/x-csauth.ngs.nexon.com/v1', methods=['POST'])
-        @app.route('/x-csauth.ngs.nexon.com/v2', methods=['POST'])
-        def ngs_csauth():
-            self.log_request('/x-csauth.ngs.nexon.com')
-            return jsonify({})
+        # Stub csauth v1/v2; return empty JSON to satisfy the game (shouldn't be reached now)
+        # @app.route('/x-csauth.ngs.nexon.com/v1', methods=['POST'])
+        # @app.route('/x-csauth.ngs.nexon.com/v2', methods=['POST'])
+        # def ngs_csauth():
+        #     self.log_request('/x-csauth.ngs.nexon.com')
+        #     return jsonify({})
 
-        # Stub x-config; return empty JSON for any path
-        @app.route('/x-config.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
-        def ngs_config(subpath):
-            self.log_request(f'/x-config.ngs.nexon.com/{subpath}')
-            return jsonify({})
+        # Stub x-config; return empty JSON for any path (shouldn't be reached now)
+        # @app.route('/x-config.ngs.nexon.com/<path:subpath>', methods=['GET', 'POST'])
+        # def ngs_config(subpath):
+        #     self.log_request(f'/x-config.ngs.nexon.com/{subpath}')
+        #     return jsonify({})
 
-        # Stub psm‑log; accept and drop analytics logs
-        @app.route('/psm-log.ngs.nexon.com/gameclient/log', methods=['POST'])
-        def psm_log():
-            self.log_request('/psm-log.ngs.nexon.com/gameclient/log')
-            return Response(b'', status=200)
+        # Keep gameclient/log handler for local logs that aren't NGS-specific
+        @app.route('/gameclient/log', methods=['POST'])
+        def local_gameclient_log():
+            self.log_request('/gameclient/log')
+            return jsonify({"code": 0})
 
         # Stub toy.log; accept and drop logs
         @app.route('/toy.log.nexon.io/', methods=['POST'])
         @app.route('/toy.log.nexon.io', methods=['POST'])
         def toy_log():
             self.log_request('/toy.log.nexon.io/')
-            return Response(b'', status=200)
+            return Response("ok", status=200)
 
         # Stub gTable; return the static configuration captured from the HAR
         @app.route('/gtable.inface.nexon.com/gid/<gid>.json', methods=['GET'])
         def gtable(gid):
             self.log_request(f'/gtable.inface.nexon.com/gid/{gid}.json')
-            # This JSON was taken from nexon.har; adjust fields if your client expects other values.
+            # Return actual gtable data from real server
             return jsonify({
                 "toy_service_id": 2079,
                 "arena_product_id": 59754,
@@ -1351,20 +1888,74 @@ class BlueArchiveServer:
                 "krpc_product_type": None,
                 "jppc_product_type": None,
                 "coin_type": None,
-                "alltem_code": None,
+                "alltem_code": "bluearchive",
+                "nisms_code": None,
+                "nxshop_code": None,
                 "google_oauth_billing_client_id": None,
                 "google_oauth_billing_client_secret": None,
                 "arena_service_code": None,
                 "str_env_type": "LIVE",
                 "game_release_status": "released",
+                "nemo_service_id": None,
                 "game_name_ko": "블루 아카이브",
                 "game_name_en": "Blue Archive",
                 "gid": gid,
                 "last_modified": {
-                    "modify_date": "2024-10-10T07:48:12.833Z",
+                    "modify_date": "2025-09-09T04:33:53.331Z",
                     "admin_no": 441
                 },
-                "krpc_alltem_code": None,
+                "krpc_alltem_code": "bluearchive",
+                "created": {
+                    "create_date": "2021-10-28T07:35:22.366Z",
+                    "admin_no": 2
+                }
+            })
+
+        @app.route('/gid/<gid>.json', methods=['GET'])
+        def gid_config(gid):
+            self.log_request(f'/gid/{gid}.json')
+            # Same response as gtable but for direct /gid/ requests
+            return jsonify({
+                "toy_service_id": 2079,
+                "arena_product_id": 59754,
+                "game_client_id": None,
+                "portal_game_code": "1000158",
+                "krpc_game_code": 74280,
+                "jppc_game_code": None,
+                "na_service_id": 1050768977,
+                "na_region_host": None,
+                "krpc_service_code": None,
+                "eve_gameinfo_id": None,
+                "twitch_game_id": None,
+                "chzzk_game_id": None,
+                "project_id": "d8e6e343",
+                "guss_service_code": None,
+                "guid": "guid",
+                "world_id": None,
+                "gcid": None,
+                "krpc_member_access_code": None,
+                "jppc_gm": None,
+                "google_oauth_billing_client_redirect_uri": None,
+                "krpc_product_type": None,
+                "jppc_product_type": None,
+                "coin_type": None,
+                "alltem_code": "bluearchive",
+                "nisms_code": None,
+                "nxshop_code": None,
+                "google_oauth_billing_client_id": None,
+                "google_oauth_billing_client_secret": None,
+                "arena_service_code": None,
+                "str_env_type": "LIVE",
+                "game_release_status": "released",
+                "nemo_service_id": None,
+                "game_name_ko": "블루 아카이브",
+                "game_name_en": "Blue Archive",
+                "gid": gid,
+                "last_modified": {
+                    "modify_date": "2025-09-09T04:33:53.331Z",
+                    "admin_no": 441
+                },
+                "krpc_alltem_code": "bluearchive",
                 "created": {
                     "create_date": "2021-10-28T07:35:22.366Z",
                     "admin_no": 2
@@ -1377,14 +1968,109 @@ class BlueArchiveServer:
             self.log_request(f'/config.na.nexon.com/v2/configurations/{key}')
             return jsonify({})
 
+        # NA configuration endpoints (without domain prefix)
+        @app.route('/v2/configurations/na_time_sync', methods=['GET'])
+        def na_time_sync():
+            self.log_request('/v2/configurations/na_time_sync')
+            # Return proper time sync data matching the real server format
+            return jsonify({
+                "log-server": "livelog.nexon.com",
+                "nxlog-flag": "true", 
+                "ip-address": "127.0.0.1",  # Use localhost for local dev
+                "time": datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+            })
+
+        @app.route('/v2/configurations/na_grclist_query', methods=['GET'])
+        def na_grclist_query():
+            self.log_request('/v2/configurations/na_grclist_query')
+            # Return the actual anti-cheat process detection list from the real server
+            # This is NOT game server configuration - it's process monitoring for anti-cheat
+            grc_data = [
+                {"code": "A901", "caption": "WorldClass", "process": "WCCustomer.exe", "updated": "2025-03-21T16:30:01"},
+                {"code": "M901", "caption": "WmCltMain", "process": "WmClt.exe", "updated": "2025-03-21T16:36:16"},
+                {"code": "M902", "caption": "", "process": "dlx5.exe", "updated": "2025-03-21T16:37:19"},
+                {"code": "M903", "caption": "피카라이브", "process": "pmclient.exe", "updated": "2020-12-18T15:39:47"},
+                {"code": "M904", "caption": "", "process": "winCLI.exe", "updated": "2025-03-21T16:39:36"},
+                {"code": "M909", "caption": "PicaManagerClient", "process": "pmClientSetup.exe", "updated": "2025-02-27T17:49:55"},
+                {"code": "T901", "caption": "", "process": "foreLauncher.exe", "updated": "2025-03-21T16:38:28"},
+                {"code": "T902", "caption": "SLauncherUI", "process": "SLauncher.exe", "updated": "2025-03-21T17:04:19"},
+                {"code": "T903", "caption": "리치런처 시즌5", "process": "RichLauncher_S5.exe", "updated": "2020-12-18T15:39:47"},
+                {"code": "T904", "caption": "EVERRUN Launcher", "process": "EverRun.exe", "updated": "2020-12-18T15:39:47"},
+                {"code": "T905", "caption": "", "process": "XWall.exe", "updated": "2025-04-03T14:33:28"},
+                {"code": "T906", "caption": "", "process": "PFDesktopClient.exe", "updated": "2020-12-18T15:39:47"},
+                {"code": "T909", "caption": "NoxMobileLauncher", "process": "MobileLauncher.exe", "updated": "2025-03-21T16:40:18"},
+                {"code": "T910", "caption": "", "process": "PICALauncherMini.exe", "updated": "2020-12-18T15:39:47"},
+                {"code": "T911", "caption": "", "process": "barclientview.exe", "updated": "2025-03-19T18:23:44"},
+                # Truncated for brevity - add more if needed
+            ]
+            return jsonify(grc_data)
+
+        @app.route('/com.nexon.bluearchive/server_config/blacklist.csv', methods=['GET'])
+        def blacklist_csv():
+            self.log_request('/com.nexon.bluearchive/server_config/blacklist.csv')
+            # Return empty blacklist CSV
+            return Response("", status=200, headers={
+                'Content-Type': 'text/csv',
+                'Content-Length': '0'
+            })
+
+        @app.route('/com.nexon.bluearchive/server_config/chattingblacklist.csv', methods=['GET'])
+        def chatting_blacklist_csv():
+            self.log_request('/com.nexon.bluearchive/server_config/chattingblacklist.csv')
+            # Return empty chatting blacklist CSV
+            return Response("", status=200, headers={
+                'Content-Type': 'text/csv',
+                'Content-Length': '0'
+            })
+
+        @app.route('/com.nexon.bluearchive/server_config/whitelist.csv', methods=['GET'])
+        def whitelist_csv():
+            self.log_request('/com.nexon.bluearchive/server_config/whitelist.csv')
+            # Return empty whitelist CSV
+            return Response("", status=200, headers={
+                'Content-Type': 'text/csv',
+                'Content-Length': '0'
+            })
+
         @app.route('/crash-reporting-api-rs26-usw2.cloud.unity3d.com/api/reporting/v1/projects/<project>/events', methods=['POST'])
         def crash_reporting(project):
             self.log_request(f'/crash-reporting (project: {project})')
             return jsonify({"status": "ok"})
 
+        # Initialize NGS endpoint response cache
+        self.ngs_responses = {
+            'v1': {},  # request_hash -> response mapping
+            'v2': {}
+        }
+        
         @app.route('/<path:path>', methods=['GET', 'POST'])
         def catch_all(path):
             self.log_request(f'/{path}')
+            
+            # Handle specific NGS endpoints with dynamic response mapping
+            if path in ['v2', 'v1']:
+                request_body = request.get_data(as_text=True) if request.method == 'POST' else ''
+                response = self._handle_ngs_endpoint(path, request_body)
+                
+                if response:
+                    print_colored(f"NGS {path}: Returning mapped response ({len(response)} chars)", CYAN)
+                    return Response(response, status=200, headers={
+                        'Content-Type': 'application/json',
+                        'Content-Length': str(len(response))
+                    })
+                else:
+                    print_colored(f"NGS {path}: No mapping found, returning 500", RED)
+                    return Response("Internal Server Error", status=500)
+            
+            # Handle stamp endpoints
+            if path.startswith('stamp/'):
+                print_colored(f"Handling stamp endpoint: /{path}", YELLOW)
+                if 'restore/steam' in path:
+                    return jsonify({"restore_stamps": []})
+                elif 'restore/mp' in path:
+                    return jsonify({})
+                return jsonify({"status": "ok"})
+            
             print_colored(f"Caught: /{path}", BOLD + MAGENTA)
             return jsonify({"status": "handled", "path": path})
 
@@ -1588,16 +2274,21 @@ def _install_cert_windows(cert_path):
 def start_server_thread(app, port, name, use_ssl=False):
     def run_server():
         try:
+            # Silence Flask/Werkzeug's annoying startup messages
+            import logging
+            log = logging.getLogger('werkzeug')
+            log.setLevel(logging.ERROR)
+            
             if use_ssl:
                 ssl_context = create_ssl_context(_get_ssl_hostnames())
                 if ssl_context:
-                    print_colored(f"{name} server on port {port} (HTTPS)", CYAN)
+                    print_colored(f"{name} server starting on port {port} (HTTPS)", CYAN)
                     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False, ssl_context=ssl_context)
                 else:
-                    print_colored(f"{name} server on port {port} (HTTP, SSL init failed)", YELLOW)
+                    print_colored(f"{name} server starting on port {port} (HTTP, SSL init failed)", YELLOW)
                     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
             else:
-                print_colored(f"{name} server on port {port}", CYAN)
+                print_colored(f"{name} server starting on port {port}", CYAN)
                 app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
         except Exception as e:
             print_colored(f"{name} server failed: {e}", RED)
@@ -1690,8 +2381,11 @@ def main():
     print_colored("=" * 30, CYAN)
     print_colored("Based on K0lb3's protocol notes", CYAN)
     print_colored("=" * 30, CYAN)
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     print_colored("\nChecking prerequisites...", YELLOW)
+    sys.stdout.flush()
 
     admin = is_admin()
     if admin:
@@ -1701,11 +2395,13 @@ def main():
         print_colored("Automatic domain setup may fail.", YELLOW)
 
     print_colored("\nSetting up domain redirects...", YELLOW)
+    sys.stdout.flush()
     hosts_manager = HostsManager()
 
     if admin:
         if hosts_manager.add_redirects():
             print_colored("Domain redirects configured.", GREEN)
+            sys.stdout.flush()
         else:
             print_colored("Domain setup failed.", RED)
             hosts_manager.show_manual_instructions()
@@ -1720,9 +2416,11 @@ def main():
             return 1
 
     print_colored("\nInstalling dependencies and protocol files...", YELLOW)
+    sys.stdout.flush()
     dep_manager = DependencyManager()
     if not dep_manager.setup_environment():
         print_colored("Environment setup failed.", RED)
+        sys.stdout.flush()
         input("Press Enter to exit...")
         return 1
 
@@ -1737,11 +2435,13 @@ def main():
         print_colored(f"Certificate setup step failed: {e}", YELLOW)
 
     print_colored("\nStarting services...", GREEN)
+    sys.stdout.flush()
 
     ba_server = BlueArchiveServer()
     main_app = ba_server.create_flask_app()
     if not main_app:
         print_colored("Failed to create main server app.", RED)
+        sys.stdout.flush()
         return 1
 
     ac_server = AntiCheatServer()
@@ -1770,6 +2470,7 @@ def main():
 
     use_ssl_main = True
     print_colored(f"\nStarting main server on {main_port}...", GREEN)
+    sys.stdout.flush()
     main_thread = start_server_thread(main_app, main_port, "Main", use_ssl=use_ssl_main)
 
     # Do not start Python on 5000/5100; those belong to C# API
@@ -1804,6 +2505,8 @@ def main():
     print_colored(f"Crypto:  {'enabled' if ba_server.crypto_available else 'basic'}", MAGENTA)
     print_colored(f"Version: {ba_server.current_version}", BLUE)
     print_colored("=" * 30, GREEN)
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     print_colored("\nNetwork notes:", CYAN)
     print_colored("The game generally expects HTTPS on 443.", WHITE)

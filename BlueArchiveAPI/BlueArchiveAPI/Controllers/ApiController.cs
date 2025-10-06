@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Xml;
@@ -12,11 +13,12 @@ using System.Xml;
 namespace BlueArchiveAPI.Controllers
 {
     [ApiController]
+    [Route("api")]
     public class ApiController : ControllerBase
     {
         private readonly ILogger<ApiController> _logger;
         private const string API_URL = "https://nxm-tw-bagl.nexon.com:5000/api";
-        private const string GATEWAY_URL = "https://nxm-tw-bagl.nexon.com:5100/api";
+        private const string GATEWAY_URL = "https://localhost:5100/api";
 
         private static readonly HttpClient _client = new HttpClient();
 
@@ -44,6 +46,28 @@ namespace BlueArchiveAPI.Controllers
             return proto1;
         }
         
+        [HttpPost("gateway")]
+        public async Task<ActionResult> GatewayApiRoot()
+        {
+            _logger.LogInformation($"gateway: root endpoint hit");
+            
+            // Check if this is a multipart request with 'mx' field (like the game sends)
+            if (Request.HasFormContentType && Request.Form.Files.Any(f => f.Name == "mx"))
+            {
+                var mxFile = Request.Form.Files.First(f => f.Name == "mx");
+                _logger.LogInformation($"gateway: received mx file, {mxFile.Length} bytes");
+                
+                // For now, return a dummy response - this needs to be properly implemented
+                return Ok(new { 
+                    protocol = "Account_Auth", 
+                    packet = "{\"Protocol\":1001,\"ServerTimeTicks\":638927945000000000}" 
+                });
+            }
+            
+            // Fallback for other request types
+            return BadRequest("Invalid gateway request format");
+        }
+
         [HttpPost("gateway/{path1}/{path2}")]
         public async Task<ActionResult> GatewayApi(string path1, string path2,
             [FromForm] string protocol, [FromForm] bool encode, [FromForm] string packet)

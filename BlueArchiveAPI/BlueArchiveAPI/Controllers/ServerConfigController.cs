@@ -31,7 +31,7 @@ namespace BlueArchiveAPI.Controllers
                     {
                         Name = "stage-review",
                         ApiUrl = $"http://{Request.Host}/api/",
-                        GatewayUrl = $"http://{Request.Host}/gateway/",
+                        GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                         DisableWebviewBanner = true,
                     },
                     new ConnectionGroup
@@ -43,31 +43,31 @@ namespace BlueArchiveAPI.Controllers
                             {
                                 Name = "tw",
                                 ApiUrl = $"http://{Request.Host}/api/",
-                                GatewayUrl = $"http://{Request.Host}/gateway/",
+                                GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                             },
                             new ConnectionGroup()
                             {
                                 Name = "asia",
                                 ApiUrl = $"http://{Request.Host}/api/",
-                                GatewayUrl = $"http://{Request.Host}/gateway/",
+                                GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                             },
                             new ConnectionGroup()
                             {
                                 Name = "na",
                                 ApiUrl = $"http://{Request.Host}/api/",
-                                GatewayUrl = $"http://{Request.Host}/gateway/",
+                                GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                             },
                             new ConnectionGroup()
                             {
                                 Name = "global",
                                 ApiUrl = $"http://{Request.Host}/api/",
-                                GatewayUrl = $"http://{Request.Host}/gateway/",
+                                GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                             },
                             new ConnectionGroup()
                             {
                                 Name = "kr",
                                 ApiUrl = $"http://{Request.Host}/api/",
-                                GatewayUrl = $"http://{Request.Host}/gateway/",
+                                GatewayUrl = "https://nxm-eu-bagl.nexon.com:5100/api/gateway/",
                             },
                         }
                     }

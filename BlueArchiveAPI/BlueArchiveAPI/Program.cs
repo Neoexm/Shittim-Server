@@ -1,20 +1,18 @@
-using BlueArchiveAPI;
-using BlueArchiveAPI.Controllers;
 using BlueArchiveAPI.Handlers;
 using BlueArchiveAPI.Models;
-using BlueArchiveAPI.NetworkModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.X509Certificates;
+
+#nullable enable
 
 HandlerManager.Initialize();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<BAContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("BAContext")));
 
 builder.Services.AddResponseCompression(options =>
 {
@@ -22,75 +20,71 @@ builder.Services.AddResponseCompression(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// Configure HTTPS with self-signed certificate
-var certPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "certs", "selfsigned_cert.pem");
-var keyPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "certs", "selfsigned_key.pem");
+// Configure HTTPS endpoints with certificate
+var certPath = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__Path");
+var keyPath = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__KeyPath");
 
-if (File.Exists(certPath) && File.Exists(keyPath))
-{
-    // Convert PEM to X509Certificate2
-    var cert = CreateCertificateFromPem(certPath, keyPath);
-    if (cert != null)
-    {
-        builder.WebHost.ConfigureKestrel(options =>
-        {
-            // HTTPS on port 5000 with our certificate
-            options.ListenAnyIP(5000, listenOptions =>
-            {
-                listenOptions.UseHttps(cert);
-            });
-            // HTTPS on port 5100 with our certificate
-            options.ListenAnyIP(5100, listenOptions =>
-            {
-                listenOptions.UseHttps(cert);
-            });
-        });
-        Console.WriteLine("✓ Using self-signed certificate for HTTPS on port 5100");
-    }
-    else
-    {
-        Console.WriteLine("✗ Failed to load certificate, using default configuration");
-    }
-}
-else
-{
-    Console.WriteLine($"✗ Certificate files not found at {certPath} or {keyPath}");
-    Console.WriteLine("✗ Using default HTTP configuration");
-}
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
-app.UseResponseCompression();
-
-// Add health endpoint for Python server to check if C# API is running
-app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "BlueArchiveAPI" }));
-
-app.MapControllers();
-
-// app.UseMiddleware<BodyMiddleware>();
-
-app.Run();
-
-static X509Certificate2? CreateCertificateFromPem(string certPath, string keyPath)
+if (!string.IsNullOrEmpty(certPath) && !string.IsNullOrEmpty(keyPath) && 
+    File.Exists(certPath) && File.Exists(keyPath))
 {
     try
     {
         var certPem = File.ReadAllText(certPath);
         var keyPem = File.ReadAllText(keyPath);
         
-        // Create certificate from PEM strings
         var cert = X509Certificate2.CreateFromPem(certPem, keyPem);
         
-        // Export and re-import to ensure private key is properly associated
-        var pfxBytes = cert.Export(X509ContentType.Pkcs12);
-        return new X509Certificate2(pfxBytes);
+        var exportableCert = new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+        
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Listen(System.Net.IPAddress.Any, 5000, listenOptions =>
+            {
+                listenOptions.UseHttps(exportableCert);
+            });
+            options.Listen(System.Net.IPAddress.Any, 5100, listenOptions =>
+            {
+                listenOptions.UseHttps(exportableCert);
+            });
+        });
+        Console.WriteLine($"✓ Using HTTPS on ports 5000 & 5100 (IPv4) with cert: {Path.GetFileName(certPath)}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"✗ Error loading certificate: {ex.Message}");
-        return null;
+        Console.WriteLine($"✗ Failed to load certificate: {ex.Message}");
+        Console.WriteLine("✓ Falling back to HTTP on ports 5000 & 5100");
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Listen(System.Net.IPAddress.Any, 5000); // HTTP API server
+            options.Listen(System.Net.IPAddress.Any, 5100); // HTTP Gateway server
+        });
     }
 }
+else
+{
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Listen(System.Net.IPAddress.Any, 5000); // HTTP API server
+        options.Listen(System.Net.IPAddress.Any, 5100); // HTTP Gateway server
+    });
+    Console.WriteLine("✓ Using HTTP on ports 5000 & 5100 (IPv4, no SSL - cert not found)");
+}
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseResponseCompression();
+app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "BlueArchiveAPI" }));
+app.MapControllers();
+app.UseAuthorization();
+
+app.Run();
