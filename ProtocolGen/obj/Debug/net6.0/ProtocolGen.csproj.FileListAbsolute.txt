@@ -1,0 +1,5 @@
+C:\Users\tomda\Documents\Shittim-Server\BlueArchiveAPI\ProtocolGen\obj\Debug\net6.0\ProtocolGen.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tomda\Documents\Shittim-Server\BlueArchiveAPI\ProtocolGen\obj\Debug\net6.0\ProtocolGen.AssemblyInfoInputs.cache
+C:\Users\tomda\Documents\Shittim-Server\BlueArchiveAPI\ProtocolGen\obj\Debug\net6.0\ProtocolGen.AssemblyInfo.cs
+C:\Users\tomda\Documents\Shittim-Server\BlueArchiveAPI\ProtocolGen\obj\Debug\net6.0\ProtocolGen.csproj.CoreCompileInputs.cache
+C:\Users\tomda\Documents\Shittim-Server\BlueArchiveAPI\ProtocolGen\obj\Debug\net6.0\ProtocolGen.sourcelink.json
