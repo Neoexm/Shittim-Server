@@ -22,5 +22,8 @@ namespace BlueArchiveAPI.Models
         public bool NeedsNameSetup { get; set; } = false;
         public string ExtraData { get; set; } = "{}";
         public bool IsNew { get; set; } = true;
+        public int RepresentCharacterServerId { get; set; } = 9;
+        public DateTime LastConnectTime { get; set; } = DateTime.UtcNow;
+        public DateTime CreateDate { get; set; } = DateTime.UtcNow;
     }
 }

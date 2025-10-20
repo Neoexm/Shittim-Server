@@ -47,6 +47,7 @@ public class AccountAuthResponse : ResponsePacket, IResponse<AccountAuthRequest>
     public long CurrentVersion;
     public long MinimumVersion;
     public bool IsDevelopment;
+    public bool BattleValidation;
     public bool UpdateRequired;
     public string TTSCdnUri;
     public AccountDB AccountDB;
@@ -62,6 +63,8 @@ public class AccountAuthResponse : ResponsePacket, IResponse<AccountAuthRequest>
     public List<ParcelInfo> WeeklyProductMail;
     public string EncryptedUID;
     public List<AccountBanByNexonDB> accountBanByNexonDBs;
+    public AccountRestrictionsDB AccountRestrictionsDB;
+    public List<IssueAlertInfoDB> IssueAlertInfos;
 }
 
 public class AccountCurrencySyncResponse : ResponsePacket, IResponse<AccountCurrencySyncRequest>
@@ -2255,7 +2258,7 @@ public class QueuingGetTicketResponse : ResponsePacket, IResponse<QueuingGetTick
     public string EnterTicket;
     public long TicketSequence;
     public long AllowedSequence;
-    public double RequiredSecondsPerUser;
+    public long RequiredSecondsPerUser;
     public string Birth;
     public string ServerSeed;
 }

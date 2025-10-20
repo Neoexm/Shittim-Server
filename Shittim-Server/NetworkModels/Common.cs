@@ -80,6 +80,25 @@ public class AttendanceHistoryDB
     public bool Expired;
 }
 
+public class AccountRestrictionsDB
+{
+    public bool NicknameRestriction;
+    public bool CommentRestriction;
+    public bool CallnameRestriction;
+}
+
+public class IssueAlertInfoDB
+{
+    public int IssueAlertId;
+    public int IssueAlertType;
+    public DateTime StartDate;
+    public DateTime EndDate;
+    public byte DisplayOrder;
+    public int PublishId;
+    public string Url;
+    public string Subject;
+}
+
 public class OpenConditionDB
 {
     public OpenConditionContent ContentType;
@@ -1043,6 +1062,17 @@ public enum OpenConditionContent
     Tactic_Skip = 44,
     Mulligan = 45,
     EventPermanent = 46,
+    Main_L_1_2 = 47,
+    Main_L_1_3 = 48,
+    Main_L_1_4 = 49,
+    EliminateRaid = 50,
+    Cafe_2 = 51,
+    Cafe_Invite_2 = 52,
+    MultiFloorRaid = 53,
+    StrategySkip = 54,
+    MinigameDreamMaker = 55,
+    MiniGameDefense = 56,
+    MiniGameCCG = 57,
 }
 
 public class ConquestTileDB

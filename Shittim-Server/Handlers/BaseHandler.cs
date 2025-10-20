@@ -21,13 +21,21 @@ namespace BlueArchiveAPI.Handlers
 
         public async Task<byte[]> Handle(string packet)
         {
-            var req = JsonConvert.DeserializeObject<TRequest>(
-                Utils.DecryptRequestPacket(packet));
+            var req = JsonConvert.DeserializeObject<TRequest>(packet);
             
             ResponsePacket res = await Handle(req);
             
             res.ServerTimeTicks = DateTime.Now.Ticks;
             res.SessionKey ??= req.SessionKey;
+            
+            if (res.AccountId == 0 && req.SessionKey != null)
+            {
+                res.AccountId = req.SessionKey.AccountServerId;
+            }
+            else if (res.AccountId == 0)
+            {
+                res.AccountId = req.AccountId;
+            }
 
             return Utils.EncryptResponsePacket(res, ResponseProtocol);
         }

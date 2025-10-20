@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Shittim-Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+687665fecc877687a4aa84c65c32beb6a90bf4d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd204c1edead67b81acf4ac89dbf027a0f26a48e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Shittim-Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Shittim-Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
