@@ -14,6 +14,7 @@ using BlueArchiveAPI.NetworkModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace BlueArchiveAPI
 {
@@ -176,9 +177,14 @@ namespace BlueArchiveAPI
             NullValueHandling = NullValueHandling.Ignore
         };
         
+        private static readonly JsonSerializerSettings packetSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+        
         public static byte[] EncryptResponsePacket<TResponse>(TResponse packet, Protocol proto) where TResponse : ResponsePacket
         {
-            var spacket = new ServerPacket(proto, JsonConvert.SerializeObject(packet, Formatting.None, settings));
+            var spacket = new ServerPacket(proto, JsonConvert.SerializeObject(packet, Formatting.None, packetSettings));
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spacket));
         }
 

@@ -1,25 +1,18 @@
-﻿using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI.NetworkModels;
+using System.Text;
 
 namespace BlueArchiveAPI.Handlers
 {
-    public static class Queuing
+    public class Queuing : BaseHandler<QueuingGetTicketRequest, QueuingGetTicketResponse>
     {
-        public class GetTicket : BaseHandler<QueuingGetTicketRequest, QueuingGetTicketResponse>
+        protected override async Task<QueuingGetTicketResponse> Handle(QueuingGetTicketRequest request)
         {
-            private const string SERVER_SEED =
-                "64288BDCmz868r6:zF0SSi2t#7ITFdhFU@r@VaB@ytXt(T<80rr91Svg(}s3v[oB^Ug8(@NeZ}kEYA5CN+e-(C1!8i3AhTk]s?+nwL*>!+}wSa8pH1XdAX*0eLf70}vpqrcVSh)OjY3DZkQ+(35:Phip@zs1)a(BW%xc%*rKVS}I&y{!eAeNS(V-X*v-Nm!zyqOR9)B#l07@A3$:y!{%-g0U))(Cj:AbHvklr&WL*w0rF/M]RyKqWbwNV->t>G{BN(^5B5shQYS66t$ZA}iQmm8JJ1&a$)Tl?m6EGR@fjHa?nQzmrbg*jTIb^G$kvQ6:k=RNFEr1Y<1:n:)R1/TTe*r:LpVytkAu>)AsV69rZRtS?zbw6M]7vhnaVfT4q3XTHhfuo2$XYM4?P*TVrFnCZ[PRA$OvleI[3{a2f&VW@5@M[7hQ9g?(hj($xkR=$At0j0%.qxoX-B!B2Joq?qSrF$ZrjbB%Ei*-d!&{I!9]?i.J9IHiHz^FyRseMy[&-t}+g{#D.YI<ROw=!g8eE2>nOSHq>qZ>.h%[cDons0mQu<AmO1krP49=g1tes#L4}*:MG:*.<?W!p<ao[#J@@5?)N18gkQjy4iJ((*i]cB8.fqz$@[/ka!-&Yxh8GshY4eyHDFZ0Ktar5ShkriL5g1/vzLW%dgA#rhmH^aOkt=6KkB8IN8-6Y&mTD9&<e39+.oRyURbbnLg254X{W9wawm8O*lvH4er.)aud:AFIom>]J&y(oa0<ar(RN-5KTMjg5{iE4tb-D:bQx*>BSXVD0ZgUe&v#kT*L[Hl]CtBr3ZPmtB?53EHStL&11s.1bq.<Rq9qwD4Wt3Uns][u&B+9SF$c?fzXYSZ)2ChWPtMi}KmzoNuS}T.A>M)K@M[nk]om1zF-O+j&Ip08GISvY/Mixe)zb$[ZBx)xzf=?0G([RXqHrXTpI=(WRrTh2w./Bg>@+j3pXb1pEL!tKSF:?gKh1bA5e+ubL^!zyWF[m}Gd5D>d-#>8j9](@U(sQsO!tmp^]s[qZaVl(lD6[9hdw[3!d73ikK?E9tChz=qUr7tN6:]ywm?YInh>b>8K3}R^1Rivj*f.YXg{sBse:!/8]2z81.RAAbrX7yU%.w0oiYuXnvVjbzcR2iE5WVy&*4(TR9h8Xkrq^9KQYaWA<y!@HJbQTyZ*SU@T5[FbY=H>XS=>{P)%Ydb4phQZ.VeL+KfhcJ7aHKFTD=k=-[g7R.)&3K?S5?}KfS:p1MFGlULYKDhlq{NpBe>IrAQmk]m(nT&b.jZ}%sN<5Pam)O>K>$oW-VY0Bqw-%IvR{5Hj0Ede/+Va9^-+W)*lx+7Z>yh]eeHUQ{zE9:bu=mj47HbB5g9TBmKMma<c5w&v1=XN4iS>x]u4TSW/n=@[&n:KksEb[)=^lnqgw?[%&qSe@J$XIS(>fExJn8#qE6]QBuhI!qtQnA[TTmBk:6[tq-}4^extM8a*L$4HUm^(]=uuaEDPZl%=G6qkAe9^#fpO*w&Lu!9?C/Fb8x>){6$[.jsR/gfj0jdeJ6j]@d(1H/ZDvu]A11S/.mV<uUN(YIUE3=FLyyX6c]gyjBTW[E>VQT<.=ZrRwE/DxE@wXSq(Z8VpkrGs(4:U-Po4lj]Xch}A6jes8d50rfcWrnn*[(vzMjcT-^tR7IeGL.V2#O/j9Rv#8Q4pqIP8/:foFx%WK[tsO4Myf7}mBW.ziJ:{$*-k?e/Y-cHlTMS!<?26PMPaZgCVzt6krwDafam]@of^WmQ)]&fZLF.uNp2:h%hi*WFJF]Phyg-Zg8v[OP0?e9+?MD}JzuCC4g8I0YKAJhfVQjR!VC(4nd[?e<i6)k2=64^x0i[LzB*kj${i(m:hg2E9gU3PjkBOE<d&(cmfd0)#>rdHC^!NzTqA(4Dt:*-hJoLh6QuTHXW}/uvvWQ+EHD3m+]--NdMjpjKUIyHAGHhv0tMhan5[i]GC@grWTFo+M9j^qmx$8PLm}S7^FLa/OZYE{icy=:B=)?xg}9Ah?5HQ:<&WrxGyGyEqKoZ5hp#!(PGyT)UNeKI@wSGP$fVf)hxN]PvfjIo[($)J(dArTa=vU6yV?:9Ih{n@Ai#1r9U}x5pdu!7bOaB}RYf0?6G:WimZ>F>9={zJbwK4eBFcypsl6KRoo.pg5Clx9kK/sFC$NNBkAe24g=Vzm{!t7WW*d5G=>+eJV4/K$]+PudYtUA=Fl^4Qqt95G%^Gm5]TQ/e}yKLb>-aLj8?oVgi/qfUPWjStjVa@hI*5mnZCXb!07A&cUC2s#J/$c26O@p]Q]SBwhGZDCMQr0VQC9Vj$#/cvM/b}wNV[1&#TuEgz.oSGk?3PT9l]Bc]!+&?.XE>EBZ7YOtoO)wm%yNzg&I:lRd-%nyRTf.mzA:[)m$bdi)]o-JF2PSXAj.)%EQAwQ*!!6NYGSG]T[6+HB=MhQkchhI-[^Gd9&aQKCujXUuOF]1dR8}!sM1G5=OGUIjf@%=h+nTU*i^9x/5fruH?KUchJEu5{WZim)-n8e3rjXCh5c&UY0go6+PD+lrHMTpQ}9z]KO--Y69<OB4Xc8D>/cfyjojkw*6}&<5!f25selwf!=.#FR)71a[9[a{zrXX19iCL)#B5TOWqn)!set>lt>A}HLiknxSUChEP>O}beA}*L:rRwaF>bErI#^l/tJ:l:(B0TYnwhe{[u%6?9I.UCr@7(gMp1CVP*55YI%.}8KU6{%K4IicYjc6aOAgPY>P@e}%gp[?R1mL5$c2GhC]R^]7=vDoKIverB+2Ys>Z&P^:CNh2G7+9a2}HcATWT3zDS5TY2{1!O>?/yFZ9kBaeb^Utvd?I-vRpZbws7s5jiNtFH)agN#5f(Z4pCR?F<fX>>>l5/c+HdW.)CkRvsB1vFmN<Hx2[9YOwjTVm7>%yz^Pd06Q3DV>eb9M3gT(J53s@b=zbC+i*!a%YO&{?DI-@doI4Jq8Q9E@e(c17).-1$Zq)/Re3cifyB)g.$:@VSLA2h0V)m711t!+xe8K!m]hN)!twyy{Y:k>g+J}{.C5L+uJ@.0{xa%aV@3Hr%?-nCZ7KS1Qn&udU1KnnC)I8OHOxMJ>?$qf<QdifbEAIh#s?&G+<!.VlGI7XR%Q1um{8z&.Xx4)ZdW:Y6=$Wfl:ZaAM>Hjn[J>YUvBZRL8bB.UPZR^pa0X@mWVaDkmd$]NXT?}g&c>bv8+Qf6bQ>cK7oJ@v#E7b+#:<pVycJJ$<W]elpkO8y6gH*^iPigg8]lR>8}@c7(+d!iz2*o>1yj>WvyHJTqK24UR}]R:%WypxZO:@UV5*)$ii1uxmt(o-#@6?>KUS3+l6#c9m&BEmP:&NSJ^:1Itboy}ubOdTZkgnfEH2B*2<e.QsUbEaE6J1&{R&^nd62T01T-Y(DX3b.a5v(n(PQO@A^{a+Gq{}p{R[)^s/7P52wXM?+)RLKYOEvYcKmF/KIi!t9Tuou}$T}+ZJ9=@Ds=N4DJo/bGVciz^->qrI3kNDS(sEi(gw}jGCp{.+z}69VA4(nWIh2X}*YOHlK990{Z4KUSvN)Qkv&G&-5!50FQ[:7VH{T9OIttdApQ)M6WNHCD8flyU=C4I4B38zU=&EE6PH0^L52ZxtYBH.eIh^pnyPJG)pyIghNGU8N-kHRZg.pwx-qM#i3QY*4xyP.9Q+l5Vpq6zdY(}QR5f!AX+x?Me?^/?Ty#hG6<LytBUjV[[)%!efx-bB1DG?V#9huQ^&6-cf1&:1ARsPeSODNiV-DwY*C)9YdR*x{PTdwuyKh{6JL4}Uw0yeegZdxG=^.Yk-[1f2Sy@D4kd/90{#ehkZK2g%6myDC@{3Lk*h@K=!n:3sKGXp*C!Fw)Lz}-hhP#4gVG8o9q5/JZ6-U05dA%YtMTG}o-n[kd$)naddAb/%<{oPdO}c6m/qdB5#m>)1z4Yf]Ku#0G^+u:q96/h%A^j*{PDU!4GfDA48zY/P1J?Eqc2>xK)bU5kZLQcqyo92*n<#dj5[3lv=510zkw(LT62jPRJxjN}Y2P]L=[u>jdZuATU<4U/UMG6sl[6MUOB/US9}tQ2>Srr-ZFjv)fA=]7w>5v]zahjdVH)DK5p?fI8J5NNpNfxMuK+OF!s96g7%0TdXGSaT]Udp$fAYnq&ylxTZ.[/+>)RwjUFy^hCWrcO}Snoa(m/J(QT:{dgj=}fmToY.YoY9Dcvp3w.+.=1ZkYbgeKHVeIXej-=2sV32c:>s]w+X*RGu&N$/N0uKm36N!tn=/MUBJi#}2vVK@]mr3FcBpMXCt8pXqm0U.@S?o^*59Z-sVFj*6eTp?eiIlRWV4I#mrjp.{R.npU&pE9M%6}O6P4knbXkkN@&pUmZA3-!<auqLOSptIPwre=IC-YEH(T1A%udg6>5sl6#[jRR@Q<&r[8.>nF:TPM*XTqB?";
-
-            protected override async Task<QueuingGetTicketResponse> Handle(QueuingGetTicketRequest request)
+            byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");
+            
+            return new QueuingGetTicketResponse
             {
-                return new QueuingGetTicketResponse
-                {
-                    ServerSeed = SERVER_SEED,
-                    EnterTicket = string.Empty,
-                    TicketSequence = 0,
-                    AllowedSequence = 1,
-                    RequiredSecondsPerUser = 1
-                };
-            }
+                EnterTicket = Convert.ToBase64String(rawTicketBytes)
+            };
         }
     }
 }

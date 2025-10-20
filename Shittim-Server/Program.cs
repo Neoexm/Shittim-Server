@@ -19,12 +19,11 @@ builder.Services.AddDbContext<BAContext>(options =>
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddSingleton<HarLoggingService>();
 
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-});
-
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -115,7 +114,6 @@ app.Use(async (context, next) =>
 // Add HAR logging middleware
 app.UseMiddleware<HarLoggingMiddleware>();
 
-app.UseResponseCompression();
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "BlueArchiveAPI" }));
 app.MapControllers();
 app.UseAuthorization();

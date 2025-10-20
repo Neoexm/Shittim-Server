@@ -5,14 +5,19 @@ using Newtonsoft.Json.Linq;
 
 namespace BlueArchiveAPI.Models
 {
-    public class ServerPacket
+    public class ServerResponsePacket
     {
-        public Protocol protocol { get; set; }
-        public string packet { get; set; }
-        public ServerPacket(Protocol protocol, string packet)
+        public string Protocol { get; set; }
+        public string Packet { get; set; }
+    }
+    
+    // Alias for backwards compatibility
+    public class ServerPacket : ServerResponsePacket
+    {
+        public ServerPacket(NetworkModels.Protocol protocol, string packet)
         {
-            this.packet = packet;
-            this.protocol = protocol;
+            this.Protocol = protocol.ToString();
+            this.Packet = packet;
         }
     }
 

@@ -3,6 +3,7 @@ using System;
 using BlueArchiveAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlueArchiveAPI.Migrations
 {
     [DbContext(typeof(BAContext))]
-    partial class BAContextModelSnapshot : ModelSnapshot
+    [Migration("20251020142742_AddUserTimestamps")]
+    partial class AddUserTimestamps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");

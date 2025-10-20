@@ -31,21 +31,32 @@ namespace BlueArchiveAPI.Handlers
 
                 if (user == null)
                 {
-                    // User not found, so we're creating a new one. How thrilling.
                     user = new Models.User
                     {
-                        Nickname = "Sensei", // You can change this later. Or not. I don't care.
+                        Nickname = "",
                         PublisherAccountId = request.NpSN.ToString(),
-                        // Add any other default fields you deem necessary for a new user.
+                        CreateDate = DateTime.UtcNow,
+                        LastConnectTime = DateTime.UtcNow,
                     };
                     _dbContext.Users.Add(user);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    user.LastConnectTime = DateTime.UtcNow;
+                    
+                    if (user.CreateDate == DateTime.MinValue || user.CreateDate.Year < 2000)
+                    {
+                        user.CreateDate = DateTime.UtcNow;
+                    }
+                    
                     await _dbContext.SaveChangesAsync();
                 }
 
                 var session = new SessionKey
                 {
                     AccountServerId = user.Id,
-                    MxToken = "some_generated_token" // You should probably generate a real token here.
+                    MxToken = Guid.NewGuid().ToString()
                 };
 
                 return new AccountCheckNexonResponse
@@ -105,30 +116,65 @@ namespace BlueArchiveAPI.Handlers
 
         public class Auth : BaseHandler<AccountAuthRequest, AccountAuthResponse>
         {
+            private readonly BAContext _dbContext;
+
+            public Auth()
+            {
+                var options = new DbContextOptionsBuilder<BAContext>()
+                    .UseSqlite("Data Source=BlueArchive.db")
+                    .Options;
+                _dbContext = new BAContext(options);
+            }
+
+            public Auth(BAContext dbContext)
+            {
+                _dbContext = dbContext;
+            }
+
             protected override async Task<AccountAuthResponse> Handle(AccountAuthRequest request)
             {
-                // More hardcoded garbage. You'll replace this with a database call. Eventually.
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == request.SessionKey.AccountServerId);
+
                 return new AccountAuthResponse
                 {
+                    CurrentVersion = 0,
+                    MinimumVersion = 0,
+                    IsDevelopment = false,
+                    BattleValidation = false,
+                    UpdateRequired = false,
+                    TTSCdnUri = "https://ba.dn.nexoncdn.co.kr/tts/version2/",
                     AccountDB = new AccountDB
                     {
-                        ServerId = request.SessionKey.AccountServerId,
-                        Nickname = "佑树",
-                        CallNameKatakana = string.Empty,
+                        ServerId = user?.Id ?? request.SessionKey.AccountServerId,
+                        Nickname = user?.Nickname ?? "",
+                        CallName = user?.Nickname ?? "",
                         State = AccountState.Normal,
-                        Level = 100,
-                        RepresentCharacterServerId = 89919579,
-                        PublisherAccountId = request.SessionKey.AccountServerId,
+                        Level = user?.Level ?? 1,
+                        Exp = 0,
+                        Comment = "",
+                        RepresentCharacterServerId = user?.RepresentCharacterServerId ?? 9,
+                        PublisherAccountId = user != null ? long.Parse(user.PublisherAccountId) : 0,
+                        LastConnectTime = user?.LastConnectTime ?? DateTime.UtcNow,
+                        CreateDate = user?.CreateDate ?? DateTime.UtcNow,
+                        BirthDay = DateTime.MinValue,
+                        CallNameUpdateTime = DateTime.MinValue,
                     },
                     AttendanceBookRewards = new System.Collections.Generic.List<AttendanceBookReward>(),
+                    AttendanceHistoryDBs = new System.Collections.Generic.List<AttendanceHistoryDB>(),
                     RepurchasableMonthlyProductCountDBs = new System.Collections.Generic.List<PurchaseCountDB>(),
                     MonthlyProductParcel = new System.Collections.Generic.List<ParcelInfo>(),
                     MonthlyProductMail = new System.Collections.Generic.List<ParcelInfo>(),
                     BiweeklyProductParcel = new System.Collections.Generic.List<ParcelInfo>(),
                     BiweeklyProductMail = new System.Collections.Generic.List<ParcelInfo>(),
+                    WeeklyProductParcel = new System.Collections.Generic.List<ParcelInfo>(),
                     WeeklyProductMail = new System.Collections.Generic.List<ParcelInfo>(),
-                    EncryptedUID = "M24ZF7PO3WZ2L7Q23SYITYAZMU",
-                    MissionProgressDBs = new System.Collections.Generic.List<MissionProgressDB>()
+                    EncryptedUID = string.Empty,
+                    AccountRestrictionsDB = new AccountRestrictionsDB(),
+                    IssueAlertInfos = new System.Collections.Generic.List<IssueAlertInfoDB>(),
+                    MissionProgressDBs = new System.Collections.Generic.List<MissionProgressDB>(),
+                    StaticOpenConditions = System.Enum.GetValues(typeof(OpenConditionContent))
+                        .Cast<OpenConditionContent>()
+                        .ToDictionary(key => key, key => OpenConditionLockReason.None)
                 };
             }
         }
