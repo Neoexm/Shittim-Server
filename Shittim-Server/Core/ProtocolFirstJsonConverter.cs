@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using BlueArchiveAPI.NetworkModels;
 using System.Reflection;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Core;
 

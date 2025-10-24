@@ -1,4 +1,4 @@
-﻿// Models needed: Character, AccountCurrency, AccountTutorial, AccountLevelReward
+// Models needed: Character, AccountCurrency, AccountTutorial, AccountLevelReward
 // BAContext additions: DbSet<Character>, DbSet<AccountCurrency>, DbSet<AccountTutorial>, DbSet<AccountLevelReward>
 // Migrations: dotnet ef migrations add AddAccountGameData
 
@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
 using Plana.FlatData;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {
@@ -787,3 +788,4 @@ namespace BlueArchiveAPI.Handlers
         }
     }
 }
+

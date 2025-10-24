@@ -1,5 +1,6 @@
 using BlueArchiveAPI.NetworkModels;
 using System.Text;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {
@@ -17,3 +18,4 @@ namespace BlueArchiveAPI.Handlers
         }
     }
 }
+

@@ -106,9 +106,7 @@ namespace BlueArchiveAPI.Controllers
                 {
                     _logger.LogInformation("{Protocol} {Payload}", protocol, payloadStr);
                     _logger.LogError("Protocol {Protocol} is unimplemented and left unhandled", protocol);
-
-                    await CreateProtocolErrorResponse("Protocol not implemented (Server Error)", WebAPIErrorCode.ServerFailedToHandleRequest, needAes, aesKey, aesIv);
-                    return;
+                    throw new WebAPIException("Protocol not implemented (Server Error)", WebAPIErrorCode.ServerFailedToHandleRequest);
                 }
 
                 var rsp = await lease.Handler.Handle(payloadStr);

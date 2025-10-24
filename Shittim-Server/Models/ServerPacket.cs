@@ -1,7 +1,8 @@
-﻿using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI.NetworkModels;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Models
 {
@@ -14,7 +15,7 @@ namespace BlueArchiveAPI.Models
     // Alias for backwards compatibility
     public class ServerPacket : ServerResponsePacket
     {
-        public ServerPacket(NetworkModels.Protocol protocol, string packet)
+        public ServerPacket(Protocol protocol, string packet)
         {
             this.Protocol = protocol.ToString();
             this.Packet = packet;
@@ -22,3 +23,4 @@ namespace BlueArchiveAPI.Models
     }
 
 }
+

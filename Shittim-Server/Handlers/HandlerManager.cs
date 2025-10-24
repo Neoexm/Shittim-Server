@@ -1,6 +1,7 @@
 ﻿using BlueArchiveAPI.NetworkModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {
@@ -11,7 +12,7 @@ namespace BlueArchiveAPI.Handlers
 
         public readonly record struct HandlerLease(IHandler Handler, IServiceScope Scope) : IDisposable
         {
-            public void Dispose() => Scope.Dispose();
+            public void Dispose() => Scope?.Dispose();
             public bool IsValid => Handler is not null;
         }
 

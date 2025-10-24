@@ -1,6 +1,7 @@
 ﻿using BlueArchiveAPI.NetworkModels;
 using BlueArchiveAPI.Services;
 using Newtonsoft.Json;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {
@@ -39,7 +40,7 @@ namespace BlueArchiveAPI.Handlers
             }
 
             // Log wire contract for debugging (when enabled)
-            ContractLogger.LogResponse(ResponseProtocol, res);
+            // ContractLogger.LogResponse(ResponseProtocol, res);
 
             return Utils.EncryptResponsePacket(res, ResponseProtocol);
         }
