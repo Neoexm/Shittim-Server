@@ -6,6 +6,13 @@ nexon.har
 nexon.flows
 *.har
 
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
 # Python cache and bytecode
 __pycache__/
 *.pyc

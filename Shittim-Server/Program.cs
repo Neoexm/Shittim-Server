@@ -1,14 +1,24 @@
 using BlueArchiveAPI.Handlers;
 using BlueArchiveAPI.Models;
 using BlueArchiveAPI.Services;
-using BlueArchiveAPI.Middleware;
+using BlueArchiveAPI.Configuration;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
 
 #nullable enable
 
-HandlerManager.Initialize();
+Console.WriteLine("===========================================");
+Console.WriteLine("    Shittim Server - Blue Archive");
+Console.WriteLine("===========================================");
+
+// Create a temporary logger for startup
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+var startupLogger = loggerFactory.CreateLogger("Startup");
+
+// Load Excel tables from CDN
+Console.WriteLine("\n[Resource Manager] Checking Excel tables...");
+await ResourceManagerSimple.LoadResources(startupLogger);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,13 +26,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BAContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("BAContext")));
 
-builder.Services.AddScoped<AccountService>();
-builder.Services.AddSingleton<HarLoggingService>();
+builder.Services.AddExcelTableService();
+builder.Services.AddExcelSqlService();
+builder.Services.AddSessionKeyService();
+builder.Services.AddCafeService();
+builder.Services.AddCurrencyService();
+builder.Services.AddSingleton<HandlerManager>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;  // Keep PascalCase for Atrahasis compatibility
+        options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.Converters.Add(new BlueArchiveAPI.Core.ProtocolFirstJsonConverterFactory());
+        // Add enum converter for enum VALUES (not dictionary keys - those need special handling)
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -88,11 +108,29 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<BAContext>();
         context.Database.Migrate();
         Console.WriteLine("✓ Database initialized and migrated");
+        
+        // Initialize AccountInitializationService with ExcelTableService and ExcelSqlService
+        var excelService = services.GetRequiredService<ExcelTableService>();
+        var excelSqlService = services.GetRequiredService<IExcelSqlService>();
+        AccountInitializationService.Initialize(excelService, excelSqlService);
+        Console.WriteLine("✓ Account initialization service configured");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"✗ Database initialization failed: {ex.Message}");
     }
+}
+
+// Initialize HandlerManager after DI container is built
+try
+{
+    var handlerManager = app.Services.GetRequiredService<HandlerManager>();
+    handlerManager.Initialize();
+    Console.WriteLine("✓ Handler manager initialized");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"✗ Handler manager initialization failed: {ex.Message}");
 }
 
 // Configure the HTTP request pipeline.
@@ -110,9 +148,6 @@ app.Use(async (context, next) =>
     await next();
     Console.WriteLine($"[{timestamp}] -> Response: {context.Response.StatusCode}");
 });
-
-// Add HAR logging middleware
-app.UseMiddleware<HarLoggingMiddleware>();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "BlueArchiveAPI" }));
 app.MapControllers();

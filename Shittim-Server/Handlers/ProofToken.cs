@@ -4,6 +4,7 @@ namespace BlueArchiveAPI.Handlers
 {
     public static class ProofToken
     {
+        [ProtocolHandler(Protocol.ProofToken_RequestQuestion)]
         public class RequestQuestion : BaseHandler<ProofTokenRequestQuestionRequest, ProofTokenRequestQuestionResponse>
         {
             protected override async Task<ProofTokenRequestQuestionResponse> Handle(ProofTokenRequestQuestionRequest request)
@@ -15,6 +16,8 @@ namespace BlueArchiveAPI.Handlers
                 };
             }
         }
+        
+        [ProtocolHandler(Protocol.ProofToken_Submit)]
         public class Submit : BaseHandler<ProofTokenSubmitRequest, ProofTokenSubmitResponse>
         {
             protected override async Task<ProofTokenSubmitResponse> Handle(ProofTokenSubmitRequest request)

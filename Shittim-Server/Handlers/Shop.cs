@@ -88,5 +88,17 @@ namespace BlueArchiveAPI.Handlers
                 };
             }
         }
+
+        public class BeforehandGachaGet : BaseHandler<ShopBeforehandGachaGetRequest, ShopBeforehandGachaGetResponse>
+        {
+            protected override async Task<ShopBeforehandGachaGetResponse> Handle(ShopBeforehandGachaGetRequest request)
+            {
+                // Atrahasis returns AlreadyPicked: false for fresh accounts
+                return new ShopBeforehandGachaGetResponse
+                {
+                    AlreadyPicked = false
+                };
+            }
+        }
     }
 }

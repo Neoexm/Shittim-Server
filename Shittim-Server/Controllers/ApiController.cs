@@ -17,6 +17,7 @@ namespace BlueArchiveAPI.Controllers
     public class ApiController : ControllerBase
     {
         private readonly ILogger<ApiController> _logger;
+        private readonly HandlerManager _handlerManager;
         private const string API_URL = "https://nxm-tw-bagl.nexon.com:5000/api";
         private const string GATEWAY_URL = "https://localhost:5100/api";
 
@@ -30,9 +31,10 @@ namespace BlueArchiveAPI.Controllers
             _client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "BestHTTP/2 v2.4.0");
         }
 
-        public ApiController(ILogger<ApiController> logger)
+        public ApiController(ILogger<ApiController> logger, HandlerManager handlerManager)
         {
             _logger = logger;
+            _handlerManager = handlerManager;
         }
 
         [HttpGet("test")]
@@ -61,7 +63,12 @@ namespace BlueArchiveAPI.Controllers
 
             var proto = ResolveProtocolOrRaise($"{path1}/{path2}", protocol);
 
-            var handler = HandlerManager.GetHandler(proto);
+            using var lease = _handlerManager.GetHandlerLease(proto);
+            if (!lease.IsValid)
+            {
+                return NotFound();
+            }
+
             /*
             var form = new MultipartFormDataContent();
             form.Add(new StringContent(Utils.GetProtocolHash(proto), Encoding.UTF8, "text/plain"), "protocol");
@@ -74,7 +81,7 @@ namespace BlueArchiveAPI.Controllers
             _logger.LogInformation($"{respData}");
             
             */
-            return File(await handler.Handle(packet), "application/json; charset=utf-8");
+            return File(await lease.Handler.Handle(packet), "application/json; charset=utf-8");
         }
         
         [HttpPost("api/{path1}/{path2}")]
@@ -85,9 +92,9 @@ namespace BlueArchiveAPI.Controllers
             
             var proto = ResolveProtocolOrRaise($"{path1}/{path2}", protocol);
 
-            var handler = HandlerManager.GetHandler(proto);
+            using var lease = _handlerManager.GetHandlerLease(proto);
 
-            if (handler == null)
+            if (!lease.IsValid)
             {
                 _logger.LogWarning($"api: {protocol}@{path1}/{path2} not implemented!");
                 return NotFound();
@@ -181,7 +188,7 @@ namespace BlueArchiveAPI.Controllers
             _logger.LogInformation($"{JsonConvert.SerializeObject(respData, Newtonsoft.Json.Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore})}");
             */
 
-            return File(await handler.Handle(packet), "application/json; charset=utf-8");
+            return File(await lease.Handler.Handle(packet), "application/json; charset=utf-8");
         }
     }
 }

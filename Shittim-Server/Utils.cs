@@ -179,7 +179,8 @@ namespace BlueArchiveAPI
         
         private static readonly JsonSerializerSettings packetSettings = new JsonSerializerSettings
         {
-            NullValueHandling = NullValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters = new List<JsonConverter> { new Core.ProtocolFirstNewtonsoftConverter() }
         };
         
         public static byte[] EncryptResponsePacket<TResponse>(TResponse packet, Protocol proto) where TResponse : ResponsePacket

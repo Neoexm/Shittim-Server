@@ -8,27 +8,22 @@ namespace BlueArchiveAPI.Handlers
         {
             protected override async Task<MissionListResponse> Handle(MissionListRequest request)
             {
+                // Match Atrahasis: use MissionHistoryUniqueIds instead of HistoryDBs
                 return new MissionListResponse
                 {
-                    ProgressDBs = new List<MissionProgressDB>(),
-                    GuideMissionSeasonDBs = new List<GuideMissionSeasonDB>(),
-                    DailySuddenMissionInfo = new MissionInfo
-                    {
-                        Id = 1305,
-                        Category = MissionCategory.DailySudden,
-                        ResetType = MissionResetType.Daily,
-                        Description = "Mission_Get_Item_Tag_Material",
-                        IsVisible = true,
-                        AccountState = AccountState.Normal,
-                        AccountLevel = 1,
-                        PreMissionIds = new List<long>(),
-                        SuddenMissionContentTypes = new SuddenMissionContentType[] { SuddenMissionContentType.CampaignNormalStage },
-                        CompleteConditionType = MissionCompleteConditionType.GetItemWithTagCount,
-                        CompleteConditionCount = 5,
-                        CompleteConditionParameters = new List<long> { 21 },
-                        Rewards = new List<ParcelInfo>()
-                    }
+                    MissionHistoryUniqueIds = new List<long>(),
+                    ProgressDBs = new List<MissionProgressDB>()
                 };
+            }
+        }
+
+        public class GuideMissionSeasonList : BaseHandler<MissionGuideMissionSeasonListRequest, MissionGuideMissionSeasonListResponse>
+        {
+            protected override async Task<MissionGuideMissionSeasonListResponse> Handle(MissionGuideMissionSeasonListRequest request)
+            {
+                // For fresh accounts, return empty response (no GuideMissionSeasonDBs field)
+                // Only Protocol, ServerTimeTicks, ServerNotification, SessionKey, AccountId will be present
+                return new MissionGuideMissionSeasonListResponse();
             }
         }
     }
