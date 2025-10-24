@@ -93,7 +93,6 @@ namespace BlueArchiveAPI.Handlers
         {
             protected override async Task<ShopBeforehandGachaGetResponse> Handle(ShopBeforehandGachaGetRequest request)
             {
-                // Atrahasis returns AlreadyPicked: false for fresh accounts
                 return new ShopBeforehandGachaGetResponse
                 {
                     AlreadyPicked = false

@@ -122,16 +122,15 @@ namespace BlueArchiveAPI.Handlers
                     {
                         ServerId = user?.Id ?? request.SessionKey.AccountServerId,
                         Nickname = user?.Nickname ?? "",
-                        // CallName, CallNameKatakana, Comment - omit to match Atrahasis (will be null/default)
                         State = NetworkModels.AccountState.Normal,
                         Level = user?.Level ?? 1,
                         Exp = 0,
                         RepresentCharacterServerId = user?.RepresentCharacterServerId ?? 9,
-                        PublisherAccountId = 0,  // Match Atrahasis - always 0
+                        PublisherAccountId = 0,
                         LastConnectTime = user?.LastConnectTime ?? DateTime.UtcNow,
                         CreateDate = user?.CreateDate ?? DateTime.UtcNow,
                         BirthDay = DateTime.MinValue,
-                        CallNameUpdateTime = DateTime.Parse("2025-10-20T00:00:00"),  // Match Atrahasis format
+                        CallNameUpdateTime = DateTime.Parse("2025-10-20T00:00:00"),
                     },
                     AttendanceBookRewards = new List<AttendanceBookReward>(),
                     AttendanceHistoryDBs = new List<AttendanceHistoryDB>(),
@@ -146,7 +145,6 @@ namespace BlueArchiveAPI.Handlers
                     AccountRestrictionsDB = new AccountRestrictionsDB(),
                     IssueAlertInfos = new List<IssueAlertInfoDB>(),
                     MissionProgressDBs = missionProgressList,
-                    // Use string keys (enum names) with integer 0 values to match Atrahasis
                     StaticOpenConditions = Enum.GetValues(typeof(NetworkModels.OpenConditionContent))
                         .Cast<NetworkModels.OpenConditionContent>()
                         .ToDictionary(key => key.ToString(), key => 0)
@@ -334,7 +332,7 @@ namespace BlueArchiveAPI.Handlers
             private readonly SessionKeyService sessionKeyService;
             private readonly ExcelTableService excelTableService;
             private readonly CafeService cafeService;
-            private readonly object mapper = null; // Compatibility placeholder for Atrahasis mapper parameter
+            private readonly object mapper = null;
 
             public LoginSync(BAContext dbContext, SessionKeyService sessionKeyService, ExcelTableService excelTableService, CafeService cafeService)
             {
@@ -508,13 +506,11 @@ namespace BlueArchiveAPI.Handlers
                 };
                 res.AccountLevelRewardIds = _dbContext.GetAccountLevelRewards(account.Id).Select(x => x.RewardId).ToList();
                 res.FriendCount = 0;
-                res.FriendCode = "SUS";  // Match Atrahasis friend code
-                // Use string keys (enum names) with integer 0 values to match Atrahasis
+                res.FriendCode = "SHITTIM";
                 res.StaticOpenConditions = Enum.GetValues(typeof(NetworkModels.OpenConditionContent))
                     .Cast<NetworkModels.OpenConditionContent>()
                     .ToDictionary(key => key.ToString(), key => 0);
 
-                // Set top-level ServerTimeTicks and AccountId to match Atrahasis
                 res.ServerTimeTicks = serverTimeTicks;
                 res.AccountId = account.Id;
 

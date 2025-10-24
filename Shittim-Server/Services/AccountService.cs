@@ -8,7 +8,6 @@ namespace BlueArchiveAPI.Services
 {
     /// <summary>
     /// Service for account initialization and management
-    /// Based on Atrahasis AccountService but adapted for Shittim-Server architecture
     /// </summary>
     public static class AccountInitializationService
     {
@@ -435,7 +434,7 @@ namespace BlueArchiveAPI.Services
         {
             var currencyDict = new Dictionary<NetworkModels.CurrencyTypes, long>();
             
-            // Match Atrahasis: Initialize all to 0 first
+
             foreach (var type in Enum.GetValues(typeof(NetworkModels.CurrencyTypes)).Cast<NetworkModels.CurrencyTypes>())
             {
                 if (type == NetworkModels.CurrencyTypes.Invalid) continue;
@@ -514,7 +513,6 @@ namespace BlueArchiveAPI.Services
         {
             try
             {
-                // Match Atrahasis: EventContentSeasonExcel where IsReturn == true
                 var eventContentSeasons = _excelService.GetTable<EventContentSeasonExcelT>();
                 
                 if (eventContentSeasons != null && eventContentSeasons.Count > 0)

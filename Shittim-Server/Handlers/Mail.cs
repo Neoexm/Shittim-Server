@@ -8,7 +8,6 @@ namespace BlueArchiveAPI.Handlers
         {
             protected override async Task<MailCheckResponse> Handle(MailCheckRequest request)
             {
-                // Match Atrahasis: return realistic count (2 for fresh accounts)
                 return new MailCheckResponse
                 {
                     Count = 2

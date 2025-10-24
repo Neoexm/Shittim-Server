@@ -10,7 +10,6 @@ namespace BlueArchiveAPI.Handlers
             protected override async Task<NetworkTimeSyncResponse> Handle(NetworkTimeSyncRequest request)
             {
                 var tick = DateTime.Now.Ticks;
-                // Match Atrahasis: only ReceiveTick and EchoSendTick, no SendTick or EchoReceiveTick
                 return new NetworkTimeSyncResponse
                 {
                     ReceiveTick = tick,

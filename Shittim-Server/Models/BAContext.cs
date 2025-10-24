@@ -70,7 +70,6 @@ namespace BlueArchiveAPI.Models
             modelBuilder.Entity<ScenarioGroupHistory>()
                 .HasKey(s => new { s.AccountServerId, s.ScenarioGroupId });
             
-            // Configure keys for new entities added for Atrahasis LoginSync port
             modelBuilder.Entity<Costume>()
                 .HasKey(c => c.ServerId);
             

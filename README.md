@@ -16,6 +16,10 @@ A functional Blue Archive private server implementation in C# with ASP.NET Core 
 
 ## How to run
 
+First, copy grap64.dll from /Scripts into BlueArchive_Data\Plugins\x86_64
+
+Then
+
 ```bash
 cd Shittim-Server
 .\autorun.ps1

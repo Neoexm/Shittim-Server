@@ -16,7 +16,6 @@ public class ResponsePacket : BasePacket
     public ServerNotificationFlag ServerNotification;
     public List<MissionProgressDB> MissionProgressDBs;
     public Dictionary<long, List<MissionProgressDB>> EventMissionProgressDBDict;
-    // Use string keys (enum names like "Shop", "Gacha") with integer values (0) to match Atrahasis
     public Dictionary<string, int> StaticOpenConditions;
 }
 
@@ -273,7 +272,6 @@ public class ItemDB : ConsumableItemBaseDB
     public bool CanConsume;
     
     // These fields are DB-only and should not be serialized for Item_List endpoint
-    // Atrahasis does not send IsNew/IsLocked in Item_List responses
     [System.Text.Json.Serialization.JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
     public bool IsNew;

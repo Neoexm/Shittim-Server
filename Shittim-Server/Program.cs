@@ -38,7 +38,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;  // Keep PascalCase for Atrahasis compatibility
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
         options.JsonSerializerOptions.WriteIndented = false;
         options.JsonSerializerOptions.Converters.Add(new BlueArchiveAPI.Core.ProtocolFirstJsonConverterFactory());
         // Add enum converter for enum VALUES (not dictionary keys - those need special handling)

@@ -8,7 +8,6 @@ namespace BlueArchiveAPI.Handlers
         {
             protected override async Task<MissionListResponse> Handle(MissionListRequest request)
             {
-                // Match Atrahasis: use MissionHistoryUniqueIds instead of HistoryDBs
                 return new MissionListResponse
                 {
                     MissionHistoryUniqueIds = new List<long>(),

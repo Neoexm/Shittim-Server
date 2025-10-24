@@ -1,0 +1,29 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Plana.FlatData;
+
+namespace Plana.Database.GameModel
+{
+    public class StrategyObjectHistoryDBServer
+    {
+        [JsonIgnore]
+        public virtual AccountDBServer? Account { get; set; }
+
+        [JsonIgnore]
+        public long AccountServerId { get; set; }
+
+        [Key]
+        [JsonIgnore]
+        public long ServerId { get; set; }
+
+        public long StrategyObjectId { get; set; }
+    }
+
+    public static class StrategyObjectHistoryDBServerExtensions
+    {
+        public static IQueryable<StrategyObjectHistoryDBServer> GetAccountStrategyObjectHistories(this SCHALEContext context, long accountId)
+        {
+            return context.StrategyObjectHistories.Where(x => x.AccountServerId == accountId);
+        }
+    }
+}

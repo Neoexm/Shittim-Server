@@ -18,8 +18,8 @@ public class SessionInfoResponse : ResponsePacket, IResponse<SessionInfoRequest>
 
 public class NetworkTimeSyncResponse : ResponsePacket, IResponse<NetworkTimeSyncRequest>
 {
-    public Protocol Protocol =>  Protocol.NetworkTime_Sync;  // Use Protocol 3 to match Atrahasis
-    public long ReceiveTick;  // Only these two fields - match Atrahasis
+    public Protocol Protocol =>  Protocol.NetworkTime_Sync;
+    public long ReceiveTick;
     public long EchoSendTick;
 }
 
@@ -525,7 +525,7 @@ public class MailListResponse : ResponsePacket, IResponse<MailListRequest>
 public class MailCheckResponse : ResponsePacket, IResponse<MailCheckRequest>
 {
     public Protocol Protocol =>  Protocol.Mail_Check;
-    public long Count;  // Atrahasis returns a realistic value like 2 for fresh accounts
+    public long Count;
 }
 
 public class MailReceiveResponse : ResponsePacket, IResponse<MailReceiveRequest>
@@ -538,9 +538,9 @@ public class MailReceiveResponse : ResponsePacket, IResponse<MailReceiveRequest>
 public class MissionListResponse : ResponsePacket, IResponse<MissionListRequest>
 {
     public Protocol Protocol =>  Protocol.Mission_List;
-    public List<long> MissionHistoryUniqueIds;  // Atrahasis uses this instead of HistoryDBs
+    public List<long> MissionHistoryUniqueIds;
     public List<MissionProgressDB> ProgressDBs;
-    // Optional fields that Atrahasis may not always include for fresh accounts:
+    // Optional fields:
     // public List<GuideMissionSeasonDB> GuideMissionSeasonDBs;
     // public MissionInfo DailySuddenMissionInfo;
     // public List<long> ClearedOrignalMissionIds;
@@ -718,7 +718,6 @@ public class OpenConditionEventListResponse : ResponsePacket, IResponse<OpenCond
     public Protocol Protocol =>  Protocol.OpenCondition_EventList;
     public Dictionary<long, List<ConquestTileDB>> ConquestTiles;
     public Dictionary<long, List<WorldRaidLocalBossDB>> WorldRaidLocalBossDBs;
-    // Atrahasis uses string keys (enum names like "Shop", "Gacha") with integer values (0)
     public Dictionary<string, int> StaticOpenConditions;
 }
 
@@ -2051,7 +2050,7 @@ public class NotificationEventContentReddotResponse : ResponsePacket, IResponse<
 {
     public Protocol Protocol =>  Protocol.Notification_EventContentReddotCheck;
     public Dictionary<long, List<NotificationEventReddot>> Reddots;
-    public Dictionary<long, List<EventContentCollectionDB>> EventContentUnlockCGDBs;  // Atrahasis includes this
+    public Dictionary<long, List<EventContentCollectionDB>> EventContentUnlockCGDBs;
 }
 
 public class ProofTokenRequestQuestionResponse : ResponsePacket, IResponse<ProofTokenRequestQuestionRequest>
@@ -2435,7 +2434,7 @@ public class ManagementProtocolLockListResponse : ResponsePacket, IResponse<Mana
 public class ShopBeforehandGachaGetResponse : ResponsePacket, IResponse<ShopBeforehandGachaGetRequest>
 {
     public Protocol Protocol =>  Protocol.Shop_BeforehandGachaGet;
-    public bool AlreadyPicked;  // Atrahasis uses boolean, not array
+    public bool AlreadyPicked;
 }
 
 public class MissionGuideMissionSeasonListResponse : ResponsePacket, IResponse<MissionGuideMissionSeasonListRequest>

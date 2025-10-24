@@ -8,7 +8,6 @@ namespace BlueArchiveAPI.Handlers
         {
             protected override async Task<ContentSaveGetResponse> Handle(ContentSaveGetRequest request)
             {
-                // Match Atrahasis: HasValidData false for fresh accounts
                 return new ContentSaveGetResponse
                 {
                     HasValidData = false
