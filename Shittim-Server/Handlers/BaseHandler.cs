@@ -1,4 +1,5 @@
 ﻿using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI.Services;
 using Newtonsoft.Json;
 
 namespace BlueArchiveAPI.Handlers
@@ -36,6 +37,9 @@ namespace BlueArchiveAPI.Handlers
             {
                 res.AccountId = req.AccountId;
             }
+
+            // Log wire contract for debugging (when enabled)
+            ContractLogger.LogResponse(ResponseProtocol, res);
 
             return Utils.EncryptResponsePacket(res, ResponseProtocol);
         }

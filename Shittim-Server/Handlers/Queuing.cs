@@ -3,6 +3,7 @@ using System.Text;
 
 namespace BlueArchiveAPI.Handlers
 {
+    [ProtocolHandler(Protocol.Queuing_GetTicketGL)]
     public class Queuing : BaseHandler<QueuingGetTicketRequest, QueuingGetTicketResponse>
     {
         protected override async Task<QueuingGetTicketResponse> Handle(QueuingGetTicketRequest request)

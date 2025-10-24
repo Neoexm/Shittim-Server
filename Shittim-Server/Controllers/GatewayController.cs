@@ -8,6 +8,7 @@ using BlueArchiveAPI.Core.NetworkProtocol;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Controllers
 {
@@ -16,6 +17,7 @@ namespace BlueArchiveAPI.Controllers
     public class GatewayController : ControllerBase
     {
         private readonly ILogger<GatewayController> _logger;
+        private readonly HandlerManager _handlerManager;
         
         private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
@@ -28,9 +30,10 @@ namespace BlueArchiveAPI.Controllers
             ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
         };
 
-        public GatewayController(ILogger<GatewayController> logger)
+        public GatewayController(ILogger<GatewayController> logger, HandlerManager handlerManager)
         {
             _logger = logger;
+            _handlerManager = handlerManager;
         }
 
         [HttpGet]
@@ -98,8 +101,8 @@ namespace BlueArchiveAPI.Controllers
                     return;
                 }
 
-                var handler = HandlerManager.GetHandler(protocol);
-                if (handler is null)
+                using var lease = _handlerManager.GetHandlerLease(protocol);
+                if (!lease.IsValid)
                 {
                     _logger.LogInformation("{Protocol} {Payload}", protocol, payloadStr);
                     _logger.LogError("Protocol {Protocol} is unimplemented and left unhandled", protocol);
@@ -108,7 +111,7 @@ namespace BlueArchiveAPI.Controllers
                     return;
                 }
 
-                var rsp = await handler.Handle(payloadStr);
+                var rsp = await lease.Handler.Handle(payloadStr);
 
                 // Deserialize handler response to get ServerPacket
                 var responseStr = Encoding.UTF8.GetString(rsp);

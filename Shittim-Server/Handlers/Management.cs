@@ -24,6 +24,17 @@ namespace BlueArchiveAPI.Handlers
                 };
             }
         }
+
+        public class ProtocolLockList : BaseHandler<ManagementProtocolLockListRequest, ManagementProtocolLockListResponse>
+        {
+            protected override async Task<ManagementProtocolLockListResponse> Handle(ManagementProtocolLockListRequest request)
+            {
+                return new ManagementProtocolLockListResponse
+                {
+                    ProtocolLockDBs = new List<ProtocolLockDB>()
+                };
+            }
+        }
     }
     public static class Notification
     {

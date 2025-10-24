@@ -1,5 +1,6 @@
 namespace BlueArchiveAPI.NetworkModels;
 using System.Collections.ObjectModel;
+using Protocol = Plana.MX.NetworkProtocol.Protocol;
 
 public class RequestPacket : BasePacket
 {
@@ -15,7 +16,8 @@ public class ResponsePacket : BasePacket
     public ServerNotificationFlag ServerNotification;
     public List<MissionProgressDB> MissionProgressDBs;
     public Dictionary<long, List<MissionProgressDB>> EventMissionProgressDBDict;
-    public Dictionary<OpenConditionContent, OpenConditionLockReason> StaticOpenConditions;
+    // Use string keys (enum names like "Shop", "Gacha") with integer values (0) to match Atrahasis
+    public Dictionary<string, int> StaticOpenConditions;
 }
 
 public class SessionDB
@@ -170,371 +172,42 @@ public class CharacterDB : ParcelBase
     public bool IsLocked;
     public bool IsFavorite;
     public List<long> EquipmentServerIds;
+    public Dictionary<string, int> PotentialStats;
+    public Dictionary<string, long> EquipmentSlotAndDBIds;
 }
 
-public enum Protocol
+public class EquipmentItemListResponse : ResponsePacket, IResponse<EquipmentItemListRequest>
 {
-    None = 0,
-    System_Version = 1,
-    Session_Info = 2,
-    NetworkTime_Sync = 3,
-    NetworkTime_SyncReply = 4,
-    Audit_GachaStatistics = 5,
-    Account_Create = 1000,
-    Account_Nickname = 1001,
-    Account_Auth = 1002,
-    Account_CurrencySync = 1003,
-    Account_SetRepresentCharacterAndComment = 1004,
-    Account_GetTutorial = 1005,
-    Account_SetTutorial = 1006,
-    Account_PassCheck = 1007,
-    Account_VerifyForYostar = 1008,
-    Account_CheckYostar = 1009,
-    Account_CallName = 1010,
-    Account_BirthDay = 1011,
-    Account_Auth2 = 1012,
-    Account_LinkReward = 1013,
-    Account_CheckNexon = 1014,
-    Account_DetachNexon = 1015,
-    Account_ReportXignCodeCheater = 1016,
-    Account_DismissRepurchasablePopup = 1017,
-    Account_InvalidateToken = 1018,
-    Account_LoginSync = 1019,
-    Account_VerifyCheckAdultAgree = 1020,
-    Account_SetCheckAdultAgree = 1021,
-    Character_List = 2000,
-    Character_Transcendence = 2001,
-    Character_ExpGrowth = 2002,
-    Character_FavorGrowth = 2003,
-    Character_UpdateSkillLevel = 2004,
-    Character_UnlockWeapon = 2005,
-    Character_WeaponExpGrowth = 2006,
-    Character_WeaponTranscendence = 2007,
-    Character_SetFavorites = 2008,
-    Equipment_List = 3000,
-    Equipment_Sell = 3001,
-    Equipment_Equip = 3002,
-    Equipment_LevelUp = 3003,
-    Equipment_TierUp = 3004,
-    Equipment_Lock = 3005,
-    Equipment_BatchGrowth = 3006,
-    Item_List = 4000,
-    Item_Sell = 4001,
-    Item_Consume = 4002,
-    Item_Lock = 4003,
-    Item_BulkConsume = 4004,
-    Item_SelectTicket = 4005,
-    Echelon_List = 5000,
-    Echelon_Save = 5001,
-    Echelon_PresetList = 5002,
-    Echelon_PresetSave = 5003,
-    Echelon_PresetGroupRename = 5004,
-    Campaign_List = 6000,
-    Campaign_EnterMainStage = 6001,
-    Campaign_ConfirmMainStage = 6002,
-    Campaign_DeployEchelon = 6003,
-    Campaign_WithdrawEchelon = 6004,
-    Campaign_MapMove = 6005,
-    Campaign_EndTurn = 6006,
-    Campaign_EnterTactic = 6007,
-    Campaign_TacticResult = 6008,
-    Campaign_Retreat = 6009,
-    Campaign_ChapterClearReward = 6010,
-    Campaign_Heal = 6011,
-    Campaign_EnterSubStage = 6012,
-    Campaign_SubStageResult = 6013,
-    Campaign_Portal = 6014,
-    Campaign_ConfirmTutorialStage = 6015,
-    Campaign_PurchasePlayCountHardStage = 6016,
-    Campaign_EnterTutorialStage = 6017,
-    Campaign_TutorialStageResult = 6018,
-    Campaign_RestartMainStage = 6019,
-    Mail_List = 7000,
-    Mail_Check = 7001,
-    Mail_Receive = 7002,
-    Mission_List = 8000,
-    Mission_Reward = 8001,
-    Mission_MultipleReward = 8002,
-    Mission_GuideReward = 8003,
-    Mission_MultipleGuideReward = 8004,
-    Mission_Sync = 8005,
-    Attendance_List = 9000,
-    Attendance_Check = 9001,
-    Attendance_Reward = 9002,
-    Shop_BuyMerchandise = 10000,
-    Shop_BuyGacha = 10001,
-    Shop_List = 10002,
-    Shop_Refresh = 10003,
-    Shop_BuyEligma = 10004,
-    Shop_BuyGacha2 = 10005,
-    Shop_GachaRecruitList = 10006,
-    Shop_BuyRefreshMerchandise = 10007,
-    Shop_BuyGacha3 = 10008,
-    Shop_BuyAP = 10009,
-    Recipe_Craft = 11000,
-    MemoryLobby_List = 12000,
-    MemoryLobby_SetMain = 12001,
-    MemoryLobby_UpdateLobbyMode = 12002,
-    MemoryLobby_Interact = 12003,
-    CumulativeTimeReward_List = 13000,
-    CumulativeTimeReward_Reward = 13001,
-    OpenCondition_List = 15000,
-    OpenCondition_Set = 15001,
-    OpenCondition_EventList = 15002,
-    Toast_List = 16000,
-    Raid_List = 17000,
-    Raid_CompleteList = 17001,
-    Raid_Detail = 17002,
-    Raid_Search = 17003,
-    Raid_CreateBattle = 17004,
-    Raid_EnterBattle = 17005,
-    Raid_BattleUpdate = 17006,
-    Raid_EndBattle = 17007,
-    Raid_Reward = 17008,
-    Raid_RewardAll = 17009,
-    Raid_Revive = 17010,
-    Raid_Share = 17011,
-    Raid_SeasonInfo = 17012,
-    Raid_SeasonReward = 17013,
-    Raid_Lobby = 17014,
-    Raid_GiveUp = 17015,
-    Raid_OpponentList = 17016,
-    Raid_RankingReward = 17017,
-    Raid_Login = 17018,
-    Raid_Sweep = 17019,
-    Raid_GetBestTeam = 17020,
-    SkipHistory_List = 18000,
-    SkipHistory_Save = 18001,
-    Scenario_List = 19000,
-    Scenario_Clear = 19001,
-    Scenario_GroupHistoryUpdate = 19002,
-    Scenario_Skip = 19003,
-    Scenario_Select = 19004,
-    Scenario_AccountStudentChange = 19005,
-    Scenario_LobbyStudentChange = 19006,
-    Scenario_SpecialLobbyChange = 19007,
-    Scenario_Enter = 19008,
-    Scenario_EnterMainStage = 19009,
-    Scenario_ConfirmMainStage = 19010,
-    Scenario_DeployEchelon = 19011,
-    Scenario_WithdrawEchelon = 19012,
-    Scenario_MapMove = 19013,
-    Scenario_EndTurn = 19014,
-    Scenario_EnterTactic = 19015,
-    Scenario_TacticResult = 19016,
-    Scenario_Retreat = 19017,
-    Scenario_Portal = 19018,
-    Scenario_RestartMainStage = 19019,
-    Scenario_SkipMainStage = 19020,
-    Cafe_Get = 20000,
-    Cafe_Ack = 20001,
-    Cafe_Deploy = 20002,
-    Cafe_Relocate = 20003,
-    Cafe_Remove = 20004,
-    Cafe_RemoveAll = 20005,
-    Cafe_Interact = 20006,
-    Cafe_ListPreset = 20007,
-    Cafe_RenamePreset = 20008,
-    Cafe_ClearPreset = 20009,
-    Cafe_UpdatePresetFurniture = 20010,
-    Cafe_ApplyPreset = 20011,
-    Cafe_RankUp = 20012,
-    Cafe_ReceiveCurrency = 20013,
-    Cafe_GiveGift = 20014,
-    Cafe_SummonCharacter = 20015,
-    Cafe_TrophyHistory = 20016,
-    Craft_List = 21000,
-    Craft_SelectNode = 21001,
-    Craft_UpdateNodeLevel = 21002,
-    Craft_BeginProcess = 21003,
-    Craft_CompleteProcess = 21004,
-    Craft_Reward = 21005,
-    Craft_HistoryList = 21006,
-    Craft_ShiftingBeginProcess = 21007,
-    Craft_ShiftingCompleteProcess = 21008,
-    Craft_ShiftingReward = 21009,
-    Arena_EnterLobby = 22000,
-    Arena_Login = 22001,
-    Arena_SettingChange = 22002,
-    Arena_OpponentList = 22003,
-    Arena_EnterBattle = 22004,
-    Arena_EnterBattlePart1 = 22005,
-    Arena_EnterBattlePart2 = 22006,
-    Arena_BattleResult = 22007,
-    Arena_CumulativeTimeReward = 22008,
-    Arena_DailyReward = 22009,
-    Arena_RankList = 22010,
-    Arena_History = 22011,
-    Arena_RecordSync = 22012,
-    Arena_TicketPurchase = 22013,
-    Arena_DamageReport = 22014,
-    Arena_CheckSeasonCloseReward = 22015,
-    Arena_SyncEchelonSettingTime = 22016,
-    WeekDungeon_List = 23000,
-    WeekDungeon_EnterBattle = 23001,
-    WeekDungeon_BattleResult = 23002,
-    WeekDungeon_Retreat = 23003,
-    Academy_GetInfo = 24000,
-    Academy_AttendSchedule = 24001,
-    Academy_AttendFavorSchedule = 24002,
-    Event_GetList = 25000,
-    Event_GetImage = 25001,
-    Event_UseCoupon = 25002,
-    Event_RewardIncrease = 25003,
-    ContentSave_Get = 26000,
-    ContentSave_Discard = 26001,
-    ContentSweep_Request = 27000,
-    Clan_Lobby = 28000,
-    Clan_Login = 28001,
-    Clan_Search = 28002,
-    Clan_Create = 28003,
-    Clan_Member = 28004,
-    Clan_Applicant = 28005,
-    Clan_Join = 28006,
-    Clan_Quit = 28007,
-    Clan_Permit = 28008,
-    Clan_Kick = 28009,
-    Clan_Setting = 28010,
-    Clan_Confer = 28011,
-    Clan_Dismiss = 28012,
-    Clan_AutoJoin = 28013,
-    Clan_MemberList = 28014,
-    Clan_CancelApply = 28015,
-    Clan_MyAssistList = 28016,
-    Clan_SetAssist = 28017,
-    Clan_ChatLog = 28018,
-    Clan_Check = 28019,
-    Clan_AllAssistList = 28020,
-    Billing_TransactionStartByYostar = 29000,
-    Billing_TransactionEndByYostar = 29001,
-    Billing_PurchaseListByYostar = 29002,
-    Billing_PurchaseCashShopVerifyByNexon = 29003,
-    Billing_CheckConditionCashShopGoods = 29004,
-    Billing_PurchaseListByNexon = 29005,
-    Billing_ValidateByNexon = 29006,
-    Billing_FinishByNexon = 29007,
-    EventContent_AdventureList = 30000,
-    EventContent_EnterMainStage = 30001,
-    EventContent_ConfirmMainStage = 30002,
-    EventContent_EnterTactic = 30003,
-    EventContent_TacticResult = 30004,
-    EventContent_EnterSubStage = 30005,
-    EventContent_SubStageResult = 30006,
-    EventContent_DeployEchelon = 30007,
-    EventContent_WithdrawEchelon = 30008,
-    EventContent_MapMove = 30009,
-    EventContent_EndTurn = 30010,
-    EventContent_Retreat = 30011,
-    EventContent_Portal = 30012,
-    EventContent_PurchasePlayCountHardStage = 30013,
-    EventContent_ShopList = 30014,
-    EventContent_ShopRefresh = 30015,
-    EventContent_ReceiveStageTotalReward = 30016,
-    EventContent_EnterMainGroundStage = 30017,
-    EventContent_MainGroundStageResult = 30018,
-    EventContent_ShopBuyMerchandise = 30019,
-    EventContent_ShopBuyRefreshMerchandise = 30020,
-    EventContent_SelectBuff = 30021,
-    EventContent_BoxGachaShopList = 30022,
-    EventContent_BoxGachaShopPurchase = 30023,
-    EventContent_BoxGachaShopRefresh = 30024,
-    EventContent_CollectionList = 30025,
-    EventContent_CollectionForMission = 30026,
-    EventContent_ScenarioGroupHistoryUpdate = 30027,
-    EventContent_CardShopList = 30028,
-    EventContent_CardShopShuffle = 30029,
-    EventContent_CardShopPurchase = 30030,
-    EventContent_RestartMainStage = 30031,
-    EventContent_LocationGetInfo = 30032,
-    EventContent_LocationAttendSchedule = 30033,
-    EventContent_FortuneGachaPurchase = 30034,
-    EventContent_SubEventLobby = 30035,
-    EventContent_EnterStoryStage = 30036,
-    EventContent_StoryStageResult = 30037,
-    EventContent_DiceRaceLobby = 30038,
-    EventContent_DiceRaceRoll = 30039,
-    EventContent_DiceRaceLapReward = 30040,
-    EventContent_PermanentList = 30041,
-    TTS_GetFile = 31000,
-    TTS_GetKana = 31001,
-    ContentLog_UIOpenStatistics = 32000,
-    MomoTalk_OutLine = 33000,
-    MomoTalk_MessageList = 33001,
-    MomoTalk_Read = 33002,
-    MomoTalk_Reply = 33003,
-    MomoTalk_FavorSchedule = 33004,
-    ClearDeck_List = 34000,
-    MiniGame_StageList = 35000,
-    MiniGame_EnterStage = 35001,
-    MiniGame_Result = 35002,
-    MiniGame_MissionList = 35003,
-    MiniGame_MissionReward = 35004,
-    MiniGame_MissionMultipleReward = 35005,
-    Notification_LobbyCheck = 36000,
-    Notification_EventContentReddotCheck = 36001,
-    ProofToken_RequestQuestion = 37000,
-    ProofToken_Submit = 37001,
-    SchoolDungeon_List = 38000,
-    SchoolDungeon_EnterBattle = 38001,
-    SchoolDungeon_BattleResult = 38002,
-    SchoolDungeon_Retreat = 38003,
-    TimeAttackDungeon_Lobby = 39000,
-    TimeAttackDungeon_CreateBattle = 39001,
-    TimeAttackDungeon_EnterBattle = 39002,
-    TimeAttackDungeon_EndBattle = 39003,
-    TimeAttackDungeon_Sweep = 39004,
-    TimeAttackDungeon_GiveUp = 39005,
-    TimeAttackDungeon_Login = 39006,
-    WorldRaid_Lobby = 40000,
-    WorldRaid_BossList = 40001,
-    WorldRaid_EnterBattle = 40002,
-    WorldRaid_BattleResult = 40003,
-    WorldRaid_ReceiveReward = 40004,
-    ResetableContent_Get = 41000,
-    Conquest_GetInfo = 42000,
-    Conquest_Conquer = 42001,
-    Conquest_ConquerWithBattleStart = 42002,
-    Conquest_ConquerWithBattleResult = 42003,
-    Conquest_DeployEchelon = 42004,
-    Conquest_ManageBase = 42005,
-    Conquest_UpgradeBase = 42006,
-    Conquest_TakeEventObject = 42007,
-    Conquest_EventObjectBattleStart = 42008,
-    Conquest_EventObjectBattleResult = 42009,
-    Conquest_ReceiveCalculateRewards = 42010,
-    Conquest_NormalizeEchelon = 42011,
-    Conquest_Check = 42012,
-    Friend_List = 43000,
-    Friend_Remove = 43001,
-    Friend_GetFriendDetailedInfo = 43002,
-    Friend_GetIdCard = 43003,
-    Friend_SetIdCard = 43004,
-    Friend_Search = 43005,
-    Friend_SendFriendRequest = 43006,
-    Friend_AcceptFriendRequest = 43007,
-    Friend_DeclineFriendRequest = 43008,
-    Friend_CancelFriendRequest = 43009,
-    Friend_Check = 43010,
-    CharacterGear_List = 44000,
-    CharacterGear_Unlock = 44001,
-    CharacterGear_TierUp = 44002,
-    Queuing_GetTicket = 50000,
-    Queuing_GetTicketGL = 50001,
-    Management_BannerList = 100000,
-    Management_ContentsLockList = 100001,
-    Common_Cheat = -9999,
-    Error = -1,
-}
-
-public class EquipmentItemListResponse : ResponsePacket
-{
-    public Protocol Protocol;
+    public Protocol Protocol => Protocol.Equipment_List;
+    public long ServerTimeTicks;
     public List<EquipmentDB> EquipmentDBs;
+}
+
+public class EquipmentItemEquipResponse : ResponsePacket, IResponse<EquipmentItemEquipRequest>
+{
+    public Protocol Protocol => Protocol.Equipment_Equip;
+    public CharacterDB CharacterDB;
+    public List<EquipmentDB> EquipmentDBs;
+}
+
+public class EquipmentItemLevelUpResponse : ResponsePacket, IResponse<EquipmentItemLevelUpRequest>
+{
+    public Protocol Protocol => Protocol.Equipment_LevelUp;
+    public EquipmentDB EquipmentDB;
+    public ConsumeResultDB ConsumeResultDB;
+}
+
+public class EquipmentItemTierUpResponse : ResponsePacket, IResponse<EquipmentItemTierUpRequest>
+{
+    public Protocol Protocol => Protocol.Equipment_TierUp;
+    public EquipmentDB EquipmentDB;
+    public ParcelResultDB ParcelResultDB;
 }
 
 public class CraftInfoListResponse : ResponsePacket
 {
-    public Protocol Protocol;
+    public Protocol Protocol => Protocol.Craft_List;
+    public long ServerTimeTicks;
     public List<CraftInfoDB> CraftInfos;
     public List<ShiftingCraftInfoDB> ShiftingCraftInfos;
 }
@@ -549,6 +222,14 @@ public class WeaponDB : ParcelBase
     public long BoundCharacterServerId;
     public bool IsLocked;
 }
+public class CostumeDB : ParcelBase
+{
+    public ParcelType Type;
+    public long ServerId;
+    public long UniqueId;
+    public bool IsLocked;
+}
+
 
 public class ParcelResultDB
 {
@@ -589,7 +270,16 @@ public class ConsumeResultDB
 public class ItemDB : ConsumableItemBaseDB
 {
     public ParcelType Type;
+    public bool CanConsume;
+    
+    // These fields are DB-only and should not be serialized for Item_List endpoint
+    // Atrahasis does not send IsNew/IsLocked in Item_List responses
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public bool IsNew;
+    
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
     public bool IsLocked;
 }
 
@@ -618,12 +308,21 @@ public class EchelonDB
     public long AccountServerId;
     public EchelonType EchelonType;
     public long EchelonNumber;
+    public EchelonExtensionType ExtensionType;
     public long LeaderServerId;
+    public int MainSlotCount;
+    public int SupportSlotCount;
     public List<long> MainSlotServerIds;
     public List<long> SupportSlotServerIds;
-    public long TSSServerId;
+    public long TSSInteractionServerId;
     public EchelonStatusFlag UsingFlag;
+    public bool IsUsing;
+    public List<long> AllCharacterServerIds;
+    public List<long> AllCharacterWithoutTSSServerIds;
+    public List<long> AllCharacterWithEmptyServerIds;
+    public List<long> BattleCharacterServerIds;
     public List<long> SkillCardMulliganCharacterIds;
+    public List<int> CombatStyleIndex;
 }
 
 public class ClanAssistUseInfo
@@ -1282,6 +981,7 @@ public class StoryStrategyStageSaveDB : CampaignMainStageSaveDB
 public class CafeDB
 {
     public long CafeDBId;
+    public long CafeId;
     public long AccountId;
     public int CafeRank;
     public DateTime LastUpdate;
@@ -1289,8 +989,24 @@ public class CafeDB
     public bool IsNew;
     public Dictionary<long, CafeCharacterDB> CafeVisitCharacterDBs;
     public List<FurnitureDB> FurnitureDBs;
-    public Dictionary<CurrencyTypes, long> CurrencyDict;
-    public Dictionary<CurrencyTypes, DateTime> UpdateTimeDict;
+    public DateTime ProductionAppliedTime;
+    public CafeProductionDB ProductionDB;
+    public Dictionary<CurrencyTypes, long> CurrencyDict = new();
+    public Dictionary<CurrencyTypes, DateTime> UpdateTimeDict = new();
+}
+
+public class CafeProductionDB
+{
+    public long CafeDBId;
+    public long ComfortValue;
+    public DateTime AppliedDate;
+    public List<CafeProductionParcelInfo> ProductionParcelInfos;
+}
+
+public class CafeProductionParcelInfo
+{
+    public ParcelKeyPair Key;
+    public long Amount;
 }
 
 public class CafePresetDB
@@ -1423,7 +1139,6 @@ public class AcademyDB
 
 public class AcademyLocationDB
 {
-    public long AccountId;
     public long LocationId;
     public long Rank;
     public long Exp;
@@ -1509,11 +1224,14 @@ public class ClanMemberDB
     public string AccountNickName;
     public long ClanDBId;
     public long RepresentCharacterUniqueId;
+    public long RepresentCharacterCostumeId;
     public long AttendanceCount;
+    public long CafeComfortValue;
     public ClanSocialGrade ClanSocialGrade;
     public DateTime JoinDate;
     public DateTime SocialGradeUpdateTime;
     public DateTime LastLoginDate;
+    public DateTime GameLoginDate;
     public DateTime AppliedDate;
     public ClanMemberDescriptionDB ClanMemberDescriptionDB;
 }
@@ -1744,6 +1462,7 @@ public class EventContentPermanentDB
 {
     public long EventContentId;
     public bool IsStageAllClear;
+    public bool IsReceivedCharacterReward;
 }
 
 public class MomoTalkOutLineDB
@@ -2003,6 +1722,26 @@ public class ContentsLockDB
     public DateTime CreateDate;
 }
 
+public class ProtocolLockDB
+{
+    public Protocol Protocol;
+    public DateTime BeginDate;
+    public DateTime EndDate;
+}
+
+public class BeforehandGachaResult
+{
+    public long GachaUniqueId;
+    public List<BeforehandGachaSnapshotDB> Results;
+}
+
+public class BeforehandGachaSnapshotDB
+{
+    public long ShopUniqueId;
+    public long GoodsId;
+    public List<long> LastResults;
+}
+
 public class CheatCharacterCustomPreset
 {
     public long UniqueId;
@@ -2170,7 +1909,13 @@ public enum CurrencyTypes
     WorldRaidTicketA = 19,
     WorldRaidTicketB = 20,
     WorldRaidTicketC = 21,
-    Max = 22,
+    ChaserTotalTicket = 22,
+    SchoolDungeonTotalTicket = 23,
+    EliminateTicketA = 24,
+    EliminateTicketB = 25,
+    EliminateTicketC = 26,
+    EliminateTicketD = 27,
+    Max = 28,
 }
 
 public class ParcelBase
@@ -2206,10 +1951,12 @@ public class FurnitureDB : ConsumableItemBaseDB
 {
     public ParcelType Type;
     public FurnitureLocation Location;
+    public long CafeDBId;
     public float PositionX;
     public float PositionY;
     public float Rotation;
     public long ItemDeploySequence;
+    public bool CanConsume;
 }
 
 public class ParcelResultStepInfo
@@ -2230,6 +1977,12 @@ public enum EchelonStatusFlag
     None = 0,
     BeforeDeploy = 1,
     OnDuty = 2,
+}
+
+public enum EchelonExtensionType
+{
+    Base = 0,
+    Raid = 1,
 }
 
 public enum AssistRelation
@@ -3344,6 +3097,44 @@ public struct SkillCostRegenSnapshot
     public float Regen;
 }
 
+public class AccountAttachmentDB
+{
+    public long AccountId;
+    public long EmblemUniqueId;
+}
+
+public class EmblemDB
+{
+    public ParcelType Type = ParcelType.None;
+    public long UniqueId;
+    public DateTime ReceiveDate;
+}
+
+public class MultiSweepPresetDB
+{
+    public long PresetId;
+    public string PresetName;
+    public List<long> StageIds;
+}
+
+public class StickerBookDB
+{
+    public long AccountId;
+    public List<StickerDB> UnusedStickerDBs = new();
+    public List<StickerDB> UsedStickerDBs = new();
+}
+
+public class StickerDB
+{
+    public long StickerUniqueId;
+}
+
+public class MultiFloorRaidDB
+{
+    public long SeasonId;
+    public int Difficulty;
+}
+
 public static class ProtoDefine
 {
     public static readonly Dictionary<Protocol, Type> requestType = new Dictionary<Protocol, Type>()
@@ -3371,6 +3162,8 @@ public static class ProtoDefine
         [Protocol.Account_DismissRepurchasablePopup] = typeof(AccountDismissRepurchasablePopupRequest),
         [Protocol.Account_InvalidateToken] = typeof(AccountInvalidateTokenRequest),
         [Protocol.Account_LoginSync] = typeof(AccountLoginSyncRequest),
+        [Protocol.Account_CheckAccountLevelReward] = typeof(CheckAccountLevelRewardRequest),
+        [Protocol.Account_ReceiveAccountLevelReward] = typeof(ReceiveAccountLevelRewardRequest),
         [Protocol.Account_VerifyCheckAdultAgree] = typeof(AccountVerifyAdultCheckRequest),
         [Protocol.Character_List] = typeof(CharacterListRequest),
         [Protocol.Character_Transcendence] = typeof(CharacterTranscendenceRequest),
@@ -3387,6 +3180,11 @@ public static class ProtoDefine
         [Protocol.Item_Lock] = typeof(ItemLockRequest),
         [Protocol.Item_BulkConsume] = typeof(ItemBulkConsumeRequest),
         [Protocol.Item_SelectTicket] = typeof(ItemSelectTicketRequest),
+        [Protocol.Item_AutoSynth] = typeof(ItemAutoSynthRequest),
+        [Protocol.Equipment_List] = typeof(EquipmentItemListRequest),
+        [Protocol.Equipment_Equip] = typeof(EquipmentItemEquipRequest),
+        [Protocol.Equipment_LevelUp] = typeof(EquipmentItemLevelUpRequest),
+        [Protocol.Equipment_TierUp] = typeof(EquipmentItemTierUpRequest),
         [Protocol.Echelon_List] = typeof(EchelonListRequest),
         [Protocol.Echelon_Save] = typeof(EchelonSaveRequest),
         [Protocol.Echelon_PresetList] = typeof(EchelonPresetListRequest),
@@ -3494,6 +3292,13 @@ public static class ProtoDefine
         [Protocol.Cafe_GiveGift] = typeof(CafeGiveGiftRequest),
         [Protocol.Cafe_SummonCharacter] = typeof(CafeSummonCharacterRequest),
         [Protocol.Cafe_TrophyHistory] = typeof(CafeTrophyHistoryRequest),
+        [Protocol.Cafe_Open] = typeof(CafeOpenRequest),
+        [Protocol.Cafe_Deploy] = typeof(CafeDeployFurnitureRequest),
+        [Protocol.Cafe_Relocate] = typeof(CafeRelocateFurnitureRequest),
+        [Protocol.Cafe_Remove] = typeof(CafeRemoveFurnitureRequest),
+        [Protocol.Cafe_RemoveAll] = typeof(CafeRemoveAllFurnitureRequest),
+        [Protocol.Cafe_Interact] = typeof(CafeInteractWithCharacterRequest),
+        [Protocol.Cafe_ApplyTemplate] = typeof(CafeApplyTemplateRequest),
         [Protocol.Craft_SelectNode] = typeof(CraftSelectNodeRequest),
         [Protocol.Craft_UpdateNodeLevel] = typeof(CraftUpdateNodeLevelRequest),
         [Protocol.Craft_BeginProcess] = typeof(CraftBeginProcessRequest),
@@ -3655,7 +3460,6 @@ public static class ProtoDefine
         [Protocol.CharacterGear_TierUp] = typeof(CharacterGearTierUpRequest),
         [Protocol.Queuing_GetTicket] = typeof(QueuingGetTicketRequest),
         [Protocol.Management_BannerList] = typeof(ManagementBannerListRequest),
-        [Protocol.Management_ContentsLockList] = typeof(ManagementContentsLockListRequest),
         [Protocol.Common_Cheat] = typeof(CommonCheatRequest),
     };
     public static readonly Dictionary<Protocol, Type> responseType = new Dictionary<Protocol, Type>()
@@ -3683,6 +3487,8 @@ public static class ProtoDefine
         [Protocol.Account_DismissRepurchasablePopup] = typeof(AccountDismissRepurchasablePopupResponse),
         [Protocol.Account_InvalidateToken] = typeof(AccountInvalidateTokenResponse),
         [Protocol.Account_LoginSync] = typeof(AccountLoginSyncResponse),
+        [Protocol.Account_CheckAccountLevelReward] = typeof(CheckAccountLevelRewardResponse),
+        [Protocol.Account_ReceiveAccountLevelReward] = typeof(ReceiveAccountLevelRewardResponse),
         [Protocol.Account_VerifyCheckAdultAgree] = typeof(AccountVerifyAdultCheckResponse),
         [Protocol.Character_List] = typeof(CharacterListResponse),
         [Protocol.Character_Transcendence] = typeof(CharacterTranscendenceResponse),
@@ -3699,6 +3505,11 @@ public static class ProtoDefine
         [Protocol.Item_Lock] = typeof(ItemLockResponse),
         [Protocol.Item_BulkConsume] = typeof(ItemBulkConsumeResponse),
         [Protocol.Item_SelectTicket] = typeof(ItemSelectTicketResponse),
+        [Protocol.Item_AutoSynth] = typeof(ItemAutoSynthResponse),
+        [Protocol.Equipment_List] = typeof(EquipmentItemListResponse),
+        [Protocol.Equipment_Equip] = typeof(EquipmentItemEquipResponse),
+        [Protocol.Equipment_LevelUp] = typeof(EquipmentItemLevelUpResponse),
+        [Protocol.Equipment_TierUp] = typeof(EquipmentItemTierUpResponse),
         [Protocol.Echelon_List] = typeof(EchelonListResponse),
         [Protocol.Echelon_Save] = typeof(EchelonSaveResponse),
         [Protocol.Echelon_PresetList] = typeof(EchelonPresetListResponse),
@@ -3806,6 +3617,13 @@ public static class ProtoDefine
         [Protocol.Cafe_GiveGift] = typeof(CafeGiveGiftResponse),
         [Protocol.Cafe_SummonCharacter] = typeof(CafeSummonCharacterResponse),
         [Protocol.Cafe_TrophyHistory] = typeof(CafeTrophyHistoryResponse),
+        [Protocol.Cafe_Open] = typeof(CafeOpenResponse),
+        [Protocol.Cafe_Deploy] = typeof(CafeDeployFurnitureResponse),
+        [Protocol.Cafe_Relocate] = typeof(CafeRelocateFurnitureResponse),
+        [Protocol.Cafe_Remove] = typeof(CafeRemoveFurnitureResponse),
+        [Protocol.Cafe_RemoveAll] = typeof(CafeRemoveAllFurnitureResponse),
+        [Protocol.Cafe_Interact] = typeof(CafeInteractWithCharacterResponse),
+        [Protocol.Cafe_ApplyTemplate] = typeof(CafeApplyTemplateResponse),
         [Protocol.Craft_SelectNode] = typeof(CraftSelectNodeResponse),
         [Protocol.Craft_UpdateNodeLevel] = typeof(CraftUpdateNodeLevelResponse),
         [Protocol.Craft_BeginProcess] = typeof(CraftBeginProcessResponse),
@@ -3967,7 +3785,6 @@ public static class ProtoDefine
         [Protocol.CharacterGear_TierUp] = typeof(CharacterGearTierUpResponse),
         [Protocol.Queuing_GetTicket] = typeof(QueuingGetTicketResponse),
         [Protocol.Management_BannerList] = typeof(ManagementBannerListResponse),
-        [Protocol.Management_ContentsLockList] = typeof(ManagementContentsLockListResponse),
         [Protocol.Common_Cheat] = typeof(CommonCheatResponse),
     };
 }

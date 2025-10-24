@@ -13,6 +13,8 @@ namespace BlueArchiveAPI.Models
         public string? SteamId { get; set; }
         public string PublisherAccountId { get; set; }
         public string Nickname { get; set; }
+        public string CallName { get; set; }
+        public string CallNameKatakana { get; set; }
         public int Level { get; set; } = 1;
         public string Attribute { get; set; } = "[]";
         public long CreatedAt { get; set; }
@@ -22,8 +24,11 @@ namespace BlueArchiveAPI.Models
         public bool NeedsNameSetup { get; set; } = false;
         public string ExtraData { get; set; } = "{}";
         public bool IsNew { get; set; } = true;
-        public int RepresentCharacterServerId { get; set; } = 9;
+        public int RepresentCharacterServerId { get; set; } = 0;  // Will be set after character creation
         public DateTime LastConnectTime { get; set; } = DateTime.UtcNow;
         public DateTime CreateDate { get; set; } = DateTime.UtcNow;
+
+        public GameSettings GameSettings { get; set; } = new();
+        public ContentInfo ContentInfo { get; set; } = new();
     }
 }
