@@ -3,6 +3,7 @@ using BlueArchiveAPI.NetworkModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Plana.FlatData;
+using ParcelType = BlueArchiveAPI.NetworkModels.ParcelType;
 
 namespace BlueArchiveAPI.Services
 {
@@ -386,12 +387,12 @@ namespace BlueArchiveAPI.Services
             var count = await context.Mails.Where(m => m.AccountServerId == user.Id).CountAsync();
             if (count > 0) return;
             
-            var parcelInfos = new List<object>
+            var parcelInfos = new List<ParcelInfo>
             {
-                new { Type = 1, Id = 1, Amount = 10000 },
-                new { Type = 1, Id = 2, Amount = 300 },
-                new { Type = 2, Id = 12, Amount = 10 },
-                new { Type = 2, Id = 11, Amount = 10 }
+                new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = 1 }, Amount = 10000 },
+                new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = 2 }, Amount = 300 },
+                new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Item, Id = 12 }, Amount = 10 },
+                new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Item, Id = 11 }, Amount = 10 }
             };
             
             context.Mails.Add(new Mail
@@ -402,11 +403,10 @@ namespace BlueArchiveAPI.Services
                 Sender = "Shittim Server",
                 Comment = "Welcome to Blue Archive!",
                 SendDate = DateTime.UtcNow,
+                ReceiptDate = null,
                 ExpireDate = DateTime.UtcNow.AddDays(30),
-                IsRead = false,
-                IsReceived = false,
-                ParcelInfos = JsonSerializer.Serialize(parcelInfos),
-                RemainParcelInfos = JsonSerializer.Serialize(parcelInfos)
+                ParcelInfos = parcelInfos,
+                RemainParcelInfos = parcelInfos
             });
             await context.SaveChangesAsync();
         }
@@ -440,6 +440,24 @@ namespace BlueArchiveAPI.Services
                 if (type == NetworkModels.CurrencyTypes.Invalid) continue;
                 currencyDict[type] = 0;
             }
+            
+            // Set sensible default starting values
+            currencyDict[NetworkModels.CurrencyTypes.Gold] = 1000000;
+            currencyDict[NetworkModels.CurrencyTypes.Gem] = 12000;
+            currencyDict[NetworkModels.CurrencyTypes.GemBonus] = 0;
+            currencyDict[NetworkModels.CurrencyTypes.GemPaid] = 12000;
+            currencyDict[NetworkModels.CurrencyTypes.ActionPoint] = 1000;
+            currencyDict[NetworkModels.CurrencyTypes.ArenaTicket] = 10;
+            currencyDict[NetworkModels.CurrencyTypes.RaidTicket] = 10;
+            currencyDict[NetworkModels.CurrencyTypes.WeekDungeonChaserATicket] = 3;
+            currencyDict[NetworkModels.CurrencyTypes.WeekDungeonChaserBTicket] = 3;
+            currencyDict[NetworkModels.CurrencyTypes.WeekDungeonChaserCTicket] = 3;
+            currencyDict[NetworkModels.CurrencyTypes.WeekDungeonFindGiftTicket] = 3;
+            currencyDict[NetworkModels.CurrencyTypes.AcademyTicket] = 10;
+            currencyDict[NetworkModels.CurrencyTypes.SchoolDungeonATicket] = 5;
+            currencyDict[NetworkModels.CurrencyTypes.SchoolDungeonBTicket] = 5;
+            currencyDict[NetworkModels.CurrencyTypes.SchoolDungeonCTicket] = 5;
+            currencyDict[NetworkModels.CurrencyTypes.TimeAttackDungeonTicket] = 5;
             
             // Try to load overrides from ExcelDB.db via SQL if available
             if (_excelSqlService != null)

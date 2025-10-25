@@ -20,7 +20,7 @@ namespace BlueArchiveAPI.Handlers
             {
                 var accountId = request.SessionKey.AccountServerId;
                 var count = await _context.Mails
-                    .CountAsync(m => m.AccountServerId == accountId && !m.IsReceived);
+                    .CountAsync(m => m.AccountServerId == accountId && m.ReceiptDate == null);
 
                 return new MailCheckResponse
                 {
@@ -46,9 +46,9 @@ namespace BlueArchiveAPI.Handlers
                     .Where(m => m.AccountServerId == accountId);
 
                 if (request.IsReadMail)
-                    mailsQuery = mailsQuery.Where(m => m.IsReceived);
+                    mailsQuery = mailsQuery.Where(m => m.ReceiptDate != null);
                 else
-                    mailsQuery = mailsQuery.Where(m => !m.IsReceived);
+                    mailsQuery = mailsQuery.Where(m => m.ReceiptDate == null);
 
                 var mails = await mailsQuery
                     .OrderByDescending(m => m.SendDate)
@@ -57,24 +57,23 @@ namespace BlueArchiveAPI.Handlers
                     .ToListAsync();
 
                 var unreadCount = await _context.Mails
-                    .CountAsync(m => m.AccountServerId == accountId && !m.IsReceived);
+                    .CountAsync(m => m.AccountServerId == accountId && m.ReceiptDate == null);
 
                 var mailDBs = mails.Select(m => new MailDB
                 {
                     ServerId = m.ServerId,
+                    AccountServerId = m.AccountServerId,
                     Type = (MailType)m.Type,
                     UniqueId = m.UniqueId,
                     Sender = m.Sender,
+                    LocalizedSender = null,
                     Comment = m.Comment,
+                    LocalizedComment = null,
                     SendDate = m.SendDate,
-                    ReceiptDate = m.IsReceived ? m.SendDate : null,
+                    ReceiptDate = m.ReceiptDate,
                     ExpireDate = m.ExpireDate,
-                    ParcelInfos = string.IsNullOrEmpty(m.ParcelInfos) 
-                        ? new List<ParcelInfo>() 
-                        : System.Text.Json.JsonSerializer.Deserialize<List<ParcelInfo>>(m.ParcelInfos) ?? new List<ParcelInfo>(),
-                    RemainParcelInfos = string.IsNullOrEmpty(m.RemainParcelInfos) 
-                        ? new List<ParcelInfo>() 
-                        : System.Text.Json.JsonSerializer.Deserialize<List<ParcelInfo>>(m.RemainParcelInfos) ?? new List<ParcelInfo>()
+                    ParcelInfos = m.ParcelInfos,
+                    RemainParcelInfos = m.RemainParcelInfos
                 }).ToList();
 
                 return new MailListResponse

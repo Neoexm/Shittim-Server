@@ -157,5 +157,30 @@ namespace BlueArchiveAPI.Handlers
                 };
             }
         }
+
+        public class BuyAP : BaseHandler<ShopBuyAPRequest, ShopBuyAPResponse>
+        {
+            protected override async Task<ShopBuyAPResponse> Handle(ShopBuyAPRequest request)
+            {
+                return new ShopBuyAPResponse
+                {
+                    ShopProductDB = new ShopProductDB
+                    {
+                        ShopExcelId = request.ShopUniqueId,
+                        PurchaseCount = request.PurchaseCount
+                    },
+                    ParcelResultDB = new ParcelResultDB
+                    {
+                        AccountCurrencyDB = new AccountCurrencyDB
+                        {
+                            CurrencyDict = new Dictionary<NetworkModels.CurrencyTypes, long>
+                            {
+                                { NetworkModels.CurrencyTypes.ActionPoint, 1120 }
+                            }
+                        }
+                    }
+                };
+            }
+        }
     }
 }
