@@ -8,7 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plana", "Plana\Plana.csproj", "{9A1832D0-6CC1-46EB-8110-4D7B93025863}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schale", "Schale\Schale.csproj", "{9A1832D0-6CC1-46EB-8110-4D7B93025863}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shittim-Server", "Shittim-Server\Shittim-Server.csproj", "{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,18 @@ Global
 		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x64.Build.0 = Release|Any CPU
 		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x86.ActiveCfg = Release|Any CPU
 		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x86.Build.0 = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|x64.Build.0 = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Debug|x86.Build.0 = Debug|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|x64.ActiveCfg = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|x64.Build.0 = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|x86.ActiveCfg = Release|Any CPU
+		{B8C9A7E1-2F3D-4A5E-9B6C-1D8E4F7A2B3C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

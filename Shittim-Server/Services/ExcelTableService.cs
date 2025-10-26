@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Google.FlatBuffers;
 using Microsoft.Data.Sqlite;
-using Plana.Crypto;
+using Schale.Crypto;
 
 namespace BlueArchiveAPI.Services
 {

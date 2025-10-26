@@ -7,7 +7,6 @@ A functional Blue Archive private server implementation in C# with ASP.NET Core 
 - Handles authentication and account management
 - Supports core game protocols with MX packet encryption/decryption
 - SQLite database for persistence
-- HAR logging for traffic analysis
 
 ## Requirements
 

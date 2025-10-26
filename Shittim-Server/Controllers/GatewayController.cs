@@ -8,7 +8,7 @@ using BlueArchiveAPI.Core.NetworkProtocol;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Controllers
 {

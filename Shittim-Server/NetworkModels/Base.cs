@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.NetworkModels
 {

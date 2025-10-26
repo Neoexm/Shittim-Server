@@ -1,5 +1,5 @@
 using Ionic.Zip;
-using Plana.Crypto;
+using Schale.Crypto;
 
 namespace BlueArchiveAPI.Services
 {

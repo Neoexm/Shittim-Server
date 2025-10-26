@@ -1,5 +1,5 @@
-﻿using BlueArchiveAPI.NetworkModels;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using BlueArchiveAPI.NetworkModels;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {

@@ -1,6 +1,6 @@
 namespace BlueArchiveAPI.NetworkModels;
 using System.Collections.ObjectModel;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 public class SystemVersionRequest : RequestPacket, IRequest<SystemVersionResponse>
 {
@@ -2148,7 +2148,7 @@ public class ManagementBannerListRequest : RequestPacket, IRequest<ManagementBan
 
 public class ManagementContentsLockListRequest : RequestPacket, IRequest<ManagementContentsLockListResponse>
 {
-    // Protocol.Management_ContentsLockList doesn't exist in Plana - using None as placeholder
+    // Protocol.Management_ContentsLockList doesn't exist in Schale - using None as placeholder
     public Protocol Protocol => Protocol.None;
 }
 

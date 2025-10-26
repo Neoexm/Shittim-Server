@@ -9,8 +9,8 @@ using BlueArchiveAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
-using Plana.FlatData;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Schale.FlatData;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {

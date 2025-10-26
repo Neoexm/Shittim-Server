@@ -1,7 +1,7 @@
-﻿using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI.NetworkModels;
 using BlueArchiveAPI.Services;
 using Newtonsoft.Json;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 namespace BlueArchiveAPI.Handlers
 {

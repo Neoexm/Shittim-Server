@@ -1,6 +1,6 @@
-﻿using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI.NetworkModels;
 using BlueArchiveAPI.Services;
-using Plana.FlatData;
+using Schale.FlatData;
 using ParcelType = BlueArchiveAPI.NetworkModels.ParcelType;
 using ShopCategoryType = BlueArchiveAPI.NetworkModels.ShopCategoryType;
 

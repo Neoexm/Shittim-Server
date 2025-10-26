@@ -2,7 +2,7 @@ using BlueArchiveAPI.Models;
 using BlueArchiveAPI.NetworkModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using Plana.FlatData;
+using Schale.FlatData;
 using ParcelType = BlueArchiveAPI.NetworkModels.ParcelType;
 
 namespace BlueArchiveAPI.Services
@@ -161,7 +161,7 @@ namespace BlueArchiveAPI.Services
             if (existing.Count > 0) return;
             
             var defaultParcels = _excelService.GetTable<DefaultParcelExcelT>();
-            foreach (var parcel in defaultParcels.Where(p => p.ParcelType == Plana.FlatData.ParcelType.Item))
+            foreach (var parcel in defaultParcels.Where(p => p.ParcelType == Schale.FlatData.ParcelType.Item))
             {
                 context.Items.Add(new Item
                 {

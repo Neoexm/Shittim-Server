@@ -1,6 +1,6 @@
 namespace BlueArchiveAPI.NetworkModels;
 using System.Collections.ObjectModel;
-using Protocol = Plana.MX.NetworkProtocol.Protocol;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
 public class RequestPacket : BasePacket
 {

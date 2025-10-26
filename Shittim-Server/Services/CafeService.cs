@@ -1,6 +1,6 @@
 using BlueArchiveAPI.Models;
 using BlueArchiveAPI.NetworkModels;
-using Plana.FlatData;
+using Schale.FlatData;
 using System.Text.Json;
 
 namespace BlueArchiveAPI.Services
@@ -69,10 +69,10 @@ namespace BlueArchiveAPI.Services
                 // Excel has separate rows for Gold (ParcelId=1) and AP (ParcelId=5)
                 var goldRow = cafeProductionExcel.FirstOrDefault(p =>
                     p.CafeId == cafe.CafeId && p.Rank == cafe.CafeRank &&
-                    p.CafeProductionParcelType == Plana.FlatData.ParcelType.Currency && p.CafeProductionParcelId == 1);
+                    p.CafeProductionParcelType == Schale.FlatData.ParcelType.Currency && p.CafeProductionParcelId == 1);
                 var apRow = cafeProductionExcel.FirstOrDefault(p =>
                     p.CafeId == cafe.CafeId && p.Rank == cafe.CafeRank &&
-                    p.CafeProductionParcelType == Plana.FlatData.ParcelType.Currency && p.CafeProductionParcelId == 5);
+                    p.CafeProductionParcelType == Schale.FlatData.ParcelType.Currency && p.CafeProductionParcelId == 5);
                 
                 // Calculate production: (Coefficient * Comfort + CorrectionValue) / 10000 per minute
                 var goldProduction = goldRow != null

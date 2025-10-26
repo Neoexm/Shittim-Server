@@ -1,0 +1,15 @@
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.csproj.AssemblyReference.cache
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.AssemblyInfoInputs.cache
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.AssemblyInfo.cs
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.csproj.CoreCompileInputs.cache
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.sourcelink.json
+C:\Users\tomda\Documents\Shittim-Server\Schale\bin\Debug\net8.0\Schale.deps.json
+C:\Users\tomda\Documents\Shittim-Server\Schale\bin\Debug\net8.0\Schale.runtimeconfig.json
+C:\Users\tomda\Documents\Shittim-Server\Schale\bin\Debug\net8.0\Schale.dll
+C:\Users\tomda\Documents\Shittim-Server\Schale\bin\Debug\net8.0\Schale.pdb
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.dll
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\refint\Schale.dll
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.pdb
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\Schale.genruntimeconfig.cache
+C:\Users\tomda\Documents\Shittim-Server\Schale\obj\Debug\net8.0\ref\Schale.dll
