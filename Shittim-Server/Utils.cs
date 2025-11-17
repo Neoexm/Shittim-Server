@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using BlueArchiveAPI.Models;
-using BlueArchiveAPI.NetworkModels;
+using Schale.MX.NetworkProtocol;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -179,8 +179,7 @@ namespace BlueArchiveAPI
         
         private static readonly JsonSerializerSettings packetSettings = new JsonSerializerSettings
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            Converters = new List<JsonConverter> { new Core.ProtocolFirstNewtonsoftConverter() }
+            NullValueHandling = NullValueHandling.Ignore
         };
         
         public static byte[] EncryptResponsePacket<TResponse>(TResponse packet, Protocol proto) where TResponse : ResponsePacket

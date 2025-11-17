@@ -9,7 +9,7 @@ namespace BlueArchiveAPI.NetworkModels
 {
     public interface IPacket
     {
-        Protocol Protocol { get; }
+        Schale.MX.NetworkProtocol.Protocol Protocol { get; }
     }
 
     public interface IRequest : IPacket

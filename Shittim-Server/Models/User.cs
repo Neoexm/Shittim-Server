@@ -2,7 +2,7 @@ namespace BlueArchiveAPI.Models
 {
     public class User
     {
-        public int Id { get; set; }
+        public long AccountServerId { get; set; }
         public string UserKey { get; set; }
         public string Gid { get; set; }
         public string Guid { get; set; }
@@ -24,11 +24,8 @@ namespace BlueArchiveAPI.Models
         public bool NeedsNameSetup { get; set; } = false;
         public string ExtraData { get; set; } = "{}";
         public bool IsNew { get; set; } = true;
-        public int RepresentCharacterServerId { get; set; } = 0;  // Will be set after character creation
+        public int RepresentCharacterServerId { get; set; } = 0;
         public DateTime LastConnectTime { get; set; } = DateTime.UtcNow;
         public DateTime CreateDate { get; set; } = DateTime.UtcNow;
-
-        public GameSettings GameSettings { get; set; } = new();
-        public ContentInfo ContentInfo { get; set; } = new();
     }
 }

@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plana\Plana.csproj" />
+    <ProjectReference Include="..\Schale\Schale.csproj" />
   </ItemGroup>
 
   <ItemGroup>
