@@ -1,6 +1,5 @@
-using BlueArchiveAPI.Handlers;
-using BlueArchiveAPI.Models;
-using BlueArchiveAPI.NetworkModels;
+using BlueArchiveAPI;
+using Schale.MX.NetworkProtocol;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -9,8 +8,10 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Xml;
+using Shittim_Server.Core;
+using Protocol = Schale.MX.NetworkProtocol.Protocol;
 
-namespace BlueArchiveAPI.Controllers
+namespace Shittim_Server.Controllers
 {
     [ApiController]
     [Route("api")]
@@ -25,6 +26,7 @@ namespace BlueArchiveAPI.Controllers
 
         static ApiController()
         {
+            _client.Timeout = TimeSpan.FromSeconds(30);
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.TryAddWithoutValidation("TE", "identity");
             _client.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Encoding", "gzip");
@@ -63,25 +65,29 @@ namespace BlueArchiveAPI.Controllers
 
             var proto = ResolveProtocolOrRaise($"{path1}/{path2}", protocol);
 
+            var requestType = _handlerManager.GetRequestType(proto);
+            if (requestType == null)
+            {
+                return NotFound();
+            }
+
+            var decryptedJson = Utils.DecryptRequestPacket(packet);
+            var request = (RequestPacket)JsonConvert.DeserializeObject(decryptedJson, requestType)!;
+
             using var lease = _handlerManager.GetHandlerLease(proto);
             if (!lease.IsValid)
             {
                 return NotFound();
             }
 
-            /*
-            var form = new MultipartFormDataContent();
-            form.Add(new StringContent(Utils.GetProtocolHash(proto), Encoding.UTF8, "text/plain"), "protocol");
-            form.Add(new StringContent(encode.ToString(), Encoding.UTF8, "text/plain"), "encode");
-            form.Add(new StringContent(Utils.EncryptRequestPacket(reqData), Encoding.UTF8, "text/plain"), "packet");
+            var response = await lease.Handler.Handle(request);
+            if (response == null)
+            {
+                return StatusCode(500, "Handler returned null");
+            }
 
-            var resp = await _client.PostAsync($"https://nxm-tw-bagl.nexon.com:5100/api/{path1}/{path2}", form);
-            var content = await resp.Content.ReadAsByteArrayAsync();
-            var respData = Utils.DecryptResponsePacket(content, out proto);
-            _logger.LogInformation($"{respData}");
-            
-            */
-            return File(await lease.Handler.Handle(packet), "application/json; charset=utf-8");
+            var encryptedBytes = Utils.EncryptResponsePacket(response, proto);
+            return File(encryptedBytes, "application/json; charset=utf-8");
         }
         
         [HttpPost("api/{path1}/{path2}")]
@@ -92,6 +98,16 @@ namespace BlueArchiveAPI.Controllers
             
             var proto = ResolveProtocolOrRaise($"{path1}/{path2}", protocol);
 
+            var requestType = _handlerManager.GetRequestType(proto);
+            if (requestType == null)
+            {
+                _logger.LogWarning($"api: {protocol}@{path1}/{path2} - no request type!");
+                return NotFound();
+            }
+
+            var decryptedJson = Utils.DecryptRequestPacket(packet);
+            var request = (RequestPacket)JsonConvert.DeserializeObject(decryptedJson, requestType)!;
+
             using var lease = _handlerManager.GetHandlerLease(proto);
 
             if (!lease.IsValid)
@@ -99,6 +115,15 @@ namespace BlueArchiveAPI.Controllers
                 _logger.LogWarning($"api: {protocol}@{path1}/{path2} not implemented!");
                 return NotFound();
             }
+
+            var response = await lease.Handler.Handle(request);
+            if (response == null)
+            {
+                return StatusCode(500, "Handler returned null");
+            }
+
+            var encryptedBytes = Utils.EncryptResponsePacket(response, proto);
+            return File(encryptedBytes, "application/json; charset=utf-8");
 
             /*
             var reqObj = reqData.ToObject(ProtoDefine.requestType[proto]);
@@ -187,8 +212,6 @@ namespace BlueArchiveAPI.Controllers
             
             _logger.LogInformation($"{JsonConvert.SerializeObject(respData, Newtonsoft.Json.Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore})}");
             */
-
-            return File(await lease.Handler.Handle(packet), "application/json; charset=utf-8");
         }
     }
 }

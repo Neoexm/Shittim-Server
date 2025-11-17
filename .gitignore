@@ -1,7 +1,7 @@
 # Request logs containing sensitive data
 requests/
 request_logs/
-data/
+/data/
 nexon.har
 nexon.flows
 *.har
@@ -54,6 +54,13 @@ sslkey.log
 
 # Generic logs
 *.log
+
+# .NET build outputs
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
 
 # OS generated files
 .DS_Store

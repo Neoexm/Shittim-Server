@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Schale.Data.GameModel;
 
 namespace BlueArchiveAPI.Models
 {
@@ -7,84 +8,86 @@ namespace BlueArchiveAPI.Models
         public BAContext(DbContextOptions<BAContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<Character> Characters { get; set; }
-        public DbSet<Weapon> Weapons { get; set; }
-        public DbSet<AccountCurrency> AccountCurrencies { get; set; }
-        public DbSet<AccountTutorial> AccountTutorials { get; set; }
-        public DbSet<AccountLevelReward> AccountLevelRewards { get; set; }
-        public DbSet<CampaignStageHistory> CampaignStageHistories { get; set; }
-        public DbSet<CampaignChapterReward> CampaignChapterRewards { get; set; }
-        public DbSet<StrategyObjectHistory> StrategyObjectHistories { get; set; }
-        public DbSet<Item> Items { get; set; }
-        public DbSet<Equipment> Equipments { get; set; }
-        public DbSet<Gear> Gears { get; set; }
-        public DbSet<Echelon> Echelons { get; set; }
-        public DbSet<EchelonPreset> EchelonPresets { get; set; }
-        public DbSet<EchelonPresetGroup> EchelonPresetGroups { get; set; }
-        public DbSet<Cafe> Cafes { get; set; }
-        public DbSet<Furniture> Furnitures { get; set; }
-        public DbSet<Mail> Mails { get; set; }
-        public DbSet<AcademyLocation> AcademyLocations { get; set; }
-        public DbSet<Academy> Academies { get; set; }
-        public DbSet<AccountAttachment> AccountAttachments { get; set; }
-        public DbSet<StickerBook> StickerBooks { get; set; }
-        public DbSet<EventContentPermanent> EventContentPermanents { get; set; }
-        public DbSet<MissionProgress> MissionProgresses { get; set; }
-        public DbSet<ScenarioHistory> ScenarioHistories { get; set; }
-        public DbSet<ScenarioGroupHistory> ScenarioGroupHistories { get; set; }
-        public DbSet<MomoTalkOutline> MomoTalkOutlines { get; set; }
-        public DbSet<Costume> Costumes { get; set; }
-        public DbSet<MemoryLobby> MemoryLobbies { get; set; }
-        public DbSet<Emblem> Emblems { get; set; }
-        public DbSet<MultiFloorRaid> MultiFloorRaids { get; set; }
-        public DbSet<TimeAttackDungeonRoom> TimeAttackDungeonRooms { get; set; }
-        public DbSet<CurrencyTransaction> CurrencyTransactions { get; set; }
-
+        public DbSet<CharacterDBServer> Characters { get; set; }
+        public DbSet<WeaponDBServer> Weapons { get; set; }
+        public DbSet<AccountCurrencyDBServer> AccountCurrencies { get; set; }
+        public DbSet<ItemDBServer> Items { get; set; }
+        public DbSet<EquipmentDBServer> Equipments { get; set; }
+        public DbSet<CostumeDBServer> Costumes { get; set; }
+        public DbSet<EchelonDBServer> Echelons { get; set; }
+        public DbSet<MailDBServer> Mails { get; set; }
+        public DbSet<MissionProgressDBServer> MissionProgresses { get; set; }
+        public DbSet<ScenarioHistoryDBServer> ScenarioHistories { get; set; }
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             
-            modelBuilder.Entity<User>()
-                .OwnsOne(u => u.GameSettings, gs =>
-                {
-                    gs.Property<int>("Id");
-                });
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(u => u.AccountServerId);
+            });
             
-            modelBuilder.Entity<User>()
-                .OwnsOne(u => u.ContentInfo, ci =>
-                {
-                    ci.Property<int>("Id");
-                    ci.OwnsOne(c => c.ArenaDataInfo, ad =>
-                    {
-                        ad.Property(a => a.SeasonId).IsRequired();
-                    });
-                    ci.OwnsOne(c => c.MultiFloorRaidDataInfo, mf =>
-                    {
-                        mf.Property(m => m.SeasonId).IsRequired();
-                    });
-                });
+            modelBuilder.Entity<CharacterDBServer>(entity =>
+            {
+                entity.HasKey(c => c.ServerId);
+                entity.HasIndex(c => c.AccountServerId);
+                entity.Ignore(c => c.PotentialStats);
+                entity.Ignore(c => c.EquipmentSlotAndDBIds);
+            });
             
-            modelBuilder.Entity<ScenarioHistory>()
-                .HasKey(s => new { s.AccountServerId, s.ScenarioId });
+            modelBuilder.Entity<WeaponDBServer>(entity =>
+            {
+                entity.HasKey(w => w.ServerId);
+                entity.HasIndex(w => w.AccountServerId);
+            });
             
-            modelBuilder.Entity<ScenarioGroupHistory>()
-                .HasKey(s => new { s.AccountServerId, s.ScenarioGroupId });
+            modelBuilder.Entity<AccountCurrencyDBServer>(entity =>
+            {
+                entity.HasKey(a => a.ServerId);
+                entity.HasIndex(a => a.AccountServerId);
+                entity.Ignore(a => a.CurrencyDict);
+                entity.Ignore(a => a.UpdateTimeDict);
+            });
             
-            // Configure keys for new entities added for Atrahasis LoginSync port
-            modelBuilder.Entity<Costume>()
-                .HasKey(c => c.ServerId);
+            modelBuilder.Entity<ItemDBServer>(entity =>
+            {
+                entity.HasKey(i => i.ServerId);
+                entity.HasIndex(i => i.AccountServerId);
+            });
             
-            modelBuilder.Entity<MemoryLobby>()
-                .HasKey(m => m.ServerId);
+            modelBuilder.Entity<EquipmentDBServer>(entity =>
+            {
+                entity.HasKey(e => e.ServerId);
+                entity.HasIndex(e => e.AccountServerId);
+            });
             
-            modelBuilder.Entity<Emblem>()
-                .HasKey(e => e.ServerId);
+            modelBuilder.Entity<CostumeDBServer>(entity =>
+            {
+                entity.HasKey(c => c.ServerId);
+                entity.HasIndex(c => c.AccountServerId);
+            });
             
-            modelBuilder.Entity<MultiFloorRaid>()
-                .HasKey(m => m.ServerId);
+            modelBuilder.Entity<EchelonDBServer>(entity =>
+            {
+                entity.HasKey(e => new { e.AccountServerId, e.EchelonNumber, e.EchelonType });
+            });
             
-            modelBuilder.Entity<TimeAttackDungeonRoom>()
-                .HasKey(t => t.ServerId);
+            modelBuilder.Entity<MailDBServer>(entity =>
+            {
+                entity.HasKey(m => m.ServerId);
+                entity.HasIndex(m => m.AccountServerId);
+            });
+            
+            modelBuilder.Entity<MissionProgressDBServer>(entity =>
+            {
+                entity.HasKey(m => new { m.AccountServerId, m.MissionUniqueId });
+            });
+            
+            modelBuilder.Entity<ScenarioHistoryDBServer>(entity =>
+            {
+                entity.HasKey(s => new { s.AccountServerId, s.ScenarioUniqueId });
+            });
         }
     }
 }

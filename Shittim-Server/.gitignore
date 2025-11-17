@@ -1,1 +1,3 @@
-Data/*
+Data/*.db
+Data/*.sqlite
+Data/*.sqlite3

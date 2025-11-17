@@ -1,10 +1,12 @@
-using BlueArchiveAPI.Handlers;
-using BlueArchiveAPI.Models;
-using BlueArchiveAPI.Services;
 using BlueArchiveAPI.Configuration;
+using BlueArchiveAPI.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
+using Schale.Data;
+using Shittim_Server.Core;
+using Shittim_Server.Services;
+using Shittim_Server.Managers;
 
 #nullable enable
 
@@ -18,29 +20,57 @@ var startupLogger = loggerFactory.CreateLogger("Startup");
 
 // Load Excel tables from CDN
 Console.WriteLine("\n[Resource Manager] Checking Excel tables...");
-await ResourceManagerSimple.LoadResources(startupLogger);
+await ResourceService.LoadResources(Config.Instance.ServerConfiguration.UseCustomExcel);
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<BAContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("BAContext")));
+builder.Services.AddDbContextFactory<SchaleDataContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("BAContext"), 
+        b => b.MigrationsAssembly("Shittim-Server")));
 
-builder.Services.AddExcelTableService();
-builder.Services.AddExcelSqlService();
-builder.Services.AddSessionKeyService();
-builder.Services.AddCafeService();
-builder.Services.AddCurrencyService();
+builder.Services.AddAutoMapper(typeof(Schale.MappingProfiles.GameModelsMappingProfile));
+
+builder.Services.AddProtocolHandlers();
+
+builder.Services.AddSingleton<ExcelTableService>();
+builder.Services.AddSingleton<SessionKeyService>();
+builder.Services.AddSingleton<CafeService>();
 builder.Services.AddSingleton<HandlerManager>();
+builder.Services.AddSingleton<SharedDataCacheService>();
+builder.Services.AddSingleton<HexaMapService>();
+builder.Services.AddScoped<ParcelHandler>();
+builder.Services.AddScoped<CampaignManager>();
+builder.Services.AddScoped<CharacterManager>();
+builder.Services.AddScoped<CharacterGM>();
+builder.Services.AddScoped<MailManager>();
+builder.Services.AddScoped<EquipmentManager>();
+builder.Services.AddScoped<GearManager>();
+builder.Services.AddScoped<ShopManager>();
+builder.Services.AddScoped<CafeManager>();
+builder.Services.AddScoped<ConsumeHandler>();
+builder.Services.AddScoped<SchoolDungeonManager>();
+builder.Services.AddScoped<WeekDungeonManager>();
+builder.Services.AddScoped<WorldRaidManager>();
+builder.Services.AddScoped<TimeAttackDungeonManager>();
+builder.Services.AddScoped<EventContentCampaignManager>();
+builder.Services.AddScoped<ConcentrateCampaignManager>();
+builder.Services.AddScoped<RaidManager>();
+builder.Services.AddScoped<EliminateRaidManager>();
+builder.Services.AddScoped<EchelonManager>();
+builder.Services.AddScoped<ScenarioManager>();
+builder.Services.AddScoped<ItemManager>();
+builder.Services.AddScoped<AronaService>();
+builder.Services.AddScoped<AronaAI>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;  // Keep PascalCase for Atrahasis compatibility
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
         options.JsonSerializerOptions.WriteIndented = false;
-        options.JsonSerializerOptions.Converters.Add(new BlueArchiveAPI.Core.ProtocolFirstJsonConverterFactory());
+        // options.JsonSerializerOptions.Converters.Add(new BlueArchiveAPI.Core.ProtocolFirstJsonConverterFactory());
         // Add enum converter for enum VALUES (not dictionary keys - those need special handling)
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
@@ -99,21 +129,23 @@ Console.WriteLine("✓ HTTP on ports 5000 (API) & 5100 (Gateway)");
 
 var app = builder.Build();
 
+app.InitializeProtocolHandlers();
+
 // Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        var context = services.GetRequiredService<BAContext>();
-        context.Database.Migrate();
+        var contextFactory = services.GetRequiredService<IDbContextFactory<SchaleDataContext>>();
+        using var context = await contextFactory.CreateDbContextAsync();
+        await context.Database.MigrateAsync();
         Console.WriteLine("✓ Database initialized and migrated");
         
-        // Initialize AccountInitializationService with ExcelTableService and ExcelSqlService
         var excelService = services.GetRequiredService<ExcelTableService>();
-        var excelSqlService = services.GetRequiredService<IExcelSqlService>();
-        AccountInitializationService.Initialize(excelService, excelSqlService);
-        Console.WriteLine("✓ Account initialization service configured");
+        var parcelHandler = services.GetRequiredService<ParcelHandler>();
+        AccountInitializationService.Initialize(excelService, parcelHandler);
+        Console.WriteLine("✓ Services initialized with ExcelTableService and ParcelHandler");
     }
     catch (Exception ex)
     {
@@ -132,6 +164,8 @@ catch (Exception ex)
 {
     Console.WriteLine($"✗ Handler manager initialization failed: {ex.Message}");
 }
+
+// AronaAI is now scoped and will be initialized per-request when needed
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
