@@ -15,13 +15,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class WorldRaidHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly WorldRaidManager _worldRaidManager;
     private readonly IMapper _mapper;
 
     public WorldRaidHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         WorldRaidManager worldRaidManager,
         IMapper mapper) : base(registry)
     {

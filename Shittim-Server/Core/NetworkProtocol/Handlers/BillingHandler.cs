@@ -11,13 +11,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class BillingHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelTableService;
     private readonly ParcelHandler _parcelHandler;
 
     public BillingHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ExcelTableService excelTableService,
         ParcelHandler parcelHandler) : base(registry)
     {

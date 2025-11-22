@@ -7,11 +7,11 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class ContentSaveHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
 
     public ContentSaveHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService) : base(registry)
+        ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }

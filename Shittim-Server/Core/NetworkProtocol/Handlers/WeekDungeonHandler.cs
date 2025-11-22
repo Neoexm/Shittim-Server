@@ -14,13 +14,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class WeekDungeonHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly WeekDungeonManager _weekDungeonManager;
     private readonly IMapper _mapper;
 
     public WeekDungeonHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         WeekDungeonManager weekDungeonManager,
         IMapper mapper) : base(registry)
     {

@@ -9,11 +9,11 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class QueuingHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
 
     public QueuingHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService) : base(registry)
+        ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }

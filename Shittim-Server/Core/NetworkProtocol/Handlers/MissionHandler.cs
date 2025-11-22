@@ -13,12 +13,12 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class MissionHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly IMapper _mapper;
 
     public MissionHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         IMapper mapper) : base(registry)
     {
         _sessionService = sessionService;

@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using BlueArchiveAPI.Models;
 using Schale.MX.NetworkProtocol;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -165,11 +164,11 @@ namespace BlueArchiveAPI
         public static JToken DecryptResponsePacket(byte[] packet, out Protocol proto)
         {
             var decompressed = GZipDecompress(packet);
-            var result = JsonConvert.DeserializeObject<ServerPacket>(Encoding.UTF8.GetString(decompressed));
+            var result = JsonConvert.DeserializeObject<ServerResponsePacket>(Encoding.UTF8.GetString(decompressed));
             // if (proto != result.protocol && result.protocol != Protocol.Error)
             //    throw new Exception($"Protocol mismatch: {result.protocol} != {proto}");
-            proto = result.protocol;
-            return JToken.Parse(result.packet);
+            proto = Enum.Parse<Protocol>(result.Protocol);
+            return JToken.Parse(result.Packet);
         }
         */
         private static readonly JsonSerializerSettings settings = new JsonSerializerSettings
@@ -184,7 +183,7 @@ namespace BlueArchiveAPI
         
         public static byte[] EncryptResponsePacket<TResponse>(TResponse packet, Protocol proto) where TResponse : ResponsePacket
         {
-            var spacket = new ServerPacket(proto, JsonConvert.SerializeObject(packet, Formatting.None, packetSettings));
+            var spacket = new ServerResponsePacket { Protocol = proto.ToString(), Packet = JsonConvert.SerializeObject(packet, Formatting.None, packetSettings) };
             return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(spacket));
         }
 

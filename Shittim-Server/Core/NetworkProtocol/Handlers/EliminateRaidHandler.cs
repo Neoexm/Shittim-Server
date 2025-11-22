@@ -10,19 +10,20 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
+using Shittim.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class EliminateRaidHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly EliminateRaidManager _raidManager;
 
     public EliminateRaidHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
         EliminateRaidManager raidManager) : base(registry)

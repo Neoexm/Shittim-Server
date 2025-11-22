@@ -14,13 +14,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class CharacterHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly CharacterManager _characterManager;
     private readonly IMapper _mapper;
 
     public CharacterHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         CharacterManager characterManager,
         IMapper mapper) : base(registry)
     {

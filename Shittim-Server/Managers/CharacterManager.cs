@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
 using Shittim_Server.Services;
+using Shittim.Services;
 
 namespace Shittim_Server.Managers
 {

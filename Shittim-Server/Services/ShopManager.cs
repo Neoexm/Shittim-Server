@@ -75,6 +75,18 @@ public class ShopManager
         var festCharacterList = _sharedDataCacheService.CharaListFest;
 
         var characterBanner = _shopRecruitmentExcels.FirstOrDefault(x => x.Id == req.ShopUniqueId);
+        if (characterBanner == null)
+        {
+            var availableIds = string.Join(", ", _shopRecruitmentExcels.Select(x => x.Id).OrderBy(x => x));
+            Console.WriteLine($"[ShopManager] Shop ID {req.ShopUniqueId} not found. Available IDs: {availableIds}");
+            
+            characterBanner = _shopRecruitmentExcels.FirstOrDefault(x => x.CategoryType == ShopCategoryType.NormalGacha);
+            if (characterBanner == null)
+            {
+                throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, $"Shop recruitment with ID {req.ShopUniqueId} not found. Available shops: {availableIds}");
+            }
+            Console.WriteLine($"[ShopManager] Falling back to normal gacha banner ID: {characterBanner.Id}");
+        }
 
         var rateUpPickUp = new PickupDuplicateBonusExcelT();
         var rateUpChar = new CharacterExcelT();
@@ -109,16 +121,25 @@ public class ShopManager
 
         var (rateUpSSRRate, fesSSRRate, limitedSSRRate, permanentSSRRate, SRRate, isSelector) = GachaService.InitializeGachaRates(characterBanner.CategoryType);
 
+        var guaranteedCharIdOnce = Core.GachaCommand.GetGuaranteedCharacterId();
+        bool guaranteedUsed = false;
+
+        if (guaranteedCharIdOnce.HasValue)
+        {
+            Console.WriteLine($"[ShopManager] Guaranteed character active: {guaranteedCharIdOnce.Value}");
+        }
+
         for (int i = 0; i < gachaAmount; i++)
         {
-            var guaranteedCharId = Core.GachaCommand.GetGuaranteedCharacterId();
-            if (guaranteedCharId.HasValue)
+            if (guaranteedCharIdOnce.HasValue && !guaranteedUsed)
             {
-                var guaranteedChar = _characterExcels.GetCharacter(guaranteedCharId.Value);
+                var guaranteedChar = _characterExcels.GetCharacter(guaranteedCharIdOnce.Value);
                 if (guaranteedChar != null)
                 {
+                    Console.WriteLine($"[ShopManager] Granting guaranteed character {guaranteedCharIdOnce.Value} on pull {i + 1}");
                     await GachaService.AddGachaResult(context, account, _mapper, guaranteedChar, gachaList, itemList);
                     hasSSR = true;
+                    guaranteedUsed = true;
                     continue;
                 }
             }
@@ -128,7 +149,16 @@ public class ShopManager
             
             if (customRates.Count > 0)
             {
-                if (customRates.TryGetValue(3, out double ssrRate) && randomNumber < ssrRate * 10)
+                double ssrThreshold = customRates.TryGetValue(3, out double ssrRate) ? ssrRate * 10 : 0;
+                double srThreshold = ssrThreshold + (customRates.TryGetValue(2, out double srRate) ? srRate * 10 : 0);
+                double rThreshold = srThreshold + (customRates.TryGetValue(1, out double rRate) ? rRate * 10 : 0);
+                
+                if (i == 0)
+                {
+                    Console.WriteLine($"[ShopManager] Using custom rates: SSR={ssrRate:F2}%, SR={srRate:F2}%, R={rRate:F2}%");
+                }
+                
+                if (randomNumber < ssrThreshold)
                 {
                     var currentSSRCharacterList = !characterBanner.CategoryType.Equals(ShopCategoryType.NormalGacha)
                         ? ssrCharacterList.Concat([rateUpChar]).Concat(otherRateUpList).DistinctBy(x => x.Id).ToList()
@@ -136,12 +166,14 @@ public class ShopManager
                     await GachaService.AddGachaResult(context, account, _mapper, GachaService.GetRandomCharacterId(currentSSRCharacterList), gachaList, itemList);
                     hasSSR = true;
                 }
-                else if (customRates.TryGetValue(2, out double srRate) && randomNumber < srRate * 10)
+                else if (randomNumber < srThreshold)
+                {
                     await GachaService.AddGachaResult(context, account, _mapper, GachaService.GetRandomCharacterId(srCharacterList), gachaList, itemList);
-                else if (customRates.TryGetValue(1, out double rRate) && randomNumber < rRate * 10)
-                    await GachaService.AddGachaResult(context, account, _mapper, GachaService.GetRandomCharacterId(rCharacterList), gachaList, itemList);
+                }
                 else
+                {
                     await GachaService.AddGachaResult(context, account, _mapper, GachaService.GetRandomCharacterId(rCharacterList), gachaList, itemList);
+                }
                 continue;
             }
 

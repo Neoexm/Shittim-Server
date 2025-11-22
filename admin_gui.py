@@ -11,7 +11,7 @@ class ShittimAdminGUI:
         self.root.title("Shittim Server Admin Panel")
         self.root.geometry("1200x800")
         
-        self.db_path = os.path.join(os.path.dirname(__file__), "Shittim-Server", "BlueArchive.db")
+        self.db_path = os.path.join(os.path.dirname(__file__), "Shittim-Server", "shittim.sqlite3")
         
         if not os.path.exists(self.db_path):
             messagebox.showerror("Error", f"Database not found at {self.db_path}")

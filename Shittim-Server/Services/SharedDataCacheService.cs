@@ -1,6 +1,7 @@
 using BlueArchiveAPI.Services;
 using Schale.Excel;
 using Schale.FlatData;
+using Shittim.GameMasters;
 
 namespace Shittim_Server.Services;
 
@@ -48,6 +49,12 @@ public class SharedDataCacheService
         _charaListUnique = _charaListSSR.Where(x => GetStudentType(x) == StudentType.Unique).ToList();
         _charaListEvent = _charaListR.Where(x => GetStudentType(x) == StudentType.Event).ToList();
         _charaListFest = GetFestCharacter(_charaPickUp, _charaListSSR);
+
+        CharacterGM.characterExcel = excelTableService.GetTable<CharacterExcelT>();
+        CharacterGM.characterLevelExcel = excelTableService.GetTable<CharacterLevelExcelT>();
+        CharacterGM.weaponExcel = excelTableService.GetTable<CharacterWeaponExcelT>();
+        CharacterGM.equipmentExcel = excelTableService.GetTable<EquipmentExcelT>();
+        CharacterGM.uniqueGearExcel = excelTableService.GetTable<CharacterGearExcelT>();
     }
 
     public static List<CharacterExcelT> GetFestCharacter(
@@ -80,5 +87,13 @@ public class SharedDataCacheService
         Unique,
         Event,
         Festival
+    }
+}
+
+public static class DataCacheServiceExtensions
+{
+    public static void AddSharedDataCache(this IServiceCollection services)
+    {
+        services.AddSingleton<SharedDataCacheService>();
     }
 }
