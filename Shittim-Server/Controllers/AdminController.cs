@@ -4,6 +4,7 @@ using Schale.Data.GameModel;
 using Schale.FlatData;
 using Schale.MX.GameLogic.Parcel;
 using Shittim_Server.Services;
+using Shittim.GameMasters;
 using AutoMapper;
 
 namespace Shittim_Server.Controllers;
@@ -13,59 +14,58 @@ namespace Shittim_Server.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly SchaleDataContext _context;
-    private readonly CharacterGM _characterGM;
     private readonly MailManager _mailManager;
     private readonly IMapper _mapper;
 
     public AdminController(
         SchaleDataContext context,
-        CharacterGM characterGM,
         MailManager mailManager,
         IMapper mapper)
     {
         _context = context;
-        _characterGM = characterGM;
         _mailManager = mailManager;
         _mapper = mapper;
     }
 
-    [HttpPost("character/add")]
-    public async Task<IActionResult> AddCharacter([FromBody] AddCharacterRequest request)
-    {
-        try
-        {
-            var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
-            if (account == null)
-                return NotFound(new { error = "Account not found" });
+    // [HttpPost("character/add")]
+    // public async Task<IActionResult> AddCharacter([FromBody] AddCharacterRequest request)
+    // {
+    //     try
+    //     {
+    //         var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
+    //         if (account == null)
+    //             return NotFound(new { error = "Account not found" });
 
-            await _characterGM.AddCharacter(account, request.CharacterId, request.Quality ?? "");
+    //         // TODO: Implement with new static CharacterGM
+    //         // await _characterGM.AddCharacter(account, request.CharacterId, request.Quality ?? "");
             
-            return Ok(new { success = true, message = $"Character {request.CharacterId} added with quality {request.Quality ?? "default"}" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-    }
+    //         return Ok(new { success = true, message = $"Character {request.CharacterId} added with quality {request.Quality ?? "default"}" });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return BadRequest(new { error = ex.Message });
+    //     }
+    // }
 
-    [HttpPost("character/remove")]
-    public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
-    {
-        try
-        {
-            var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
-            if (account == null)
-                return NotFound(new { error = "Account not found" });
+    // [HttpPost("character/remove")]
+    // public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
+    // {
+    //     try
+    //     {
+    //         var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
+    //         if (account == null)
+    //             return NotFound(new { error = "Account not found" });
 
-            await _characterGM.RemoveCharacter(account, request.CharacterId);
+    //         // TODO: Implement with new static CharacterGM
+    //         // await _characterGM.RemoveCharacter(account, request.CharacterId);
             
-            return Ok(new { success = true, message = $"Character {request.CharacterId} removed" });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-    }
+    //         return Ok(new { success = true, message = $"Character {request.CharacterId} removed" });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return BadRequest(new { error = ex.Message });
+    //     }
+    // }
 
     [HttpPost("mail/send")]
     public async Task<IActionResult> SendMail([FromBody] SendMailRequest request)

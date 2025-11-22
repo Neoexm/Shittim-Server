@@ -1,6 +1,6 @@
 using Schale.FlatData;
 
-namespace Shittim_Server.Services;
+namespace Shittim.Services;
 
 public static class MathService
 {

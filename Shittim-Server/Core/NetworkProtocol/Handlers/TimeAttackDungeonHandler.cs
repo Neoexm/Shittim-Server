@@ -11,18 +11,19 @@ using Schale.MX.Logic.Battles;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
+using Shittim.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class TimeAttackDungeonHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly TimeAttackDungeonManager _timeAttackDungeonManager;
     private readonly IMapper _mapper;
 
     public TimeAttackDungeonHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         TimeAttackDungeonManager timeAttackDungeonManager,
         IMapper mapper) : base(registry)
     {

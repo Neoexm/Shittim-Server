@@ -14,13 +14,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class EquipmentHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly EquipmentManager _equipmentManager;
     private readonly IMapper _mapper;
 
     public EquipmentHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         EquipmentManager equipmentManager,
         IMapper mapper) : base(registry)
     {

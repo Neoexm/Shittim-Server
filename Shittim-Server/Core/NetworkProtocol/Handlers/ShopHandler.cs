@@ -15,14 +15,14 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class ShopHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly ShopManager _shopManager;
 
     public ShopHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
         ShopManager shopManager) : base(registry)

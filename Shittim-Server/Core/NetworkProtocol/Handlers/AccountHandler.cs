@@ -16,13 +16,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class AccountHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
 
     public AccountHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper) : base(registry)
     {

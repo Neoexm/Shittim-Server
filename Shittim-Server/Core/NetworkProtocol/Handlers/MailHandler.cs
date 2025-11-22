@@ -15,13 +15,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class MailHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly IMapper _mapper;
     private readonly ParcelHandler _parcelHandler;
 
     public MailHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         IMapper mapper,
         ParcelHandler parcelHandler) : base(registry)
     {

@@ -145,4 +145,12 @@ namespace BlueArchiveAPI.Services
             public DateTime LastActivity { get; set; }
         }
     }
+
+    public static class SessionKeyServiceExtensions
+    {
+        public static void AddMemorySessionKeyService(this IServiceCollection services)
+        {
+            services.AddSingleton<ISessionKeyService, SessionKeyService>();
+        }
+    }
 }

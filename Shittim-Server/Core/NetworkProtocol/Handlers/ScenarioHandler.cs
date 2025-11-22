@@ -14,13 +14,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class ScenarioHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly IMapper _mapper;
     private readonly ScenarioManager _scenarioManager;
 
     public ScenarioHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         IMapper mapper,
         ScenarioManager scenarioManager) : base(registry)
     {

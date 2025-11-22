@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.FlatData;
@@ -12,13 +13,13 @@ public class MailManager
 {
     private readonly ParcelHandler _parcelHandler;
     private readonly IMapper _mapper;
-    private readonly SchaleDataContext _context;
+    private readonly IDbContextFactory<SchaleDataContext> _dbFactory;
 
-    public MailManager(ParcelHandler parcelHandler, IMapper mapper, SchaleDataContext context)
+    public MailManager(ParcelHandler parcelHandler, IMapper mapper, IDbContextFactory<SchaleDataContext> dbFactory)
     {
         _parcelHandler = parcelHandler;
         _mapper = mapper;
-        _context = context;
+        _dbFactory = dbFactory;
     }
 
     public async Task SendSystemMail(
@@ -28,6 +29,8 @@ public class MailManager
         List<ParcelInfo> parcelInfos,
         DateTime? expireDate = null)
     {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        
         var mail = new MailDBServer
         {
             AccountServerId = account.ServerId,
@@ -40,8 +43,8 @@ public class MailManager
             RemainParcelInfos = new List<ParcelInfo>()
         };
 
-        _context.Mails.Add(mail);
-        await _context.SaveChangesAsync();
+        context.Mails.Add(mail);
+        await context.SaveChangesAsync();
 
         Log.Information($"System mail sent to account {account.ServerId} from {sender}");
     }
@@ -87,12 +90,14 @@ public class MailManager
         AccountDBServer account,
         List<long> mailServerIds)
     {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        
         var parcelResultDb = new ParcelResultDB();
         List<ParcelResult> parcelResults = new();
 
         foreach (var mailId in mailServerIds)
         {
-            var targetMail = _context.Mails.FirstOrDefault(y => y.ServerId == mailId);
+            var targetMail = context.Mails.FirstOrDefault(y => y.ServerId == mailId);
             if (targetMail == null) continue;
 
             targetMail.ReceiptDate = DateTime.Now;
@@ -100,18 +105,20 @@ public class MailManager
             parcelResults.AddRange(ParcelResult.ConvertParcelResult(targetMail.ParcelInfos));
         }
 
-        var parcelResolver = await _parcelHandler.BuildParcel(_context, account, parcelResults, parcelResultDb);
-        await _context.SaveChangesAsync();
+        var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelResults, parcelResultDb);
+        await context.SaveChangesAsync();
 
         parcelResultDb.AccountDB = account.ToMap(_mapper);
-        parcelResultDb.AccountCurrencyDB = _context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, _mapper);
+        parcelResultDb.AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, _mapper);
         
         return parcelResultDb;
     }
 
-    public List<MailDBServer> GetAccountMails(AccountDBServer account, bool onlyUnread = false)
+    public async Task<List<MailDBServer>> GetAccountMails(AccountDBServer account, bool onlyUnread = false)
     {
-        var mailsQuery = _context.GetAccountMails(account.ServerId);
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        
+        var mailsQuery = context.GetAccountMails(account.ServerId);
         
         if (onlyUnread)
             mailsQuery = mailsQuery.Where(m => m.ReceiptDate == null);
@@ -119,8 +126,9 @@ public class MailManager
         return mailsQuery.OrderByDescending(m => m.SendDate).ToList();
     }
 
-    public long GetUnreadMailCount(AccountDBServer account)
+    public async Task<long> GetUnreadMailCount(AccountDBServer account)
     {
-        return _context.GetAccountMails(account.ServerId).Count(y => y.ReceiptDate == null);
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        return context.GetAccountMails(account.ServerId).Count(y => y.ReceiptDate == null);
     }
 }

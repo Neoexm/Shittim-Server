@@ -15,13 +15,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class EventContentCampaignHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly EventContentCampaignManager _eventContentCampaignManager;
     private readonly IMapper _mapper;
 
     public EventContentCampaignHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         EventContentCampaignManager eventContentCampaignManager,
         IMapper mapper) : base(registry)
     {

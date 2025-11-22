@@ -76,3 +76,6 @@ Thumbs.db
 *.backup
 hosts.bak
 hosts.backup
+
+# Progress tracking
+progress.md

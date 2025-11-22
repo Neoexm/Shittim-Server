@@ -7,6 +7,7 @@ using Schale.FlatData;
 using Schale.MX.GameLogic.Parcel;
 using Schale.Data.ModelMapping;
 using BlueArchiveAPI.Services;
+using Shittim.Services;
 
 namespace Shittim_Server.Services;
 

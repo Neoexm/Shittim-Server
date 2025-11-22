@@ -13,13 +13,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class EchelonHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly IMapper _mapper;
     private readonly EchelonManager _echelonManager;
 
     public EchelonHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         IMapper mapper,
         EchelonManager echelonManager) : base(registry)
     {

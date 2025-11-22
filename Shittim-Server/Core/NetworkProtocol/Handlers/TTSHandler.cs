@@ -7,11 +7,11 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class TTSHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
 
     public TTSHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService) : base(registry)
+        ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }

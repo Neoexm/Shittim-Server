@@ -14,13 +14,13 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class CampaignConcentrateHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ConcentrateCampaignManager _concentrateCampaignManager;
     private readonly IMapper _mapper;
 
     public CampaignConcentrateHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ConcentrateCampaignManager concentrateCampaignManager,
         IMapper mapper) : base(registry)
     {

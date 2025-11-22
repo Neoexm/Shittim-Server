@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.Parcel;
 using Schale.MX.Core.Math;
 using Schale.MX.NetworkProtocol;
 using Shittim_Server.Services;
+using Shittim.Services;
 using Protocol = Schale.MX.NetworkProtocol.Protocol;
 using Character = Schale.Data.GameModel.CharacterDBServer;
 
@@ -329,6 +330,43 @@ namespace BlueArchiveAPI.Services
                     ParcelInfos = parcelInfos,
                     RemainParcelInfos = new()
                 });
+            }
+
+            await context.SaveChangesAsync();
+
+            var campaignStageExcel = excelTableService.GetTable<CampaignStageExcelT>();
+            var campaignChapterExcel = excelTableService.GetTable<CampaignChapterExcelT>();
+            var dateTime = account.GameSettings.ServerDateTime();
+
+            var completedStages = campaignStageExcel
+                .Where(s => s.Id < 1008001)
+                .ToList();
+
+            foreach (var stage in completedStages)
+            {
+                var chapterId = campaignChapterExcel
+                    .Where(c => c.NormalCampaignStageId != null && c.NormalCampaignStageId.Contains(stage.Id))
+                    .Select(c => c.Id)
+                    .FirstOrDefault();
+
+                var history = new CampaignStageHistoryDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    ChapterUniqueId = chapterId,
+                    StageUniqueId = stage.Id,
+                    TacticClearCountWithRankSRecord = 3,
+                    Star1Flag = true,
+                    Star2Flag = true,
+                    Star3Flag = true,
+                    IsClearedEver = true,
+                    BestStarRecord = 3,
+                    TodayPlayCount = 0,
+                    TodayPurchasePlayCountHardStage = 0,
+                    LastPlay = dateTime,
+                    FirstClearRewardReceive = dateTime,
+                    StarRewardReceive = dateTime
+                };
+                context.CampaignStageHistories.Add(history);
             }
 
             await context.SaveChangesAsync();

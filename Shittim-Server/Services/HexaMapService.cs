@@ -248,3 +248,11 @@ public class HexaMapSerializationBinder : ISerializationBinder
         typeName = serializedType.FullName;
     }
 }
+
+public static class HexaMapServiceExtensions
+{
+    public static void AddHexaMapService(this IServiceCollection services)
+    {
+        services.AddSingleton<HexaMapService>();
+    }
+}

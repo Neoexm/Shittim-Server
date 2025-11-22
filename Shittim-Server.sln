@@ -8,8 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plana", "Plana\Plana.csproj", "{9A1832D0-6CC1-46EB-8110-4D7B93025863}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,18 +18,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|x64.Build.0 = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Debug|x86.Build.0 = Debug|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x64.ActiveCfg = Release|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x64.Build.0 = Release|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x86.ActiveCfg = Release|Any CPU
-		{9A1832D0-6CC1-46EB-8110-4D7B93025863}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

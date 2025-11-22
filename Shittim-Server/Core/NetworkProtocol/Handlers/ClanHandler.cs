@@ -9,27 +9,25 @@ using Schale.MX.NetworkProtocol;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
+using Shittim_Server.GameClient;
 using Microsoft.Extensions.Configuration;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class ClanHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly IMapper _mapper;
-    private readonly AronaService _aronaService;
     private readonly IConfiguration _configuration;
 
     public ClanHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         IMapper mapper,
-        AronaService aronaService,
         IConfiguration configuration) : base(registry)
     {
         _sessionService = sessionService;
         _mapper = mapper;
-        _aronaService = aronaService;
         _configuration = configuration;
     }
 
@@ -40,7 +38,7 @@ public class ClanHandler : ProtocolHandlerBase
         ClanLobbyResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
-        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == AronaAI.AccountDevId);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
 
         response.IrcConfig = new IrcServerConfig
         {
@@ -127,7 +125,7 @@ public class ClanHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         response.ClanDBId = 777;
-        response.AssistCharacterDBs = _aronaService.GetAssistCharacter(request.EchelonType);
+        response.AssistCharacterDBs = SchaleService.GetAssistCharacter(request.EchelonType);
         response.AssistCharacterRentHistoryDBs = [];
 
         return response;

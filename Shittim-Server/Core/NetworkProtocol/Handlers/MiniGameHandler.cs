@@ -13,12 +13,12 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class MiniGameHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
 
     public MiniGameHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService,
+        ISessionKeyService sessionService,
         ExcelTableService excelService) : base(registry)
     {
         _sessionService = sessionService;

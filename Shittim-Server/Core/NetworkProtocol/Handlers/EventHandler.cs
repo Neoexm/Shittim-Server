@@ -7,11 +7,11 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class EventHandler : ProtocolHandlerBase
 {
-    private readonly SessionKeyService _sessionService;
+    private readonly ISessionKeyService _sessionService;
 
     public EventHandler(
         IProtocolHandlerRegistry registry,
-        SessionKeyService sessionService) : base(registry)
+        ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }
