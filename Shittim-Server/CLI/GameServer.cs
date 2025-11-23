@@ -145,6 +145,16 @@ namespace Shittim.CLI
                     if (context.Database.GetPendingMigrations().Any())
                         context.Database.Migrate();
 
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE TABLE IF NOT EXISTS ShopFreeRecruitHistories (
+                            ServerId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            AccountServerId INTEGER NOT NULL,
+                            UniqueId INTEGER NOT NULL,
+                            RecruitCount INTEGER NOT NULL,
+                            LastUpdateDate TEXT NOT NULL,
+                            FOREIGN KEY(AccountServerId) REFERENCES Accounts(ServerId)
+                        )");
+
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);
 

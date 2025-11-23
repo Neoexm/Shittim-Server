@@ -41,7 +41,15 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        response.ShopFreeRecruitHistoryDBs = [];
+        var recruitHistories = db.GetAccountRecruitHistory(account.ServerId).ToList();
+        response.ShopFreeRecruitHistoryDBs = recruitHistories
+            .Select(h => new ShopFreeRecruitHistoryDB
+            {
+                UniqueId = h.UniqueId,
+                RecruitCount = h.RecruitCount,
+                LastUpdateDate = h.LastUpdateDate
+            })
+            .ToList();
 
         return response;
     }
@@ -145,6 +153,35 @@ public class ShopHandler : ProtocolHandlerBase
         response.GachaResults = gachaResults;
         response.AcquiredItems = itemDbList.ToMapList(_mapper);
         response.UpdateTime = account.GameSettings.ServerDateTime();
+
+        var recruitHistory = db.GetAccountRecruitHistory(account.ServerId)
+            .FirstOrDefault(x => x.UniqueId == request.ShopUniqueId);
+        
+        if (recruitHistory == null)
+        {
+            recruitHistory = new ShopFreeRecruitHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                UniqueId = request.ShopUniqueId,
+                RecruitCount = (int)gachaAmount,
+                LastUpdateDate = DateTime.UtcNow
+            };
+            db.ShopFreeRecruitHistories.Add(recruitHistory);
+        }
+        else
+        {
+            recruitHistory.RecruitCount += (int)gachaAmount;
+            recruitHistory.LastUpdateDate = DateTime.UtcNow;
+        }
+
+        await db.SaveChangesAsync();
+
+        response.FreeRecruitHistoryDB = new ShopFreeRecruitHistoryDB
+        {
+            UniqueId = recruitHistory.UniqueId,
+            RecruitCount = recruitHistory.RecruitCount,
+            LastUpdateDate = recruitHistory.LastUpdateDate
+        };
 
         return response;
     }

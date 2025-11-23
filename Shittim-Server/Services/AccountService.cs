@@ -23,6 +23,8 @@ namespace BlueArchiveAPI.Services
             ExcelTableService excelTableService, 
             ParcelHandler parcelHandler)
         {
+            Console.WriteLine($"[AccountService] CreateAccount called for AccountServerId: {account.ServerId}");
+            
             AccountCurrencyDBServer accountCurrency = new(account.ServerId);
             context.Currencies.Add(accountCurrency);
             await context.SaveChangesAsync();
@@ -332,7 +334,9 @@ namespace BlueArchiveAPI.Services
                 });
             }
 
+            Console.WriteLine($"[Mail Init] Created {defaultMails.Count()} default mails, saving to database...");
             await context.SaveChangesAsync();
+            Console.WriteLine("[Mail Init] Mails saved successfully");
 
             var campaignStageExcel = excelTableService.GetTable<CampaignStageExcelT>();
             var campaignChapterExcel = excelTableService.GetTable<CampaignChapterExcelT>();
@@ -341,6 +345,8 @@ namespace BlueArchiveAPI.Services
             var completedStages = campaignStageExcel
                 .Where(s => s.Id < 1008001)
                 .ToList();
+
+            Console.WriteLine($"[Mission Init] Auto-completing {completedStages.Count} campaign stages for new account");
 
             foreach (var stage in completedStages)
             {
