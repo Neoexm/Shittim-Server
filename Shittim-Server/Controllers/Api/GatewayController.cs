@@ -11,6 +11,25 @@ using WebAPIErrorCode = Schale.MX.NetworkProtocol.WebAPIErrorCode;
 
 namespace Shittim_Server.Controllers.Api
 {
+    public class FloatConverter : JsonConverter<float>
+    {
+        public override void WriteJson(JsonWriter writer, float value, JsonSerializer serializer)
+        {
+            if (value == Math.Floor(value))
+                writer.WriteRawValue(((int)value).ToString());
+            else
+                writer.WriteValue(value);
+        }
+
+        public override float ReadJson(JsonReader reader, Type objectType, float existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            return Convert.ToSingle(reader.Value);
+        }
+    }
+}
+
+namespace Shittim_Server.Controllers.Api
+{
     [ApiController]
     [Route("api")]
     public class GatewayController : ControllerBase
@@ -20,13 +39,15 @@ namespace Shittim_Server.Controllers.Api
         
         private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
-            NullValueHandling = NullValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters = { new FloatConverter() }
         };
         
         private static readonly JsonSerializerSettings serverPacketSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
-            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+            Converters = { new FloatConverter() }
         };
 
         public GatewayController(ILogger<GatewayController> logger, HandlerManager handlerManager)

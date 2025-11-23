@@ -3,11 +3,13 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore.Storage;
 using Schale.Data;
 using Schale.Data.GameModel;
+using Schale.Excel;
 using Schale.FlatData;
 using Schale.MX.GameLogic.Parcel;
 using Schale.Data.ModelMapping;
 using BlueArchiveAPI.Services;
 using Shittim.Services;
+using Serilog;
 
 namespace Shittim_Server.Services;
 
@@ -19,7 +21,6 @@ public class ParcelHandler
     private readonly List<ExpLevelData> _characterExpData;
     private readonly List<ExpLevelData> _favorExpData;
     private readonly List<ExpLevelData> _academyLocationExpData;
-    private readonly List<ExpLevelData> _equipmentExpData;
 
     private readonly List<CharacterExcelT> _characterExcels;
     private readonly List<AccountLevelExcelT> _accountLevelExcels;
@@ -34,9 +35,8 @@ public class ParcelHandler
         var characterLevelExcel = _excelService.GetTable<CharacterLevelExcelT>();
         var favorLevelExcel = _excelService.GetTable<FavorLevelExcelT>();
         var academyLocationLevelExcel = _excelService.GetTable<AcademyLocationRankExcelT>();
-        var equipmentLevelExcel = _excelService.GetTable<EquipmentLevelExcelT>();
 
-        _characterExcels = _excelService.GetTable<CharacterExcelT>();
+        _characterExcels = _excelService.GetTable<CharacterExcelT>().GetReleaseCharacters();
         _accountLevelExcels = _excelService.GetTable<AccountLevelExcelT>();
         _gachaElementExcels = _excelService.GetTable<GachaElementExcelT>();
         _costumeExcels = _excelService.GetTable<CostumeExcelT>();
@@ -44,7 +44,6 @@ public class ParcelHandler
         _characterExpData = new ExpLevelData().ConvertExpLevelData(characterLevelExcel);
         _favorExpData = new ExpLevelData().ConvertExpLevelData(favorLevelExcel);
         _academyLocationExpData = new ExpLevelData().ConvertExpLevelData(academyLocationLevelExcel);
-        _equipmentExpData = new ExpLevelData().ConvertExpLevelData(equipmentLevelExcel);
     }
 
     public async Task<ParcelResolver> BuildParcel(
@@ -102,6 +101,13 @@ public class ParcelHandler
                         await parcelResolver.UpdateItem(parcel);
                         break;
                     case ParcelType.GachaGroup:
+                        // Already been handled 
+                        break;
+                    case ParcelType.Product:
+                        Log.Debug("Product is not supported");
+                        break;
+                    case ParcelType.Shop:
+                        Log.Debug("Shop is not supported");
                         break;
                     case ParcelType.MemoryLobby:
                         await parcelResolver.UpdateMemoryLobby(parcel);
@@ -115,14 +121,26 @@ public class ParcelHandler
                     case ParcelType.FavorExp:
                         await parcelResolver.UpdateFavorCharacter(parcel, _favorExpData);
                         break;
+                    case ParcelType.TSS:
+                        Log.Debug("TSS is not supported");
+                        break;
                     case ParcelType.Furniture:
                         await parcelResolver.UpdateFurniture(parcel);
+                        break;
+                    case ParcelType.ShopRefresh:
+                        Log.Debug("Shop Refresh is not supported");
                         break;
                     case ParcelType.LocationExp:
                         await parcelResolver.UpdateLocationExp(parcel, _academyLocationExpData);
                         break;
+                    case ParcelType.Recipe:
+                        Log.Debug("Recipe is not supported");
+                        break;
                     case ParcelType.CharacterWeapon:
                         await parcelResolver.UpdateCharacterWeapon(parcel);
+                        break;
+                    case ParcelType.CharacterGear:
+                        Log.Debug("Character Gear is not supported");
                         break;
                     case ParcelType.IdCardBackground:
                         await parcelResolver.UpdateIdCardBackground(parcel);
@@ -136,10 +154,20 @@ public class ParcelHandler
                     case ParcelType.Costume:
                         await parcelResolver.UpdateCostume(parcel, _costumeExcels);
                         break;
-                    case ParcelType.CharacterGear:
-                        await parcelResolver.UpdateCharacterGear(parcel);
+                    case ParcelType.PossessionCheck:
+                        Log.Debug("Possession Check is not supported");
+                        break;
+                    case ParcelType.BattlePassExp:
+                        Log.Debug("Battle Pass Exp is not supported");
+                        break;
+                    case ParcelType.SelectedCharacter:
+                        Log.Debug("Selected Character is not supported");
+                        break;
+                    case ParcelType.UnSelectedCharacter:
+                        Log.Debug("Unselected Character is not supported");
                         break;
                     default:
+                        Log.Warning("Unknown Parcel Type: {Type}", parcel.Type.ToString());
                         break;
                 }
             }
@@ -178,6 +206,16 @@ public class ParcelResult
     }
 
     public static List<ParcelResult> ConvertParcelResult(List<ParcelType> parcelTypes, List<long> parcelIds, List<long> parcelAmounts)
+    {
+        var parcelResultList = new List<ParcelResult>();
+        for (int i = 0; i < parcelTypes.Count; i++)
+        {
+            parcelResultList.Add(new ParcelResult(parcelTypes[i], parcelIds[i], parcelAmounts[i]));
+        }
+        return parcelResultList;
+    }
+
+    public static List<ParcelResult> ConvertParcelResult(List<ParcelType> parcelTypes, List<long> parcelIds, List<int> parcelAmounts)
     {
         var parcelResultList = new List<ParcelResult>();
         for (int i = 0; i < parcelTypes.Count; i++)

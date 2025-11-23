@@ -49,29 +49,22 @@ public class ConcentrateCampaignManager
         long stageUniqueId)
     {
         var hexaData = await _hexaMapService.LoadState(stageUniqueId);
-        var dateTime = account.GameSettings.ServerDateTime();
 
         var stageSave = new CampaignMainStageSaveDBServer
         {
-            AccountServerId = account.ServerId,
+            ContentType = Schale.FlatData.ContentType.CampaignMainStage,
             LastEnemyEntityId = hexaData.LastEntityId,
-            EnemyInfos = HexaMapService.AddHexaUnitList(hexaData.HexaUnitList ?? new List<HexaUnit>()),
-            StrategyObjects = HexaMapService.AddHexaStrategyList(hexaData.HexaStrageyList ?? new List<Strategy>()),
-            ActivatedHexaEventsAndConditions = new Dictionary<long, List<long>>(),
-            HexaEventDelayedExecutions = new Dictionary<long, List<long>>(),
+            EnemyInfos = HexaMapService.AddHexaUnitList(hexaData.HexaUnitList),
+            StrategyObjects = HexaMapService.AddHexaStrategyList(hexaData.HexaStrageyList),
+            ActivatedHexaEventsAndConditions = new(),
+            HexaEventDelayedExecutions = new(),
             TileMapStates = HexaMapService.AddHexaTileList(hexaData),
-            CreateTime = dateTime,
+            CreateTime = account.GameSettings.ServerDateTime(),
             StageUniqueId = stageUniqueId,
-            EchelonInfos = new Dictionary<long, HexaUnit>(),
-            WithdrawInfos = new Dictionary<long, List<long>>(),
-            DeployedEchelonInfos = new List<HexaUnit>(),
-            DisplayInfos = new List<HexaDisplayInfo>(),
-            StrategyObjectRewards = new Dictionary<long, List<ParcelInfo>>(),
-            StrategyObjectHistory = new List<long>(),
-            CampaignState = CampaignState.BeforeStart,
-            CurrentTurn = 0,
-            TacticRankSCount = 0
+            StageEntranceFee = new(),
+            EnemyKillCountByUniqueId = new()
         };
+        stageSave.AccountServerId = account.ServerId;
 
         context.CampaignMainStageSaves.Add(stageSave);
         await context.SaveChangesAsync();
@@ -414,5 +407,49 @@ public class ConcentrateCampaignManager
         existHistoryDb.LastPlay = dateTime;
 
         context.CampaignStageHistories.Update(existHistoryDb);
+    }
+
+    public async Task<Schale.MX.Data.CampaignStageInfo?> GetStageInfo(long stageUniqueId)
+    {
+        await Task.CompletedTask;
+        var stages = _excelService.GetTable<CampaignStageExcelT>();
+        var stageExcel = stages.FirstOrDefault(x => x.Id == stageUniqueId);
+        
+        if (stageExcel == null)
+            return null;
+
+        long areaId = stageUniqueId / 1000000;
+        long chapterId = (stageUniqueId / 10000) % 100;
+        long chapterUniqueId = areaId * 1000 + chapterId;
+
+        return new Schale.MX.Data.CampaignStageInfo
+        {
+            UniqueId = stageExcel.Id,
+            DevName = stageExcel.Name,
+            ChapterNumber = areaId,
+            StoryUniqueId = chapterUniqueId,
+            ChapterUniqueId = chapterUniqueId,
+            StageNumber = stageExcel.StageNumber,
+            RecommandLevel = stageExcel.RecommandLevel,
+            StrategyMap = stageExcel.StrategyMap,
+            BackgroundBG = stageExcel.StrategyMapBG,
+            StageTopography = stageExcel.StageTopography,
+            StageEnterCostAmount = stageExcel.StageEnterCostAmount,
+            MaxTurn = stageExcel.MaxTurn,
+            MaxEchelonCount = stageExcel.StageEnterEchelonCount,
+            StageDifficulty = Schale.FlatData.StageDifficulty.Normal,
+            ContentType = stageExcel.ContentType,
+            StrategyEnvironment = stageExcel.StrategyEnvironment,
+            GroundId = stageExcel.GroundId,
+            StrategySkipGroundId = stageExcel.StrategySkipGroundId,
+            BattleDuration = stageExcel.BattleDuration,
+            BGMId = stageExcel.BGMId,
+            TacticRewardExp = stageExcel.TacticRewardExp,
+            FixedEchelonId = stageExcel.FixedEchelonId,
+            EchelonExtensionType = stageExcel.EchelonExtensionType,
+            StarConditionTurnCount = stageExcel.StarConditionTurnCount,
+            StarConditionSTacticRackCount = stageExcel.StarConditionTacticRankSCount,
+            IsDeprecated = stageExcel.Deprecated
+        };
     }
 }

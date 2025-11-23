@@ -319,24 +319,12 @@ public class AccountHandler : ProtocolHandlerBase
             StickerBookDB = db.GetAccountStickerBooks(account.ServerId).FirstMapTo(_mapper)
         };
 
-        long serverTicks;
-        if (account.GameSettings.EnableMultiFloorRaid)
-        {
-            var seasonData = _excelService.GetTable<MultiFloorRaidSeasonManageExcelT>()
-                .FirstOrDefault(s => s.SeasonId == account.ContentInfo.MultiFloorRaidDataInfo.SeasonId);
-            serverTicks = seasonData != null
-                ? DateTime.Parse(seasonData.SeasonStartDate).AddDays(2).Ticks
-                : account.GameSettings.ServerDateTimeTicks();
-        }
-        else
-        {
-            serverTicks = account.GameSettings.ServerDateTimeTicks();
-        }
-
         response.MultiFloorRaidSyncResponse = new MultiFloorRaidSyncResponse
         {
             MultiFloorRaidDBs = db.GetAccountMultiFloorRaids(account.ServerId).ToMapList(_mapper),
-            ServerTimeTicks = serverTicks
+            ServerTimeTicks = account.GameSettings.EnableMultiFloorRaid 
+                ? MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks 
+                : account.GameSettings.ServerDateTimeTicks()
         };
 
         response.AccountLevelRewardIds = db.GetAccountLevelRewards(account.ServerId).Select(r => r.RewardId).ToList();

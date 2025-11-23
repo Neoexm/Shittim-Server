@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
+using System.Text.Json;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -17,16 +18,19 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly ConcentrateCampaignManager _concentrateCampaignManager;
     private readonly IMapper _mapper;
+    private readonly ILogger<CampaignConcentrateHandler> _logger;
 
     public CampaignConcentrateHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ConcentrateCampaignManager concentrateCampaignManager,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ILogger<CampaignConcentrateHandler> logger) : base(registry)
     {
         _sessionService = sessionService;
         _concentrateCampaignManager = concentrateCampaignManager;
         _mapper = mapper;
+        _logger = logger;
     }
 
     [ProtocolHandler(Protocol.Campaign_EnterMainStage)]
@@ -37,9 +41,16 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        _logger.LogInformation("[SHITTIM] Creating campaign for stage {StageId}", request.StageUniqueId);
         var stageSave = await _concentrateCampaignManager.CreateConcentrateCampaign(db, account, request.StageUniqueId);
 
+        _logger.LogInformation("[SHITTIM] StageSave created - EntityId: {EntityId}, EnemyCount: {EnemyCount}, StrategyCount: {StrategyCount}",
+            stageSave.LastEnemyEntityId, stageSave.EnemyInfos?.Count ?? 0, stageSave.StrategyObjects?.Count ?? 0);
+
         response.SaveDataDB = stageSave.ToMap(_mapper);
+
+        var jsonResponse = JsonSerializer.Serialize(response.SaveDataDB, new JsonSerializerOptions { WriteIndented = true });
+        _logger.LogInformation("[SHITTIM] Response SaveDataDB JSON:\n{Json}", jsonResponse);
 
         return response;
     }
@@ -69,8 +80,17 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 
         var stageSave = await _concentrateCampaignManager.StartConcentrateCampaign(db, account, request);
 
-        response.ParcelResultDB = new();
+        response.ParcelResultDB = new()
+        {
+            AccountDB = account.ToMap(_mapper),
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+        };
         response.SaveDataDB = stageSave.ToMap(_mapper);
+        response.StageInfo = await _concentrateCampaignManager.GetStageInfo(stageSave.StageUniqueId);
+
+        var stageInfoJson = JsonSerializer.Serialize(response.StageInfo, new JsonSerializerOptions { WriteIndented = true });
+        _logger.LogInformation("[SHITTIM] ConfirmMainStage - StageInfo:\n{Json}", stageInfoJson);
+        _logger.LogInformation("[SHITTIM] ConfirmMainStage - StrategySkipGroundId: {StrategySkipGroundId}", response.StageInfo?.StrategySkipGroundId ?? 0);
 
         return response;
     }

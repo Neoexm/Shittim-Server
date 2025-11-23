@@ -58,6 +58,8 @@ public class MailHandler : ProtocolHandlerBase
         response.MailDBs = _mapper.Map<List<MailDB>>(mails);
         response.Count = mails.Count;
         response.ServerNotification = ServerNotificationFlag.None;
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
