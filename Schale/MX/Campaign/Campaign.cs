@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 using Schale.FlatData;
 using Schale.MX.Campaign.HexaTileMapEvent;
 using Schale.MX.GameLogic.Parcel;
@@ -19,7 +20,8 @@ namespace Schale.MX.Campaign
         public List<Strategy>? HexaStrageyList { get; set; }
         public List<HexaEvent>? Events { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Dictionary<HexLocation, HexaTile>? TileLocationMap { get; set; }
     }
 
@@ -33,13 +35,16 @@ namespace Schale.MX.Campaign
         public HexLocation Location { get; set; }
         public Strategy? Strategy { get; set; }
         public HexaUnit? Unit { get; set; }
-	    [JsonIgnore]
+	    [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public HexaUnit? ChallengeUnit { get; set; }
 
         public bool PlayAnimation { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool IsBattleReady { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool StartTile { get; set; }
     }
 
@@ -70,7 +75,7 @@ namespace Schale.MX.Campaign
         public long Id { get; set; }
         public virtual SimpleVector3? Rotate { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public virtual HexLocation2D? Location { get; set; }
         
         public HexLocation AIDestination { get; set; }
@@ -80,20 +85,25 @@ namespace Schale.MX.Campaign
         public int MovementOrder { get; set; }
 	    public Dictionary<TacticEntityType, List<ParcelInfo>>? RewardParcelInfosWithDropTacticEntityType { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public CampaignUnitExcel CampaignUnitExcel { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public List<HexaTile>? MovableTiles { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public List<List<HexaTile>>? MovementMap { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public List<string>? BuffGroupIds { get; set; }
         
         public virtual SkillCardHand? SkillCardHand { get; set; }
         public bool PlayAnimation { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Dictionary<TacticEntityType, List<long>>? RewardItems { get; set; }
     }
 
@@ -103,14 +113,18 @@ namespace Schale.MX.Campaign
         public int y { get; set; }
         public int z { get; set; }
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public static readonly int NeighborCount;
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public static readonly HexLocation[]? Directions;
 
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public static HexLocation Zero { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public static HexLocation Invalid { get; set; }
     }
 
@@ -143,7 +157,8 @@ namespace Schale.MX.Campaign
         public long Id { get; set; }
         public HexLocation2D? Location {get; set;}
 
-	    [JsonIgnore]
+	    [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public CampaignStrategyObjectExcel CampaignStrategyExcel { get; set; }
     }
 }

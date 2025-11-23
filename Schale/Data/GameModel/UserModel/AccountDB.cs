@@ -41,6 +41,7 @@ namespace Schale.Data.GameModel
         internal virtual ICollection<MomoTalkChoiceDBServer> MomoTalkChoices { get; }
         internal virtual ICollection<EventContentPermanentDBServer> EventContentPermanents { get; }
         internal virtual ICollection<StickerBookDBServer> StickerBooks { get; }
+        internal virtual ICollection<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; }
 
         internal virtual ICollection<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; }
         internal virtual ICollection<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; }

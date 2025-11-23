@@ -52,6 +52,7 @@ namespace Schale.Data
         public DbSet<MomoTalkChoiceDBServer> MomoTalkChoices { get; set; }
         public DbSet<EventContentPermanentDBServer> EventContentPermanents { get; set; }
         public DbSet<StickerBookDBServer> StickerBooks { get; set; }
+        public DbSet<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; set; }
 
         public DbSet<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; set; }
         public DbSet<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; set; }
@@ -138,6 +139,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.MomoTalkChoices).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.EventContentPermanents).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.StickerBooks).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.ShopFreeRecruitHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.SingleRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.EliminateRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -245,6 +247,8 @@ namespace Schale.Data
             modelBuilder.Entity<StickerBookDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<StickerBookDBServer>().Property(x => x.UnusedStickerDBs).HasJsonConversion();
             modelBuilder.Entity<StickerBookDBServer>().Property(x => x.UsedStickerDBs).HasJsonConversion();
+            
+            modelBuilder.Entity<ShopFreeRecruitHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
         }
 
         private void ConfigureContentModels(ModelBuilder modelBuilder)

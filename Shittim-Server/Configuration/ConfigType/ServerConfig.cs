@@ -2,8 +2,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
 {
     public class ServerConfig
     {
-        public Version GameVersion { get; set; } = new("1.82.379434");
-        public string VersionId { get; set; } = "r77_ygnxgslqs2ksqq6m";
+        public Version GameVersion { get; set; } = new("1.82.374906");
+        public string VersionId { get; set; } = "b97c05ca58a24270";
         public string HostAddress { get; set; } = "127.0.0.1";
         public string HostPort { get; set; } = "5000";
         public string SQLProvider { get; set; } = "SQLite3";
@@ -11,7 +11,7 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool UseEncryption { get; set; } = false;
         public bool BypassAuthentication { get; set; } = false;
         public bool UseCustomExcel { get; set; } = false;
-        public bool AutoCheckVersion { get; set; } = true;
+        public bool AutoCheckVersion { get; set; } = false;
         public bool AutoUpdateVersion { get; set; } = false;
         public string ServerInfoUrl { get; set; } = "https://d2vaidpni345rp.cloudfront.net/com.nexon.bluearchivesteam/server_config/355901_Live.json";
         public PacketLogging PacketLogging { get; set; } = new();

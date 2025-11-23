@@ -226,7 +226,7 @@ public class HexaMapService
 
 public class HexaMapSerializationBinder : ISerializationBinder
 {
-    private static readonly string SchaleAssemblyName = Assembly.GetExecutingAssembly().GetName().Name!;
+    private static readonly string SchaleAssemblyName = "Schale";
 
     public Type BindToType(string? assemblyName, string typeName)
     {
