@@ -11,6 +11,7 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Shittim_Server.Services;
 using Shittim.Services;
+using Serilog;
 
 namespace Shittim_Server.Services;
 
@@ -28,7 +29,6 @@ public class ParcelResolver
     private List<ItemDBServer> _newItems = new();
     private List<EquipmentDBServer> _newEquipments = new();
     private List<WeaponDBServer> _newWeapons = new();
-    private List<GearDBServer> _newGears = new();
     private List<CostumeDBServer> _newCostumes = new();
     private List<IdCardBackgroundDBServer> _newIdCardBackgrounds = new();
     private List<FurnitureDBServer> _newFurnitures = new();
@@ -50,37 +50,36 @@ public class ParcelResolver
         ParcelResult = parcelResult ?? new ParcelResultDB
         {
             AccountDB = account.ToMap(mapper),
-            AccountCurrencyDB = context.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(mapper) ?? new AccountCurrencyDB(),
-            AcademyLocationDBs = [],
-            CharacterDBs = [],
-            CostumeDBs = [],
-            DisplaySequence = [],
-            EmblemDBs = [],
+            AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, mapper),
+            AcademyLocationDBs = new List<AcademyLocationDB>(),
+            CharacterDBs = new List<CharacterDB>(),
+            CostumeDBs = new List<CostumeDB>(),
+            DisplaySequence = new List<ParcelInfo>(),
+            EmblemDBs = new List<EmblemDB>(),
             EquipmentDBs = new Dictionary<long, EquipmentDB>(),
             FurnitureDBs = new Dictionary<long, FurnitureDB>(),
-            GachaResultCharacters = [],
+            GachaResultCharacters = new List<long>(),
             ItemDBs = new Dictionary<long, ItemDB>(),
             IdCardBackgroundDBs = new Dictionary<long, IdCardBackgroundDB>(),
-            MemoryLobbyDBs = [],
-            ParcelForMission = [],
-            ParcelResultStepInfoList = [],
-            RemovedItemIds = [],
-            RemovedEquipmentIds = [],
-            RemovedFurnitureIds = [],
-            StickerDBs = [],
+            MemoryLobbyDBs = new List<MemoryLobbyDB>(),
+            ParcelForMission = new List<ParcelInfo>(),
+            ParcelResultStepInfoList = new List<ParcelResultStepInfo>(),
+            RemovedItemIds = new List<long>(),
+            RemovedEquipmentIds = new List<long>(),
+            RemovedFurnitureIds = new List<long>(),
+            StickerDBs = new List<StickerDB>(),
             SecretStoneCharacterIdAndCounts = new Dictionary<long, int>(),
-            TSSCharacterDBs = [],
-            WeaponDBs = [],
-            CharacterNewUniqueIds = []
+            TSSCharacterDBs = new List<CharacterDB>(),
+            WeaponDBs = new List<WeaponDB>(),
+
+            CharacterNewUniqueIds = new List<long>()
         };
     }
 
     public async Task UpdateCharacter(ParcelResult parcel, List<CharacterExcelT> characterExcels)
     {
         if (IsConsume) return;
-
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var character = Context.Characters.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
 
         if (character != null)
         {
@@ -93,6 +92,7 @@ public class ParcelResolver
         Context.Characters.Add(character);
 
         _updatedCharacters[character.UniqueId] = character;
+
         ParcelResult.CharacterNewUniqueIds.Add(character.UniqueId);
         CreateParcelInfo(parcel);
     }
@@ -103,7 +103,7 @@ public class ParcelResolver
         var amount = parcel.Amount;
 
         var dateTime = Account.GameSettings.ServerDateTime();
-        var accountCurrencyDB = Context.GetAccountCurrencies(Account.ServerId).FirstOrDefault();
+        var accountCurrencyDB = Context.Currencies.FirstOrDefault(x => x.AccountServerId == Account.ServerId);
 
         if (accountCurrencyDB == null)
         {
@@ -131,8 +131,10 @@ public class ParcelResolver
 
     public async Task UpdateEquipment(ParcelResult parcel)
     {
-        var equipment = Context.GetAccountEquipments(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id && x.BoundCharacterServerId == 0);
+        var equipment = Context.Equipments.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id &&
+            x.BoundCharacterServerId == 0);
 
         if (equipment == null && parcel.Amount > 0)
         {
@@ -144,7 +146,6 @@ public class ParcelResolver
             };
             Context.Equipments.Add(equipment);
             _newEquipments.Add(equipment);
-            CreateParcelInfo(parcel);
             return;
         }
         else if (equipment != null)
@@ -155,23 +156,21 @@ public class ParcelResolver
                 ParcelResult.RemovedEquipmentIds.Add(equipment.ServerId);
             }
             else
-            {
                 equipment.StackCount += parcel.Amount;
-            }
 
             if (ParcelResult.EquipmentDBs.TryGetValue(equipment.ServerId, out EquipmentDB? value))
                 value.StackCount = equipment.StackCount;
             else
                 ParcelResult.EquipmentDBs.Add(equipment.ServerId, equipment.ToMap(Mapper));
-
-            CreateParcelInfo(parcel);
         }
+        CreateParcelInfo(parcel);
     }
 
     public async Task UpdateItem(ParcelResult parcel)
     {
-        var item = Context.GetAccountItems(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var item = Context.Items.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id);
 
         if (item == null && parcel.Amount > 0)
         {
@@ -183,7 +182,6 @@ public class ParcelResolver
             };
             Context.Items.Add(item);
             _newItems.Add(item);
-            CreateParcelInfo(parcel);
             return;
         }
         else if (item != null)
@@ -194,25 +192,22 @@ public class ParcelResolver
                 ParcelResult.RemovedItemIds.Add(item.ServerId);
             }
             else
-            {
                 item.StackCount += parcel.Amount;
-            }
 
             if (ParcelResult.ItemDBs.TryGetValue(item.ServerId, out ItemDB? value))
                 value.StackCount = item.StackCount;
             else
                 ParcelResult.ItemDBs.Add(item.ServerId, item.ToMap(Mapper));
-
-            CreateParcelInfo(parcel);
         }
+        CreateParcelInfo(parcel);
     }
 
     public async Task UpdateMemoryLobby(ParcelResult parcel)
     {
         if (IsConsume) return;
-
-        var memoryLobby = Context.GetAccountMemoryLobbies(Account.ServerId)
-            .FirstOrDefault(x => x.MemoryLobbyUniqueId == parcel.Id);
+        var memoryLobby = Context.MemoryLobbies.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.MemoryLobbyUniqueId == parcel.Id);
 
         if (memoryLobby != null) return;
 
@@ -231,11 +226,9 @@ public class ParcelResolver
     {
         if (parcel.Amount <= 0) return;
 
-        var (level, exp, newbieExp, actionPointChargeMax) = MathService.CalculateAccountExp(
-            Account.Level, Account.Exp, parcel.Amount, accountLevelExcels);
-
+        var (level, exp, newbieExp, actionPointChargeMax) = MathService.CalculateAccountExp(Account.Level, Account.Exp, parcel.Amount, accountLevelExcels);
         if (Account.Level != level && actionPointChargeMax > 0)
-            await UpdateAccountCurrency(new ParcelResult(ParcelType.Currency, (long)CurrencyTypes.ActionPoint, actionPointChargeMax), true);
+            await UpdateAccountCurrency(new ParcelResult(ParcelType.Currency, (long)CurrencyTypes.ActionPoint, actionPointChargeMax));
 
         Account.Level = level;
         Account.Exp = exp;
@@ -252,11 +245,15 @@ public class ParcelResolver
     public async Task UpdateCharacterExp(ParcelResult parcel, List<ExpLevelData> expLevelDatas)
     {
         if (IsConsume) return;
+        var character = Context.Characters.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id);
 
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
-
-        if (character == null) return;
+        if (character == null)
+        {
+            Log.Warning("Failed to update character exp {characterUniqueId}", parcel.Id);
+            return;
+        }
 
         var (level, exp) = MathService.CalculateLevelExp(character.Level, character.Exp, parcel.Amount, expLevelDatas);
         character.Level = level;
@@ -268,10 +265,15 @@ public class ParcelResolver
 
     public async Task UpdateFavorCharacter(ParcelResult parcel, List<ExpLevelData> expLevelDatas)
     {
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var character = Context.Characters.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id);
 
-        if (character == null) return;
+        if (character == null)
+        {
+            Log.Warning("Failed to update favor character {characterUniqueId}", parcel.Id);
+            return;
+        }
 
         var (level, exp) = MathService.CalculateLevelExp(character.FavorRank, character.FavorExp, parcel.Amount, expLevelDatas);
         character.FavorRank = level;
@@ -283,8 +285,10 @@ public class ParcelResolver
 
     public async Task UpdateFurniture(ParcelResult parcel)
     {
-        var furniture = Context.GetAccountFurnitures(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id && x.Location == FurnitureLocation.Inventory);
+        var furniture = Context.Furnitures.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id &&
+            x.Location == FurnitureLocation.Inventory);
 
         if (furniture == null && parcel.Amount > 0)
         {
@@ -296,7 +300,6 @@ public class ParcelResolver
             };
             Context.Furnitures.Add(furniture);
             _newFurnitures.Add(furniture);
-            CreateParcelInfo(parcel);
             return;
         }
         else if (furniture != null)
@@ -307,27 +310,28 @@ public class ParcelResolver
                 ParcelResult.RemovedFurnitureIds.Add(furniture.ServerId);
             }
             else
-            {
                 furniture.StackCount += parcel.Amount;
-            }
 
             if (ParcelResult.FurnitureDBs.TryGetValue(furniture.ServerId, out FurnitureDB? value))
                 value.StackCount = furniture.StackCount;
             else
                 ParcelResult.FurnitureDBs.Add(furniture.ServerId, furniture.ToMap(Mapper));
-
-            CreateParcelInfo(parcel);
         }
+        CreateParcelInfo(parcel);
     }
 
     public async Task UpdateLocationExp(ParcelResult parcel, List<ExpLevelData> expLevelDatas)
     {
         if (IsConsume) return;
+        var academyLocation = Context.AcademyLocations.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.LocationId == parcel.Id);
 
-        var academyLocation = Context.GetAccountAcademyLocations(Account.ServerId)
-            .FirstOrDefault(x => x.LocationId == parcel.Id);
-
-        if (academyLocation == null) return;
+        if (academyLocation == null)
+        {
+            Log.Warning("Failed to update location exp {locationUniqueId}", parcel.Id);
+            return;
+        }
 
         var (level, exp) = MathService.CalculateLevelExp((int)academyLocation.Rank, academyLocation.Exp, parcel.Amount, expLevelDatas);
         academyLocation.Rank = level;
@@ -340,11 +344,8 @@ public class ParcelResolver
     public async Task UpdateCharacterWeapon(ParcelResult parcel)
     {
         if (IsConsume) return;
-
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
-        var weapon = Context.GetAccountWeapons(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var character = Context.Characters.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
+        var weapon = Context.Weapons.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
 
         if (character == null) return;
         if (weapon != null) return;
@@ -361,36 +362,12 @@ public class ParcelResolver
         CreateParcelInfo(parcel);
     }
 
-    public async Task UpdateCharacterGear(ParcelResult parcel)
-    {
-        if (IsConsume) return;
-
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
-        var gear = Context.GetAccountGears(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
-
-        if (character == null) return;
-        if (gear != null) return;
-
-        gear = new GearDBServer()
-        {
-            AccountServerId = Account.ServerId,
-            UniqueId = parcel.Id,
-            BoundCharacterServerId = character.ServerId
-        };
-
-        Context.Gears.Add(gear);
-        _newGears.Add(gear);
-        CreateParcelInfo(parcel);
-    }
-
     public async Task UpdateIdCardBackground(ParcelResult parcel)
     {
         if (IsConsume) return;
-
-        var idCardBackground = Context.GetAccountIdCardBackgrounds(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var idCardBackground = Context.IdCardBackgrounds.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id);
 
         if (idCardBackground != null) return;
 
@@ -408,9 +385,9 @@ public class ParcelResolver
     public async Task UpdateEmblem(ParcelResult parcel)
     {
         if (IsConsume) return;
-
-        var emblem = Context.GetAccountEmblems(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var emblem = Context.Emblems.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.UniqueId == parcel.Id);
 
         if (emblem != null) return;
 
@@ -429,9 +406,9 @@ public class ParcelResolver
     public async Task UpdateSticker(ParcelResult parcel)
     {
         if (IsConsume) return;
-
-        var sticker = Context.GetAccountStickers(Account.ServerId)
-            .FirstOrDefault(x => x.StickerUniqueId == parcel.Id);
+        var sticker = Context.Stickers.FirstOrDefault(x =>
+            x.AccountServerId == Account.ServerId &&
+            x.StickerUniqueId == parcel.Id);
 
         if (sticker != null) return;
 
@@ -449,14 +426,11 @@ public class ParcelResolver
     public async Task UpdateCostume(ParcelResult parcel, List<CostumeExcelT> costumeExcels)
     {
         if (IsConsume) return;
-
         var costumeExcel = costumeExcels.FirstOrDefault(x => x.CostumeUniqueId == parcel.Id);
         if (costumeExcel == null) return;
 
-        var character = Context.GetAccountCharacters(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == costumeExcel.CostumeGroupId);
-        var costume = Context.GetAccountCostumes(Account.ServerId)
-            .FirstOrDefault(x => x.UniqueId == parcel.Id);
+        var character = Context.Characters.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == costumeExcel.CostumeGroupId);
+        var costume = Context.Costumes.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
 
         if (character == null) return;
         if (costume != null) return;
@@ -490,7 +464,7 @@ public class ParcelResolver
 
     public async Task FinalizeUpdates(IDbContextTransaction transaction)
     {
-        var accountCurrencyDB = Context.GetAccountCurrencies(Account.ServerId).First();
+        var accountCurrencyDB = Context.Currencies.First(x => x.AccountServerId == Account.ServerId);
         if (Account.Level != accountCurrencyDB.AccountLevel)
             accountCurrencyDB.UpdateAccountLevel(Account.Level);
 

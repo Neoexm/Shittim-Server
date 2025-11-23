@@ -1243,6 +1243,7 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Campaign_ConfirmMainStage; }
         public ParcelResultDB? ParcelResultDB { get; set; }
         public CampaignMainStageSaveDB? SaveDataDB { get; set; }
+        public CampaignStageInfo? StageInfo { get; set; }
     }
 
     public class CampaignEnterSubStageRequest : RequestPacket

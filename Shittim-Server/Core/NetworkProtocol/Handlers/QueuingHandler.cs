@@ -24,10 +24,13 @@ public class QueuingHandler : ProtocolHandlerBase
         QueuingGetTicketRequest request,
         QueuingGetTicketResponse response)
     {
-        var clientVersion = new Version(request.ClientVersion);
-        var serverVersion = Config.Instance.ServerConfiguration.GameVersion;
-        if (clientVersion.Major != serverVersion.Major || clientVersion.Minor != serverVersion.Minor)
-            throw new WebAPIException(WebAPIErrorCode.InvalidVersion);
+        if (!string.IsNullOrEmpty(request.ClientVersion))
+        {
+            var clientVersion = new Version(request.ClientVersion);
+            var serverVersion = Config.Instance.ServerConfiguration.GameVersion;
+            if (clientVersion.Major != serverVersion.Major || clientVersion.Minor != serverVersion.Minor)
+                throw new WebAPIException(WebAPIErrorCode.InvalidVersion);
+        }
         
         byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");
         response.EnterTicket = Convert.ToBase64String(rawTicketBytes);

@@ -1,4 +1,6 @@
+using Schale.Excel;
 using Schale.FlatData;
+using Schale.MX.GameLogic.Parcel;
 using Shittim_Server.Services;
 
 namespace Shittim_Server.Services;
@@ -17,7 +19,7 @@ public class GachaGroupHandler
         var parcelResults = new List<ParcelResult>();
         foreach (var parcel in gachaParcels)
         {
-            var gachaElementList = _gachaElementExcels.Where(x => x.GachaGroupID == parcel.Id).ToList();
+            var gachaElementList = _gachaElementExcels.GetGachaElementsByGroupId(parcel.Id);
             if (gachaElementList.Count == 0) continue;
 
             int totalWeight = gachaElementList.Sum(e => e.Prob);

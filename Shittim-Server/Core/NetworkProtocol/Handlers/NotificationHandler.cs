@@ -31,16 +31,8 @@ public class NotificationHandler : ProtocolHandlerBase
 
         response.Reddots = new();
         response.EventContentUnlockCGDBs = new();
-
         if (account.GameSettings.EnableMultiFloorRaid)
-        {
-            var seasonData = _excelService.GetTable<MultiFloorRaidSeasonManageExcelT>()
-                .FirstOrDefault(s => s.SeasonId == account.ContentInfo.MultiFloorRaidDataInfo.SeasonId);
-
-            response.ServerTimeTicks = seasonData != null
-                ? DateTime.Parse(seasonData.SeasonStartDate).AddDays(2).Ticks
-                : account.GameSettings.ServerDateTimeTicks();
-        }
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }

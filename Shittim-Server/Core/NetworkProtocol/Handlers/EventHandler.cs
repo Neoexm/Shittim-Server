@@ -25,6 +25,8 @@ public class EventHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         response.EventRewardIncreaseDBs = [];
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }

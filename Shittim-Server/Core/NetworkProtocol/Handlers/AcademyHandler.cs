@@ -69,7 +69,11 @@ public class AcademyHandler : ProtocolHandlerBase
         }
 
         response.ExtraRewards = [];
-        response.ParcelResultDB = new();
+        response.ParcelResultDB = new()
+        {
+            AccountDB = account.ToMap(_mapper),
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+        };
 
         return response;
     }

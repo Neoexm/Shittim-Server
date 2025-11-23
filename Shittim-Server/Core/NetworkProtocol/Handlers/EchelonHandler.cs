@@ -38,6 +38,8 @@ public class EchelonHandler : ProtocolHandlerBase
 
         response.EchelonDBs = db.GetAccountEchelons(account.ServerId).ToMapList(_mapper);
         response.ArenaEchelonDB = new();
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
@@ -53,6 +55,8 @@ public class EchelonHandler : ProtocolHandlerBase
         await _echelonManager.SaveEchelon(db, account, request.EchelonDB);
 
         response.EchelonDB = request.EchelonDB;
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
@@ -68,6 +72,8 @@ public class EchelonHandler : ProtocolHandlerBase
         response.PresetGroupDBs = db.GetAccountEchelonPresetGroups(account.ServerId)
             .Where(g => g.ExtensionType == request.EchelonExtensionType)
             .ToMapList(_mapper).ToArray();
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
@@ -83,6 +89,8 @@ public class EchelonHandler : ProtocolHandlerBase
         await _echelonManager.SaveEchelonPreset(db, account, request.PresetDB);
 
         response.PresetDB = request.PresetDB;
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
@@ -107,6 +115,8 @@ public class EchelonHandler : ProtocolHandlerBase
 
             response.PresetGroupDB = presetGroup.ToMap(_mapper);
         }
+        if (account.GameSettings.EnableMultiFloorRaid)
+            response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }

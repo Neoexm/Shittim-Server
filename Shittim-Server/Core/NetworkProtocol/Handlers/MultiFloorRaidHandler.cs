@@ -19,6 +19,8 @@ public class MultiFloorRaidHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
 
+    public static DateTime MultiFloorRaidDateTime;
+
     public MultiFloorRaidHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
@@ -50,7 +52,8 @@ public class MultiFloorRaidHandler : ProtocolHandlerBase
         MultiFloorRaidSyncResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
-        var multiFloorRaidDateTime = GetMultiFloorRaidDateTime(account);
+        MultiFloorRaidDateTime = GetMultiFloorRaidDateTime(account);
+        var multiFloorRaidDateTime = MultiFloorRaidDateTime;
 
         var existingRaid = await db.GetAccountMultiFloorRaids(account.ServerId)
             .FirstOrDefaultAsync(x => x.SeasonId == account.ContentInfo.MultiFloorRaidDataInfo.SeasonId);

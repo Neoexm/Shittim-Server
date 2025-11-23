@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
+using Schale.Data.ModelMapping;
+using Schale.MX.GameLogic.Services;
 using Schale.MX.NetworkProtocol;
 using Schale.FlatData;
 using Shittim_Server.Core;
@@ -31,9 +33,11 @@ public class OpenConditionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        response.ConquestTiles = [];
-        response.WorldRaidLocalBossDBs = new();
-        response.StaticOpenConditions = new();
+        response.ConquestTiles = new();
+        response.WorldRaidLocalBossDBs = db.GetAccountWorldRaidLocalBosses(account.ServerId).ToMapList(_mapper)
+            .GroupBy(x => x.GroupId).ToDictionary(x => x.Key, x => x.ToList());
+        response.StaticOpenConditions = Enum.GetValues<OpenConditionContent>()
+            .ToDictionary(c => c, _ => OpenConditionLockReason.None);
 
         return response;
     }
