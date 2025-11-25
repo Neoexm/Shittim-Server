@@ -26,6 +26,7 @@ namespace Shittim.Managers
             services.AddSingleton<WeekDungeonManager>();
             services.AddSingleton<WorldRaidManager>();
             services.AddSingleton<EventContentCampaignManager>();
+            services.AddSingleton<MissionService>();
         }
     }
 }

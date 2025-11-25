@@ -28,6 +28,7 @@ namespace Shittim_Server.Services
             {
                 if (equipment.RecipeId == 0) continue;
                 var recipeExcel = recipeExcels.GetRecipeIngredientExcelById(equipment.RecipeId);
+                if (recipeExcel == null) continue;
                 parcelResults.AddRange(ParcelResult.ConvertParcelResult(recipeExcel.CostParcelType, recipeExcel.CostId, recipeExcel.CostAmount));
                 parcelResults.AddRange(ParcelResult.ConvertParcelResult(recipeExcel.IngredientParcelType, recipeExcel.IngredientId, recipeExcel.IngredientAmount));
             }
@@ -38,6 +39,7 @@ namespace Shittim_Server.Services
         {
             if (recipeId == 0) return;
             var recipeExcel = recipeExcels.GetRecipeIngredientExcelById(recipeId);
+            if (recipeExcel == null) return;
             parcelResults.AddRange(ParcelResult.ConvertParcelResult(recipeExcel.CostParcelType, recipeExcel.CostId, recipeExcel.CostAmount));
             parcelResults.AddRange(ParcelResult.ConvertParcelResult(recipeExcel.IngredientParcelType, recipeExcel.IngredientId, recipeExcel.IngredientAmount));
         }

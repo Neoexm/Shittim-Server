@@ -35,34 +35,12 @@ namespace BlueArchiveAPI.Services
             // Check for version updates if enabled
             string versionId = Config.Instance.ServerConfiguration.VersionId;
             
-            if (Config.Instance.ServerConfiguration.AutoCheckVersion)
-            {
-                Console.WriteLine("\n[Version Check] Checking for game updates...");
-                var (needsUpdate, latestVersion) = await VersionFetcherService.CheckForUpdates(
-                    versionId,
-                    Config.Instance.ServerConfiguration.ServerInfoUrl
-                );
-
-                if (needsUpdate && latestVersion != null)
-                {
-                    if (Config.Instance.ServerConfiguration.AutoUpdateVersion)
-                    {
-                        Console.WriteLine($"[Version Check] Auto-updating to version: {latestVersion}");
-                        VersionFetcherService.UpdateConfigVersion(latestVersion);
-                        versionId = latestVersion;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[Version Check] New version available: {latestVersion}");
-                        Console.WriteLine($"[Version Check] Set AutoUpdateVersion=true to auto-update or manually update VersionId in config");
-                        Console.WriteLine($"[Version Check] Continuing with current version: {versionId}");
-                    }
-                }
-            }
+            // Version check is now handled at startup by BlueArchiveVersionResolver
+            Console.WriteLine($"[Resource Manager] Using VersionId: {versionId}");
 
             var versionTxtPath = Path.Combine(ResourceDir, "original_version.txt");
             var customTxtPath = Path.Combine(ResourceDir, "custom_version.txt");
-            var baseUrl = $"https://ba.dn.nexoncdn.co.kr/com.nexon.bluearchive/{versionId}";
+            var baseUrl = Config.Instance.ServerConfiguration.CdnBaseUrl;
             var resources = new List<string>() {
                 "/Preload/TableBundles/ExcelDB.db",
                 "/Preload/TableBundles/Excel.zip",

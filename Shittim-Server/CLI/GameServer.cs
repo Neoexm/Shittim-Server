@@ -37,6 +37,25 @@ namespace Shittim.CLI
             {
                 Config.Load();
 
+                // Initialize Version State
+                using var loggerFactory = LoggerFactory.Create(builder => builder.AddSerilog());
+                var resolverLogger = loggerFactory.CreateLogger<BlueArchiveVersionResolver>();
+                using var httpClient = new HttpClient();
+                var resolver = new BlueArchiveVersionResolver(httpClient, resolverLogger);
+
+                var (versionId, cdnBaseUrl) = await resolver.GetOrUpdateVersionIdAsync(
+                    Config.Instance.ServerConfiguration.OverrideVersionId,
+                    Config.Instance.ServerConfiguration.OverrideCdnBaseUrl
+                );
+
+                BlueArchiveVersionState.Initialise(new BlueArchiveVersionState
+                {
+                    VersionId = versionId,
+                    CdnBaseUrl = cdnBaseUrl
+                });
+
+                Console.WriteLine($"[Version Resolver] Initialized with VersionId: {versionId}");
+
                 Console.WriteLine("\n[Command System] Loading commands...");
                 CommandFactory.LoadCommands();
                 Console.WriteLine("✓ Console commands loaded");

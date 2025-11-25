@@ -19,7 +19,8 @@ namespace Schale.MappingProfiles
         {
             CreateMap<AccountDBServer, AccountDB>();
             CreateMap<AccountCurrencyDBServer, AccountCurrencyDB>();
-            CreateMap<ItemDBServer, ItemDB>();
+            CreateMap<ItemDBServer, ItemDB>()
+                .ForMember(dest => dest.CanConsume, opt => opt.Ignore());
             CreateMap<CharacterDBServer, CharacterDB>();
             CreateMap<EquipmentDBServer, EquipmentDB>();
             CreateMap<WeaponDBServer, WeaponDB>();

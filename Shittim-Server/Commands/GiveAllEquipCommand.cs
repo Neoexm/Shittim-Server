@@ -17,6 +17,7 @@ namespace Shittim.Commands
             var equipmentExcel = connection.ExcelTableService.GetTable<EquipmentExcelT>();
 
             int totalAdded = 0;
+            int stackAmount = 999;
 
             foreach (var equipData in equipmentExcel)
             {
@@ -29,7 +30,7 @@ namespace Shittim.Commands
                         Level = 1,
                         Exp = 0,
                         Tier = tier,
-                        StackCount = 1,
+                        StackCount = stackAmount,
                         BoundCharacterServerId = 0
                     };
 
@@ -39,7 +40,7 @@ namespace Shittim.Commands
             }
 
             await context.SaveChangesAsync();
-            await connection.SendChatMessage($"Added {totalAdded} equipment pieces ({equipmentExcel.Count} types x 10 tiers)");
+            await connection.SendChatMessage($"Added {totalAdded} equipment pieces ({equipmentExcel.Count} types x 10 tiers, {stackAmount} each)");
         }
     }
 }

@@ -19,18 +19,24 @@ public class ShopHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly ShopManager _shopManager;
+    private readonly MissionService _missionService;
+    private readonly ParcelHandler _parcelHandler;
 
     public ShopHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
-        ShopManager shopManager) : base(registry)
+        ShopManager shopManager,
+        MissionService missionService,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
         _shopManager = shopManager;
+        _missionService = missionService;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.Shop_GachaRecruitList)]
@@ -144,10 +150,8 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (accountCurrency, consumedItems, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, request);
+        var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, request);
         response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
-        response.GemPaidRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemPaid];
-        response.ConsumedItems = consumedItems ?? [];
 
         var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, request, gachaAmount);
         response.GachaResults = gachaResults;
@@ -174,14 +178,18 @@ public class ShopHandler : ProtocolHandlerBase
             recruitHistory.LastUpdateDate = DateTime.UtcNow;
         }
 
-        await db.SaveChangesAsync();
+        response.PickupFirstGetHistoryDBs = [];
 
-        response.FreeRecruitHistoryDB = new ShopFreeRecruitHistoryDB
-        {
-            UniqueId = recruitHistory.UniqueId,
-            RecruitCount = recruitHistory.RecruitCount,
-            LastUpdateDate = recruitHistory.LastUpdateDate
-        };
+        var updatedMissions = _missionService.UpdateMissionProgress(
+            db, 
+            account, 
+            MissionCompleteConditionType.Reset_GachaCount, 
+            gachaAmount);
+
+        response.MissionProgressDBs = updatedMissions.Count > 0 ? updatedMissions : null;
+        response.ServerTimeTicks = account.GameSettings.ServerDateTimeTicks();
+
+        await db.SaveChangesAsync();
 
         return response;
     }
@@ -208,6 +216,72 @@ public class ShopHandler : ProtocolHandlerBase
         ShopBuyMerchandiseResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
+        if (shopExcel == null) return response;
+
+        var goodsExcel = _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == request.GoodsId);
+        if (goodsExcel == null) return response;
+
+        var consumeParcelTypes = goodsExcel.ConsumeParcelType ?? [];
+        var consumeParcelIds = goodsExcel.ConsumeParcelId ?? [];
+        var consumeParcelAmounts = goodsExcel.ConsumeParcelAmount ?? [];
+
+        var rewardParcelTypes = goodsExcel.ParcelType ?? [];
+        var rewardParcelIds = goodsExcel.ParcelId ?? [];
+        var rewardParcelAmounts = goodsExcel.ParcelAmount ?? [];
+
+        var consumeParcels = new List<ParcelInfo>();
+        for (int i = 0; i < consumeParcelTypes.Count; i++)
+        {
+            consumeParcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = consumeParcelTypes[i], Id = consumeParcelIds[i] },
+                Amount = consumeParcelAmounts[i] * request.PurchaseCount
+            });
+        }
+
+        var rewardParcels = new List<ParcelInfo>();
+        for (int i = 0; i < rewardParcelTypes.Count; i++)
+        {
+            rewardParcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = rewardParcelTypes[i], Id = rewardParcelIds[i] },
+                Amount = rewardParcelAmounts[i] * request.PurchaseCount
+            });
+        }
+
+        if (consumeParcels.Count > 0)
+        {
+            await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
+        }
+
+        var parcelResultDB = new ParcelResultDB();
+        if (rewardParcels.Count > 0)
+        {
+            await _parcelHandler.BuildParcel(db, account, rewardParcels, parcelResultDB);
+            parcelResultDB.AcquiredItems = rewardParcels;
+            response.ParcelResultDB = parcelResultDB;
+        }
+
+        var accountCurrency = db.GetAccountCurrencies(account.ServerId).FirstOrDefault();
+        if (accountCurrency != null)
+        {
+            response.AccountCurrencyDB = accountCurrency.ToMap(_mapper);
+        }
+
+        response.ShopProductDB = new ShopProductDB
+        {
+            ShopExcelId = request.ShopUniqueId,
+            Category = shopExcel.CategoryType,
+            DisplayOrder = shopExcel.DisplayOrder,
+            PurchaseCount = 0,
+            SoldOut = false,
+            PurchaseCountLimit = shopExcel.PurchaseCountLimit,
+            Price = consumeParcelAmounts.FirstOrDefault()
+        };
+
+        await db.SaveChangesAsync();
 
         return response;
     }

@@ -1,6 +1,7 @@
 using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Services;
+using Newtonsoft.Json;
 
 namespace Schale.MX.NetworkProtocol
 {
@@ -14,6 +15,7 @@ namespace Schale.MX.NetworkProtocol
     {
         public SessionKey? SessionKey { get; set; }
         public abstract Protocol Protocol { get; }
+        [JsonIgnore]
         public long AccountId => SessionKey?.AccountServerId ?? 0;
     }
 
@@ -42,6 +44,7 @@ namespace Schale.MX.NetworkProtocol
     public abstract class ResponsePacket : BasePacket
     {
         public long ServerTimeTicks { get; set; } = DateTimeOffset.Now.Ticks;
+        [JsonIgnore]
         public ServerNotificationFlag ServerNotification { get; set; } = ServerNotificationFlag.None;
         public List<MissionProgressDB>? MissionProgressDBs { get; set; }
         public Dictionary<long, List<MissionProgressDB>>? EventMissionProgressDBDict { get; set; }

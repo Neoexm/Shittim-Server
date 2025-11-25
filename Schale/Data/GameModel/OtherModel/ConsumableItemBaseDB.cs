@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 using Schale.MX.GameLogic.Parcel;
 
 namespace Schale.Data.GameModel
