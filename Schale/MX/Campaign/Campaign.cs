@@ -59,6 +59,9 @@ namespace Schale.MX.Campaign
     {
         public float x { get; set; }
         public float y { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public float z { get; set; }
     }
     
@@ -67,22 +70,41 @@ namespace Schale.MX.Campaign
         public long EntityId { get; set; }
         public Dictionary<long, long>? HpInfos { get; set; }
         public Dictionary<long, long>? DyingInfos { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Dictionary<long, int>? BuffInfos { get; set; }
+        
         public int ActionCountMax { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public int ActionCount { get; set; }
+        
         public int Mobility { get; set; }
         public int StrategySightRange { get; set; }
         public long Id { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public virtual SimpleVector3? Rotate { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public virtual HexLocation2D? Location { get; set; }
         
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public HexLocation AIDestination { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool IsActionComplete { get; set; }
+        
         public bool IsPlayer { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool IsFixedEchelon { get; set; }
+        
         public int MovementOrder { get; set; }
+        
 	    public Dictionary<TacticEntityType, List<ParcelInfo>>? RewardParcelInfosWithDropTacticEntityType { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore]
@@ -100,6 +122,9 @@ namespace Schale.MX.Campaign
         public List<string>? BuffGroupIds { get; set; }
         
         public virtual SkillCardHand? SkillCardHand { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool PlayAnimation { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore]
@@ -153,7 +178,11 @@ namespace Schale.MX.Campaign
     public class Strategy
     {
         public long EntityId { get; set; }
+        
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public SimpleVector3? Rotate { get; set; }
+        
         public long Id { get; set; }
         public HexLocation2D? Location {get; set;}
 

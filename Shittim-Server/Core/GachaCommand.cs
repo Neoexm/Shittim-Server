@@ -28,9 +28,11 @@ namespace Shittim_Server.Core
             try
             {
                 var configPath = Path.GetFullPath(ConfigPath);
+                Console.WriteLine($"[GachaCommand] Loading config from: {configPath}");
                 
                 if (!File.Exists(configPath))
                 {
+                    Console.WriteLine($"[GachaCommand] Config file not found at: {configPath}");
                     _customRates = null;
                     _guaranteedCharacterId = null;
                     return;
@@ -51,16 +53,26 @@ namespace Shittim_Server.Core
                     _customRates = new Dictionary<long, double>();
                     
                     if (config.custom_rates.TryGetValue("ssr", out double ssrRate))
+                    {
                         _customRates[3] = ssrRate;
+                        Console.WriteLine($"[GachaCommand] Loaded SSR rate: {ssrRate}%");
+                    }
                     
                     if (config.custom_rates.TryGetValue("sr", out double srRate))
+                    {
                         _customRates[2] = srRate;
+                        Console.WriteLine($"[GachaCommand] Loaded SR rate: {srRate}%");
+                    }
                     
                     if (config.custom_rates.TryGetValue("r", out double rRate))
+                    {
                         _customRates[1] = rRate;
+                        Console.WriteLine($"[GachaCommand] Loaded R rate: {rRate}%");
+                    }
                 }
                 else
                 {
+                    Console.WriteLine("[GachaCommand] No custom rates found in config");
                     _customRates = null;
                 }
 

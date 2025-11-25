@@ -1,3 +1,6 @@
 Data/*.db
 Data/*.sqlite
 Data/*.sqlite3
+shittim.sqlite3
+shittim.sqlite3-shm
+shittim.sqlite3-wal

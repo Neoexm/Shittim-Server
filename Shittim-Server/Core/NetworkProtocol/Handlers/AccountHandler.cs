@@ -19,16 +19,19 @@ public class AccountHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
+    private readonly ILogger<AccountHandler> _logger;
 
     public AccountHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ILogger<AccountHandler> logger) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     [ProtocolHandler(Protocol.Account_CheckNexon)]
@@ -179,15 +182,20 @@ public class AccountHandler : ProtocolHandlerBase
         AccountLoginSyncRequest request,
         AccountLoginSyncResponse response)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         ArgumentNullException.ThrowIfNull(account);
+        _logger.LogInformation("GetAuthenticatedUser took {Ms}ms", sw.ElapsedMilliseconds);
 
+        sw.Restart();
         response.CafeGetInfoResponse = new CafeGetInfoResponse
         {
             CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper),
             FurnitureDBs = db.GetAccountFurnitures(account.ServerId).ToMapList(_mapper)
         };
+        _logger.LogInformation("Cafe queries took {Ms}ms", sw.ElapsedMilliseconds);
 
+        sw.Restart();
         response.AccountCurrencySyncResponse = new AccountCurrencySyncResponse
         {
             AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper)
@@ -328,6 +336,7 @@ public class AccountHandler : ProtocolHandlerBase
         };
 
         response.AccountLevelRewardIds = db.GetAccountLevelRewards(account.ServerId).Select(r => r.RewardId).ToList();
+        _logger.LogInformation("All queries took {Ms}ms total", sw.ElapsedMilliseconds);
         
         response.FriendCount = 0;
         response.FriendCode = "SKYE_SERVER";

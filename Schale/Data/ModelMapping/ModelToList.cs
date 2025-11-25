@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Schale.Data.GameModel;
 using Schale.MX.GameLogic.DBModel;
 
@@ -13,7 +14,7 @@ namespace Schale.Data.ModelMapping
         // User Data
         // 
         
-        public static List<AccountCurrencyDB> ToMapList(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper).ToList();
+        public static List<AccountCurrencyDB> ToMapList(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.AsNoTracking().ToList().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper).ToList();
         public static IEnumerable<AccountCurrencyDB> ToMapEnumerable(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
         public static List<AccountCurrencyDB> ToMapList(this IEnumerable<AccountCurrencyDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper).ToList();
         public static IEnumerable<AccountCurrencyDB> ToMapEnumerable(this IEnumerable<AccountCurrencyDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);

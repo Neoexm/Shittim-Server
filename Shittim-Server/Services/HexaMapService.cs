@@ -67,42 +67,31 @@ public class HexaMapService
         };
     }
 
-    public static Dictionary<long, HexaUnit> AddHexaUnitList(List<HexaUnit> hexaUnitData)
+    public static Dictionary<long, HexaUnit> AddHexaUnitList(List<HexaUnit>? hexaUnitData)
     {
         var unitInfos = new Dictionary<long, HexaUnit>();
+
+        if (hexaUnitData == null)
+            return unitInfos;
 
         foreach (var hexaUnit in hexaUnitData)
         {
             var unitInfo = new HexaUnit
             {
                 EntityId = hexaUnit.EntityId,
-                HpInfos = hexaUnit.HpInfos,
-                DyingInfos = hexaUnit.DyingInfos,
-                BuffInfos = hexaUnit.BuffInfos,
-                ActionCount = hexaUnit.ActionCount,
-                ActionCountMax = hexaUnit.ActionCountMax,
-                Mobility = hexaUnit.Mobility,
-                StrategySightRange = hexaUnit.StrategySightRange,
+                ActionCount = 1,
                 Id = hexaUnit.Id,
                 Rotate = new SimpleVector3
                 {
-                    x = hexaUnit.Rotate?.x != 0 ? hexaUnit.Rotate.x : 0.20f,
-                    y = hexaUnit.Rotate?.y != 0 ? hexaUnit.Rotate.y : 0.20f,
-                    z = hexaUnit.Rotate?.z != 0 ? hexaUnit.Rotate.z : 0.20f
-                },
-                AIDestination = hexaUnit.AIDestination,
-                IsActionComplete = hexaUnit.IsActionComplete,
-                IsPlayer = hexaUnit.IsPlayer,
-                MovementOrder = hexaUnit.MovementOrder,
-                RewardParcelInfosWithDropTacticEntityType = hexaUnit.RewardParcelInfosWithDropTacticEntityType,
-                SkillCardHand = hexaUnit.SkillCardHand,
-                PlayAnimation = hexaUnit.PlayAnimation
+                    x = hexaUnit.Rotate?.x ?? 0f,
+                    y = hexaUnit.Rotate?.y ?? 0f,
+                    z = hexaUnit.Rotate?.z ?? 0f
+                }
             };
 
             if (hexaUnit.Location != null && (
                 hexaUnit.Location.x != 0 || 
-                hexaUnit.Location.y != 0 || 
-                hexaUnit.Location.z != 0))
+                hexaUnit.Location.y != 0))
             {
                 unitInfo.Location = hexaUnit.Location;
             }
@@ -113,9 +102,12 @@ public class HexaMapService
         return unitInfos;
     }
 
-    public static Dictionary<long, Strategy> AddHexaStrategyList(List<Strategy> strategiesData)
+    public static Dictionary<long, Strategy> AddHexaStrategyList(List<Strategy>? strategiesData)
     {
         var strategyDataInfos = new Dictionary<long, Strategy>();
+
+        if (strategiesData == null)
+            return strategyDataInfos;
 
         foreach (var strategyObject in strategiesData)
         {
@@ -126,9 +118,9 @@ public class HexaMapService
                 CampaignStrategyExcel = strategyObject.CampaignStrategyExcel,
                 Rotate = new SimpleVector3
                 {
-                    x = strategyObject.Rotate?.x != 0 ? strategyObject.Rotate.x : 0.20f,
-                    y = strategyObject.Rotate?.y != 0 ? strategyObject.Rotate.y : 0.20f,
-                    z = strategyObject.Rotate?.z != 0 ? strategyObject.Rotate.z : 0.20f
+                    x = strategyObject.Rotate?.x ?? 0f,
+                    y = strategyObject.Rotate?.y ?? 0f,
+                    z = strategyObject.Rotate?.z ?? 0f
                 }
             };
 
@@ -188,24 +180,11 @@ public class HexaMapService
             var unitInfo = new HexaUnit
             {
                 EntityId = hexaUnit.EntityId,
-                DyingInfos = hexaUnit.DyingInfos,
+                DyingInfos = new Dictionary<long, long>(),
                 Id = hexaUnit.Id,
-                Rotate = new SimpleVector3
-                {
-                    x = hexaUnit.Rotate?.x != 0 ? hexaUnit.Rotate.x : 0.20f,
-                    y = hexaUnit.Rotate?.y != 0 ? hexaUnit.Rotate.y : 0.20f,
-                    z = hexaUnit.Rotate?.z != 0 ? hexaUnit.Rotate.z : 0.20f
-                },
+                Location = hexaUnit.Location,
                 IsPlayer = hexaUnit.IsPlayer
             };
-
-            if (hexaUnit.Location != null && (
-                hexaUnit.Location.x != 0 || 
-                hexaUnit.Location.y != 0 || 
-                hexaUnit.Location.z != 0))
-            {
-                unitInfo.Location = hexaUnit.Location;
-            }
 
             unitInfos.Add(unitInfo);
         }
