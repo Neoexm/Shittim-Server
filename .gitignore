@@ -5,6 +5,9 @@ request_logs/
 nexon.har
 nexon.flows
 *.har
+/Shittim-Server/shittim.sqlite3
+/Shittim-Server/shittim.sqlite3-shm
+/Shittim-Server/shittim.sqlite3-wal
 
 # Node modules
 node_modules/

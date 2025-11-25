@@ -83,7 +83,31 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         response.ParcelResultDB = new()
         {
             AccountDB = account.ToMap(_mapper),
-            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new(),
+            AcademyLocationDBs = new(),
+            CharacterDBs = new(),
+            CostumeDBs = new(),
+            DisplaySequence = new(),
+            EmblemDBs = new(),
+            EquipmentDBs = new(),
+            FurnitureDBs = new(),
+            GachaResultCharacters = new(),
+            ItemDBs = new(),
+            IdCardBackgroundDBs = new(),
+            MemoryLobbyDBs = new(),
+            ParcelForMission = new(),
+            ParcelResultStepInfoList = new(),
+            RemovedItemIds = new(),
+            RemovedEquipmentIds = new(),
+            RemovedFurnitureIds = new(),
+            StickerDBs = new(),
+            SecretStoneCharacterIdAndCounts = new(),
+            TSSCharacterDBs = new(),
+            WeaponDBs = new(),
+            CharacterNewUniqueIds = new(),
+            BaseAccountExp = 0,
+            AdditionalAccountExp = 0,
+            NewbieBoostAccountExp = 0
         };
         response.SaveDataDB = stageSave.ToMap(_mapper);
         response.StageInfo = await _concentrateCampaignManager.GetStageInfo(stageSave.StageUniqueId);
@@ -131,7 +155,35 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 
         var (stageSave, historyDb) = await _concentrateCampaignManager.TacticResult(db, account, request);
 
-        response.ParcelResultDB = new();
+        response.ParcelResultDB = new()
+        {
+            AccountDB = account.ToMap(_mapper),
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new(),
+            AcademyLocationDBs = new(),
+            CharacterDBs = new(),
+            CostumeDBs = new(),
+            DisplaySequence = new(),
+            EmblemDBs = new(),
+            EquipmentDBs = new(),
+            FurnitureDBs = new(),
+            GachaResultCharacters = new(),
+            ItemDBs = new(),
+            IdCardBackgroundDBs = new(),
+            MemoryLobbyDBs = new(),
+            ParcelForMission = new(),
+            ParcelResultStepInfoList = new(),
+            RemovedItemIds = new(),
+            RemovedEquipmentIds = new(),
+            RemovedFurnitureIds = new(),
+            StickerDBs = new(),
+            SecretStoneCharacterIdAndCounts = new(),
+            TSSCharacterDBs = new(),
+            WeaponDBs = new(),
+            CharacterNewUniqueIds = new(),
+            BaseAccountExp = 0,
+            AdditionalAccountExp = 0,
+            NewbieBoostAccountExp = 0
+        };
         response.SaveDataDB = stageSave.ToMap(_mapper);
         response.CampaignStageHistoryDB = historyDb;
 

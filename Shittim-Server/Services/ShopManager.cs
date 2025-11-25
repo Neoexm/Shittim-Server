@@ -147,6 +147,11 @@ public class ShopManager
             var randomNumber = Random.Shared.NextInt64(1000);
             var customRates = Core.GachaCommand.GetCustomRates();
             
+            if (i == 0)
+            {
+                Console.WriteLine($"[ShopManager] Custom rates count: {customRates.Count}");
+            }
+            
             if (customRates.Count > 0)
             {
                 double ssrThreshold = customRates.TryGetValue(3, out double ssrRate) ? ssrRate * 10 : 0;
@@ -156,6 +161,8 @@ public class ShopManager
                 if (i == 0)
                 {
                     Console.WriteLine($"[ShopManager] Using custom rates: SSR={ssrRate:F2}%, SR={srRate:F2}%, R={rRate:F2}%");
+                    Console.WriteLine($"[ShopManager] Thresholds: SSR={ssrThreshold}, SR={srThreshold}, R={rThreshold}");
+                    Console.WriteLine($"[ShopManager] Random number: {randomNumber}");
                 }
                 
                 if (randomNumber < ssrThreshold)

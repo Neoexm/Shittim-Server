@@ -8,6 +8,8 @@ using Schale.Excel;
 using Schale.FlatData;
 using Schale.MX.Campaign;
 using Schale.MX.Campaign.HexaTileMapEvent;
+using Schale.MX.Campaign.HexaTileMapEvent.HexaTileMapCommand;
+using Schale.MX.Campaign.HexaTileMapEvent.HexaTileMapCondition;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.Logic.Battles;
@@ -55,10 +57,16 @@ public class ConcentrateCampaignManager
             ContentType = Schale.FlatData.ContentType.CampaignMainStage,
             LastEnemyEntityId = hexaData.LastEntityId,
             EnemyInfos = HexaMapService.AddHexaUnitList(hexaData.HexaUnitList),
+            EchelonInfos = new Dictionary<long, HexaUnit>(),
+            WithdrawInfos = new Dictionary<long, List<long>>(),
             StrategyObjects = HexaMapService.AddHexaStrategyList(hexaData.HexaStrageyList),
-            ActivatedHexaEventsAndConditions = new(),
-            HexaEventDelayedExecutions = new(),
+            StrategyObjectRewards = new Dictionary<long, List<ParcelInfo>>(),
+            StrategyObjectHistory = new List<long>(),
+            ActivatedHexaEventsAndConditions = new Dictionary<long, List<long>>(),
+            HexaEventDelayedExecutions = new Dictionary<long, List<long>>(),
             TileMapStates = HexaMapService.AddHexaTileList(hexaData),
+            DisplayInfos = new List<HexaDisplayInfo>(),
+            DeployedEchelonInfos = new List<HexaUnit>(),
             CreateTime = account.GameSettings.ServerDateTime(),
             StageUniqueId = stageUniqueId,
             StageEntranceFee = new(),
@@ -119,6 +127,7 @@ public class ConcentrateCampaignManager
                 EntityId = hexaUnit.EntityId,
                 HpInfos = CreateHpInfos(echelonData.MainSlotServerIds, echelonData.SupportSlotServerIds),
                 DyingInfos = new Dictionary<long, long>(),
+                BuffInfos = new Dictionary<long, int>(),
                 ActionCountMax = 1,
                 Mobility = 1,
                 StrategySightRange = 1,
@@ -163,9 +172,19 @@ public class ConcentrateCampaignManager
 
         var deployedEchelonInfos = stageSaveData.EchelonInfos?.Values.ToList() ?? new List<HexaUnit>();
 
-        stageSaveData.CampaignState = CampaignState.BeginPlayerPhase;
+        stageSaveData.CampaignState = CampaignState.PlayerPhase;
         stageSaveData.CurrentTurn = 1;
         stageSaveData.DeployedEchelonInfos = HexaMapService.DeployHexaUnitList(deployedEchelonInfos);
+        
+        if (stageSaveData.EchelonInfos != null)
+        {
+            foreach (var echelon in stageSaveData.EchelonInfos.Values)
+            {
+                echelon.ActionCount = 1;
+            }
+        }
+
+        stageSaveData.ActivatedHexaEventsAndConditions = new Dictionary<long, List<long>> { { 0, new List<long> { 0 } } };
 
         context.CampaignMainStageSaves.Update(stageSaveData);
         await context.SaveChangesAsync();
@@ -221,7 +240,7 @@ public class ConcentrateCampaignManager
         };
 
         stageSaveData.TacticClearTimeMscSum += (long)Math.Floor(req.Summary.EndFrame / 30f) * 1000;
-        stageSaveData.EchelonInfos = ChangeConcentratedEchelon(stageSaveData.EchelonInfos, req.Summary);
+        stageSaveData.EchelonInfos = ChangeConcentratedEchelon(stageSaveData.EchelonInfos, req.Summary, req.Hand);
 
         if (!CheckIfCleared(req.Summary))
         {
@@ -231,6 +250,41 @@ public class ConcentrateCampaignManager
         else
         {
             CalcStrategySkipStarGoals(historyDb, req.Summary);
+            
+            if (req.Summary.Group02Summary?.Heroes != null && stageSaveData.EnemyInfos != null)
+            {
+                var killedEnemies = new List<long>();
+                
+                foreach (var enemy in req.Summary.Group02Summary.Heroes)
+                {
+                    if (enemy.DeadFrame != -1)
+                    {
+                        long entityId = (long)(enemy.BattleEntityId.uniqueId & 0xFFFFFF);
+                        
+                        var matchingEnemy = stageSaveData.EnemyInfos
+                            .Where(kvp => kvp.Value.Id == enemy.CharacterId)
+                            .Where(kvp => !killedEnemies.Contains(kvp.Key))
+                            .Select(kvp => kvp.Key)
+                            .FirstOrDefault();
+                        
+                        if (matchingEnemy != 0)
+                        {
+                            killedEnemies.Add(matchingEnemy);
+                        }
+                    }
+                }
+                
+                foreach (var enemyId in killedEnemies)
+                {
+                    stageSaveData.EnemyInfos.Remove(enemyId);
+                    stageSaveData.EnemyClearCount++;
+                }
+            }
+            
+            if (historyDb.Star1Flag && historyDb.Star2Flag && historyDb.Star3Flag)
+            {
+                stageSaveData.TacticRankSCount++;
+            }
         }
 
         var existHistory = await context.CampaignStageHistories
@@ -248,8 +302,7 @@ public class ConcentrateCampaignManager
             context.CampaignStageHistories.Add(historyDb);
         }
 
-        stageSaveData.DisplayInfos = null;
-        stageSaveData.EchelonInfos = ChangeConcentratedEchelon(stageSaveData.EchelonInfos, req.Summary);
+        stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
 
         context.CampaignMainStageSaves.Update(stageSaveData);
         await context.SaveChangesAsync();
@@ -260,47 +313,65 @@ public class ConcentrateCampaignManager
 
     private Dictionary<long, HexaUnit>? ChangeConcentratedEchelon(
         Dictionary<long, HexaUnit>? existHexaUnitData,
-        BattleSummary battleSummary)
+        BattleSummary battleSummary,
+        SkillCardHand? hand = null)
     {
-        if (existHexaUnitData == null)
-            return null;
+        if (existHexaUnitData == null || battleSummary.Group01Summary == null)
+            return existHexaUnitData;
 
         foreach (var kvp in existHexaUnitData.Where(x => x.Value.EntityId == battleSummary.Group01Summary.TeamId))
         {
             kvp.Value.HpInfos = ChangeHpInfos(
                 battleSummary.Group01Summary.Heroes,
-                battleSummary.Group02Summary.Supporters
+                battleSummary.Group02Summary?.Supporters
             );
 
             kvp.Value.DyingInfos = ChangeHpInfos(
                 battleSummary.Group01Summary.Heroes,
-                battleSummary.Group02Summary.Supporters,
+                battleSummary.Group02Summary?.Supporters,
                 isDying: true
             );
+            
+            if (hand != null)
+            {
+                kvp.Value.SkillCardHand = hand;
+            }
+            
+            kvp.Value.MovementOrder++;
+            
+            kvp.Value.Rotate = null;
+            kvp.Value.BuffInfos = null;
+            kvp.Value.ActionCount = 0;
         }
 
         return existHexaUnitData;
     }
 
     private Dictionary<long, long> ChangeHpInfos(
-        HeroSummaryCollection mainHeroSummary,
-        HeroSummaryCollection supportHeroSummary,
+        HeroSummaryCollection? mainHeroSummary,
+        HeroSummaryCollection? supportHeroSummary,
         bool isDying = false)
     {
         var hpInfos = new Dictionary<long, long>();
 
-        foreach (var mainHeroChar in mainHeroSummary)
+        if (mainHeroSummary != null)
         {
-            if (mainHeroChar.HPRateAfter == 0 && !isDying)
-                continue;
-            hpInfos[mainHeroChar.ServerId] = mainHeroChar.HPRateAfter;
+            foreach (var mainHeroChar in mainHeroSummary)
+            {
+                if (mainHeroChar.HPRateAfter == 0 && !isDying)
+                    continue;
+                hpInfos[mainHeroChar.ServerId] = mainHeroChar.HPRateAfter;
+            }
         }
 
-        foreach (var supportHeroChar in supportHeroSummary)
+        if (supportHeroSummary != null)
         {
-            if (supportHeroChar.HPRateAfter == 0 && !isDying)
-                continue;
-            hpInfos[supportHeroChar.ServerId] = supportHeroChar.HPRateAfter;
+            foreach (var supportHeroChar in supportHeroSummary)
+            {
+                if (supportHeroChar.HPRateAfter == 0 && !isDying)
+                    continue;
+                hpInfos[supportHeroChar.ServerId] = supportHeroChar.HPRateAfter;
+            }
         }
 
         return hpInfos;
@@ -451,5 +522,41 @@ public class ConcentrateCampaignManager
             StarConditionSTacticRackCount = stageExcel.StarConditionTacticRankSCount,
             IsDeprecated = stageExcel.Deprecated
         };
+    }
+
+    private List<HexaDisplayInfo> ProcessStartEvents(HexaTileMap hexaData, CampaignMainStageSaveDBServer stageSave)
+    {
+        var displayInfos = new List<HexaDisplayInfo>();
+
+        if (hexaData.Events == null || hexaData.Events.Count == 0)
+            return displayInfos;
+
+        foreach (var hexaEvent in hexaData.Events)
+        {
+            if (hexaEvent.HexaConditions == null || hexaEvent.HexaConditions.Count == 0)
+                continue;
+
+            bool shouldTrigger = hexaEvent.HexaConditions.Any(c => c is HexaConditionStartCampaign);
+
+            if (!shouldTrigger)
+                continue;
+
+            if (hexaEvent.HexaCommands == null)
+                continue;
+
+            foreach (var command in hexaEvent.HexaCommands)
+            {
+                if (command is HexaCommandStrategySpawn strategySpawnCmd)
+                {
+                    
+                }
+                else if (command is HexaCommandUnitSpawn unitSpawnCmd)
+                {
+                    
+                }
+            }
+        }
+
+        return displayInfos;
     }
 }
