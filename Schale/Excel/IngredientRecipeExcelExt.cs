@@ -6,7 +6,7 @@ namespace Schale.Excel
     {
         public static RecipeIngredientExcelT GetRecipeIngredientExcelById(
             this List<RecipeIngredientExcelT> recipes, long id) =>
-            recipes.First(recipe => recipe.Id == id);
+            recipes.FirstOrDefault(recipe => recipe.Id == id);
     }
 }
 

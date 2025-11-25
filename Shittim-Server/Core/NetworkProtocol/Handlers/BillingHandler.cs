@@ -40,6 +40,9 @@ public class BillingHandler : ProtocolHandlerBase
         response.BlockedProductDBs = [];
         response.GachaTicketItemIdList = [];
         response.ProductMonthlyIdInMailList = [];
+        response.BattlePassProductList = [];
+        response.BattlePassIdInMailList = [];
+        response.IsTeenage = request.IsTeenage;
 
         return response;
     }

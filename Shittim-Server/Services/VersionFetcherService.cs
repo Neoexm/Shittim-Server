@@ -133,7 +133,7 @@ namespace BlueArchiveAPI.Services
                 if (config != null)
                 {
                     var oldVersion = config.ServerConfiguration.VersionId;
-                    config.ServerConfiguration.VersionId = newVersionId;
+                    // config.ServerConfiguration.VersionId = newVersionId;
                     
                     var options = new JsonSerializerOptions 
                     { 

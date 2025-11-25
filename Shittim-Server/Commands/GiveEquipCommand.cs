@@ -85,22 +85,19 @@ namespace Shittim.Commands
 
         private async Task GiveEquipment(SchaleDataContext context, EquipmentExcelT equipData, int tier, int amount)
         {
-            for (int i = 0; i < amount; i++)
+            var equipment = new EquipmentDBServer()
             {
-                var equipment = new EquipmentDBServer()
-                {
-                    AccountServerId = connection.AccountServerId,
-                    UniqueId = equipData.Id,
-                    Level = 1,
-                    Exp = 0,
-                    Tier = tier,
-                    StackCount = 1,
-                    BoundCharacterServerId = 0
-                };
-                
-                context.Equipments.Add(equipment);
-                await context.SaveChangesAsync();
-            }
+                AccountServerId = connection.AccountServerId,
+                UniqueId = equipData.Id,
+                Level = 1,
+                Exp = 0,
+                Tier = tier,
+                StackCount = amount,
+                BoundCharacterServerId = 0
+            };
+            
+            context.Equipments.Add(equipment);
+            await context.SaveChangesAsync();
 
             var baseName = GetIconBaseName(equipData.Icon);
             await connection.SendChatMessage($"Added {amount}x {baseName} T{tier} (ID: {equipData.Id})");

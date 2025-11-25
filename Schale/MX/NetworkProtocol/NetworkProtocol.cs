@@ -10,6 +10,7 @@ using Schale.MX.Logic.BattlesEntities;
 using Schale.MX.Logic.Battles.Summary;
 using Schale.MX.Logic.Data;
 using Schale.MX.TableBoard;
+using Newtonsoft.Json;
 
 namespace Schale.MX.NetworkProtocol
 {
@@ -414,6 +415,7 @@ namespace Schale.MX.NetworkProtocol
         public string? SignedKey { get; set; }
         public string? EncryptedIV { get; set; }
         public string? SignedIV { get; set; }
+        public SessionKey? SessionKey { get; set; }
     }
 
     public class AccountDetachNexonRequest : RequestPacket
@@ -5836,7 +5838,9 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha2; }
         public DateTime UpdateTime { get; set; }
         public long GemBonusRemain { get; set; }
+        [JsonIgnore]
         public long GemPaidRemain { get; set; }
+        [JsonIgnore]
         public List<ItemDB>? ConsumedItems { get; set; }
         public List<GachaResult>? GachaResults { get; set; }
         public List<ItemDB>? AcquiredItems { get; set; }

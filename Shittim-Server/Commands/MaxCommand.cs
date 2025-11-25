@@ -50,20 +50,34 @@ namespace Shittim.Commands
                     character.Level = 90;
                     character.Exp = 0;
                     character.StarGrade = characterData.MaxStarGrade;
-                    character.FavorRank = 50;
+                    character.FavorRank = 100;
                     character.FavorExp = 0;
                     character.PublicSkillLevel = 10;
                     character.ExSkillLevel = 5;
                     character.PassiveSkillLevel = 10;
                     character.ExtraPassiveSkillLevel = 10;
+                    character.PotentialStats = "{\"1\":25,\"2\":25,\"3\":25}";
                     
                     context.Characters.Update(character);
                     count++;
                 }
             }
 
+            var ownedWeapons = context.Weapons
+                .Where(x => x.AccountServerId == connection.AccountServerId)
+                .ToList();
+
+            int weaponCount = 0;
+            foreach (var weapon in ownedWeapons)
+            {
+                weapon.StarGrade = 4;
+                weapon.Level = 60;
+                context.Weapons.Update(weapon);
+                weaponCount++;
+            }
+
             await context.SaveChangesAsync();
-            await connection.SendChatMessage($"Maxed out {count} characters!");
+            await connection.SendChatMessage($"Maxed out {count} characters and {weaponCount} weapons!");
         }
 
         private async Task MaxSingleCharacter(SchaleDataContext context, List<CharacterExcelT> characterExcel, string name)
@@ -91,16 +105,17 @@ namespace Shittim.Commands
             character.Level = 90;
             character.Exp = 0;
             character.StarGrade = characterData.MaxStarGrade;
-            character.FavorRank = 50;
+            character.FavorRank = 100;
             character.FavorExp = 0;
             character.PublicSkillLevel = 10;
             character.ExSkillLevel = 5;
             character.PassiveSkillLevel = 10;
             character.ExtraPassiveSkillLevel = 10;
+            character.PotentialStats = "{\"1\":25,\"2\":25,\"3\":25}";
 
             context.Characters.Update(character);
             await context.SaveChangesAsync();
-            await connection.SendChatMessage($"Maxed out {characterData.DevName}! (Lv90, {characterData.MaxStarGrade}★, Favor 50, Skills 10/5/10/10)");
+            await connection.SendChatMessage($"Maxed out {characterData.DevName}! (Lv90, {characterData.MaxStarGrade}★, Favor 100, Skills 10/5/10/10, PotentialStats maxed)");
         }
     }
 }

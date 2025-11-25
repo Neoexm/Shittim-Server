@@ -116,9 +116,9 @@ public class GachaService
 
         gachaResult.Stone = new ItemDB()
         {
-            UniqueId = itemInDB.UniqueId,
             ServerId = itemInDB.ServerId,
-            StackCount = amount,
+            UniqueId = itemInDB.UniqueId,
+            StackCount = amount
         };
     }
 

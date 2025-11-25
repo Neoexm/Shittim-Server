@@ -217,6 +217,40 @@ public class ShopManager
             else
                 await GachaService.AddGachaResult(context, account, _mapper, GachaService.GetRandomCharacterId(rCharacterList), gachaList, itemList);
         }
+
+        if (characterBanner.RecruitCoinId > 0)
+        {
+            var recruitCoinItem = context.Items.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.UniqueId == characterBanner.RecruitCoinId);
+            if (recruitCoinItem != null)
+            {
+                recruitCoinItem.StackCount += gachaAmount;
+            }
+            else
+            {
+                context.Items.Add(new ItemDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    UniqueId = characterBanner.RecruitCoinId,
+                    StackCount = gachaAmount
+                });
+                await context.SaveChangesAsync();
+                recruitCoinItem = context.Items.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.UniqueId == characterBanner.RecruitCoinId);
+            }
+
+            if (recruitCoinItem != null)
+            {
+                var existingCoin = itemList.FirstOrDefault(x => x.UniqueId == characterBanner.RecruitCoinId);
+                if (existingCoin != null)
+                {
+                    existingCoin.StackCount = recruitCoinItem.StackCount;
+                }
+                else
+                {
+                    itemList.Add(recruitCoinItem);
+                }
+            }
+        }
+
         return (itemList, gachaList);
     }
 

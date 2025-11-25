@@ -24,7 +24,7 @@ namespace BlueArchiveAPI.Configuration
             var useCustomFile = Config.Instance.ServerConfiguration.UseCustomExcel;
             var versionTxtPath = Path.Combine(ResourceDir, "original_version.txt");
             var customTxtPath = Path.Combine(ResourceDir, "custom_version.txt");
-            var baseUrl = $"https://ba.dn.nexoncdn.co.kr/com.nexon.bluearchive/{Config.Instance.ServerConfiguration.VersionId}";
+            var baseUrl = Config.Instance.ServerConfiguration.CdnBaseUrl;
             var resources = new List<string>() {
                 "/Preload/TableBundles/ExcelDB.db",
                 "/Preload/TableBundles/Excel.zip",
