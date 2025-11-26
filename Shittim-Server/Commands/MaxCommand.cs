@@ -56,7 +56,7 @@ namespace Shittim.Commands
                     character.ExSkillLevel = 5;
                     character.PassiveSkillLevel = 10;
                     character.ExtraPassiveSkillLevel = 10;
-                    character.PotentialStats = "{\"1\":25,\"2\":25,\"3\":25}";
+                    character.PotentialStats = new Dictionary<int, int> { { 1, 25 }, { 2, 25 }, { 3, 25 } };
                     
                     context.Characters.Update(character);
                     count++;
@@ -111,7 +111,7 @@ namespace Shittim.Commands
             character.ExSkillLevel = 5;
             character.PassiveSkillLevel = 10;
             character.ExtraPassiveSkillLevel = 10;
-            character.PotentialStats = "{\"1\":25,\"2\":25,\"3\":25}";
+            character.PotentialStats = new Dictionary<int, int> { { 1, 25 }, { 2, 25 }, { 3, 25 } };
 
             context.Characters.Update(character);
             await context.SaveChangesAsync();
