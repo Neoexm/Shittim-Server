@@ -61,6 +61,7 @@ sslkey.log
 # .NET build outputs
 **/bin/
 **/obj/
+Schale/bin/
 *.dll
 *.exe
 *.pdb
