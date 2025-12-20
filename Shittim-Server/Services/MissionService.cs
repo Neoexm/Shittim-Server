@@ -28,6 +28,7 @@ public class MissionService
         long? parameter = null)
     {
         var missionExcels = _excelService.GetTable<MissionExcelT>();
+        var battlePassMissionExcels = _excelService.GetTable<BattlePassMissionExcelT>();
         var updatedMissions = new List<MissionProgressDB>();
 
         var relevantMissions = missionExcels
@@ -35,20 +36,29 @@ public class MissionService
             .Where(m => m.Category == MissionCategory.Daily || 
                        m.Category == MissionCategory.Weekly || 
                        m.Category == MissionCategory.Achievement)
+            .Select(m => new { m.Id, m.CompleteConditionParameter, m.CompleteConditionCount })
             .ToList();
 
-        foreach (var missionExcel in relevantMissions)
+        // Add BattlePass missions to relevant list
+        var relevantBpMissions = battlePassMissionExcels
+            .Where(m => m.CompleteConditionType == conditionType)
+            .Select(m => new { m.Id, m.CompleteConditionParameter, m.CompleteConditionCount })
+            .ToList();
+            
+        relevantMissions.AddRange(relevantBpMissions);
+
+        foreach (var mission in relevantMissions)
         {
-            if (parameter.HasValue && missionExcel.CompleteConditionParameter != null && 
-                missionExcel.CompleteConditionParameter.Count > 0)
+            if (parameter.HasValue && mission.CompleteConditionParameter != null && 
+                mission.CompleteConditionParameter.Count > 0)
             {
-                if (!missionExcel.CompleteConditionParameter.Contains(parameter.Value))
+                if (!mission.CompleteConditionParameter.Contains(parameter.Value))
                     continue;
             }
 
             var existingMission = context.MissionProgresses
                 .FirstOrDefault(m => m.AccountServerId == account.ServerId && 
-                                   m.MissionUniqueId == missionExcel.Id);
+                                   m.MissionUniqueId == mission.Id);
 
             if (existingMission != null && existingMission.Complete)
                 continue;
@@ -58,7 +68,7 @@ public class MissionService
                 existingMission = new MissionProgressDBServer
                 {
                     AccountServerId = account.ServerId,
-                    MissionUniqueId = missionExcel.Id,
+                    MissionUniqueId = mission.Id,
                     StartTime = account.GameSettings.ServerDateTime(),
                     ProgressParameters = new Dictionary<long, long> { { 0, amount } },
                     Complete = false
@@ -76,7 +86,7 @@ public class MissionService
                 existingMission.ProgressParameters[0] += amount;
             }
 
-            if (existingMission.ProgressParameters[0] >= missionExcel.CompleteConditionCount)
+            if (existingMission.ProgressParameters[0] >= mission.CompleteConditionCount)
             {
                 existingMission.Complete = true;
             }

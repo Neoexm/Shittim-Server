@@ -37,6 +37,7 @@ namespace Schale.Data
         public DbSet<AccountLevelRewardDBServer> AccountLevelRewards { get; set; }
 
         public DbSet<MissionProgressDBServer> MissionProgresses { get; set; }
+        public DbSet<BattlePassDBServer> BattlePasses { get; set; }
         public DbSet<AttendanceHistoryDBServer> AttendanceHistories { get; set; }
         public DbSet<AcademyDBServer> Academies { get; set; }
         public DbSet<AcademyLocationDBServer> AcademyLocations { get; set; }
@@ -125,6 +126,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.AccountLevelRewards).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.MissionProgresses).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.BattlePasses).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.AttendanceHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.Academies).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.AcademyLocations).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -205,6 +207,7 @@ namespace Schale.Data
         private void ConfigureProgressModels(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MissionProgressDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<BattlePassDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<MissionProgressDBServer>().Property(x => x.ProgressParameters).HasJsonConversion();
 
             modelBuilder.Entity<AttendanceHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();

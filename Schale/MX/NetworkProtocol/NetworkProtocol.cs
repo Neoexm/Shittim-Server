@@ -415,7 +415,7 @@ namespace Schale.MX.NetworkProtocol
         public string? SignedKey { get; set; }
         public string? EncryptedIV { get; set; }
         public string? SignedIV { get; set; }
-        public SessionKey? SessionKey { get; set; }
+        public new SessionKey? SessionKey { get; set; }
     }
 
     public class AccountDetachNexonRequest : RequestPacket
