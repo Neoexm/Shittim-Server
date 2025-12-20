@@ -28,16 +28,19 @@ namespace Shittim_Server.Managers
         public async Task<ScenarioGroupHistoryDBServer> ScenarioGroupHistoryUpdate(
             SchaleDataContext context, AccountDBServer account, ScenarioGroupHistoryUpdateRequest req)
         {
+            var groupId = req.ScenarioGroupHistoryDB?.ScenarioGroupUqniueId ?? req.ScenarioGroupUniqueId;
+            var scenarioType = req.ScenarioGroupHistoryDB?.ScenarioType ?? req.ScenarioType;
+
             var scenarioGroup = await context.ScenarioGroupHistories
-                .FirstOrDefaultAsync(x => x.AccountServerId == req.AccountId && x.ScenarioGroupUqniueId == req.ScenarioGroupUniqueId);
+                .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.ScenarioGroupUqniueId == groupId);
 
             if (scenarioGroup == null)
             {
                 scenarioGroup = new()
                 {
-                    AccountServerId = req.AccountId,
-                    ScenarioGroupUqniueId = req.ScenarioGroupUniqueId,
-                    ScenarioType = req.ScenarioType,
+                    AccountServerId = account.ServerId,
+                    ScenarioGroupUqniueId = groupId,
+                    ScenarioType = scenarioType,
                     ClearDateTime = account.GameSettings.ServerDateTime()
                 };
                 context.ScenarioGroupHistories.Add(scenarioGroup);

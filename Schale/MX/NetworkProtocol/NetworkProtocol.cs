@@ -415,7 +415,7 @@ namespace Schale.MX.NetworkProtocol
         public string? SignedKey { get; set; }
         public string? EncryptedIV { get; set; }
         public string? SignedIV { get; set; }
-        public SessionKey? SessionKey { get; set; }
+        public new SessionKey? SessionKey { get; set; }
     }
 
     public class AccountDetachNexonRequest : RequestPacket
@@ -5506,6 +5506,7 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Scenario_GroupHistoryUpdate; }
         public long ScenarioGroupUniqueId { get; set; }
         public long ScenarioType { get; set; }
+        public ScenarioGroupHistoryDB? ScenarioGroupHistoryDB { get; set; }
     }
 
     public class ScenarioGroupHistoryUpdateResponse : ResponsePacket
@@ -5823,7 +5824,7 @@ namespace Schale.MX.NetworkProtocol
     public class ShopBuyGachaResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha; }
-        public AccountCurrencyDB? AccountCurrencyDB { get; }
+        public AccountCurrencyDB? AccountCurrencyDB { get; set; }
         public ConsumeResultDB? ConsumeResultDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
@@ -5838,7 +5839,6 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha2; }
         public DateTime UpdateTime { get; set; }
         public long GemBonusRemain { get; set; }
-        [JsonIgnore]
         public long GemPaidRemain { get; set; }
         [JsonIgnore]
         public List<ItemDB>? ConsumedItems { get; set; }

@@ -17,6 +17,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
+    private readonly List<AcademyMessangerExcelT> _academyMessengers;
 
     public MomoTalkHandler(
         IProtocolHandlerRegistry registry,
@@ -27,6 +28,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
+        _academyMessengers = _excelService.GetTable<AcademyMessangerExcelT>();
     }
 
     [ProtocolHandler(Protocol.MomoTalk_MessageList)]
@@ -65,10 +67,98 @@ public class MomoTalkHandler : ProtocolHandlerBase
         var momotalkOutline = db.GetAccountMomoTalkOutLines(account.ServerId)
             .FirstOrDefault(o => o.CharacterDBId == request.CharacterDBId);
 
-        if (momotalkOutline != null)
+        if (momotalkOutline == null)
         {
-            response.MomoTalkOutLineDB = _mapper.Map<MomoTalkOutLineDB>(momotalkOutline);
+            // Fallback: Check if user owns the character and create outline
+            var character = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
+            if (character == null) return response;
+
+            momotalkOutline = new MomoTalkOutLineDBServer
+            {
+                AccountServerId = account.ServerId,
+                CharacterDBId = request.CharacterDBId,
+                CharacterId = character.UniqueId,
+                LatestMessageGroupId = request.LastReadMessageGroupId,
+                LastUpdateDate = DateTime.Now
+            };
+            db.MomoTalkOutLines.Add(momotalkOutline);
+            // Save immediately or let the bottom SaveChanges call handle it?
+            // Better to let bottom handle it so we bundle.
         }
+
+        // Logic to determine the NEXT message group
+        long nextGroupId = 0;
+        
+        // If a specific choice was made
+        if (request.ChosenMessageId.GetValueOrDefault() > 0)
+        {
+            var chosenMessage = _academyMessengers.FirstOrDefault(x => x.Id == request.ChosenMessageId.Value);
+            if (chosenMessage != null)
+            {
+                nextGroupId = chosenMessage.NextGroupId;
+                
+                // Record the choice if not exists
+                var existingChoice = db.MomoTalkChoices.FirstOrDefault(x => 
+                    x.AccountServerId == account.ServerId && 
+                    x.CharacterDBId == request.CharacterDBId && 
+                    x.MessageGroupId == request.LastReadMessageGroupId);
+
+                if (existingChoice == null)
+                {
+                    var choiceDB = new MomoTalkChoiceDBServer
+                    {
+                        AccountServerId = account.ServerId,
+                        CharacterDBId = request.CharacterDBId,
+                        MessageGroupId = request.LastReadMessageGroupId,
+                        ChosenMessageId = request.ChosenMessageId.Value,
+                        ChosenDate = DateTime.UtcNow
+                    };
+                    db.MomoTalkChoices.Add(choiceDB);
+                }
+            }
+        }
+        else
+        {
+            // Just reading through, find the current group info
+            // We need to find any message in this group to get the NextGroupId
+            // (Assuming all messages in a group point to the same next group, or we take the last one)
+            var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
+            if (currentGroupMessages.Count != 0)
+            {
+                // Take the one that actually has a NextGroupId (transition point)
+                var transitionMessage = currentGroupMessages.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
+                
+                // Fallback: just take the first one's NextGroupId not equal to itself? 
+                // Or simply the first one if the structure is simple.
+                // In generic flatbuffers, usually the "Last" message in a chain has the NextGroupId.
+                // But since we query by GroupId, they likely share it or only the last one has it.
+                if (transitionMessage != null)
+                {
+                    nextGroupId = transitionMessage.NextGroupId;
+                }
+                else
+                {
+                    // Maybe it's a linear chain where NextGroupId is on all of them?
+                    nextGroupId = currentGroupMessages.FirstOrDefault()?.NextGroupId ?? 0;
+                }
+            }
+        }
+
+        if (nextGroupId > 0)
+        {
+            momotalkOutline.LatestMessageGroupId = nextGroupId;
+            momotalkOutline.LastUpdateDate = DateTime.Now;
+            
+            // Also need to update ChosenMessageId in outline if it was a choice?
+            // User report: setting this causes duplicate choice bubbles. 
+            // The client seemingly renders history from MomoTalkChoices AND this field. 
+            // Since we've moved to a new Group, the "current choice" is null.
+            momotalkOutline.ChosenMessageId = null;
+        }
+
+        await db.SaveChangesAsync();
+
+        response.MomoTalkOutLineDB = _mapper.Map<MomoTalkOutLineDB>(momotalkOutline);
 
         var choices = db.GetAccountMomoTalkChoices(account.ServerId)
             .Where(c => c.CharacterDBId == request.CharacterDBId)

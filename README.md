@@ -37,15 +37,15 @@ You only need to do this once per machine.
 
 ```powershell
 mitmweb
-````
+```
 
 By default it listens on `127.0.0.1:8080`.
 
 3. Temporarily configure your Windows HTTP/HTTPS proxy to use mitmproxy:
 
-   * Open **Settings → Network & Internet → Proxy**
-   * Enable **Use a proxy server**
-   * Address: `127.0.0.1`
+   - Open **Settings → Network & Internet → Proxy**
+   - Enable **Use a proxy server**
+   - Address: `127.0.0.1`
      Port: `8080`
 
 4. Open a browser on the same machine and visit:
@@ -58,11 +58,11 @@ By default it listens on `127.0.0.1:8080`.
 
 6. Double-click the downloaded certificate to open the **Certificate Import Wizard**.
 
-7. When asked *“Store Location”*, choose **Local Machine** (not *Current User*), then click **Next**.
+7. When asked _“Store Location”_, choose **Local Machine** (not _Current User_), then click **Next**.
 
 8. Select **“Place all certificates in the following store”**, click **Browse…**, and choose:
 
-   * **Trusted Root Certification Authorities**
+   - **Trusted Root Certification Authorities**
 
 9. Finish the wizard and confirm the security warning.
 
@@ -81,8 +81,8 @@ cd Shittim-Server
 
 This script will:
 
-* Start the ASP.NET Core game server (`http://localhost:5000`)
-* Start `mitmweb` in the correct mode to hook `BlueArchive.exe`
+- Start the ASP.NET Core game server (`http://localhost:5000`)
+- Start `mitmweb` in the correct mode to hook `BlueArchive.exe`
 
 ### 4. Launch Blue Archive
 
