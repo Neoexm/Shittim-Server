@@ -103,4 +103,65 @@ public class BillingHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Billing_CheckConditionCashShopGoods)]
+    public async Task<BillingCheckConditionCashGoodsResponse> CheckConditionCashShopGoods(
+        SchaleDataContext db,
+        BillingCheckConditionCashGoodsRequest request,
+        BillingCheckConditionCashGoodsResponse response)
+    {
+        // Always allow
+        response.result = true;
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Billing_PurchaseCashShopVerifyByNexon)]
+    public async Task<BillingPurchaseCashShopVerifyByNexonResponse> PurchaseCashShopVerifyByNexon(
+        SchaleDataContext db,
+        BillingPurchaseCashShopVerifyByNexonRequest request,
+        BillingPurchaseCashShopVerifyByNexonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        
+        var shopCashExcels = _excelTableService.GetTable<ShopCashExcelT>();
+        var productExcels = _excelTableService.GetTable<ProductExcelT>();
+
+        var shopCash = shopCashExcels.FirstOrDefault(x => x.Id == request.ShopCashId);
+        if (shopCash == null)
+            return response;
+
+        var product = productExcels.FirstOrDefault(x => x.Id == shopCash.CashProductId);
+        if (product == null)
+            return response;
+
+        var parcelTypes = product.ParcelType ?? [];
+        var parcelIds = product.ParcelId ?? [];
+        var parcelAmounts = product.ParcelAmount ?? [];
+
+        var parcels = new List<ParcelInfo>();
+        for (int i = 0; i < parcelTypes.Count; i++)
+        {
+            parcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = parcelTypes[i], Id = parcelIds[i] },
+                Amount = parcelAmounts[i]
+            });
+        }
+
+        var parcelResultDB = new ParcelResultDB();
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, parcels, parcelResultDB);
+
+        response.ParcelResult = parcelResultDB;
+        response.PurchaseCount = 1;
+        
+        // Basic response fields to satisfy client
+        response.shopId = request.ShopCashId.ToString();
+        response.currency = request.CurrencyCode ?? "USD";
+        response.itemPrice = request.CurrencyValue;
+
+        // Update history skipped (no table)
+        await db.SaveChangesAsync();
+
+        return response;
+    }
 }
