@@ -1,0 +1,85 @@
+# Request logs containing sensitive data
+requests/
+request_logs/
+/data/
+nexon.har
+nexon.flows
+*.har
+/Shittim-Server/shittim.sqlite3
+/Shittim-Server/shittim.sqlite3-shm
+/Shittim-Server/shittim.sqlite3-wal
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environment
+venv/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SSL certificates and keys
+*.pem
+*.key
+*.crt
+*.cert
+*.pfx
+*.p12
+
+# TLS key log (Wireshark)
+sslkey.log
+*.keylog
+
+# Env files
+.env.*
+*.env
+
+# Dumps
+*.dmp
+*.crash
+
+# Generic logs
+*.log
+
+# .NET build outputs
+**/bin/
+**/obj/
+Schale/bin/
+*.dll
+*.exe
+*.pdb
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+hosts.bak
+hosts.backup
+
+# Progress tracking
+progress.md
