@@ -5823,7 +5823,7 @@ namespace Schale.MX.NetworkProtocol
     public class ShopBuyGachaResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha; }
-        public AccountCurrencyDB? AccountCurrencyDB { get; }
+        public AccountCurrencyDB? AccountCurrencyDB { get; set; }
         public ConsumeResultDB? ConsumeResultDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }

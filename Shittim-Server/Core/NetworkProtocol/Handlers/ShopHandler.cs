@@ -142,6 +142,86 @@ public class ShopHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Shop_BuyGacha)]
+    public async Task<ShopBuyGachaResponse> BuyGacha(
+        SchaleDataContext db,
+        ShopBuyGachaRequest request,
+        ShopBuyGachaResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        
+        // Wrap into Gacha3 request (Cost is null, which is handled by our previous fix)
+        var req3 = new ShopBuyGacha3Request 
+        { 
+            ShopUniqueId = request.ShopUniqueId, 
+            GoodsId = request.GoodsId,
+            Cost = null 
+        };
+
+        var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
+        var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
+
+        response.AccountCurrencyDB = accountCurrency;
+        response.ParcelResultDB = new ParcelResultDB
+        {
+             AccountCurrencyDB = accountCurrency,
+             // Map other results if needed, but for now ensure we don't crash
+        };
+
+        await db.SaveChangesAsync();
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Shop_BuyGacha2)]
+    public async Task<ShopBuyGacha2Response> BuyGacha2(
+        SchaleDataContext db,
+        ShopBuyGacha2Request request,
+        ShopBuyGacha2Response response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var req3 = new ShopBuyGacha3Request 
+        { 
+            ShopUniqueId = request.ShopUniqueId, 
+            GoodsId = request.GoodsId,
+            Cost = null // Cost null is now safe
+        };
+
+        var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
+        response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
+
+        var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
+        response.GachaResults = gachaResults;
+        response.AcquiredItems = itemDbList.ToMapList(_mapper);
+        response.UpdateTime = account.GameSettings.ServerDateTime();
+
+        // Update history (same as Gacha3)
+        var recruitHistory = db.GetAccountRecruitHistory(account.ServerId)
+            .FirstOrDefault(x => x.UniqueId == request.ShopUniqueId);
+        
+        if (recruitHistory == null)
+        {
+            recruitHistory = new ShopFreeRecruitHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                UniqueId = request.ShopUniqueId,
+                RecruitCount = (int)gachaAmount,
+                LastUpdateDate = DateTime.UtcNow
+            };
+            db.ShopFreeRecruitHistories.Add(recruitHistory);
+        }
+        else
+        {
+            recruitHistory.RecruitCount += (int)gachaAmount;
+            recruitHistory.LastUpdateDate = DateTime.UtcNow;
+        }
+
+        await db.SaveChangesAsync();
+        return response;
+
+
+    }
+
     [ProtocolHandler(Protocol.Shop_BuyGacha3)]
     public async Task<ShopBuyGacha3Response> BuyGacha3(
         SchaleDataContext db,
@@ -188,6 +268,85 @@ public class ShopHandler : ProtocolHandlerBase
 
         response.MissionProgressDBs = updatedMissions.Count > 0 ? updatedMissions : null;
         response.ServerTimeTicks = account.GameSettings.ServerDateTimeTicks();
+
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
+
+
+    [ProtocolHandler(Protocol.Shop_PickupSelectionGachaGet)]
+    public async Task<ShopPickupSelectionGachaGetResponse> PickupSelectionGachaGet(
+        SchaleDataContext db,
+        ShopPickupSelectionGachaGetRequest request,
+        ShopPickupSelectionGachaGetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        
+        // Return empty selection for now
+        response.PickupCharacterSelection = new Dictionary<long, long>();
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Shop_PickupSelectionGachaSet)]
+    public async Task<ShopPickupSelectionGachaSetResponse> PickupSelectionGachaSet(
+        SchaleDataContext db,
+        ShopPickupSelectionGachaSetRequest request,
+        ShopPickupSelectionGachaSetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        // Just acknowledge
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Shop_PickupSelectionGachaBuy)]
+    public async Task<ShopPickupSelectionGachaBuyResponse> PickupSelectionGachaBuy(
+        SchaleDataContext db,
+        ShopPickupSelectionGachaBuyRequest request,
+        ShopPickupSelectionGachaBuyResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Map to Gacha3 request to reuse logic
+        var req3 = new ShopBuyGacha3Request
+        {
+            ShopUniqueId = request.ShopUniqueId,
+            GoodsId = request.GoodsId,
+            FreeRecruitId = request.FreeRecruitId,
+            Cost = request.Cost
+        };
+
+        var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
+        response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
+
+        var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
+        response.GachaResults = gachaResults;
+        response.AcquiredItems = itemDbList.ToMapList(_mapper);
+        response.UpdateTime = account.GameSettings.ServerDateTime();
+
+        // Update history
+        var recruitHistory = db.GetAccountRecruitHistory(account.ServerId)
+            .FirstOrDefault(x => x.UniqueId == request.ShopUniqueId);
+
+        if (recruitHistory == null)
+        {
+            recruitHistory = new ShopFreeRecruitHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                UniqueId = request.ShopUniqueId,
+                RecruitCount = (int)gachaAmount,
+                LastUpdateDate = DateTime.UtcNow
+            };
+            db.ShopFreeRecruitHistories.Add(recruitHistory);
+        }
+        else
+        {
+            recruitHistory.RecruitCount += (int)gachaAmount;
+            recruitHistory.LastUpdateDate = DateTime.UtcNow;
+        }
+        
 
         await db.SaveChangesAsync();
 
