@@ -5838,7 +5838,6 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha2; }
         public DateTime UpdateTime { get; set; }
         public long GemBonusRemain { get; set; }
-        [JsonIgnore]
         public long GemPaidRemain { get; set; }
         [JsonIgnore]
         public List<ItemDB>? ConsumedItems { get; set; }

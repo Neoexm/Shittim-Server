@@ -188,7 +188,8 @@ public class ShopHandler : ProtocolHandlerBase
         };
 
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
-        response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
+        response.GemBonusRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
+        response.GemPaidRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
 
         var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
         response.GachaResults = gachaResults;
@@ -231,7 +232,8 @@ public class ShopHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, request);
-        response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
+        response.GemBonusRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
+        response.GemPaidRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
 
         var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, request, gachaAmount);
         response.GachaResults = gachaResults;
@@ -319,7 +321,8 @@ public class ShopHandler : ProtocolHandlerBase
         };
 
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
-        response.GemBonusRemain = accountCurrency.CurrencyDict[CurrencyTypes.GemBonus];
+        response.GemBonusRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
+        response.GemPaidRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
 
         var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
         response.GachaResults = gachaResults;
