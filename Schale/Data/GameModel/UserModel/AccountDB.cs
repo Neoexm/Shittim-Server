@@ -42,6 +42,7 @@ namespace Schale.Data.GameModel
         internal virtual ICollection<EventContentPermanentDBServer> EventContentPermanents { get; }
         internal virtual ICollection<StickerBookDBServer> StickerBooks { get; }
         internal virtual ICollection<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; }
+        internal virtual ICollection<CraftInfoDBServer> CraftInfos { get; }
 
         internal virtual ICollection<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; }
         internal virtual ICollection<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; }
@@ -95,7 +96,10 @@ namespace Schale.Data.GameModel
             MomoTalkOutLines = new List<MomoTalkOutLineDBServer>();
             MomoTalkChoices = new List<MomoTalkChoiceDBServer>();
             EventContentPermanents = new List<EventContentPermanentDBServer>();
+            EventContentPermanents = new List<EventContentPermanentDBServer>();
             StickerBooks = new List<StickerBookDBServer>();
+            ShopFreeRecruitHistories = new List<ShopFreeRecruitHistoryDBServer>();
+            CraftInfos = new List<CraftInfoDBServer>();
 
             SingleRaidLobbyInfos = new List<SingleRaidLobbyInfoDBServer>();
             EliminateRaidLobbyInfos = new List<EliminateRaidLobbyInfoDBServer>();

@@ -53,6 +53,7 @@ namespace Schale.Data
         public DbSet<EventContentPermanentDBServer> EventContentPermanents { get; set; }
         public DbSet<StickerBookDBServer> StickerBooks { get; set; }
         public DbSet<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; set; }
+        public DbSet<CraftInfoDBServer> CraftInfos { get; set; }
 
         public DbSet<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; set; }
         public DbSet<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; set; }
@@ -140,6 +141,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.EventContentPermanents).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.StickerBooks).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.ShopFreeRecruitHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.CraftInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.SingleRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.EliminateRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -249,6 +251,11 @@ namespace Schale.Data
             modelBuilder.Entity<StickerBookDBServer>().Property(x => x.UsedStickerDBs).HasJsonConversion();
             
             modelBuilder.Entity<ShopFreeRecruitHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.Nodes).HasJsonConversion();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ResultIds).HasJsonConversion();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.RewardParcelInfos).HasJsonConversion();
         }
 
         private void ConfigureContentModels(ModelBuilder modelBuilder)
