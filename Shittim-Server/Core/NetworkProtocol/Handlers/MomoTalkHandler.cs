@@ -67,7 +67,24 @@ public class MomoTalkHandler : ProtocolHandlerBase
         var momotalkOutline = db.GetAccountMomoTalkOutLines(account.ServerId)
             .FirstOrDefault(o => o.CharacterDBId == request.CharacterDBId);
 
-        if (momotalkOutline == null) return response;
+        if (momotalkOutline == null)
+        {
+            // Fallback: Check if user owns the character and create outline
+            var character = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
+            if (character == null) return response;
+
+            momotalkOutline = new MomoTalkOutLineDBServer
+            {
+                AccountServerId = account.ServerId,
+                CharacterDBId = request.CharacterDBId,
+                CharacterId = character.UniqueId,
+                LatestMessageGroupId = request.LastReadMessageGroupId,
+                LastUpdateDate = DateTime.Now
+            };
+            db.MomoTalkOutLines.Add(momotalkOutline);
+            // Save immediately or let the bottom SaveChanges call handle it?
+            // Better to let bottom handle it so we bundle.
+        }
 
         // Logic to determine the NEXT message group
         long nextGroupId = 0;
@@ -80,16 +97,24 @@ public class MomoTalkHandler : ProtocolHandlerBase
             {
                 nextGroupId = chosenMessage.NextGroupId;
                 
-                // Record the choice
-                var choiceDB = new MomoTalkChoiceDBServer
+                // Record the choice if not exists
+                var existingChoice = db.MomoTalkChoices.FirstOrDefault(x => 
+                    x.AccountServerId == account.ServerId && 
+                    x.CharacterDBId == request.CharacterDBId && 
+                    x.MessageGroupId == request.LastReadMessageGroupId);
+
+                if (existingChoice == null)
                 {
-                    AccountServerId = account.ServerId,
-                    CharacterDBId = request.CharacterDBId,
-                    MessageGroupId = request.LastReadMessageGroupId,
-                    ChosenMessageId = request.ChosenMessageId.Value,
-                    ChosenDate = DateTime.UtcNow
-                };
-                db.MomoTalkChoices.Add(choiceDB);
+                    var choiceDB = new MomoTalkChoiceDBServer
+                    {
+                        AccountServerId = account.ServerId,
+                        CharacterDBId = request.CharacterDBId,
+                        MessageGroupId = request.LastReadMessageGroupId,
+                        ChosenMessageId = request.ChosenMessageId.Value,
+                        ChosenDate = DateTime.UtcNow
+                    };
+                    db.MomoTalkChoices.Add(choiceDB);
+                }
             }
         }
         else
@@ -125,10 +150,10 @@ public class MomoTalkHandler : ProtocolHandlerBase
             momotalkOutline.LastUpdateDate = DateTime.Now;
             
             // Also need to update ChosenMessageId in outline if it was a choice?
-            if (request.ChosenMessageId.GetValueOrDefault() > 0)
-            {
-               momotalkOutline.ChosenMessageId = request.ChosenMessageId.Value;
-            }
+            // User report: setting this causes duplicate choice bubbles. 
+            // The client seemingly renders history from MomoTalkChoices AND this field. 
+            // Since we've moved to a new Group, the "current choice" is null.
+            momotalkOutline.ChosenMessageId = null;
         }
 
         await db.SaveChangesAsync();
