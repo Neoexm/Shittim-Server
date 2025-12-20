@@ -6,12 +6,12 @@ namespace Schale.Excel
     {
         public static List<ShopExcelT> GetAssignedSaleShopExcel(this List<ShopExcelT> shops)
         {
-            var saleItems = shops.Where(shop => shop.SalePeriodFrom != "" && shop.SalePeriodTo != "");
+            var saleItems = shops.Where(shop => !string.IsNullOrEmpty(shop.SalePeriodFrom) && !string.IsNullOrEmpty(shop.SalePeriodTo));
             return saleItems.ToList();
         }
 
         public static List<ShopExcelT> GetNonSaleShopExcel(this List<ShopExcelT> shops) =>
-            shops.Where(shop => shop.SalePeriodFrom == "" && shop.SalePeriodTo == "").ToList();
+            shops.Where(shop => string.IsNullOrEmpty(shop.SalePeriodFrom) && string.IsNullOrEmpty(shop.SalePeriodTo)).ToList();
 
         public static List<ShopExcelT> GetCategorizedShopExcel(this List<ShopExcelT> shops, ShopCategoryType type) =>
             shops.Where(shop => shop.CategoryType == type).ToList();
@@ -19,8 +19,10 @@ namespace Schale.Excel
         public static List<ShopExcelT> GetTimelinedShopExcel(this List<ShopExcelT> shops, DateTime dateTime)
         {
             var filtered = shops.Where(shop => 
-                DateTime.Parse(shop.SalePeriodFrom) <= dateTime && 
-                DateTime.Parse(shop.SalePeriodTo) >= dateTime);
+                DateTime.TryParse(shop.SalePeriodFrom, out var from) && 
+                DateTime.TryParse(shop.SalePeriodTo, out var to) &&
+                from <= dateTime && 
+                to >= dateTime);
             return filtered.ToList();
         }
     }
