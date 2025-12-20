@@ -1,6 +1,7 @@
 using Schale.FlatData;
 using Shittim.Services.Client;
 using Schale.Data.GameModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shittim.Commands
 {
@@ -9,7 +10,7 @@ namespace Shittim.Commands
     {
         public UnlockAllCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
 
-        [Argument(0, @"^campaign$|^weekdungeon$|^schooldungeon$|^help$", "Target content name (campaign, weekdungeon, schooldungeon)", ArgumentFlags.IgnoreCase | ArgumentFlags.Optional)]
+        [Argument(0, @"^campaign$|^weekdungeon$|^schooldungeon$|^battlepass$|^mission$|^help$", "Target content name (campaign, weekdungeon, schooldungeon, battlepass, mission)", ArgumentFlags.IgnoreCase | ArgumentFlags.Optional)]
         public string target { get; set; } = string.Empty;
 
         public override async Task Execute()
@@ -103,6 +104,68 @@ namespace Shittim.Commands
                     await connection.SendChatMessage("Unlocked all of stages of school dungeon!");
                     break;
 
+                case "battlepass":
+                    var battlePassExcel = connection.ExcelTableService.GetTable<BattlePassInfoExcelT>();
+                    // Assuming current season is 1 or finding the active one
+                    // For now, we unlock all available battle passes in excel or just the active ones if logic permits
+                    // The request typically sends BattlePassId, here we might want to unlock all or a specific one?
+                    // Let's unlock all defined seasons/ids
+                    
+                    foreach (var season in battlePassExcel)
+                    {
+                        var bp = await context.BattlePasses.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == season.Id);
+                        if (bp == null)
+                        {
+                            bp = new BattlePassDBServer
+                            {
+                                AccountServerId = account.ServerId,
+                                BattlePassId = season.Id,
+                                LastWeeklyPassExpLimitRefreshDate = DateTime.Now
+                            };
+                            context.BattlePasses.Add(bp);
+                        }
+
+                        bp.PassLevel = 50; // Max level usually
+                        bp.PassExp = 0;
+                        bp.PurchaseGroupId = 1; // Assuming 1 is the paid track ID or similar
+                        bp.ReceiveRewardLevel = 50;
+                        bp.ReceivePurchaseRewardLevel = 50;
+                    }
+                    
+                    await context.SaveChangesAsync();
+                    await connection.SendChatMessage("Unlocked Battle Pass (Level 50 + Paid)!");
+                    break;
+
+                case "mission":
+                    var missionExcel = connection.ExcelTableService.GetTable<MissionExcelT>();
+                    var newMissionsCount = 0;
+
+                    foreach(var mission in missionExcel)
+                    {
+                        var progress = await context.MissionProgresses.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == mission.Id);
+                        if(progress == null)
+                        {
+                            progress = new MissionProgressDBServer
+                            {
+                                AccountServerId = account.ServerId,
+                                MissionUniqueId = mission.Id,
+                                Complete = true,
+                                StartTime = DateTime.Now,
+                                ProgressParameters = new Dictionary<long,long>()
+                            };
+                            context.MissionProgresses.Add(progress);
+                            newMissionsCount++;
+                        }
+                        else
+                        {
+                            progress.Complete = true; // Force complete
+                        }
+                    }
+
+                    await context.SaveChangesAsync();
+                    await connection.SendChatMessage($"Unlocked {newMissionsCount} new missions (and set rest to Complete)!");
+                    break;
+
                 default:
                     throw new ArgumentException("Invalid target!");
             }
@@ -112,7 +175,7 @@ namespace Shittim.Commands
         {
             await connection.SendChatMessage("/unlockall - Command to unlock all of its contents");
             await connection.SendChatMessage("Usage: /unlockall [content]");
-            await connection.SendChatMessage("Content: campaign | weekdungeon | schooldungeon");
+            await connection.SendChatMessage("Content: campaign | weekdungeon | schooldungeon | battlepass | mission");
         }
     }
 }

@@ -11,6 +11,7 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Services;
 using Schale.MX.NetworkProtocol;
 using Shittim_Server.Core;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -20,18 +21,21 @@ public class AccountHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly ILogger<AccountHandler> _logger;
+    private readonly MissionService _missionService;
 
     public AccountHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
-        ILogger<AccountHandler> logger) : base(registry)
+        ILogger<AccountHandler> logger,
+        MissionService missionService) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
         _logger = logger;
+        _missionService = missionService;
     }
 
     [ProtocolHandler(Protocol.Account_CheckNexon)]
@@ -187,6 +191,10 @@ public class AccountHandler : ProtocolHandlerBase
         ArgumentNullException.ThrowIfNull(account);
         _logger.LogInformation("GetAuthenticatedUser took {Ms}ms", sw.ElapsedMilliseconds);
 
+        // Trigger Daily Login Mission Progress
+        _missionService.UpdateMissionProgress(db, account, MissionCompleteConditionType.Reset_DailyLogin, 1);
+        await db.SaveChangesAsync();
+
         sw.Restart();
         response.CafeGetInfoResponse = new CafeGetInfoResponse
         {
@@ -292,7 +300,8 @@ public class AccountHandler : ProtocolHandlerBase
             PreviousRoomDB = db.GetAccountTimeAttackDungeonRooms(account.ServerId).FirstOrDefaultMapTo(_mapper)
         };
 
-        response.BillingPurchaseListByNexonResponse = new BillingPurchaseListByNexonResponse
+        // Populate Billing Response (CRITICAL for BattlePass Visual Unlock)
+        var billingResponse = new BillingPurchaseListByNexonResponse
         {
             CountList = [],
             OrderList = [],
@@ -301,6 +310,67 @@ public class AccountHandler : ProtocolHandlerBase
             GachaTicketItemIdList = [],
             ProductMonthlyIdInMailList = []
         };
+
+        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
+        var battlePassProductList = new List<BattlePassProductPurchaseDB>();
+
+        if (battlePasses.Any())
+        {
+            var productExcels = _excelService.GetTable<ProductExcelT>();
+            var shopCashExcels = _excelService.GetTable<ShopCashExcelT>();
+
+            foreach (var bp in battlePasses)
+            {
+                // Investigate ProductExcel table
+                _logger.LogInformation($"[AccountHandler] Debugging: Total Products in Table: {productExcels.Count}");
+
+                // Broad search for ANY product linking to this Battle Pass ID
+                var potentialMatches = productExcels.Where(x => x.ParcelId.Contains(bp.BattlePassId)).ToList();
+                _logger.LogInformation($"[AccountHandler] Debugging: Found {potentialMatches.Count} products touching BattlePassId {bp.BattlePassId}");
+
+                foreach(var p in potentialMatches)
+                {
+                    for(int i=0; i<p.ParcelId.Count; i++)
+                    {
+                        if(p.ParcelId[i] == bp.BattlePassId)
+                        {
+                            _logger.LogInformation($"[AccountHandler] CANDIDATE: ProductId={p.Id}, Name={p.ProductId}, Type={(int)p.ParcelType[i]} ({p.ParcelType[i]})");
+                        }
+                    }
+                }
+
+                // Debugging removed to fix build error and focus on Mission Rewards
+                // --- DEBUGGING LOGIC REMOVED ---
+
+                // Fallback: Try to find specifically ProductBattlePass (28)
+                var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
+                
+                ProductExcelT product = null;
+                
+                // Find product where the linked BattlePassId matches our current BP ID
+                product = battlePassProducts.FirstOrDefault(x => {
+                    var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
+                    return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
+                });
+
+                if (product != null)
+                {
+                    var shopCash = _excelService.GetTable<ShopCashExcelT>().FirstOrDefault(x => x.CashProductId == product.Id);
+                    if (shopCash != null)
+                    {
+                        battlePassProductList.Add(new BattlePassProductPurchaseDB
+                        {
+                            ProductId = shopCash.Id, 
+                            BattlePassId = bp.BattlePassId,
+                            PurchaseBattlePassGroupId = bp.PurchaseGroupId
+                        });
+                        _logger.LogInformation($"[AccountHandler] Mapped BP {bp.BattlePassId} -> ShopCash {shopCash.Id}");
+                    }
+                }
+            }
+        }
+        billingResponse.BattlePassProductList = battlePassProductList;
+        response.BillingPurchaseListByNexonResponse = billingResponse;
 
         response.EventContentPermanentListResponse = new EventContentPermanentListResponse
         {

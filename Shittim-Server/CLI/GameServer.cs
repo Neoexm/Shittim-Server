@@ -174,6 +174,21 @@ namespace Shittim.CLI
                             FOREIGN KEY(AccountServerId) REFERENCES Accounts(ServerId)
                         )");
 
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE TABLE IF NOT EXISTS BattlePasses (
+                            ServerId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            AccountServerId INTEGER NOT NULL,
+                            BattlePassId INTEGER NOT NULL,
+                            PassLevel INTEGER NOT NULL,
+                            PassExp INTEGER NOT NULL,
+                            PurchaseGroupId INTEGER NOT NULL,
+                            ReceiveRewardLevel INTEGER NOT NULL,
+                            ReceivePurchaseRewardLevel INTEGER NOT NULL,
+                            WeeklyPassExp INTEGER NOT NULL,
+                            LastWeeklyPassExpLimitRefreshDate TEXT NOT NULL,
+                            FOREIGN KEY(AccountServerId) REFERENCES Accounts(ServerId)
+                        )");
+
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);
 

@@ -24,6 +24,7 @@ namespace Schale.Data.GameModel
         internal virtual ICollection<StickerDBServer> Stickers { get; }
         internal virtual ICollection<AccountAttachmentDBServer> AccountAttachments { get; }
         internal virtual ICollection<AccountLevelRewardDBServer> AccountLevelRewards { get; }
+        internal virtual ICollection<BattlePassDBServer> BattlePasses { get; }
 
         internal virtual ICollection<MissionProgressDBServer> MissionProgresses { get; }
         internal virtual ICollection<AttendanceHistoryDBServer> AttendanceHistories { get; }
@@ -80,6 +81,7 @@ namespace Schale.Data.GameModel
             Stickers = new List<StickerDBServer>();
             AccountAttachments = new List<AccountAttachmentDBServer>();
             AccountLevelRewards = new List<AccountLevelRewardDBServer>();
+            BattlePasses = new List<BattlePassDBServer>();
 
             MissionProgresses = new List<MissionProgressDBServer>();
             AttendanceHistories = new List<AttendanceHistoryDBServer>();

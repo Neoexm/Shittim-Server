@@ -40,7 +40,73 @@ public class BillingHandler : ProtocolHandlerBase
         response.BlockedProductDBs = [];
         response.GachaTicketItemIdList = [];
         response.ProductMonthlyIdInMailList = [];
-        response.BattlePassProductList = [];
+        
+        // Populate BattlePassProductList
+        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
+        var battlePassProductList = new List<BattlePassProductPurchaseDB>();
+
+        if (battlePasses.Any())
+        {
+            var productExcels = _excelTableService.GetTable<ProductExcelT>();
+            var shopCashExcels = _excelTableService.GetTable<ShopCashExcelT>();
+
+            foreach (var bp in battlePasses)
+            {
+                // Aggressive Debugging for BattlePass Product
+                Console.WriteLine($"[BillingHandler] Debugging BattlePassId: {bp.BattlePassId}. Total Products: {productExcels.Count}");
+
+                // Targeted search for ProductBattlePass
+                var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
+                Console.WriteLine($"[BillingHandler] Found {battlePassProducts.Count} products containing ProductBattlePass type.");
+                
+                foreach(var p in battlePassProducts)
+                {
+                     // Find the index of ProductBattlePass
+                     var idx = p.ParcelType.IndexOf(ParcelType.ProductBattlePass);
+                     var bpId = idx >= 0 && idx < p.ParcelId.Count ? p.ParcelId[idx] : -1;
+                     Console.WriteLine($"[BillingHandler] BP Product: Id={p.Id}, ProductId={p.ProductId}, BP_ID={bpId}");
+                }
+
+                ProductExcelT product = null;
+                
+                // New Logic: Find product where the linked BattlePassId matches our current BP ID
+                product = battlePassProducts.FirstOrDefault(x => {
+                    var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
+                    return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
+                });
+
+                if (product != null)
+                {
+                    // Find shop cash entry for this product
+                    var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
+                    
+                    if (shopCash != null)
+                    {
+                        battlePassProductList.Add(new BattlePassProductPurchaseDB
+                        {
+                            ProductId = shopCash.Id, // Billing response expects ShopCashId as ProductId
+                            BattlePassId = bp.BattlePassId,
+                            PurchaseBattlePassGroupId = bp.PurchaseGroupId
+                        });
+                        Console.WriteLine($"[BillingHandler] Successfully mapped BattlePassId {bp.BattlePassId} to ShopCashId {shopCash.Id} via ProductId {product.Id}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[BillingHandler] ShopCash not found for ProductId: {product.Id} (BattlePassId: {bp.BattlePassId})");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[BillingHandler] CRITICAL: No product found for BattlePassId: {bp.BattlePassId} among {battlePassProducts.Count} candidates.");
+                }
+            }
+        }
+        else
+        {
+             Console.WriteLine($"[BillingHandler] No BattlePasses found for Account: {account.ServerId} with PurchaseGroupId != 0");
+        }
+
+        response.BattlePassProductList = battlePassProductList;
         response.BattlePassIdInMailList = [];
         response.IsTeenage = request.IsTeenage;
 
