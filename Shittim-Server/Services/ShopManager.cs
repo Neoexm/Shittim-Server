@@ -3,6 +3,7 @@ using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Excel;
+using Schale.Data.ModelMapping;
 using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
@@ -45,6 +46,13 @@ public class ShopManager
     {
         long gachaAmount = 10;
         List<ItemDB> consumedItems = [];
+
+        if (req.Cost == null)
+        {
+             var currentCurrencyEntity = context.GetAccountCurrencies(account.ServerId).FirstOrDefault();
+             var currentCurrencyDB = currentCurrencyEntity?.ToMap(_mapper) ?? new AccountCurrencyDB();
+             return (currentCurrencyDB, consumedItems, gachaAmount);
+        }
 
         var parcelConsume = ParcelResult.ConvertParcelResult(req.Cost.ParcelInfos);
         foreach (var parcel in parcelConsume)
