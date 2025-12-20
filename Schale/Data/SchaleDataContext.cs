@@ -37,6 +37,7 @@ namespace Schale.Data
         public DbSet<AccountLevelRewardDBServer> AccountLevelRewards { get; set; }
 
         public DbSet<MissionProgressDBServer> MissionProgresses { get; set; }
+        public DbSet<BattlePassDBServer> BattlePasses { get; set; }
         public DbSet<AttendanceHistoryDBServer> AttendanceHistories { get; set; }
         public DbSet<AcademyDBServer> Academies { get; set; }
         public DbSet<AcademyLocationDBServer> AcademyLocations { get; set; }
@@ -53,6 +54,7 @@ namespace Schale.Data
         public DbSet<EventContentPermanentDBServer> EventContentPermanents { get; set; }
         public DbSet<StickerBookDBServer> StickerBooks { get; set; }
         public DbSet<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; set; }
+        public DbSet<CraftInfoDBServer> CraftInfos { get; set; }
 
         public DbSet<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; set; }
         public DbSet<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; set; }
@@ -124,6 +126,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.AccountLevelRewards).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.MissionProgresses).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.BattlePasses).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.AttendanceHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.Academies).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.AcademyLocations).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -140,6 +143,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.EventContentPermanents).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.StickerBooks).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.ShopFreeRecruitHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.CraftInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.SingleRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.EliminateRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -203,6 +207,7 @@ namespace Schale.Data
         private void ConfigureProgressModels(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<MissionProgressDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<BattlePassDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<MissionProgressDBServer>().Property(x => x.ProgressParameters).HasJsonConversion();
 
             modelBuilder.Entity<AttendanceHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
@@ -249,6 +254,11 @@ namespace Schale.Data
             modelBuilder.Entity<StickerBookDBServer>().Property(x => x.UsedStickerDBs).HasJsonConversion();
             
             modelBuilder.Entity<ShopFreeRecruitHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.Nodes).HasJsonConversion();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ResultIds).HasJsonConversion();
+            modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.RewardParcelInfos).HasJsonConversion();
         }
 
         private void ConfigureContentModels(ModelBuilder modelBuilder)

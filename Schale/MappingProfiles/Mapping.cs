@@ -58,6 +58,7 @@ namespace Schale.MappingProfiles
             CreateMap<MomoTalkChoiceDBServer, MomoTalkChoiceDB>();
             CreateMap<EventContentPermanentDBServer, EventContentPermanentDB>();
             CreateMap<StickerBookDBServer, StickerBookDB>();
+            CreateMap<CraftInfoDBServer, CraftInfoDB>();
         }
 
         private void ConfigureContentMappings()
