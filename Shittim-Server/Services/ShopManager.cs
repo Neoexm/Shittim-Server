@@ -3,6 +3,7 @@ using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Excel;
+using Schale.Data.ModelMapping;
 using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
@@ -18,6 +19,7 @@ public class ShopManager
     private readonly IMapper _mapper;
 
     private readonly List<ItemExcelT> _itemExcels;
+    private readonly List<GoodsExcelT> _goodsExcels;
     private readonly List<PickupDuplicateBonusExcelT> _pickupDuplicateBonusExcels;
     private readonly List<ShopRecruitExcelT> _shopRecruitmentExcels;
     private readonly List<CharacterExcelT> _characterExcels;
@@ -34,6 +36,7 @@ public class ShopManager
         _mapper = mapper;
 
         _itemExcels = _excelTableService.GetTable<ItemExcelT>();
+        _goodsExcels = _excelTableService.GetTable<GoodsExcelT>();
         _pickupDuplicateBonusExcels = _excelTableService.GetTable<PickupDuplicateBonusExcelT>();
         _shopRecruitmentExcels = _excelTableService.GetTable<ShopRecruitExcelT>();
         _characterExcels = _excelTableService.GetTable<CharacterExcelT>()
@@ -45,6 +48,13 @@ public class ShopManager
     {
         long gachaAmount = 10;
         List<ItemDB> consumedItems = [];
+
+        if (req.Cost == null)
+        {
+             var currentCurrencyEntity = context.GetAccountCurrencies(account.ServerId).FirstOrDefault();
+             var currentCurrencyDB = currentCurrencyEntity?.ToMap(_mapper) ?? new AccountCurrencyDB();
+             return (currentCurrencyDB, consumedItems, gachaAmount);
+        }
 
         var parcelConsume = ParcelResult.ConvertParcelResult(req.Cost.ParcelInfos);
         foreach (var parcel in parcelConsume)
@@ -269,13 +279,22 @@ public class ShopManager
 
             foreach (var product in products)
             {
+                var goods = _goodsExcels.FirstOrDefault(x => product.GoodsId.Contains(x.Id));
+                long price = 0;
+                
+                if (goods != null)
+                {
+                    price = goods.ConsumeParcelAmount?.FirstOrDefault() ?? 0;
+                }
+
                 ShopProductList.Add(new ShopProductDB
                 {
                     ShopExcelId = product.Id,
                     Category = product.CategoryType,
                     DisplayOrder = product.DisplayOrder,
                     PurchaseCountLimit = product.PurchaseCountLimit,
-                    ProductType = ShopProductType.General
+                    ProductType = ShopProductType.General,
+                    Price = price
                 });
             }
 
