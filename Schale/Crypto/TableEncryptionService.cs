@@ -165,6 +165,7 @@ namespace Schale.Crypto
 
         public static string Convert(string value, byte[] key)
         {
+            if (string.IsNullOrEmpty(value)) return value;
             var encodedBytes = System.Convert.FromBase64String(value);
             Crypto.XOR.Crypt(encodedBytes, key);
 
