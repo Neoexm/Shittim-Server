@@ -38,40 +38,40 @@ public struct GoodsExcel : IFlatbufferObject
   public ArraySegment<byte>? GetConsumeParcelTypeBytes() { return __p.__vector_as_arraysegment(12); }
 #endif
   public Schale.FlatData.ParcelType[] GetConsumeParcelTypeArray() { int o = __p.__offset(12); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ConsumeParcelId(int j) { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ConsumeParcelIdLength { get { int o = __p.__offset(14); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ConsumeParcelId(int j) { try { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ConsumeParcelIdLength { get { try { int o = __p.__offset(14); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeParcelIdBytes() { return __p.__vector_as_span<long>(14, 8); }
 #else
   public ArraySegment<byte>? GetConsumeParcelIdBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
   public long[] GetConsumeParcelIdArray() { return __p.__vector_as_array<long>(14); }
-  public long ConsumeParcelAmount(int j) { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ConsumeParcelAmountLength { get { int o = __p.__offset(16); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ConsumeParcelAmount(int j) { try { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ConsumeParcelAmountLength { get { try { int o = __p.__offset(16); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeParcelAmountBytes() { return __p.__vector_as_span<long>(16, 8); }
 #else
   public ArraySegment<byte>? GetConsumeParcelAmountBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
   public long[] GetConsumeParcelAmountArray() { return __p.__vector_as_array<long>(16); }
-  public Schale.FlatData.ConsumeCondition ConsumeCondition(int j) { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ConsumeCondition)0; }
-  public int ConsumeConditionLength { get { int o = __p.__offset(18); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.ConsumeCondition ConsumeCondition(int j) { try { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ConsumeCondition)0; } catch { return (Schale.FlatData.ConsumeCondition)0; } }
+  public int ConsumeConditionLength { get { try { int o = __p.__offset(18); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.ConsumeCondition> GetConsumeConditionBytes() { return __p.__vector_as_span<Schale.FlatData.ConsumeCondition>(18, 4); }
 #else
   public ArraySegment<byte>? GetConsumeConditionBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
   public Schale.FlatData.ConsumeCondition[] GetConsumeConditionArray() { int o = __p.__offset(18); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ConsumeCondition[] a = new Schale.FlatData.ConsumeCondition[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(p + i * 4); } return a; }
-  public Schale.FlatData.GachaTicketType ConsumeGachaTicketType(int j) { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.GachaTicketType)0; }
-  public int ConsumeGachaTicketTypeLength { get { int o = __p.__offset(20); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.GachaTicketType ConsumeGachaTicketType(int j) { try { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.GachaTicketType)0; } catch { return (Schale.FlatData.GachaTicketType)0; } }
+  public int ConsumeGachaTicketTypeLength { get { try { int o = __p.__offset(20); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.GachaTicketType> GetConsumeGachaTicketTypeBytes() { return __p.__vector_as_span<Schale.FlatData.GachaTicketType>(20, 4); }
 #else
   public ArraySegment<byte>? GetConsumeGachaTicketTypeBytes() { return __p.__vector_as_arraysegment(20); }
 #endif
   public Schale.FlatData.GachaTicketType[] GetConsumeGachaTicketTypeArray() { int o = __p.__offset(20); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.GachaTicketType[] a = new Schale.FlatData.GachaTicketType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.GachaTicketType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ConsumeGachaTicketTypeAmount(int j) { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ConsumeGachaTicketTypeAmountLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ConsumeGachaTicketTypeAmount(int j) { try { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ConsumeGachaTicketTypeAmountLength { get { try { int o = __p.__offset(22); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeGachaTicketTypeAmountBytes() { return __p.__vector_as_span<long>(22, 8); }
 #else
@@ -83,16 +83,16 @@ public struct GoodsExcel : IFlatbufferObject
   public long ProductIdONE { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ProductIdSGS { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ProductIdSTEAM { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ConsumeExtraStep(int j) { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ConsumeExtraStepLength { get { int o = __p.__offset(34); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ConsumeExtraStep(int j) { try { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ConsumeExtraStepLength { get { try { int o = __p.__offset(34); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeExtraStepBytes() { return __p.__vector_as_span<long>(34, 8); }
 #else
   public ArraySegment<byte>? GetConsumeExtraStepBytes() { return __p.__vector_as_arraysegment(34); }
 #endif
   public long[] GetConsumeExtraStepArray() { return __p.__vector_as_array<long>(34); }
-  public long ConsumeExtraAmount(int j) { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ConsumeExtraAmountLength { get { int o = __p.__offset(36); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ConsumeExtraAmount(int j) { try { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ConsumeExtraAmountLength { get { try { int o = __p.__offset(36); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeExtraAmountBytes() { return __p.__vector_as_span<long>(36, 8); }
 #else
@@ -100,24 +100,24 @@ public struct GoodsExcel : IFlatbufferObject
 #endif
   public long[] GetConsumeExtraAmountArray() { return __p.__vector_as_array<long>(36); }
   public int State { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.ParcelType ParcelType(int j) { int o = __p.__offset(40); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
-  public int ParcelTypeLength { get { int o = __p.__offset(40); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.ParcelType ParcelType(int j) { try { int o = __p.__offset(40); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; } catch { return (Schale.FlatData.ParcelType)0; } }
+  public int ParcelTypeLength { get { try { int o = __p.__offset(40); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.ParcelType> GetParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(40, 4); }
 #else
   public ArraySegment<byte>? GetParcelTypeBytes() { return __p.__vector_as_arraysegment(40); }
 #endif
   public Schale.FlatData.ParcelType[] GetParcelTypeArray() { int o = __p.__offset(40); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ParcelId(int j) { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ParcelIdLength { get { int o = __p.__offset(42); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ParcelId(int j) { try { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ParcelIdLength { get { try { int o = __p.__offset(42); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetParcelIdBytes() { return __p.__vector_as_span<long>(42, 8); }
 #else
   public ArraySegment<byte>? GetParcelIdBytes() { return __p.__vector_as_arraysegment(42); }
 #endif
   public long[] GetParcelIdArray() { return __p.__vector_as_array<long>(42); }
-  public long ParcelAmount(int j) { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ParcelAmountLength { get { int o = __p.__offset(44); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long ParcelAmount(int j) { try { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
+  public int ParcelAmountLength { get { try { int o = __p.__offset(44); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
 #if ENABLE_SPAN_T
   public Span<long> GetParcelAmountBytes() { return __p.__vector_as_span<long>(44, 8); }
 #else
