@@ -68,6 +68,13 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        response.BeforehandGachaSnapshot = new BeforehandGachaSnapshotDB
+        {
+            ShopUniqueId = 1,
+            GoodsId = 1,
+            LastResults = []
+        };
+
         return response;
     }
 
