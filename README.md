@@ -17,6 +17,15 @@ A functional Blue Archive private server implementation in C# with ASP.NET Core 
 
 ## How to run
 
+## Currently, the server is not working with the latest version, pleae follow the stpes below
+
+1. Download [Steam Depot Downloader](https://github.com/SteamRE/DepotDownloader)
+2. extract the zip and, in command prompt navigate to the folder and run `-app 3557620 -depot 3557621 -manifest 368323032969658707`
+3. Make a backup of your current blue archive install, then copy the files from the depot and paste them where your existing blue archive install was
+4. replace grap64.dll with the one in /scripts
+5. run the server and run the game
+
+
 ### 1. Patch Blue Archive with the custom DLL
 
 1. Close Blue Archive and Steam.
