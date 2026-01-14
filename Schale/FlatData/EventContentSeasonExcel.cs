@@ -112,7 +112,7 @@ public struct EventContentSeasonExcel : IFlatbufferObject
 #endif
   public byte[] GetMainBgImagePathArray() { return __p.__vector_as_array<byte>(50); }
   public long ShiftTriggerStageId { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string ShiftMainBgImagePath { get { int o = __p.__offset(54); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string ShiftMainBgImagePath { get { try { int o = __p.__offset(54); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } catch { return null; } } }
 #if ENABLE_SPAN_T
   public Span<byte> GetShiftMainBgImagePathBytes() { return __p.__vector_as_span<byte>(54, 1); }
 #else

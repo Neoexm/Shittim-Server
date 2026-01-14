@@ -55,7 +55,10 @@ KILL_HOST_LIST = [
 ]
 
 PING_HOST_REDIRECT = [
-    'toy.log.nexon.io'
+    'toy.log.nexon.io',
+    'x-init.ngs.nexon.com',
+    'x-phaethon.ngs.nexon.com',
+    'x-csauth.ngs.nexon.com'
 ]
 
 OTHER_KILL_HOST = [
@@ -74,7 +77,7 @@ def request(flow: http.HTTPFlow) -> None:
     if any(flow.request.pretty_host.endswith(host) for host in PING_HOST_REDIRECT):
         flow.response = http.Response.make(
             200,
-            b"OK",
+            b"",
             {"Content-Type": "text/plain"}
         )
         return
