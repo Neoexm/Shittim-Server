@@ -71,6 +71,7 @@ public class MissionHandler : ProtocolHandlerBase
 
         response.MissionHistoryUniqueIds = campaignHistories;
         response.ProgressDBs = _mapper.Map<List<MissionProgressDB>>(missionProgresses);
+        response.DailySuddenMissionInfo = new { };
 
         return response;
     }

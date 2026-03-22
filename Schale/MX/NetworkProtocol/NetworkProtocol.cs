@@ -1156,6 +1156,22 @@ namespace Schale.MX.NetworkProtocol
         public List<CafeDB>? CafeDBs { get; set; }
     }
 
+    public class CafeSummonCharacterTicketUseRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_SummonCharacterTicketUse; }
+        public long CafeDBId { get; set; }
+        public long CharacterServerId { get; set; }
+        public ConsumeRequestDB? ConsumeRequestDB { get; set; }
+    }
+
+    public class CafeSummonCharacterTicketUseResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_SummonCharacterTicketUse; }
+        public CafeDB? CafeDB { get; set; }
+        public List<CafeDB>? CafeDBs { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
     public class CafeTrophyHistoryRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Cafe_TrophyHistory; }
@@ -4850,7 +4866,7 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Mission_List; }
         public List<long>? MissionHistoryUniqueIds { get; set; }
         public List<MissionProgressDB>? ProgressDBs { get; set; }
-        // public MissionInfo DailySuddenMissionInfo { get; set; }
+        public object? DailySuddenMissionInfo { get; set; }
         public List<long>? ClearedOrignalMissionIds { get; set; }
     }
 
