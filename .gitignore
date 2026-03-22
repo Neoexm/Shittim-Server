@@ -4,6 +4,7 @@ request_logs/
 /data/
 nexon.har
 nexon.flows
+protocol_dump.cleaned.json
 *.har
 /Shittim-Server/shittim.sqlite3
 /Shittim-Server/shittim.sqlite3-shm
@@ -83,3 +84,9 @@ hosts.backup
 
 # Progress tracking
 progress.md
+
+# Protocol dump + local dump tooling/cache
+/protocol_dump.log
+/Scripts/tidy_protocol_dump.ps1
+/Scripts/cheatengine_protocol_dump.lua
+/Shittim-Server/config/ba_version_cache.json
