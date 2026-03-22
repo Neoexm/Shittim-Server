@@ -7,8 +7,10 @@ using Schale.Data.ModelMapping;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.NetworkProtocol;
 using Schale.MX.GameLogic.Parcel;
+using Schale.Excel;
 using Schale.FlatData;
 using Shittim_Server.Core;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -17,18 +19,23 @@ public class MomoTalkHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
+    private readonly ParcelHandler _parcelHandler;
     private readonly List<AcademyMessangerExcelT> _academyMessengers;
+    private readonly List<AcademyFavorScheduleExcelT> _academyFavorSchedules;
 
     public MomoTalkHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
+        _parcelHandler = parcelHandler;
         _academyMessengers = _excelService.GetTable<AcademyMessangerExcelT>();
+        _academyFavorSchedules = _excelService.GetTable<AcademyFavorScheduleExcelT>();
     }
 
     [ProtocolHandler(Protocol.MomoTalk_MessageList)]
@@ -49,6 +56,8 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         var choices = db.GetAccountMomoTalkChoices(account.ServerId)
             .Where(c => c.CharacterDBId == request.CharacterDBId)
+            .OrderBy(c => c.MessageGroupId)
+            .ThenBy(c => c.ChosenDate)
             .ToList();
 
         response.MomoTalkChoiceDBs = _mapper.Map<List<MomoTalkChoiceDB>>(choices);
@@ -115,6 +124,11 @@ public class MomoTalkHandler : ProtocolHandlerBase
                     };
                     db.MomoTalkChoices.Add(choiceDB);
                 }
+                else if (existingChoice.ChosenMessageId != request.ChosenMessageId.Value)
+                {
+                    existingChoice.ChosenMessageId = request.ChosenMessageId.Value;
+                    existingChoice.ChosenDate = DateTime.UtcNow;
+                }
             }
         }
         else
@@ -148,11 +162,8 @@ public class MomoTalkHandler : ProtocolHandlerBase
         {
             momotalkOutline.LatestMessageGroupId = nextGroupId;
             momotalkOutline.LastUpdateDate = DateTime.Now;
-            
-            // Also need to update ChosenMessageId in outline if it was a choice?
-            // User report: setting this causes duplicate choice bubbles. 
-            // The client seemingly renders history from MomoTalkChoices AND this field. 
-            // Since we've moved to a new Group, the "current choice" is null.
+            // Keep current outline choice null to prevent duplicate message bubbles.
+            // Choice history is already represented by MomoTalkChoiceDBs.
             momotalkOutline.ChosenMessageId = null;
         }
 
@@ -162,6 +173,8 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         var choices = db.GetAccountMomoTalkChoices(account.ServerId)
             .Where(c => c.CharacterDBId == request.CharacterDBId)
+            .OrderBy(c => c.MessageGroupId)
+            .ThenBy(c => c.ChosenDate)
             .ToList();
 
         response.MomoTalkChoiceDBs = _mapper.Map<List<MomoTalkChoiceDB>>(choices);
@@ -180,7 +193,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
         var outlines = db.GetAccountMomoTalkOutLines(account.ServerId).ToList();
 
         response.MomoTalkOutLineDBs = _mapper.Map<List<MomoTalkOutLineDB>>(outlines);
-        response.FavorScheduleRecords = [];
+        response.FavorScheduleRecords = MomoTalkService.GetAllFavorSchedules(outlines);
 
         return response;
     }
@@ -193,8 +206,66 @@ public class MomoTalkHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        response.FavorScheduleRecords = [];
+        var outlines = db.GetAccountMomoTalkOutLines(account.ServerId).ToList();
+        response.FavorScheduleRecords = MomoTalkService.GetAllFavorSchedules(outlines);
         response.ParcelResultDB = new();
+
+        var schedule = _academyFavorSchedules.GetScheduleById(request.ScheduleId);
+        if (schedule == null)
+            return response;
+
+        var targetOutline = outlines.FirstOrDefault(x => x.CharacterId == schedule.CharacterId);
+        if (targetOutline == null)
+            return response;
+
+        if (targetOutline.ScheduleIds.Contains(request.ScheduleId))
+            return response;
+
+        var accountCurrency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (accountCurrency == null)
+            return response;
+
+        if (!accountCurrency.CurrencyDict.TryGetValue(CurrencyTypes.AcademyTicket, out var currentTicket) || currentTicket <= 0)
+            return response;
+
+        var parcelResults = new List<ParcelResult>
+        {
+            new(ParcelType.Currency, (long)CurrencyTypes.AcademyTicket, -1)
+        };
+
+        var rewardCount = new[]
+        {
+            schedule.RewardParcelType?.Count ?? 0,
+            schedule.RewardParcelId?.Count ?? 0,
+            schedule.RewardAmount?.Count ?? 0
+        }.Min();
+
+        for (int i = 0; i < rewardCount; i++)
+        {
+            var amount = schedule.RewardAmount![i];
+            if (amount == 0)
+                continue;
+
+            parcelResults.Add(new ParcelResult(
+                schedule.RewardParcelType![i],
+                schedule.RewardParcelId![i],
+                amount));
+        }
+
+        targetOutline.ScheduleIds.Add(request.ScheduleId);
+        targetOutline.LastUpdateDate = DateTime.Now;
+
+        if (parcelResults.Count > 0)
+        {
+            var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcelResults);
+            response.ParcelResultDB = parcelResolver.ParcelResult;
+        }
+        else
+        {
+            await db.SaveChangesAsync();
+        }
+
+        response.FavorScheduleRecords = MomoTalkService.GetAllFavorSchedules(db.GetAccountMomoTalkOutLines(account.ServerId).ToList());
 
         return response;
     }
