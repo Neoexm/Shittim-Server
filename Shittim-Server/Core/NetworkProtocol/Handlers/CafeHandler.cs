@@ -18,18 +18,21 @@ public class CafeHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly CafeManager _cafeManager;
+    private readonly MissionService _missionService;
 
     public CafeHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
-        CafeManager cafeManager) : base(registry)
+        CafeManager cafeManager,
+        MissionService missionService) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
         _cafeManager = cafeManager;
+        _missionService = missionService;
     }
 
     [ProtocolHandler(Protocol.Cafe_Get)]
@@ -163,6 +166,12 @@ public class CafeHandler : ProtocolHandlerBase
 
         var cafeDb = await _cafeManager.CafeSummonCharacter(db, account, request);
 
+        response.MissionProgressDBs = _missionService.UpdateMissionProgress(
+            db,
+            account,
+            MissionCompleteConditionType.Reset_CharacterInviteCount,
+            1);
+
         response.CafeDB = cafeDb.ToMap(_mapper);
         response.CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper);
 
@@ -209,6 +218,33 @@ public class CafeHandler : ProtocolHandlerBase
         CafeReceiveCurrencyResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (cafeDb, cafeDbs, parcelResultDb) = await _cafeManager.CafeReceiveCurrency(db, account, request.CafeDBId);
+
+        response.CafeDB = cafeDb.ToMap(_mapper);
+        response.CafeDBs = cafeDbs.ToMapList(_mapper);
+        response.ParcelResultDB = parcelResultDb;
+
+        var acquiredGold = parcelResultDb.DisplaySequence
+            .Where(x => x.Key.Type == ParcelType.Currency && x.Key.Id == (long)CurrencyTypes.Gold)
+            .Sum(x => x.Amount);
+
+        var missionProgresses = acquiredGold > 0
+            ? _missionService.UpdateMissionProgress(
+                db,
+                account,
+                MissionCompleteConditionType.Achieve_GetGold,
+                acquiredGold)
+            : [];
+
+        if (missionProgresses.Count > 0)
+            response.MissionProgressDBs = missionProgresses;
+
+        response.ServerNotification = (account.UnReadMailCount.GetValueOrDefault() > 0)
+            ? ServerNotificationFlag.HasUnreadMail
+            : ServerNotificationFlag.None;
+
+        await db.SaveChangesAsync();
 
         return response;
     }
