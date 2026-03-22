@@ -160,26 +160,42 @@ namespace Shittim.Commands
             var memoryLobbyData = connection.Mapper.Map<List<MemoryLobbyDBServer>>(accountLoginSyncData.MemoryLobbyListResponse.MemoryLobbyDBs);
             context.AddMemoryLobbies(connection.AccountServerId, memoryLobbyData.ToArray());
 
-            Dictionary<long, CafeDB> oldToNewCafeServerId = new Dictionary<long, CafeDB>();
+            Dictionary<long, long> oldCafeDbIdToCafeId = new();
 
             context.Cafes.RemoveRange(context.Cafes.Where(x => x.AccountServerId == connection.AccountServerId));
 
             foreach (var cafe in accountLoginSyncData.CafeGetInfoResponse.CafeDBs)
             {
-                oldToNewCafeServerId.Add(cafe.CafeDBId, cafe);
+                if (!oldCafeDbIdToCafeId.ContainsKey(cafe.CafeDBId))
+                    oldCafeDbIdToCafeId.Add(cafe.CafeDBId, cafe.CafeId);
             }
 
             var cafeData = connection.Mapper.Map<List<CafeDBServer>>(accountLoginSyncData.CafeGetInfoResponse.CafeDBs);
+            cafeData.ForEach(x => x.CafeDBId = 0);
             context.AddCafes(connection.AccountServerId, cafeData.ToArray());
             await context.SaveChangesAsync();
+
+            var cafeIdToNewCafeDbId = context.Cafes
+                .Where(x => x.AccountServerId == connection.AccountServerId)
+                .ToDictionary(x => x.CafeId, x => x.CafeDBId);
+
+            var defaultCafeDbId = cafeIdToNewCafeDbId
+                .OrderBy(x => x.Key)
+                .Select(x => x.Value)
+                .FirstOrDefault();
 
             context.Furnitures.RemoveRange(context.Furnitures.Where(x => x.AccountServerId == connection.AccountServerId));
 
             foreach (var furniture in accountLoginSyncData.CafeGetInfoResponse.FurnitureDBs)
             {
-                if (oldToNewCafeServerId.ContainsKey(furniture.CafeDBId))
+                if (oldCafeDbIdToCafeId.TryGetValue(furniture.CafeDBId, out var cafeId) &&
+                    cafeIdToNewCafeDbId.TryGetValue(cafeId, out var newCafeDbId))
                 {
-                    furniture.CafeDBId = oldToNewCafeServerId[furniture.CafeDBId].CafeDBId;
+                    furniture.CafeDBId = newCafeDbId;
+                }
+                else if (defaultCafeDbId > 0)
+                {
+                    furniture.CafeDBId = defaultCafeDbId;
                 }
             }
 
