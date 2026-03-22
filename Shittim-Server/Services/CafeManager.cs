@@ -322,8 +322,16 @@ public class CafeManager
         long cafeDbId)
     {
         var now = account.GameSettings.ServerDateTime();
-        var targetCafe = context.Cafes.GetCafeByCafeDBId(account.ServerId, cafeDbId);
         var cafes = context.GetAccountCafes(account.ServerId).ToList();
+
+        if (cafes.Count == 0)
+            throw new InvalidOperationException($"No cafes found for account {account.ServerId}.");
+
+        var targetCafe = cafeDbId > 0
+            ? cafes.FirstOrDefault(x => x.CafeDBId == cafeDbId)
+            : cafes.OrderBy(x => x.CafeId).FirstOrDefault();
+
+        targetCafe ??= cafes.OrderBy(x => x.CafeId).First();
 
         // Make sure comfort is up-to-date before calculating production.
         foreach (var cafe in cafes)
