@@ -44,6 +44,9 @@ namespace Shittim_Server.Controllers.SDK
         [HttpPost("enterToy.nx")]
         public IResult EnterToy()
         {
+            var localHost = Request.Host.HasValue ? Request.Host.Value : "127.0.0.1:5000";
+            var gtableUrl = $"http://{localHost}/gid/2079.json";
+
             var res = new
             {
                 errorCode = 0,
@@ -51,6 +54,8 @@ namespace Shittim_Server.Controllers.SDK
                 errorDetail = "",
                 result = new
                 {
+                    gtable_url = gtableUrl,
+                    platform_sdk = "WINDOWS",
                     service = new
                     {
                         title = "Blue Archive",
