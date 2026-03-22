@@ -1,3 +1,5 @@
+using Schale.MX.GameLogic.DBModel;
+
 namespace Schale.Data.GameModel
 {
     public class AccountGameSettingDB
@@ -7,6 +9,7 @@ namespace Schale.Data.GameModel
         public bool EnableMultiFloorRaid { get; set; } = false;
         public bool ForceDateTime { get; set; } = false;
         public bool BypassCafeSummon { get; set; } = false;
+        public List<MultiSweepPresetDB> MultiSweepPresetDBs { get; set; } = [];
         public DateTimeOffset ForceDateTimeOffset { get; set; } = DateTimeOffset.Now;
         public DateTimeOffset CurrentDateTime { get; set; } = DateTimeOffset.Now;
 

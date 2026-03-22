@@ -5,6 +5,7 @@ using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Data.ModelMapping;
 using Schale.MX.NetworkProtocol;
+using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.Core.Math;
 using Schale.FlatData;
@@ -195,6 +196,39 @@ public class ContentSweepHandler : ProtocolHandlerBase
             : ServerNotificationFlag.None;
 
         await db.SaveChangesAsync();
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.ContentSweep_SetMultiSweepPreset)]
+    public async Task<ContentSweepSetMultiSweepPresetResponse> SetMultiSweepPreset(
+        SchaleDataContext db,
+        ContentSweepSetMultiSweepPresetRequest request,
+        ContentSweepSetMultiSweepPresetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var presets = account.GameSettings.MultiSweepPresetDBs ?? [];
+        var current = presets.FirstOrDefault(x => x.PresetId == request.PresetId);
+
+        if (current == null)
+        {
+            current = new MultiSweepPresetDB
+            {
+                PresetId = request.PresetId
+            };
+            presets.Add(current);
+        }
+
+        current.PresetName = request.PresetName;
+        current.StageIds = request.StageIds?.ToList() ?? [];
+        current.ParcelIds = request.ParcelIds?.ToList() ?? [];
+
+        account.GameSettings.MultiSweepPresetDBs = presets;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.MultiSweepPresetDBs = account.GameSettings.MultiSweepPresetDBs;
 
         return response;
     }
