@@ -208,6 +208,7 @@ namespace Schale.MX.NetworkProtocol
         Cafe_ApplyTemplate = 20017,
         Cafe_Open = 20018,
         Cafe_Travel = 20019,
+        Cafe_SummonCharacterTicketUse = 20020,
         Craft_List = 21000,
         Craft_SelectNode = 21001,
         Craft_UpdateNodeLevel = 21002,
