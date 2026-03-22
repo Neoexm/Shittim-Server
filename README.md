@@ -2,6 +2,8 @@
 
 A functional Blue Archive private server implementation in C# with ASP.NET Core 6.0.
 
+Official Discord - https://discord.gg/JNp6SUhrk2
+
 ## What it does
 
 - Handles authentication and account management
