@@ -1,4 +1,4 @@
-name: Build and Release Shittim Console
+name: Build and Release Shittim Server
 
 on:
   push:
@@ -36,10 +36,10 @@ jobs:
         run: |
           python -m py_compile .\shittim_console.py .\admin_gui.py
 
-      - name: Build Shittim Console executable
+      - name: Build Shittim Server executable
         shell: pwsh
         run: |
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Console" .\shittim_console.py
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Server" .\shittim_console.py
 
       - name: Generate release tag
         id: version
@@ -48,14 +48,14 @@ jobs:
           $stamp = Get-Date -Format 'yyyy.MM.dd'
           $tag = "v$stamp.${{ github.run_number }}"
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "asset_name=Shittim-Console-$tag.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "asset_name=Shittim-Server-$tag.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Package release archive
         shell: pwsh
         run: |
           $tag = "${{ steps.version.outputs.tag }}"
           $assetName = "${{ steps.version.outputs.asset_name }}"
-          Compress-Archive -Path ".\dist\Shittim Console.exe" -DestinationPath ".\$assetName" -Force
+          Compress-Archive -Path ".\dist\Shittim Server.exe" -DestinationPath ".\$assetName" -Force
 
       - name: Create Git tag
         shell: pwsh

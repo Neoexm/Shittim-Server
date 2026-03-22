@@ -19,8 +19,8 @@ from pathlib import Path
 from tkinter import messagebox, scrolledtext, ttk
 
 
-APP_TITLE = "Shittim Console"
-APP_SUBTITLE = "Server launcher and operations console"
+APP_TITLE = "Shittim Server"
+APP_SUBTITLE = "Launcher and management console"
 
 
 @dataclass
@@ -690,7 +690,7 @@ class ShittimConsole:
     def _prepare_log_file(self):
         header = textwrap.dedent(
             f"""
-            Shittim Console Session Log
+            Shittim Server Session Log
             Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             Log File: {self.current_log_path}
             """
