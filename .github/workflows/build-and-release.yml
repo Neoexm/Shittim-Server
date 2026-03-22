@@ -39,7 +39,7 @@ jobs:
       - name: Build Shittim Console executable
         shell: pwsh
         run: |
-          python -m PyInstaller --noconfirm --clean --windowed --name "Shittim Console" .\shittim_console.py
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Console" .\shittim_console.py
 
       - name: Generate release tag
         id: version
@@ -55,7 +55,7 @@ jobs:
         run: |
           $tag = "${{ steps.version.outputs.tag }}"
           $assetName = "${{ steps.version.outputs.asset_name }}"
-          Compress-Archive -Path ".\dist\Shittim Console\*" -DestinationPath ".\$assetName" -Force
+          Compress-Archive -Path ".\dist\Shittim Console.exe" -DestinationPath ".\$assetName" -Force
 
       - name: Create Git tag
         shell: pwsh
