@@ -21,6 +21,7 @@ public class ContentSweepHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly ParcelHandler _parcelHandler;
     private readonly CampaignManager _campaignManager;
+    private readonly MissionService _missionService;
     private readonly IMapper _mapper;
 
     public ContentSweepHandler(
@@ -29,12 +30,14 @@ public class ContentSweepHandler : ProtocolHandlerBase
         ExcelTableService excelService,
         ParcelHandler parcelHandler,
         CampaignManager campaignManager,
+        MissionService missionService,
         IMapper mapper) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _parcelHandler = parcelHandler;
         _campaignManager = campaignManager;
+        _missionService = missionService;
         _mapper = mapper;
     }
 
@@ -109,6 +112,89 @@ public class ContentSweepHandler : ProtocolHandlerBase
         response.BonusParcels = bonusParcels;
         response.ParcelResult = parcelResult.ParcelResult;
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.ContentSweep_MultiSweep)]
+    public async Task<ContentSweepMultiSweepResponse> MultiSweep(
+        SchaleDataContext db,
+        ContentSweepMultiSweepRequest request,
+        ContentSweepMultiSweepResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var clearParcels = new List<List<ParcelInfo>>();
+        var bonusParcels = new List<ParcelInfo>();
+        var campaignStageHistoryDbs = new List<CampaignStageHistoryDB>();
+        var aggregatedParcelForDisplay = new List<ParcelInfo>();
+        var aggregatedParcelForMission = new List<ParcelInfo>();
+
+        var parameters = request.MultiSweepParameters?.ToList() ?? [];
+        long totalSweepCount = 0;
+
+        foreach (var parameter in parameters)
+        {
+            if (parameter.SweepCount <= 0)
+                continue;
+
+            totalSweepCount += parameter.SweepCount;
+
+            var singleRequest = new ContentSweepRequest
+            {
+                SessionKey = request.SessionKey,
+                Content = parameter.ContentType,
+                EventContentId = parameter.EventContentId ?? 0,
+                StageId = parameter.StageId,
+                Count = parameter.SweepCount
+            };
+
+            var singleResponse = await Request(db, singleRequest, new ContentSweepResponse());
+
+            if (singleResponse.ClearParcels != null)
+                clearParcels.AddRange(singleResponse.ClearParcels);
+
+            if (singleResponse.BonusParcels != null)
+                bonusParcels.AddRange(singleResponse.BonusParcels);
+
+            if (singleResponse.CampaignStageHistoryDB != null)
+                campaignStageHistoryDbs.Add(singleResponse.CampaignStageHistoryDB);
+
+            if (singleResponse.ParcelResult?.DisplaySequence != null)
+                aggregatedParcelForDisplay.AddRange(singleResponse.ParcelResult.DisplaySequence);
+
+            if (singleResponse.ParcelResult?.ParcelForMission != null)
+                aggregatedParcelForMission.AddRange(singleResponse.ParcelResult.ParcelForMission);
+        }
+
+        var currency = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper);
+        response.ClearParcels = clearParcels;
+        response.BonusParcels = bonusParcels;
+        response.CampaignStageHistoryDBs = campaignStageHistoryDbs;
+        response.ParcelResult = new ParcelResultDB
+        {
+            AccountDB = account.ToMap(_mapper),
+            AccountCurrencyDB = currency,
+            DisplaySequence = aggregatedParcelForDisplay,
+            ParcelForMission = aggregatedParcelForMission
+        };
+
+        var missionProgresses = totalSweepCount > 0
+            ? _missionService.UpdateMissionProgress(
+                db,
+                account,
+                MissionCompleteConditionType.Achieve_ClearCampaignStageCount,
+                totalSweepCount)
+            : [];
+
+        if (missionProgresses.Count > 0)
+            response.MissionProgressDBs = missionProgresses;
+
+        response.ServerNotification = (account.UnReadMailCount.GetValueOrDefault() > 0)
+            ? ServerNotificationFlag.HasUnreadMail
+            : ServerNotificationFlag.None;
+
+        await db.SaveChangesAsync();
 
         return response;
     }
