@@ -67,6 +67,11 @@ Schale/bin/
 *.exe
 *.pdb
 
+# Python packaging outputs
+/build/
+/dist/
+/*.spec
+
 # OS generated files
 .DS_Store
 .DS_Store?
