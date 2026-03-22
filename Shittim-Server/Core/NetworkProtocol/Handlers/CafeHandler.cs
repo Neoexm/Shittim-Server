@@ -178,6 +178,23 @@ public class CafeHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Cafe_SummonCharacterTicketUse)]
+    public async Task<CafeSummonCharacterTicketUseResponse> SummonCharacterTicketUse(
+        SchaleDataContext db,
+        CafeSummonCharacterTicketUseRequest request,
+        CafeSummonCharacterTicketUseResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (cafeDb, cafeDbs, parcelResultDb) = await _cafeManager.CafeSummonCharacterTicketUse(db, account, request);
+
+        response.CafeDB = cafeDb.ToMap(_mapper);
+        response.CafeDBs = cafeDbs.ToMapList(_mapper);
+        response.ParcelResultDB = parcelResultDb;
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Cafe_Interact)]
     public async Task<CafeInteractWithCharacterResponse> Interact(
         SchaleDataContext db,

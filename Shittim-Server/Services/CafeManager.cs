@@ -206,6 +206,36 @@ public class CafeManager
         return cafeDb;
     }
 
+    public async Task<(CafeDBServer CafeDb, List<CafeDBServer> CafeDbs, ParcelResultDB ParcelResultDb)> CafeSummonCharacterTicketUse(
+        SchaleDataContext context,
+        AccountDBServer account,
+        CafeSummonCharacterTicketUseRequest req)
+    {
+        var consumeResult = await _consumeHandler.BuildConsumeResult(context, account, req.ConsumeRequestDB ?? new ConsumeRequestDB());
+
+        var cafeDb = context.Cafes.GetCafeByCafeDBId(account.ServerId, req.CafeDBId);
+        var characterData = context.Characters.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.ServerId == req.CharacterServerId);
+        if (characterData != null)
+        {
+            cafeDb.LastUpdate = account.GameSettings.ServerDateTime();
+            if (!account.GameSettings.BypassCafeSummon)
+                cafeDb.LastSummonDate = account.GameSettings.ServerDateTime();
+
+            cafeDb.CafeVisitCharacterDBs[characterData.UniqueId] = new CafeDBServer.CafeCharacterDBServer
+            {
+                IsSummon = true,
+                UniqueId = characterData.UniqueId,
+                ServerId = characterData.ServerId
+            };
+
+            context.Cafes.Update(cafeDb);
+            await context.SaveChangesAsync();
+        }
+
+        var allCafes = context.GetAccountCafes(account.ServerId).ToList();
+        return (cafeDb, allCafes, consumeResult.ParcelResult);
+    }
+
     public async Task<(CafeDBServer, CharacterDB, ParcelResultDB)> CafeInteractWithCharacter(
         SchaleDataContext context, AccountDBServer account, CafeInteractWithCharacterRequest req)
     {
