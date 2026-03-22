@@ -166,4 +166,82 @@ public class MissionHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Mission_MultipleReward)]
+    public async Task<MissionMultipleRewardResponse> MultipleReward(
+        SchaleDataContext db,
+        MissionMultipleRewardRequest request,
+        MissionMultipleRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var missionExcels = _excelService.GetTable<MissionExcelT>();
+        var missionExcelById = missionExcels.ToDictionary(x => x.Id, x => x);
+
+        var progresses = db.MissionProgresses
+            .Where(x => x.AccountServerId == account.ServerId && x.Complete)
+            .ToList();
+
+        var targetProgresses = progresses
+            .Where(p => missionExcelById.TryGetValue(p.MissionUniqueId, out var missionExcel)
+                && missionExcel.Category == request.MissionCategory
+                && (!request.EventContentId.HasValue
+                    || p.MissionUniqueId.ToString().StartsWith(request.EventContentId.Value.ToString())))
+            .ToList();
+
+        if (targetProgresses.Count == 0)
+        {
+            response.AddedHistoryDBs = [];
+            return response;
+        }
+
+        var rewardParcels = new List<ParcelResult>();
+        var addedHistory = new List<MissionHistoryDB>();
+
+        foreach (var missionProgress in targetProgresses)
+        {
+            if (!missionExcelById.TryGetValue(missionProgress.MissionUniqueId, out var missionExcel))
+                continue;
+
+            rewardParcels.AddRange(ParcelResult.ConvertParcelResult(
+                missionExcel.MissionRewardParcelType,
+                missionExcel.MissionRewardParcelId,
+                missionExcel.MissionRewardAmount));
+
+            addedHistory.Add(new MissionHistoryDB
+            {
+                AccountServerId = account.ServerId,
+                MissionUniqueId = missionProgress.MissionUniqueId,
+                ServerId = missionProgress.ServerId,
+                CompleteTime = account.GameSettings.ServerDateTime(),
+                Expired = false
+            });
+        }
+
+        db.MissionProgresses.RemoveRange(targetProgresses);
+
+        if (rewardParcels.Count > 0)
+        {
+            var parcelResolver = await _parcelHandler.BuildParcel(db, account, rewardParcels);
+            response.ParcelResultDB = parcelResolver.ParcelResult;
+        }
+
+        response.AddedHistoryDBs = addedHistory;
+
+        if (request.MissionCategory == MissionCategory.Daily)
+        {
+            var updatedMetaMissions = _missionService.UpdateMissionProgress(
+                db,
+                account,
+                MissionCompleteConditionType.Reset_DailyMissionFulfill,
+                targetProgresses.Count);
+
+            if (updatedMetaMissions.Count > 0)
+                response.MissionProgressDBs = updatedMetaMissions;
+        }
+
+        await db.SaveChangesAsync();
+
+        return response;
+    }
 }
