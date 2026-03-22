@@ -448,6 +448,109 @@ public class ShopHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Shop_BuyRefreshMerchandise)]
+    public async Task<ShopBuyRefreshMerchandiseResponse> BuyRefreshMerchandise(
+        SchaleDataContext db,
+        ShopBuyRefreshMerchandiseRequest request,
+        ShopBuyRefreshMerchandiseResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var refreshExcels = _excelService.GetTable<ShopRefreshExcelT>();
+        var goodsExcels = _excelService.GetTable<GoodsExcelT>();
+
+        var consumeParcels = new List<ParcelInfo>();
+        var rewardParcels = new List<ParcelInfo>();
+        var purchasedProducts = new List<ShopProductDB>();
+
+        foreach (var shopUniqueId in request.ShopUniqueIds ?? [])
+        {
+            var refreshExcel = refreshExcels.FirstOrDefault(x => x.Id == shopUniqueId);
+            if (refreshExcel == null)
+                continue;
+
+            var goodsExcel = goodsExcels.FirstOrDefault(x => x.Id == refreshExcel.GoodsId);
+            if (goodsExcel == null)
+                continue;
+
+            var consumeParcelTypes = goodsExcel.ConsumeParcelType ?? [];
+            var consumeParcelIds = goodsExcel.ConsumeParcelId ?? [];
+            var consumeParcelAmounts = goodsExcel.ConsumeParcelAmount ?? [];
+
+            for (int i = 0; i < consumeParcelTypes.Count; i++)
+            {
+                consumeParcels.Add(new ParcelInfo
+                {
+                    Key = new ParcelKeyPair
+                    {
+                        Type = consumeParcelTypes[i],
+                        Id = i < consumeParcelIds.Count ? consumeParcelIds[i] : 0
+                    },
+                    Amount = i < consumeParcelAmounts.Count ? consumeParcelAmounts[i] : 0
+                });
+            }
+
+            var rewardParcelTypes = goodsExcel.ParcelType ?? [];
+            var rewardParcelIds = goodsExcel.ParcelId ?? [];
+            var rewardParcelAmounts = goodsExcel.ParcelAmount ?? [];
+
+            for (int i = 0; i < rewardParcelTypes.Count; i++)
+            {
+                rewardParcels.Add(new ParcelInfo
+                {
+                    Key = new ParcelKeyPair
+                    {
+                        Type = rewardParcelTypes[i],
+                        Id = i < rewardParcelIds.Count ? rewardParcelIds[i] : 0
+                    },
+                    Amount = i < rewardParcelAmounts.Count ? rewardParcelAmounts[i] : 0
+                });
+            }
+
+            purchasedProducts.Add(new ShopProductDB
+            {
+                ShopExcelId = refreshExcel.Id,
+                Category = refreshExcel.CategoryType,
+                DisplayOrder = refreshExcel.DisplayOrder,
+                PurchaseCount = 0,
+                SoldOut = false,
+                PurchaseCountLimit = refreshExcel.PurchaseCountLimit,
+                Price = consumeParcelAmounts.FirstOrDefault()
+            });
+        }
+
+        if (consumeParcels.Count > 0)
+            await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
+
+        if (rewardParcels.Count > 0)
+        {
+            var parcelResult = new ParcelResultDB();
+            await _parcelHandler.BuildParcel(db, account, rewardParcels, parcelResult);
+            parcelResult.AcquiredItems = rewardParcels;
+            response.ParcelResultDB = parcelResult;
+        }
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper);
+        response.ConsumeResultDB = new ConsumeResultDB();
+        response.ShopProductDB = purchasedProducts;
+
+        if (purchasedProducts.Count > 0)
+        {
+            var missions = _missionService.UpdateMissionProgress(
+                db,
+                account,
+                MissionCompleteConditionType.Reset_BuyShopGoods,
+                purchasedProducts.Count);
+
+            if (missions.Count > 0)
+                response.MissionProgressDBs = missions;
+        }
+
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Shop_BuyEligma)]
     public async Task<ShopBuyEligmaResponse> BuyEligma(
         SchaleDataContext db,
