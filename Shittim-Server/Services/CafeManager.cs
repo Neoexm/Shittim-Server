@@ -8,6 +8,7 @@ using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shittim_Server.Services;
 
@@ -22,6 +23,7 @@ public class CafeManager
     private readonly List<CharacterExcelT> _characterExcel;
     private readonly List<FurnitureExcelT> _furnitureExcel;
     private readonly List<FurnitureTemplateElementExcelT> _furnitureTemplateElementExcel;
+    private readonly List<CafeProductionExcelT> _cafeProductionExcel;
 
     private readonly List<FurnitureSubCategory> _nonInteriorSubCategories =
     [
@@ -42,6 +44,7 @@ public class CafeManager
             .GetReleaseCharacters().ToList();
         _furnitureExcel = excelTableService.GetTable<FurnitureExcelT>();
         _furnitureTemplateElementExcel = excelTableService.GetTable<FurnitureTemplateElementExcelT>();
+        _cafeProductionExcel = excelTableService.GetTable<CafeProductionExcelT>();
     }
 
     public async Task UpdateCafeData(SchaleDataContext context, AccountDBServer account, CafeDBServer cafeDb)
@@ -281,5 +284,122 @@ public class CafeManager
         var allFurnitures = context.GetAccountFurnitures(account.ServerId).ToList();
 
         return (allCafes, allFurnitures);
+    }
+
+    public async Task<(CafeDBServer, List<CafeDBServer>, ParcelResultDB)> CafeReceiveCurrency(
+        SchaleDataContext context,
+        AccountDBServer account,
+        long cafeDbId)
+    {
+        var now = account.GameSettings.ServerDateTime();
+        var targetCafe = context.Cafes.GetCafeByCafeDBId(account.ServerId, cafeDbId);
+        var cafes = context.GetAccountCafes(account.ServerId).ToList();
+
+        // Make sure comfort is up-to-date before calculating production.
+        foreach (var cafe in cafes)
+        {
+            await UpdateCafeData(context, account, cafe);
+        }
+
+        var parcelResults = new List<ParcelResult>();
+        foreach (var cafe in cafes)
+        {
+            EnsureProductionParcels(cafe);
+
+            if (cafe.ProductionDB?.ProductionParcelInfos == null || cafe.ProductionDB.ProductionParcelInfos.Count == 0)
+                continue;
+
+            var elapsedSeconds = Math.Max(0L, (long)(now - cafe.ProductionAppliedTime).TotalSeconds);
+            if (elapsedSeconds <= 0)
+                continue;
+
+            var cafeRules = _cafeProductionExcel
+                .Where(x => x.CafeId == cafe.CafeId && x.Rank <= cafe.CafeRank)
+                .ToList();
+
+            if (cafeRules.Count == 0)
+                continue;
+
+            foreach (var productionParcel in cafe.ProductionDB.ProductionParcelInfos)
+            {
+                if (productionParcel.Key == null)
+                    continue;
+
+                var rule = cafeRules
+                    .Where(x => x.CafeProductionParcelType == productionParcel.Key.Type && x.CafeProductionParcelId == productionParcel.Key.Id)
+                    .OrderByDescending(x => x.Rank)
+                    .FirstOrDefault();
+
+                if (rule == null)
+                    continue;
+
+                // Production scales with comfort and elapsed time.
+                // Coefficients are table-driven and not hardcoded per user.
+                var productionPerSecondRaw = (cafe.ProductionDB.ComfortValue * rule.ParcelProductionCoefficient) + rule.ParcelProductionCorrectionValue;
+                var producedAmount = Math.Max(0L, (productionPerSecondRaw * elapsedSeconds) / 10000L);
+                var storableAmount = Math.Min(rule.ParcelStorageMax, productionParcel.Amount + producedAmount);
+
+                if (storableAmount > 0)
+                {
+                    parcelResults.Add(new ParcelResult(productionParcel.Key.Type, productionParcel.Key.Id, storableAmount));
+                }
+
+                productionParcel.Amount = 0;
+            }
+
+            cafe.ProductionAppliedTime = now;
+            cafe.ProductionDB.AppliedDate = now;
+        }
+
+        var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelResults);
+        await context.SaveChangesAsync();
+
+        return (targetCafe, cafes, parcelResolver.ParcelResult);
+    }
+
+    private void EnsureProductionParcels(CafeDBServer cafe)
+    {
+        if (cafe.ProductionDB == null)
+        {
+            cafe.ProductionDB = new CafeProductionDBServer
+            {
+                CafeDBId = cafe.CafeDBId,
+                AppliedDate = cafe.ProductionAppliedTime,
+                ComfortValue = 0,
+                ProductionParcelInfos = []
+            };
+        }
+
+        var rules = _cafeProductionExcel
+            .Where(x => x.CafeId == cafe.CafeId && x.Rank <= cafe.CafeRank)
+            .GroupBy(x => new { x.CafeProductionParcelType, x.CafeProductionParcelId })
+            .Select(x => x.Key)
+            .ToList();
+
+        if (rules.Count == 0)
+            return;
+
+        cafe.ProductionDB.ProductionParcelInfos ??= [];
+
+        foreach (var rule in rules)
+        {
+            var exists = cafe.ProductionDB.ProductionParcelInfos.Any(x =>
+                x.Key != null &&
+                x.Key.Type == rule.CafeProductionParcelType &&
+                x.Key.Id == rule.CafeProductionParcelId);
+
+            if (!exists)
+            {
+                cafe.ProductionDB.ProductionParcelInfos.Add(new CafeProductionDBServer.CafeProductionParcelInfoServer
+                {
+                    Key = new ParcelKeyPair
+                    {
+                        Type = rule.CafeProductionParcelType,
+                        Id = rule.CafeProductionParcelId
+                    },
+                    Amount = 0
+                });
+            }
+        }
     }
 }
