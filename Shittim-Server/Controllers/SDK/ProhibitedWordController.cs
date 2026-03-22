@@ -7,6 +7,7 @@ namespace Shittim_Server.Controllers.SDK
     public class ProhibitedWordController : ControllerBase
     {
         [HttpGet("blacklist.csv")]
+        [HttpGet("blacklist")]
         public IResult GetBlacklistCsv()
         {
             Response.ContentType = "text/csv";
@@ -14,6 +15,7 @@ namespace Shittim_Server.Controllers.SDK
         }
 
         [HttpGet("chattingblacklist.csv")]
+        [HttpGet("chattingblacklist")]
         public IResult GetChattingBlacklistCsv()
         {
             Response.ContentType = "text/csv";
@@ -21,6 +23,7 @@ namespace Shittim_Server.Controllers.SDK
         }
 
         [HttpGet("whitelist.csv")]
+        [HttpGet("whitelist")]
         public IResult GetWhitelistCsv()
         {
             Response.ContentType = "text/csv";

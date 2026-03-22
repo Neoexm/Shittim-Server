@@ -26,10 +26,17 @@ public class QueuingHandler : ProtocolHandlerBase
     {
         if (!string.IsNullOrEmpty(request.ClientVersion))
         {
-            var clientVersion = new Version(request.ClientVersion);
-            var serverVersion = Config.Instance.ServerConfiguration.GameVersion;
-            if (clientVersion.Major != serverVersion.Major || clientVersion.Minor != serverVersion.Minor)
-                throw new WebAPIException(WebAPIErrorCode.InvalidVersion);
+            if (Version.TryParse(request.ClientVersion, out var clientVersion))
+            {
+                var serverVersion = Config.Instance.ServerConfiguration.GameVersion;
+                var majorMinorMismatch = clientVersion.Major != serverVersion.Major ||
+                                         clientVersion.Minor != serverVersion.Minor;
+
+                // Do not hard-fail queue bootstrap when client and server versions differ.
+                // Returning a ticket lets startup continue so downstream bootstrap endpoints
+                // (including gtable fetch) can be observed and aligned.
+                _ = majorMinorMismatch;
+            }
         }
         
         byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");

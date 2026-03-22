@@ -10,28 +10,39 @@ namespace Shittim_Server.Controllers.SDK
     {
         private readonly SchaleDataContext _context;
 
+        private const int DefaultToyServiceId = 2079;
+        private const int DefaultArenaProductId = 59754;
+        private const string DefaultPortalGameCode = "1000158";
+        private const int DefaultKrpcGameCode = 74280;
+        private const long DefaultNaServiceId = 1050768977;
+        private const string DefaultProjectId = "d8e6e343";
+
         public GTableInfaceController(SchaleDataContext context)
         {
             _context = context;
         }
 
-        [HttpGet("gid/2079.json")]
-        public IResult Gid()
+        [HttpGet("gid/{gid}.json")]
+        public IResult Gid(string gid)
         {
+            var toyServiceId = int.TryParse(gid, out var parsedGid)
+                ? parsedGid
+                : DefaultToyServiceId;
+
             var res = new GTableInfaceResponse()
             {
-                ToyServiceId = 2079,
-                ArenaProductId = 59754,
-                PortalGameCode = "1000158",
-                KrpcGameCode = 74280,
-                NaServiceId = 1050768977,
-                ProjectId = "d8e6e343",
+                ToyServiceId = toyServiceId,
+                ArenaProductId = DefaultArenaProductId,
+                PortalGameCode = DefaultPortalGameCode,
+                KrpcGameCode = DefaultKrpcGameCode,
+                NaServiceId = DefaultNaServiceId,
+                ProjectId = DefaultProjectId,
                 Guid = "guid",
                 StrEnvType = "LIVE",
                 GameReleaseStatus = "released",
                 GameNameKo = "블루 아카이브",
                 GameNameEn = "Blue Archive",
-                Gid = "2079",
+                Gid = gid,
                 LastModified = new()
                 {
                     ModifyDate = DateTime.Parse("2024-10-10"),

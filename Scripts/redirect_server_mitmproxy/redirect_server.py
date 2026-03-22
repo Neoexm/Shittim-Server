@@ -40,13 +40,20 @@ REWRITE_HOST_LIST = [
     'nxm-th-bagl.nexon.com',
     'nxm-or-bagl.nexon.com',
 
-    # Accounts
-    # 'public.api.nexon.com',
-    # 'signin.nexon.com',
+    # Accounts / Auth / SDK backends
+    'public.api.nexon.com',
+    'sandbox.api.nexon.com',
+    'signin.nexon.com',
+    'pre-signin.nexon.com',
+    'test-signin.nexon.com',
+    'dev-signin.nexon.com',
 
     # Other
     'psm-log.ngs.nexon.com',
-    'gtable.inface.nexon.com'
+    # GTable (all env variants)
+    'gtable.inface.nexon.com',
+    'test-gtable.inface.nexon.com',
+    'dev-gtable.inface.nexon.com'
 ]
 
 KILL_HOST_LIST = [
@@ -68,6 +75,9 @@ OTHER_KILL_HOST = [
 ]
 
 def request(flow: http.HTTPFlow) -> None:
+    if '/gid/' in flow.request.path:
+        print(f"[GTable] {flow.request.method} {flow.request.pretty_host}{flow.request.path}")
+
     if any(flow.request.pretty_host.endswith(host) for host in KILL_HOST_LIST):
         flow.kill()
         return
@@ -87,7 +97,8 @@ def request(flow: http.HTTPFlow) -> None:
     if flow.request.url.endswith("sdk-api/user-meta/last-login"):
         flow.kill()
         return
-    if flow.request.pretty_host in REWRITE_HOST_LIST:
+    if any(flow.request.pretty_host.endswith(host) for host in REWRITE_HOST_LIST):
+        print(f"[Rewrite] {flow.request.method} {flow.request.pretty_host}{flow.request.path} -> {SERVER_HOST}:{SERVER_PORT}")
         flow.request.scheme = 'http'
         flow.request.host = SERVER_HOST
         flow.request.port = SERVER_PORT

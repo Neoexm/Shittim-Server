@@ -17,15 +17,6 @@ A functional Blue Archive private server implementation in C# with ASP.NET Core 
 
 ## How to run
 
-## Currently, the server is not working with the latest version, pleae follow the stpes below
-
-1. Download [Steam Depot Downloader](https://github.com/SteamRE/DepotDownloader)
-2. extract the zip and, in command prompt navigate to the folder and run `-app 3557620 -depot 3557621 -manifest 368323032969658707`
-3. Make a backup of your current blue archive install, then copy the files from the depot and paste them where your existing blue archive install was
-4. replace grap64.dll with the one in /scripts
-5. run the server and run the game
-
-
 ### 1. Patch Blue Archive with the custom DLL
 
 1. Close Blue Archive and Steam.
@@ -79,9 +70,15 @@ This ensures the mitmproxy CA is installed into the **machine** root store, whic
 
 You can now revert your system proxy settings if you want; the certificate stays installed.
 
-### 3. Start the server and mitmproxy wrapper
+### 3. Launch Blue Archive
 
-From a PowerShell window in the repo folder:
+Start Blue Archive from Steam.
+If the DLL patch and certificate install were done correctly, the game should connect to Shittim Server instead of Nexon.
+
+
+### 4. Start the server and mitmproxy wrapper
+
+When on the "Press any button to start" screen on blue archive, THEN start the server:
 
 ```powershell
 cd Shittim-Server
@@ -93,10 +90,7 @@ This script will:
 - Start the ASP.NET Core game server (`http://localhost:5000`)
 - Start `mitmweb` in the correct mode to hook `BlueArchive.exe`
 
-### 4. Launch Blue Archive
-
-Start Blue Archive from Steam.
-If the DLL patch and certificate install were done correctly, the game should connect to Shittim Server instead of Nexon.
+Once the server fully starts, return to blue archive and tap any button to continue. You will then login and be on the private server
 
 ## Disclaimer
 

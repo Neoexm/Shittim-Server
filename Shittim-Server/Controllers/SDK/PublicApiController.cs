@@ -20,8 +20,22 @@ namespace Shittim_Server.Controllers.SDK
         }
 
         [HttpPost("gameclient/log")]
-        public IResult GameClientLog()
+        public async Task<IResult> GameClientLog()
         {
+            try
+            {
+                using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
+                var payload = await reader.ReadToEndAsync();
+                if (!string.IsNullOrWhiteSpace(payload))
+                {
+                    _logger.LogWarning("[GameClientLog] {Payload}", payload);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read gameclient/log payload");
+            }
+
             return Results.Json(new { code = 0 });
         }
 
