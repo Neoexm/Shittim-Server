@@ -10,9 +10,9 @@ if ($LASTEXITCODE -ne 0) {
     throw "Failed to install or upgrade PyInstaller"
 }
 
-python -m PyInstaller --noconfirm --clean --windowed --name "Shittim Console" .\shittim_console.py
+python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Console" .\shittim_console.py
 if ($LASTEXITCODE -ne 0) {
     throw "Build failed"
 }
 
-Write-Host "Build completed. Open .\dist\Shittim Console\ to access the executable." -ForegroundColor Green
+Write-Host "Build completed. Portable executable available at .\dist\Shittim Console.exe" -ForegroundColor Green
