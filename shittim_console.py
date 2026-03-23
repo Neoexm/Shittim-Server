@@ -62,6 +62,7 @@ class ShittimConsole:
         self.settings_path = self.config_dir / "console_settings.json"
         self.gacha_config_path = self.config_dir / "gacha_config.json"
         self.banner_config_path = self.config_dir / "banner_config.json"
+        self.update_state_path = self.config_dir / "update_state.json"
 
         self.status_palette = {
             "running": {"dot": "●", "label": "Running", "color": "#2fbf71"},
@@ -102,6 +103,8 @@ class ShittimConsole:
 
         self.settings = self.load_settings()
         self.apply_directory_settings()
+        self.update_state = self.load_update_state()
+        self.update_status = {"state": "unknown", "detail": "", "release_tag": None, "asset_url": None, "release_name": None}
         self._prepare_log_file()
         self.refresh_runtime_paths()
         self._apply_window_chrome()
@@ -112,6 +115,8 @@ class ShittimConsole:
         self.load_accounts()
         self.poll_logs()
         self.monitor_processes()
+        self.check_for_updates_async(initial=True)
+        self.schedule_update_check()
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def load_settings(self):
@@ -188,6 +193,14 @@ class ShittimConsole:
             self.root.after(0, lambda: self.apply_update_status(status, initial))
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def schedule_update_check(self):
+        interval_ms = 30 * 60 * 1000  # 30 minutes
+        self.update_check_after_id = self.root.after(interval_ms, self._periodic_update_check)
+
+    def _periodic_update_check(self):
+        self.check_for_updates_async(initial=False)
+        self.schedule_update_check()
 
     def collect_update_status(self):
         url = "https://api.github.com/repos/Neoexm/Shittim-Server/releases/latest"
@@ -269,6 +282,9 @@ class ShittimConsole:
             self.update_detail_label.configure(text=detail)
         if hasattr(self, "update_status_label"):
             self.update_status_label.configure(text=detail or summary, foreground=color_map.get(state, self.colors.get("text", "#edf2fb")))
+        if hasattr(self, "summary_cards") and "updates" in self.summary_cards:
+            self.summary_cards["updates"][0].configure(text=summary)
+            self.summary_cards["updates"][1].configure(text=detail)
 
     def install_latest_update(self):
         if self.install_in_progress:
@@ -547,7 +563,7 @@ class ShittimConsole:
 
         cards = ttk.Frame(body, style="App.TFrame")
         cards.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
-        for index in range(4):
+        for index in range(5):
             cards.grid_columnconfigure(index, weight=1)
 
         self.summary_cards = {}
@@ -556,6 +572,7 @@ class ShittimConsole:
             ("server", "Game Server", "Stopped"),
             ("mitm", "MITM Proxy", "Stopped"),
             ("accounts", "Accounts", "0 loaded"),
+            ("updates", "Updates", "Checking"),
         ]
         for idx, (key, title, value) in enumerate(card_specs):
             card = ttk.Frame(cards, style="Surface.TFrame", padding=(18, 16, 18, 16))
@@ -850,8 +867,19 @@ class ShittimConsole:
         ttk.Button(dep_actions, text="Open .NET download", style="Secondary.TButton", command=lambda: webbrowser.open("https://dotnet.microsoft.com/download")).pack(side="left")
         ttk.Button(dep_actions, text="Open mitmproxy docs", style="Secondary.TButton", command=lambda: webbrowser.open("https://mitmproxy.org" )).pack(side="left", padx=8)
 
+        update_card = ttk.Frame(body, style="Surface.TFrame", padding=(18, 16, 18, 16))
+        update_card.grid(row=0, column=1, sticky="nsew", pady=(0, 16))
+        ttk.Label(update_card, text="Software updates", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Label(update_card, text="Check for new releases and install updates from GitHub.", style="Muted.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 14))
+        self.update_status_label = ttk.Label(update_card, text="Not checked yet", style="Body.TLabel")
+        self.update_status_label.grid(row=2, column=0, sticky="w", pady=(0, 10))
+        update_actions = ttk.Frame(update_card, style="Surface.TFrame")
+        update_actions.grid(row=3, column=0, sticky="w")
+        ttk.Button(update_actions, text="Check for updates", style="Secondary.TButton", command=lambda: self.check_for_updates_async(initial=False)).pack(side="left")
+        ttk.Button(update_actions, text="Install latest update", style="Primary.TButton", command=self.install_latest_update).pack(side="left", padx=8)
+
         certs = ttk.Frame(body, style="Surface.TFrame", padding=(18, 16, 18, 16))
-        certs.grid(row=0, column=1, sticky="nsew", pady=(0, 16))
+        certs.grid(row=2, column=0, columnspan=2, sticky="nsew", pady=(16, 0))
         ttk.Label(certs, text="Certificate management", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(certs, text="Install, remove, or repair the local mitmproxy trust configuration.", style="Muted.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 14))
         cert_actions = ttk.Frame(certs, style="Surface.TFrame")
@@ -882,7 +910,7 @@ class ShittimConsole:
         ttk.Button(packaging, text="Open dist folder", style="Secondary.TButton", command=self.open_dist_folder).grid(row=3, column=0, sticky="w", pady=(8, 0))
 
         logs = ttk.Frame(body, style="Surface.TFrame", padding=(18, 16, 18, 16))
-        logs.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(16, 0))
+        logs.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(16, 0))
         ttk.Label(logs, text="Logs", style="CardTitle.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(logs, text="Session logs are stored in your user directory and replaced each time the console starts.", style="Muted.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 14))
         log_actions = ttk.Frame(logs, style="Surface.TFrame")
@@ -2083,6 +2111,8 @@ class ShittimConsole:
         self.stop_environment()
         if self.monitor_after_id:
             self.root.after_cancel(self.monitor_after_id)
+        if hasattr(self, "update_check_after_id") and self.update_check_after_id:
+            self.root.after_cancel(self.update_check_after_id)
         self.root.destroy()
 
 
