@@ -34,7 +34,7 @@ jobs:
       - name: Compile Python sources
         shell: pwsh
         run: |
-          python -m py_compile .\shittim_console.py .\admin_gui.py
+          python -m py_compile .\shittim_console.py
 
       - name: Build Shittim Server executable
         shell: pwsh
@@ -53,9 +53,24 @@ jobs:
       - name: Package release archive
         shell: pwsh
         run: |
-          $tag = "${{ steps.version.outputs.tag }}"
+          $packageDir = ".\release-package"
           $assetName = "${{ steps.version.outputs.asset_name }}"
-          Compress-Archive -Path ".\dist\Shittim Server.exe" -DestinationPath ".\$assetName" -Force
+          if (Test-Path $packageDir) {
+            Remove-Item $packageDir -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $packageDir | Out-Null
+
+          Copy-Item ".\dist\Shittim Server.exe" "$packageDir\Shittim Server.exe"
+          Copy-Item ".\README.md" "$packageDir\README.md"
+          Copy-Item ".\autorun.ps1" "$packageDir\autorun.ps1"
+          Copy-Item ".\Shittim-Server.sln" "$packageDir\Shittim-Server.sln"
+          Copy-Item ".\Shittim-Server" "$packageDir\Shittim-Server" -Recurse
+          Copy-Item ".\Schale" "$packageDir\Schale" -Recurse
+          Copy-Item ".\Scripts" "$packageDir\Scripts" -Recurse
+          Copy-Item ".\MemoryDumper" "$packageDir\MemoryDumper" -Recurse
+
+          Compress-Archive -Path "$packageDir\*" -DestinationPath ".\$assetName" -Force
 
       - name: Create Git tag
         shell: pwsh
