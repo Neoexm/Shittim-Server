@@ -16,7 +16,7 @@ import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from tkinter import messagebox, scrolledtext, ttk
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 
 APP_TITLE = "Shittim Server"
@@ -39,13 +39,21 @@ class ShittimConsole:
         self.root.minsize(1240, 820)
 
         self.base_dir = Path(__file__).resolve().parent
+        self.launch_dir = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else self.base_dir
         self.appdata_dir = Path(os.environ.get("APPDATA", str(Path.home() / "AppData" / "Roaming"))) / "Shittim Server"
         self.appdata_dir.mkdir(parents=True, exist_ok=True)
         self.server_dir = self.appdata_dir / "Shittim-Server"
         self.server_project = self.server_dir / "Shittim-Server.csproj"
-        self.database_path = self.server_dir / "shittim.sqlite3"
+        self.server_runtime_dir = self.appdata_dir / "server-runtime"
+        self.server_runtime_executable = self.server_runtime_dir / "Shittim-Server.exe"
+        self.source_database_path = self.server_dir / "shittim.sqlite3"
+        self.runtime_database_path = self.server_runtime_dir / "shittim.sqlite3"
+        self.database_path = self.source_database_path
         self.mitm_script_dir = self.appdata_dir / "Scripts" / "redirect_server_mitmproxy"
         self.mitm_script_path = self.mitm_script_dir / "redirect_server.py"
+        self.bundled_runtime_dir = self.launch_dir / "server-runtime"
+        self.bundled_source_dir = self.launch_dir / "Shittim-Server"
+        self.bundled_scripts_dir = self.launch_dir / "Scripts"
         self.config_dir = self.appdata_dir / ".shittim-console"
         self.config_dir.mkdir(exist_ok=True)
         self.logs_dir = self.config_dir / "logs"
@@ -91,9 +99,11 @@ class ShittimConsole:
         self.refresh_in_progress = False
         self.install_in_progress = False
         self.install_prompt_shown = False
-        self._prepare_log_file()
 
         self.settings = self.load_settings()
+        self.apply_directory_settings()
+        self._prepare_log_file()
+        self.refresh_runtime_paths()
         self._apply_window_chrome()
         self._configure_theme()
         self._build_layout()
@@ -116,6 +126,8 @@ class ShittimConsole:
             "dotnet_arguments": "run --project Shittim-Server.csproj",
             "mitm_arguments": "--no-http2 -s redirect_server.py --set termlog_verbosity=warn --mode local:BlueArchive.exe",
             "auto_refresh_seconds": 20,
+            "install_dir": "",
+            "logs_dir": "",
         }
         if self.settings_path.exists():
             try:
@@ -127,6 +139,209 @@ class ShittimConsole:
 
     def save_settings(self):
         self.settings_path.write_text(json.dumps(self.settings, indent=2), encoding="utf-8")
+
+    def apply_directory_settings(self):
+        install_dir = self.settings.get("install_dir", "").strip()
+        if install_dir:
+            self.install_dir = Path(install_dir)
+        else:
+            self.install_dir = self.appdata_dir
+        self.install_dir.mkdir(parents=True, exist_ok=True)
+
+        self.server_dir = self.install_dir / "Shittim-Server"
+        self.server_project = self.server_dir / "Shittim-Server.csproj"
+        self.server_runtime_dir = self.install_dir / "server-runtime"
+        self.server_runtime_executable = self.server_runtime_dir / "Shittim-Server.exe"
+        self.source_database_path = self.server_dir / "shittim.sqlite3"
+        self.runtime_database_path = self.server_runtime_dir / "shittim.sqlite3"
+        self.database_path = self.source_database_path
+        self.mitm_script_dir = self.install_dir / "Scripts" / "redirect_server_mitmproxy"
+        self.mitm_script_path = self.mitm_script_dir / "redirect_server.py"
+
+        logs_dir = self.settings.get("logs_dir", "").strip()
+        if logs_dir:
+            self.logs_dir = Path(logs_dir)
+        else:
+            self.logs_dir = self.config_dir / "logs"
+        self.logs_dir.mkdir(parents=True, exist_ok=True)
+        self.current_log_path = self.logs_dir / "current-session.log"
+
+    def load_update_state(self):
+        defaults = {"last_seen_release": None, "last_checked": None, "asset_url": None, "release_name": None}
+        if self.update_state_path.exists():
+            try:
+                loaded = json.loads(self.update_state_path.read_text(encoding="utf-8"))
+                defaults.update(loaded)
+            except Exception:
+                pass
+        return defaults
+
+    def save_update_state(self):
+        self.update_state_path.write_text(json.dumps(self.update_state, indent=2), encoding="utf-8")
+
+    def check_for_updates_async(self, initial=False):
+        self.update_status = {"state": "checking", "detail": "Checking latest release", "release_tag": None, "asset_url": None, "release_name": None}
+        self.update_update_views()
+
+        def worker():
+            status = self.collect_update_status()
+            self.root.after(0, lambda: self.apply_update_status(status, initial))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def collect_update_status(self):
+        url = "https://api.github.com/repos/Neoexm/Shittim-Server/releases/latest"
+        request = urllib.request.Request(url, headers={"User-Agent": "Shittim-Server"})
+        try:
+            with urllib.request.urlopen(request, timeout=15) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            release_tag = payload.get("tag_name")
+            release_name = payload.get("name") or release_tag
+            assets = payload.get("assets", [])
+            asset_url = None
+            for asset in assets:
+                name = asset.get("name", "")
+                if name.lower().endswith(".zip"):
+                    asset_url = asset.get("browser_download_url")
+                    break
+            if not release_tag:
+                return {"state": "failed", "detail": "No published release tag was found", "release_tag": None, "asset_url": None, "release_name": None}
+
+            last_seen = self.update_state.get("last_seen_release")
+            if not last_seen:
+                state = "ready"
+                detail = f"Tracking latest release {release_tag}."
+            elif release_tag != last_seen:
+                state = "available"
+                detail = f"New release available: {release_tag}"
+            else:
+                state = "current"
+                detail = f"You are on the latest release: {release_tag}"
+
+            return {"state": state, "detail": detail, "release_tag": release_tag, "asset_url": asset_url, "release_name": release_name}
+        except Exception as exc:
+            return {"state": "failed", "detail": f"Update check failed: {exc}", "release_tag": None, "asset_url": None, "release_name": None}
+
+    def apply_update_status(self, status, initial=False):
+        self.update_status = status
+        self.update_state["last_checked"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if status.get("asset_url"):
+            self.update_state["asset_url"] = status["asset_url"]
+        if status.get("release_name"):
+            self.update_state["release_name"] = status["release_name"]
+        if initial and status.get("release_tag") and not self.update_state.get("last_seen_release"):
+            self.update_state["last_seen_release"] = status["release_tag"]
+            self.save_update_state()
+            self.update_status = {
+                "state": "current",
+                "detail": f"Tracking latest release {status['release_tag']}",
+                "release_tag": status["release_tag"],
+                "asset_url": status.get("asset_url"),
+                "release_name": status.get("release_name"),
+            }
+        else:
+            self.save_update_state()
+        self.update_update_views()
+
+    def update_update_views(self):
+        state = self.update_status.get("state", "unknown") if hasattr(self, "update_status") else "unknown"
+        detail = self.update_status.get("detail", "") if hasattr(self, "update_status") else ""
+        label_map = {
+            "checking": "Checking",
+            "available": "Update available",
+            "current": "Up to date",
+            "ready": "Tracking current",
+            "failed": "Check failed",
+            "unknown": "Unknown",
+        }
+        summary = label_map.get(state, "Unknown")
+        color_map = {
+            "checking": self.colors.get("muted", "#9aa6b8"),
+            "available": self.colors.get("warning", "#f5a524"),
+            "current": self.colors.get("success", "#2fbf71"),
+            "ready": self.colors.get("success", "#2fbf71"),
+            "failed": self.colors.get("danger", "#e25555"),
+            "unknown": self.colors.get("muted", "#9aa6b8"),
+        }
+        if hasattr(self, "update_value_label"):
+            self.update_value_label.configure(text=summary)
+        if hasattr(self, "update_detail_label"):
+            self.update_detail_label.configure(text=detail)
+        if hasattr(self, "update_status_label"):
+            self.update_status_label.configure(text=detail or summary, foreground=color_map.get(state, self.colors.get("text", "#edf2fb")))
+
+    def install_latest_update(self):
+        if self.install_in_progress:
+            messagebox.showinfo(APP_TITLE, "Project installation is already running")
+            return
+        self.install_release_async()
+
+    def install_release_async(self):
+        if self.install_in_progress:
+            return
+        asset_url = self.update_status.get("asset_url")
+        release_tag = self.update_status.get("release_tag")
+        if not asset_url or not release_tag:
+            messagebox.showerror(APP_TITLE, "No downloadable release asset is currently available")
+            return
+        self.install_in_progress = True
+        self.append_log("Updater", f"Installing release {release_tag}")
+        threading.Thread(target=self._install_release_worker, args=(asset_url, release_tag), daemon=True).start()
+
+    def _install_release_worker(self, asset_url, release_tag):
+        temp_dir = None
+        try:
+            temp_dir = Path(tempfile.mkdtemp(prefix="shittim-release-"))
+            archive_path = temp_dir / "release.zip"
+            extract_dir = temp_dir / "extract"
+            self.append_log("Updater", f"Downloading release asset from {asset_url}")
+            urllib.request.urlretrieve(asset_url, archive_path)
+            extract_dir.mkdir(parents=True, exist_ok=True)
+            with zipfile.ZipFile(archive_path, "r") as zip_ref:
+                zip_ref.extractall(extract_dir)
+            self.install_extracted_payload(extract_dir)
+            self.update_state["last_seen_release"] = release_tag
+            self.update_state["asset_url"] = asset_url
+            self.save_update_state()
+            self.update_status = {
+                "state": "current",
+                "detail": f"Installed latest release {release_tag}",
+                "release_tag": release_tag,
+                "asset_url": asset_url,
+                "release_name": self.update_status.get("release_name"),
+            }
+            self.root.after(0, self.update_update_views)
+            self.root.after(0, lambda: messagebox.showinfo(APP_TITLE, f"Release {release_tag} installed successfully"))
+        except Exception as exc:
+            self.append_log("Updater", f"Release installation failed: {exc}")
+            self.root.after(0, lambda: messagebox.showerror(APP_TITLE, f"Failed to install release: {exc}"))
+        finally:
+            self.install_in_progress = False
+            if temp_dir and temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            self.refresh_runtime_paths()
+            self.root.after(0, self.refresh_environment_async)
+
+    def refresh_runtime_paths(self):
+        self.database_path = self.runtime_database_path if self.server_runtime_executable.exists() else self.source_database_path
+
+    def has_published_server(self):
+        return self.server_runtime_executable.exists()
+
+    def has_server_source(self):
+        return self.server_project.exists()
+
+    def has_local_release_payload(self):
+        return self.bundled_runtime_dir.exists() or self.bundled_source_dir.exists() or self.bundled_scripts_dir.exists()
+
+    def server_installation_available(self):
+        return self.has_published_server() or self.has_server_source()
+
+    def get_server_launch_target(self):
+        if self.has_published_server():
+            return [str(self.server_runtime_executable)], self.server_runtime_dir, "Using prepublished server runtime"
+        args = ["dotnet"] + self.settings.get("dotnet_arguments", "run --project Shittim-Server.csproj").split()
+        return args, self.server_dir, "Using source-based dotnet launch"
 
     def _apply_window_chrome(self):
         self.root.configure(bg="#10141d")
@@ -648,12 +863,16 @@ class ShittimConsole:
         settings = ttk.Frame(body, style="Surface.TFrame", padding=(18, 16, 18, 16))
         settings.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
         settings.grid_columnconfigure(1, weight=1)
-        ttk.Label(settings, text="Launch settings", style="CardTitle.TLabel").grid(row=0, column=0, columnspan=2, sticky="w")
-        self.server_port_entry = self._grid_labeled_entry(settings, "Server port", 1, str(self.settings.get("server_port", 5000)), width=34)
-        self.mitm_listen_port_entry = self._grid_labeled_entry(settings, "MITM listen port", 2, str(self.settings.get("mitm_listen_port", 8080)), width=34)
-        self.mitm_web_port_entry = self._grid_labeled_entry(settings, "MITM web port", 3, str(self.settings.get("mitm_web_port", 8081)), width=34)
-        self.mitm_mode_entry = self._grid_labeled_entry(settings, "MITM mode", 4, self.settings.get("mitm_mode", "local:BlueArchive.exe"), width=34)
-        ttk.Button(settings, text="Save settings", style="Primary.TButton", command=self.save_management_settings).grid(row=5, column=1, sticky="w", pady=(14, 0))
+        ttk.Label(settings, text="Settings", style="CardTitle.TLabel").grid(row=0, column=0, columnspan=3, sticky="w")
+        self.install_dir_entry = self._grid_labeled_entry(settings, "Install directory", 1, str(self.settings.get("install_dir", "").strip() or self.appdata_dir), width=34)
+        ttk.Button(settings, text="Browse", style="Secondary.TButton", command=self.browse_install_dir).grid(row=1, column=2, sticky="w", padx=(8, 0), pady=8)
+        self.logs_dir_entry = self._grid_labeled_entry(settings, "Log directory", 2, str(self.settings.get("logs_dir", "").strip() or self.logs_dir), width=34)
+        ttk.Button(settings, text="Browse", style="Secondary.TButton", command=self.browse_logs_dir).grid(row=2, column=2, sticky="w", padx=(8, 0), pady=8)
+        self.server_port_entry = self._grid_labeled_entry(settings, "Server port", 3, str(self.settings.get("server_port", 5000)), width=34)
+        self.mitm_listen_port_entry = self._grid_labeled_entry(settings, "MITM listen port", 4, str(self.settings.get("mitm_listen_port", 8080)), width=34)
+        self.mitm_web_port_entry = self._grid_labeled_entry(settings, "MITM web port", 5, str(self.settings.get("mitm_web_port", 8081)), width=34)
+        self.mitm_mode_entry = self._grid_labeled_entry(settings, "MITM mode", 6, self.settings.get("mitm_mode", "local:BlueArchive.exe"), width=34)
+        ttk.Button(settings, text="Save settings", style="Primary.TButton", command=self.save_management_settings).grid(row=7, column=1, sticky="w", pady=(14, 0))
 
         packaging = ttk.Frame(body, style="Surface.TFrame", padding=(18, 16, 18, 16))
         packaging.grid(row=1, column=1, sticky="nsew")
@@ -726,6 +945,7 @@ class ShittimConsole:
         threading.Thread(target=worker, daemon=True).start()
 
     def collect_environment_status(self):
+        self.refresh_runtime_paths()
         status = {
             "dotnet": self.check_dotnet(),
             "python": self.check_python(),
@@ -778,7 +998,7 @@ class ShittimConsole:
 
         next_actions = []
         if self.environment["server_project"]["status"] != "ready" or self.environment["mitm_script"]["status"] != "ready":
-            next_actions.append(f"• Install the project files into {self.appdata_dir} to restore the game server and redirect script.")
+            next_actions.append(f"• Install the project files into {self.install_dir} to restore the game server and redirect script.")
         if self.environment["dotnet"]["status"] != "ready":
             next_actions.append("• Install .NET SDK 6 or newer and verify the dotnet command is available.")
         if self.environment["mitmweb"]["status"] != "ready":
@@ -800,6 +1020,8 @@ class ShittimConsole:
         return self.status_palette.get(status, self.status_palette["unknown"])["label"]
 
     def check_dotnet(self):
+        if self.has_published_server():
+            return {"status": "ready", "detail": "Prepublished server runtime available; dotnet SDK not required for launch"}
         dotnet_path = shutil.which("dotnet")
         if not dotnet_path:
             return {"status": "missing", "detail": ".NET SDK 6+ not found in PATH"}
@@ -853,14 +1075,17 @@ class ShittimConsole:
             return {"status": "warning", "detail": f"Certificate check failed: {exc}"}
 
     def check_database(self):
+        self.refresh_runtime_paths()
         if self.database_path.exists():
             return {"status": "ready", "detail": f"Found {self.database_path.name}"}
         return {"status": "warning", "detail": "Database not found yet; account tools will stay unavailable until created"}
 
     def check_server_project(self):
+        if self.has_published_server():
+            return {"status": "ready", "detail": f"Published server ready in {self.server_runtime_dir}"}
         if self.server_project.exists():
-            return {"status": "ready", "detail": f"Installed in {self.server_dir}"}
-        return {"status": "missing", "detail": f"Server project is not installed in {self.appdata_dir}"}
+            return {"status": "ready", "detail": f"Source server installed in {self.server_dir}"}
+        return {"status": "missing", "detail": f"Server files are not installed in {self.install_dir}"}
 
     def check_mitm_script(self):
         if self.mitm_script_path.exists():
@@ -868,7 +1093,7 @@ class ShittimConsole:
         return {"status": "missing", "detail": "Redirect script is not installed yet"}
 
     def project_install_required(self):
-        return self.environment["server_project"]["status"] != "ready" or self.environment["mitm_script"]["status"] != "ready"
+        return not self.server_installation_available() or self.environment["mitm_script"]["status"] != "ready"
 
     def maybe_prompt_install(self):
         if self.install_in_progress:
@@ -881,7 +1106,7 @@ class ShittimConsole:
         self.install_prompt_shown = True
         should_install = messagebox.askyesno(
             APP_TITLE,
-            f"Project files are missing. Install Shittim Server into {self.appdata_dir}?",
+            f"Project files are missing. Install Shittim Server into {self.install_dir}?",
         )
         if should_install:
             self.install_project_async()
@@ -892,7 +1117,7 @@ class ShittimConsole:
             return
         should_install = messagebox.askyesno(
             APP_TITLE,
-            f"Download and install the project from https://github.com/Neoexm/Shittim-Server into {self.appdata_dir}?",
+            f"Download and install the project from https://github.com/Neoexm/Shittim-Server into {self.install_dir}?",
         )
         if should_install:
             self.install_project_async()
@@ -1400,8 +1625,10 @@ class ShittimConsole:
         self.root.after(1500, self.start_mitm_process)
 
     def start_server_process(self):
-        args = ["dotnet"] + self.settings.get("dotnet_arguments", "run --project Shittim-Server.csproj").split()
-        self.spawn_process("server", args, self.server_dir)
+        self.refresh_runtime_paths()
+        args, cwd, detail = self.get_server_launch_target()
+        self.runtime["server"].detail = detail
+        self.spawn_process("server", args, cwd)
 
     def start_mitm_process(self):
         mitm_args = self.build_mitm_command()
@@ -1487,7 +1714,7 @@ class ShittimConsole:
         if self.install_in_progress:
             return
         self.install_in_progress = True
-        self.append_log("Installer", f"Installing project files into {self.appdata_dir}")
+        self.append_log("Installer", f"Installing project files into {self.install_dir}")
         threading.Thread(target=self._install_project_worker, args=(mark_commit_current,), daemon=True).start()
 
     def _install_project_worker(self, mark_commit_current=False):
@@ -1497,6 +1724,26 @@ class ShittimConsole:
         ]
         temp_dir = None
         try:
+            if self.has_local_release_payload():
+                self.append_log("Installer", "Installing bundled release payload")
+                self.install_bundled_payload()
+                self.append_log("Installer", "Bundled release payload installed successfully")
+                if mark_commit_current and self.update_status.get("release_tag"):
+                    self.update_state["last_seen_release"] = self.update_status.get("release_tag")
+                    if self.update_status.get("asset_url"):
+                        self.update_state["asset_url"] = self.update_status["asset_url"]
+                    self.save_update_state()
+                    self.update_status = {
+                        "state": "current",
+                        "detail": f"Installed latest release {self.update_state['last_seen_release']}",
+                        "release_tag": self.update_state["last_seen_release"],
+                        "asset_url": self.update_state.get("asset_url"),
+                        "release_name": self.update_state.get("release_name"),
+                    }
+                    self.root.after(0, self.update_update_views)
+                self.root.after(0, lambda: messagebox.showinfo(APP_TITLE, f"Bundled server installed into {self.install_dir}"))
+                return
+
             temp_dir = Path(tempfile.mkdtemp(prefix="shittim-console-"))
             archive_path = temp_dir / "shittim-server.zip"
             last_error = None
@@ -1521,8 +1768,8 @@ class ShittimConsole:
                 raise RuntimeError("Downloaded archive did not contain a project folder")
 
             source_root = extracted_roots[0]
-            if self.appdata_dir.exists():
-                for child in self.appdata_dir.iterdir():
+            if self.install_dir.exists():
+                for child in self.install_dir.iterdir():
                     if child.name == ".shittim-console":
                         continue
                     if child.is_dir():
@@ -1531,26 +1778,27 @@ class ShittimConsole:
                         child.unlink(missing_ok=True)
 
             for child in source_root.iterdir():
-                destination = self.appdata_dir / child.name
+                destination = self.install_dir / child.name
                 if child.is_dir():
                     shutil.copytree(child, destination, dirs_exist_ok=True)
                 else:
                     shutil.copy2(child, destination)
 
             self.append_log("Installer", "Project files installed successfully")
-            if mark_commit_current and self.update_status.get("remote_commit"):
-                self.update_state["last_seen_commit"] = self.update_status["remote_commit"]
-                if self.update_status.get("branch"):
-                    self.update_state["branch"] = self.update_status["branch"]
+            if mark_commit_current and self.update_status.get("release_tag"):
+                self.update_state["last_seen_release"] = self.update_status["release_tag"]
+                if self.update_status.get("asset_url"):
+                    self.update_state["asset_url"] = self.update_status["asset_url"]
                 self.save_update_state()
                 self.update_status = {
                     "state": "current",
-                    "detail": f"Installed latest commit {self.update_state['last_seen_commit'][:7]}",
-                    "remote_commit": self.update_state["last_seen_commit"],
-                    "branch": self.update_state.get("branch"),
+                    "detail": f"Installed latest release {self.update_state['last_seen_release']}",
+                    "release_tag": self.update_state["last_seen_release"],
+                    "asset_url": self.update_state.get("asset_url"),
+                    "release_name": self.update_state.get("release_name"),
                 }
                 self.root.after(0, self.update_update_views)
-            self.root.after(0, lambda: messagebox.showinfo(APP_TITLE, f"Project installed into {self.appdata_dir}"))
+            self.root.after(0, lambda: messagebox.showinfo(APP_TITLE, f"Project installed into {self.install_dir}"))
         except Exception as exc:
             self.append_log("Installer", f"Installation failed: {exc}")
             self.root.after(0, lambda: messagebox.showerror(APP_TITLE, f"Failed to install project: {exc}"))
@@ -1558,7 +1806,53 @@ class ShittimConsole:
             self.install_in_progress = False
             if temp_dir and temp_dir.exists():
                 shutil.rmtree(temp_dir, ignore_errors=True)
+            self.refresh_runtime_paths()
             self.root.after(0, self.refresh_environment_async)
+
+    def install_bundled_payload(self):
+        payload_root = Path(tempfile.mkdtemp(prefix="shittim-bundled-"))
+        try:
+            bundle_map = [
+                (self.bundled_runtime_dir, payload_root / "server-runtime"),
+                (self.bundled_source_dir, payload_root / "Shittim-Server"),
+                (self.bundled_scripts_dir, payload_root / "Scripts"),
+            ]
+
+            copied_any = False
+            for source, destination in bundle_map:
+                if source.exists():
+                    shutil.copytree(source, destination, dirs_exist_ok=True)
+                    copied_any = True
+
+            if not copied_any:
+                raise RuntimeError("No bundled release payload was found next to the executable")
+
+            self.install_extracted_payload(payload_root)
+        finally:
+            shutil.rmtree(payload_root, ignore_errors=True)
+
+    def install_extracted_payload(self, payload_root: Path):
+        if self.install_dir.exists():
+            for child in self.install_dir.iterdir():
+                if child.name == ".shittim-console":
+                    continue
+                if child.is_dir():
+                    shutil.rmtree(child, ignore_errors=True)
+                else:
+                    child.unlink(missing_ok=True)
+
+        copied_any = False
+        for child in payload_root.iterdir():
+            destination = self.install_dir / child.name
+            if child.is_dir():
+                shutil.copytree(child, destination, dirs_exist_ok=True)
+                copied_any = True
+            elif child.is_file():
+                shutil.copy2(child, destination)
+                copied_any = True
+
+        if not copied_any:
+            raise RuntimeError("No bundled release payload was found next to the executable")
 
     def stop_process(self, key):
         runtime = self.runtime[key]
@@ -1687,6 +1981,12 @@ class ShittimConsole:
 
     def save_management_settings(self):
         try:
+            new_install_dir = self.install_dir_entry.get().strip()
+            new_logs_dir = self.logs_dir_entry.get().strip()
+            default_install = str(self.appdata_dir)
+            default_logs = str(self.config_dir / "logs")
+            self.settings["install_dir"] = "" if new_install_dir == default_install else new_install_dir
+            self.settings["logs_dir"] = "" if new_logs_dir == default_logs else new_logs_dir
             self.settings["server_port"] = int(self.server_port_entry.get())
             self.settings["mitm_listen_port"] = int(self.mitm_listen_port_entry.get())
             self.settings["mitm_web_port"] = int(self.mitm_web_port_entry.get())
@@ -1695,11 +1995,26 @@ class ShittimConsole:
             self.settings["server_url"] = f"http://localhost:{self.settings['server_port']}"
             self.settings["mitm_url"] = f"http://127.0.0.1:{self.settings['mitm_web_port']}"
             self.save_settings()
-            self.append_log("Management", "Launch settings updated")
+            self.apply_directory_settings()
+            self.refresh_runtime_paths()
+            self.append_log("Management", "Settings updated")
             self.update_runtime_labels()
-            messagebox.showinfo(APP_TITLE, "Launch settings saved")
+            messagebox.showinfo(APP_TITLE, "Settings saved. Directory changes take effect immediately.")
+            self.refresh_environment_async()
         except Exception as exc:
             messagebox.showerror(APP_TITLE, f"Failed to save settings: {exc}")
+
+    def browse_install_dir(self):
+        current = self.install_dir_entry.get().strip()
+        chosen = filedialog.askdirectory(initialdir=current or str(self.appdata_dir), title="Select install directory")
+        if chosen:
+            self._set_entry(self.install_dir_entry, chosen)
+
+    def browse_logs_dir(self):
+        current = self.logs_dir_entry.get().strip()
+        chosen = filedialog.askdirectory(initialdir=current or str(self.logs_dir), title="Select log directory")
+        if chosen:
+            self._set_entry(self.logs_dir_entry, chosen)
 
     def build_console(self):
         if not messagebox.askyesno(APP_TITLE, "Build a distributable executable for the console now?"):
