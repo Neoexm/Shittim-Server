@@ -1,10 +1,6 @@
 name: Build and Release Shittim Server
 
 on:
-  push:
-    branches:
-      - main
-      - master
   workflow_dispatch:
 
 permissions:
@@ -25,6 +21,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          include-prerelease: true
+
       - name: Install build dependencies
         shell: pwsh
         run: |
@@ -40,6 +42,11 @@ jobs:
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Server" .\shittim_console.py
+
+      - name: Publish server runtime
+        shell: pwsh
+        run: |
+          dotnet publish .\Shittim-Server\Shittim-Server.csproj -c Release -r win-x64 --self-contained true -o .\server-runtime
 
       - name: Generate release tag
         id: version
@@ -62,13 +69,9 @@ jobs:
           New-Item -ItemType Directory -Path $packageDir | Out-Null
 
           Copy-Item ".\dist\Shittim Server.exe" "$packageDir\Shittim Server.exe"
+          Copy-Item ".\server-runtime" "$packageDir\server-runtime" -Recurse
           Copy-Item ".\README.md" "$packageDir\README.md"
-          Copy-Item ".\autorun.ps1" "$packageDir\autorun.ps1"
-          Copy-Item ".\Shittim-Server.sln" "$packageDir\Shittim-Server.sln"
-          Copy-Item ".\Shittim-Server" "$packageDir\Shittim-Server" -Recurse
-          Copy-Item ".\Schale" "$packageDir\Schale" -Recurse
           Copy-Item ".\Scripts" "$packageDir\Scripts" -Recurse
-          Copy-Item ".\MemoryDumper" "$packageDir\MemoryDumper" -Recurse
 
           Compress-Archive -Path "$packageDir\*" -DestinationPath ".\$assetName" -Force
 
