@@ -1341,6 +1341,27 @@ class ShittimConsole:
         ttk.Label(shell, text="Character browser", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(shell, text="Search by character name or numeric identifier.", style="Muted.TLabel").pack(anchor="w", pady=(4, 12))
 
+        tab = ttk.Frame(shell, style="Surface.TFrame")
+        tab.pack(fill="x", pady=(0, 12))
+        
+        tab_buttons = {}
+        current_filter = {"type": "all"}
+        
+        def add_filter(filter_type):
+            current_filter["type"] = filter_type
+            for btn_type, btn in tab_buttons.items():
+                if btn_type == filter_type:
+                    btn.configure(style="NavSelected.TButton")
+                else:
+                    btn.configure(style="Nav.TButton")
+            update_list(search_entry.get())
+        
+        for tab_type in ["All","Striker","Special"]:
+            style="NavSelected.TButton" if tab_type=="All" else "Nav.TButton"
+            btn=ttk.Button(tab,text=tab_type,style=style,command=lambda t=tab_type.lower():add_filter(t))
+            btn.pack(side="left",padx=4)
+            tab_buttons[tab_type.lower()]=btn
+
         search_bar = ttk.Frame(shell, style="Surface.TFrame")
         search_bar.pack(fill="x")
         search_entry = ttk.Entry(search_bar, width=36)
@@ -1351,7 +1372,11 @@ class ShittimConsole:
 
         def update_list(term=""):
             char_listbox.delete(0, tk.END)
+            filter_type = current_filter["type"]
             for char_id, char_name in characters:
+                char_category = self.get_character_type(char_id)
+                if filter_type != "all" and filter_type != char_category:
+                    continue
                 if not term or term.lower() in char_name.lower() or term in str(char_id):
                     char_listbox.insert(tk.END, f"[{char_id}] {char_name}")
 
@@ -1361,7 +1386,8 @@ class ShittimConsole:
                 return
             selected_text = char_listbox.get(selection[0])
             char_id = selected_text.split("]")[0].replace("[", "")
-            self._set_entry(self.guarantee_char_entry, char_id)
+            char_name = selected_text.split("] ")[1]
+            self._set_entry(self.guarantee_char_entry, f"{char_id} ({char_name})")
             window.destroy()
 
         ttk.Button(search_bar, text="Search", style="Secondary.TButton", command=lambda: update_list(search_entry.get())).pack(side="left", padx=8)
@@ -1380,6 +1406,27 @@ class ShittimConsole:
         ttk.Label(shell, text="Select character", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(shell, text="Choose a character to populate the spawn form.", style="Muted.TLabel").pack(anchor="w", pady=(4, 12))
 
+        tab = ttk.Frame(shell, style="Surface.TFrame")
+        tab.pack(fill="x", pady=(0, 12))
+        
+        tab_buttons = {}
+        current_filter = {"type": "all"}
+        
+        def add_filter(filter_type):
+            current_filter["type"] = filter_type
+            for btn_type, btn in tab_buttons.items():
+                if btn_type == filter_type:
+                    btn.configure(style="NavSelected.TButton")
+                else:
+                    btn.configure(style="Nav.TButton")
+            update_list(search_entry.get())
+        
+        for tab_type in ["All","Striker","Special"]:
+            style="NavSelected.TButton" if tab_type=="All" else "Nav.TButton"
+            btn=ttk.Button(tab,text=tab_type,style=style,command=lambda t=tab_type.lower():add_filter(t))
+            btn.pack(side="left",padx=4)
+            tab_buttons[tab_type.lower()]=btn
+
         search_bar = ttk.Frame(shell, style="Surface.TFrame")
         search_bar.pack(fill="x")
         search_entry = ttk.Entry(search_bar, width=36)
@@ -1390,7 +1437,11 @@ class ShittimConsole:
 
         def update_list(term=""):
             char_listbox.delete(0, tk.END)
+            filter_type = current_filter["type"]
             for char_id, char_name in characters:
+                char_category = self.get_character_type(char_id)
+                if filter_type != "all" and filter_type != char_category:
+                    continue
                 if not term or term.lower() in char_name.lower() or term in str(char_id):
                     char_listbox.insert(tk.END, f"[{char_id}] {char_name}")
 
@@ -1400,7 +1451,8 @@ class ShittimConsole:
                 return
             selected_text = char_listbox.get(selection[0])
             char_id = selected_text.split("]")[0].replace("[", "")
-            self._set_entry(self.spawn_char_id_entry, char_id)
+            char_name = selected_text.split("] ")[1]
+            self._set_entry(self.spawn_char_id_entry, f"{char_id} ({char_name})")
             window.destroy()
 
         ttk.Button(search_bar, text="Search", style="Secondary.TButton", command=lambda: update_list(search_entry.get())).pack(side="left", padx=8)
@@ -1408,26 +1460,78 @@ class ShittimConsole:
         search_entry.bind("<Return>", lambda _event: update_list(search_entry.get()))
         update_list()
 
+    def get_character_type(self,char_id):
+        special_ids={
+            20000,20001,20002,20003,20004,20005,20006,20007,20008,20009,20010,20011,
+            20012,20013,20014,20015,20016,20017,20018,20019,20020,20021,20022,20023,
+            20024,20025,20026,20027,20028,20029,20030,20031,20032,20033,20034,20035,
+            20036,20037,20038,20039,20040,20041,20042,20043,20044,20045,20046,20047,
+            20048,20049,20050,20051,23000,23001,23002,23003,23004,23005,23006,23007,23008,
+            26000,26001,26002,26003,26004,26005,26006,26007,26008,26009,26010,26011,
+            26012,26013,26014,26015
+        }
+        return "special" if char_id in special_ids else "striker"
+
     def get_character_list(self):
         return [
-            (10000, "Aru"), (10001, "Aru (New Year)"), (10002, "Hina"), (10003, "Hina (Swimsuit)"),
-            (10004, "Iori"), (10005, "Iori (Swimsuit)"), (10006, "Eimi"), (10007, "Eimi (Swimsuit)"),
-            (10008, "Shiroko"), (10009, "Shiroko (Riding)"), (10010, "Hoshino"), (10011, "Hoshino (Swimsuit)"),
-            (10012, "Serika"), (10013, "Serika (New Year)"), (10014, "Nonomi"), (10015, "Nonomi (Swimsuit)"),
-            (10016, "Ayane"), (10017, "Ayane (Swimsuit)"), (13000, "Yuzu"), (13001, "Yuzu (Maid)"),
-            (16000, "Neru"), (16001, "Neru (Bunny Girl)"), (10018, "Akane"), (10019, "Akane (Bunny Girl)"),
-            (10020, "Mutsuki"), (10021, "Mutsuki (New Year)"), (10022, "Kayoko"), (10023, "Kayoko (New Year)"),
-            (10024, "Haruka"), (10025, "Haruka (New Year)"), (10026, "Atsuko"), (10027, "Junko"),
-            (10028, "Izumi"), (10029, "Izumi (Swimsuit)"), (10030, "Shun"), (10031, "Shun (Kid)"),
-            (10032, "Tsubaki"), (10033, "Tsubaki (Guide)"), (10034, "Moe"), (10035, "Midori"),
-            (10036, "Momoi"), (10038, "Yuuka"), (10039, "Noa"), (10040, "Karin"), (10041, "Asuna"),
-            (10042, "Asuna (Bunny Girl)"), (10043, "Akari"), (10045, "Haruna"), (10046, "Haruna (New Year)"),
-            (10047, "Izuna"), (10048, "Izuna (Swimsuit)"), (10049, "Tsurugi"), (10050, "Tsurugi (Swimsuit)"),
-            (10051, "Hifumi"), (10052, "Hifumi (Swimsuit)"), (10053, "Azusa"), (10054, "Azusa (Swimsuit)"),
-            (10055, "Koharu"), (10056, "Hanae"), (10057, "Hanae (Christmas)"), (13002, "Aru (Dress)"),
-            (13003, "Kayoko (Dress)"), (16002, "Asuna (Christmas)"), (10058, "Saya"), (10059, "Saya (Casual)"),
-            (20001, "Serina"), (20002, "Shimiko"), (20004, "Fuuka"), (20005, "Kotama"), (20006, "Juri"),
-            (20008, "Toki"), (10060, "Maki"), (10061, "Cherino"), (10062, "Marina"),
+            (10000, "Aru"), (10001, "Eimi"), (10002, "Haruna"), (10003, "Hifumi"), (10004, "Hina"),
+            (10005, "Hoshino"), (10006, "Iori"), (10007, "Maki"), (10008, "Neru"), (10009, "Izumi"),
+            (10010, "Shiroko"), (10011, "Shun"), (10012, "Sumire"), (10013, "Tsurugi"), (10014, "Izuna"),
+            (10015, "Aris"), (10016, "Midori"), (10017, "Cherino"), (10018, "Yuzu"), (10019, "Azusa"),
+            (10020, "Koharu"), (10021, "Azusa (Swimsuit)"), (10022, "Hina (Swimsuit)"), (10023, "Iori (Swimsuit)"),
+            (10024, "Shiroko (Cycling)"), (10025, "Shun (Small)"), (10026, "Neru (Bunny)"), (10027, "Karin (Bunny)"),
+            (10028, "Asuna (Bunny)"), (10029, "Natsu"), (10030, "Chinatsu (Hot Spring)"), (10031, "Aru (New Year)"),
+            (10032, "Mutsuki (New Year)"), (10033, "Wakamo"), (10034, "Mimori"), (10035, "Ui"), (10036, "Hinata"),
+            (10037, "Marina"), (10038, "Miyako"), (10039, "Miyu"), (10040, "Tsukuyo"), (10041, "Misaki"),
+            (10042, "Atsuko"), (10043, "Wakamo (Swimsuit)"), (10044, "Nonomi (Swimsuit)"), (10045, "Hoshino (Swimsuit)"),
+            (10046, "Izuna (Swimsuit)"), (10047, "Chise (Swimsuit)"), (10048, "Saori"), (10049, "Kazusa"),
+            (10050, "Kokona"), (10051, "Utaha (Cheer Squad)"), (10052, "Noa"), (10053, "Yuuka (Track)"),
+            (10054, "Mari (Track)"), (10055, "Shigure"), (10056, "Serina (Christmas)"), (10057, "Haruna (New Year)"),
+            (10058, "Mine"), (10059, "Mika"), (10060, "Megu"), (10061, "Sakurako"), (10062, "Toki"),
+            (10063, "Koyuki"), (10064, "Kayoko (New Year)"), (10065, "Kaho"), (10066, "Aris (Maid)"),
+            (10067, "Toki (Bunny)"), (10068, "Reisa"), (10069, "Rumi"), (10070, "Mina"), (10071, "Miyako (Swimsuit)"),
+            (10072, "Saki (Swimsuit)"), (10073, "Ui (Swimsuit)"), (10074, "Hanako (Swimsuit)"), (10075, "Meru"),
+            (10076, "Kotori (Cheer Squad)"), (10077, "Ichika"), (10078, "Kasumi"), (10079, "Misaka Mikoto"),
+            (10080, "Shokuhou Misaki"), (10081, "Yukari"), (10082, "Renge"), (10083, "Kikyou"),
+            (10084, "Kotama (Camp)"), (10085, "Hare (Camp)"), (10086, "Hina (Dress)"), (10087, "Ako (Dress)"),
+            (10088, "Kayoko (Dress)"), (10089, "Aru (Dress)"), (10090, "Umika"), (10091, "Kazusa (Band)"),
+            (10092, "Yoshimi (Band)"), (10093, "Kirara"), (10094, "Momoi (Maid)"), (10095, "Midori (Maid)"),
+            (10096, "Kanna (Swimsuit)"), (10097, "Moe (Swimsuit)"), (10098, "Hoshino (Armed)"), (10099, "Hoshino (Armed)"),
+            (10100, "Shiroko*Terror"), (10101, "Saori (Swimsuit)"), (10102, "Hiyori (Swimsuit)"), (10103, "Marina (Qipao)"),
+            (10104, "Reijo"), (10105, "Mari (Pop Idol)"), (10106, "Sakurako (Pop Idol)"), (10107, "Chiaki"),
+            (10108, "Yuuka (Pajamas)"), (10109, "Noa (Pajamas)"), (10110, "Seia"), (10111, "Neru (School)"),
+            (10112, "Asuna (School)"), (10113, "Sena (Casual)"), (10114, "Juri (Part-Timer)"), (10115, "Rei"),
+            (10116, "Saori (Dress)"), (10117, "Hikari"), (10118, "Nozomi"), (10119, "Nagusa"),
+            (10120, "Natsu (Band)"), (10121, "Yukari (Swimsuit)"), (10122, "Mika (Swimsuit)"), (10123, "Seia (Swimsuit)"),
+            (10124, "Hasumi (Swimsuit)"), (10125, "Eri"), (10126, "Kanoe"), (10127, "Miyo"), (10128, "Fuyu"),
+            (10129, "Suzumi (Magical)"), (10130, "Subaru"),
+            (13000, "Akane"), (13001, "Chise"), (13002, "Akari"), (13003, "Hasumi"), (13004, "Nonomi"),
+            (13005, "Kayoko"), (13006, "Mutsuki"), (13007, "Junko"), (13008, "Serika"), (13009, "Tsubaki"),
+            (13010, "Yuuka"), (13011, "Momoi"), (13012, "Kirino"), (13013, "Momiji"), (13014, "Renge (Swimsuit)"),
+            (16000, "Haruka"), (16001, "Asuna"), (16002, "Kotori"), (16003, "Suzumi"), (16004, "Pina"),
+            (16005, "Tsurugi (Swimsuit)"), (16006, "Izumi (Swimsuit)"), (16007, "Tomoe"), (16008, "Fubuki"),
+            (16009, "Michiru"), (16010, "Hibiki (Cheer Squad)"), (16011, "Hasumi (Track)"), (16012, "Junko (New Year)"),
+            (16013, "Koharu (Swimsuit)"), (16014, "Ibuki"), (16015, "Airi (Band)"), (16016, "Mine (Pop Idol)"),
+            (16017, "Aoba"), (16018, "Rabu"),
+            (20000, "Hibiki"), (20001, "Karin"), (20002, "Saya"), (20003, "Mashiro"), (20004, "Mashiro (Swimsuit)"),
+            (20005, "Hifumi (Swimsuit)"), (20006, "Saya (Casual)"), (20007, "Hatsune Miku"), (20008, "Ako"),
+            (20009, "Cherino (Hot Spring)"), (20010, "Nodoka (Hot Spring)"), (20011, "Serika (New Year)"),
+            (20012, "Sena"), (20013, "Chihiro"), (20014, "Saki"), (20015, "Kaede"), (20016, "Iroha"),
+            (20017, "Hiyori"), (20018, "Moe"), (20019, "Akane (Bunny)"), (20020, "Himari"), (20021, "Hanae (Christmas)"),
+            (20022, "Fuuka (New Year)"), (20023, "Kanna"), (20024, "Nagisa"), (20025, "Haruka (New Year)"),
+            (20026, "Minori"), (20027, "Shiroko (Swimsuit)"), (20028, "Hinata (Swimsuit)"), (20029, "Mimori (Swimsuit)"),
+            (20030, "Haruna (Track)"), (20031, "Shigure (Hot Spring)"), (20032, "Eimi (Swimsuit)"), (20033, "Makoto"),
+            (20034, "Akari (New Year)"), (20035, "Tsubaki (Guide)"), (20036, "Serika (Swimsuit)"), (20037, "Fubuki (Swimsuit)"),
+            (20038, "Tomoe (Qipao)"), (20039, "Kisaki"), (20040, "Satsuki"), (20041, "Rio"), (20042, "Maki (Camp)"),
+            (20043, "Izumi (New Year)"), (20044, "Sumire (Part-Timer)"), (20045, "Pina (Guide)"), (20046, "Niya"),
+            (20047, "Kikyou (Swimsuit)"), (20048, "Nagisa (Swimsuit)"), (20049, "Misaki (Swimsuit)"), (20050, "Ritsu"),
+            (20051, "Reisa (Magical)"),
+            (23000, "Airi"), (23001, "Fuuka"), (23002, "Hanae"), (23003, "Hare"), (23004, "Utaha"),
+            (23005, "Ayane"), (23006, "Shizuko"), (23007, "Hanako"), (23008, "Mari"),
+            (26000, "Chinatsu"), (26001, "Kotama"), (26002, "Juri"), (26003, "Serina"), (26004, "Shimiko"),
+            (26005, "Yoshimi"), (26006, "Nodoka"), (26007, "Ayane (Swimsuit)"), (26008, "Shizuko (Swimsuit)"),
+            (26009, "Yuzu (Maid)"), (26010, "Miyu (Swimsuit)"), (26011, "Saten Ruiko"), (26012, "Kirino (Swimsuit)"),
+            (26013, "Atsuko (Swimsuit)"), (26014, "Karin (School)"), (26015, "Ichika (Swimsuit)"),
         ]
 
     def refresh_banners(self):
