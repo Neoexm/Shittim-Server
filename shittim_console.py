@@ -1496,7 +1496,7 @@ class ShittimConsole:
             (10084, "Kotama (Camp)"), (10085, "Hare (Camp)"), (10086, "Hina (Dress)"), (10087, "Ako (Dress)"),
             (10088, "Kayoko (Dress)"), (10089, "Aru (Dress)"), (10090, "Umika"), (10091, "Kazusa (Band)"),
             (10092, "Yoshimi (Band)"), (10093, "Kirara"), (10094, "Momoi (Maid)"), (10095, "Midori (Maid)"),
-            (10096, "Kanna (Swimsuit)"), (10097, "Moe (Swimsuit)"), (10098, "Hoshino (Armed)"), (10099, "Hoshino (Armed)"),
+            (10096, "Kanna (Swimsuit)"), (10097, "Moe (Swimsuit)"), (10098, "Hoshino (Armed)"), (10099, "Nonomi (Armed)"),
             (10100, "Shiroko*Terror"), (10101, "Saori (Swimsuit)"), (10102, "Hiyori (Swimsuit)"), (10103, "Marina (Qipao)"),
             (10104, "Reijo"), (10105, "Mari (Pop Idol)"), (10106, "Sakurako (Pop Idol)"), (10107, "Chiaki"),
             (10108, "Yuuka (Pajamas)"), (10109, "Noa (Pajamas)"), (10110, "Seia"), (10111, "Neru (School)"),
