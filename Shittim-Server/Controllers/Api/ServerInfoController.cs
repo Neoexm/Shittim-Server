@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using BlueArchiveAPI.Configuration;
 using Newtonsoft.Json.Linq;
 using System.Text.Json.Nodes;
-using BlueArchiveAPI.Models;
 
 namespace Shittim_Server.Controllers.Api
 {
@@ -31,74 +30,15 @@ namespace Shittim_Server.Controllers.Api
             {
                 return NotFound();
             }
-            
-            var connectionGroups = new[]
-            {
-                new ConnectionGroup
-                {
-                    Name = "stage-review",
-                    ApiUrl = "http://localhost:5000/api/",
-                    GatewayUrl = "http://localhost:5100/api/",
-                    DisableWebviewBanner = true,
-                    NXSID = "stage-review"
-                },
-                new ConnectionGroup
-                {
-                    Name = "live",
-                    OverrideConnectionGroups = new ConnectionGroup[5]
-                    {
-                        new ConnectionGroup()
-                        {
-                            Name = "tw",
-                            ApiUrl = "http://localhost:5000/api/",
-                            GatewayUrl = "http://localhost:5100/api/",
-                            DisableWebviewBanner = false,
-                            NXSID = "live-tw"
-                        },
-                        new ConnectionGroup()
-                        {
-                            Name = "asia",
-                            ApiUrl = "http://localhost:5000/api/",
-                            GatewayUrl = "http://localhost:5100/api/",
-                            DisableWebviewBanner = false,
-                            NXSID = "live-asia"
-                        },
-                        new ConnectionGroup()
-                        {
-                            Name = "na",
-                            ApiUrl = "http://localhost:5000/api/",
-                            GatewayUrl = "http://localhost:5100/api/",
-                            DisableWebviewBanner = false,
-                            NXSID = "live-na"
-                        },
-                        new ConnectionGroup()
-                        {
-                            Name = "global",
-                            ApiUrl = "http://localhost:5000/api/",
-                            GatewayUrl = "http://localhost:5100/api/",
-                            DisableWebviewBanner = false,
-                            NXSID = "live-global"
-                        },
-                        new ConnectionGroup()
-                        {
-                            Name = "kr",
-                            ApiUrl = "http://localhost:5000/api/",
-                            GatewayUrl = "http://localhost:5100/api/",
-                            DisableWebviewBanner = false,
-                            NXSID = "live-kr"
-                        },
-                    }
-                }
-            };
-            
-            var connectionGroupsJson = JsonConvert.SerializeObject(connectionGroups, Formatting.None);
+
+            var serverInfoConfig = Config.GetServerInfoConfig();
             
             var result = new JObject
             {
-                ["DefaultConnectionGroup"] = "live",
-                ["DefaultConnectionMode"] = "no",
-                ["ConnectionGroupsJson"] = connectionGroupsJson,
-                ["desc"] = "1.50.202328"
+                ["DefaultConnectionGroup"] = serverInfoConfig.DefaultConnectionGroup,
+                ["DefaultConnectionMode"] = serverInfoConfig.DefaultConnectionMode,
+                ["ConnectionGroupsJson"] = serverInfoConfig.ConnectionGroupsJson,
+                ["desc"] = serverInfoConfig.Desc
             };
             
             return Content(result.ToString(), "application/json");

@@ -43,7 +43,24 @@ namespace Shittim.Services.IrcClient
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var tcpClient = await listener.AcceptTcpClientAsync();
+                TcpClient tcpClient;
+
+                try
+                {
+                    tcpClient = await listener.AcceptTcpClientAsync(stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (ObjectDisposedException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (SocketException ex) when (stoppingToken.IsCancellationRequested || ex.SocketErrorCode == SocketError.OperationAborted)
+                {
+                    break;
+                }
 
                 _ = HandleMessageAsync(tcpClient);
                 Log.Debug("TcpClient is trying to connect...");

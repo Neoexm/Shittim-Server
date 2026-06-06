@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using BlueArchiveAPI.Configuration;
+using BlueArchiveAPI.Services;
 using Schale.Data;
 
 namespace Shittim.Extensions
@@ -21,6 +22,8 @@ namespace Shittim.Extensions
         /// <exception cref="ArgumentException">Thrown when SQL provider is not supported.</exception>
         public static void AddDbProvider(this IServiceCollection services)
         {
+            SqliteProvider.EnsureInitialized();
+
             var sqlProvider = Config.Instance.ServerConfiguration.SQLProvider;
             var sqlConnectionString = Config.Instance.ServerConfiguration.SQLConnectionString;
             if (string.IsNullOrEmpty(sqlConnectionString)) throw NoConnectionStringException;

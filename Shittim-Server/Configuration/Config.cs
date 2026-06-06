@@ -54,14 +54,32 @@ namespace BlueArchiveAPI.Configuration
         {
             var ServerInfoConfigPath = Path.Combine(ConfigDirectory, "ServerInfoConfig.json");
             if(File.Exists(ServerInfoConfigPath))
-                return JsonSerializer.Deserialize<ServerInfoConfig>(File.ReadAllText(ServerInfoConfigPath));
+            {
+                var existingConfig = JsonSerializer.Deserialize<ServerInfoConfig>(File.ReadAllText(ServerInfoConfigPath)) ?? CreateServerInfoConfig();
+                existingConfig = ApplyGatewayMode(existingConfig);
+                File.WriteAllText(ServerInfoConfigPath, JsonSerializer.Serialize(existingConfig, jsonOptions));
+                return existingConfig;
+            }
+
+            var serverInfoConfig = CreateServerInfoConfig();
+
+            Directory.CreateDirectory(ConfigDirectory);
+            File.WriteAllText(ServerInfoConfigPath, JsonSerializer.Serialize(serverInfoConfig, jsonOptions));
+
+            return serverInfoConfig;       
+        }
+
+        private static ServerInfoConfig CreateServerInfoConfig()
+        {
+            var apiUrl = GetApiUrl();
+            var gatewayUrl = GetGatewayUrl();
 
             List<ConnectionGroup> connectionGroups = [
                 new()
                 {
                     Name = "review",
-                    ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                    GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                    ApiUrl = apiUrl,
+                    GatewayUrl = gatewayUrl,
                     DisableWebviewBanner = true,
                     NXSID = "stage-review"
                 },
@@ -72,40 +90,40 @@ namespace BlueArchiveAPI.Configuration
                         new()
                         {
                             Name = "kr",
-                            ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                            GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                            ApiUrl = apiUrl,
+                            GatewayUrl = gatewayUrl,
                             DisableWebviewBanner = false,
                             NXSID = "live-kr"
                         },
                         new()
                         {
                             Name = "tw",
-                            ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                            GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                            ApiUrl = apiUrl,
+                            GatewayUrl = gatewayUrl,
                             DisableWebviewBanner = false,
                             NXSID = "live-tw"
                         },
                         new()
                         {
                             Name = "asia",
-                            ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                            GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                            ApiUrl = apiUrl,
+                            GatewayUrl = gatewayUrl,
                             DisableWebviewBanner = false,
                             NXSID = "live-asia"
                         },
                         new()
                         {
                             Name = "na",
-                            ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                            GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                            ApiUrl = apiUrl,
+                            GatewayUrl = gatewayUrl,
                             DisableWebviewBanner = false,
                             NXSID = "live-na"
                         },
                         new()
                         {
                             Name = "global",
-                            ApiUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
-                            GatewayUrl = $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/",
+                            ApiUrl = apiUrl,
+                            GatewayUrl = gatewayUrl,
                             DisableWebviewBanner = false,
                             NXSID = "live-global"
                         }
@@ -115,18 +133,68 @@ namespace BlueArchiveAPI.Configuration
 
             // var connectionGroupsJson = Newtonsoft.Json.JsonConvert.SerializeObject(connectionGroups, Newtonsoft.Json.Formatting.Indented);
             var connectionGroupsJson = Newtonsoft.Json.JsonConvert.SerializeObject(connectionGroups, Newtonsoft.Json.Formatting.Indented).Replace("  ", "\t");
-            ServerInfoConfig serverInfoConfig = new()
+            return new()
             {
                 DefaultConnectionGroup = "live",
                 Desc = Instance.ServerConfiguration.GameVersion.ToString(),
                 ConnectionGroupsJson = connectionGroupsJson,
                 DefaultConnectionMode = "no",
             };
+        }
 
-            Directory.CreateDirectory(ConfigDirectory);
-            File.WriteAllText(ServerInfoConfigPath, JsonSerializer.Serialize(serverInfoConfig, jsonOptions));
+        private static ServerInfoConfig ApplyGatewayMode(ServerInfoConfig serverInfoConfig)
+        {
+            serverInfoConfig.Desc = Instance.ServerConfiguration.GameVersion.ToString();
 
-            return serverInfoConfig;       
+            if (string.IsNullOrWhiteSpace(serverInfoConfig.ConnectionGroupsJson))
+                return CreateServerInfoConfig();
+
+            try
+            {
+                var connectionGroups = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ConnectionGroup>>(serverInfoConfig.ConnectionGroupsJson);
+                if (connectionGroups == null)
+                    return CreateServerInfoConfig();
+
+                var apiUrl = GetApiUrl();
+                var gatewayUrl = GetGatewayUrl();
+
+                foreach (var group in connectionGroups)
+                    ApplyConnectionGroupUrls(group, apiUrl, gatewayUrl);
+
+                serverInfoConfig.ConnectionGroupsJson = Newtonsoft.Json.JsonConvert
+                    .SerializeObject(connectionGroups, Newtonsoft.Json.Formatting.Indented)
+                    .Replace("  ", "\t");
+            }
+            catch
+            {
+                return CreateServerInfoConfig();
+            }
+
+            return serverInfoConfig;
+        }
+
+        private static void ApplyConnectionGroupUrls(ConnectionGroup group, string apiUrl, string gatewayUrl)
+        {
+            group.ApiUrl = apiUrl;
+            group.GatewayUrl = gatewayUrl;
+
+            if (group.OverrideConnectionGroups == null)
+                return;
+
+            foreach (var child in group.OverrideConnectionGroups)
+                ApplyConnectionGroupUrls(child, apiUrl, gatewayUrl);
+        }
+
+        private static string GetApiUrl()
+        {
+            return $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/";
+        }
+
+        private static string GetGatewayUrl()
+        {
+            return Instance.ServerConfiguration.EnableGateway
+                ? $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.GatewayPort}/api/"
+                : "";
         }
 
         public static string GetLocalIPv4(NetworkInterfaceType _type)

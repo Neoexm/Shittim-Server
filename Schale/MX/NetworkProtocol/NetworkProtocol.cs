@@ -5130,7 +5130,7 @@ namespace Schale.MX.NetworkProtocol
 
     public class QueuingGetTicketRequest : RequestPacket
     {
-        public override Protocol Protocol { get => Protocol.Queuing_GetTicketGL; }
+        public override Protocol Protocol { get => Protocol.Queuing_GetTicket; }
         public long NpSN { get; set; }
         public string? NpToken { get; set; }
         public string? Npacode { get; set; }
@@ -5146,13 +5146,78 @@ namespace Schale.MX.NetworkProtocol
 
     public class QueuingGetTicketResponse : ResponsePacket
     {
-        public override Protocol Protocol { get => Protocol.Queuing_GetTicketGL; }
+        public override Protocol Protocol { get => Protocol.Queuing_GetTicket; }
         public string? WaitingTicket { get; set; }
         public string? EnterTicket { get; set; }
         public long TicketSequence { get; set; }
         public long AllowedSequence { get; set; }
         public double RequiredSecondsPerUser { get; set; }
         public string? Birth { get; set; }
+        public string? ServerSeed { get; set; }
+    }
+
+    public class QueuingGetCryptoKeysRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_GetCryptoKeys; }
+        public string? ClientGeneratedKey { get; set; }
+        public string? ClientGeneratedIV { get; set; }
+    }
+
+    public class QueuingGetCryptoKeysResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_GetCryptoKeys; }
+        public string? EncryptedKey { get; set; }
+        public string? SignedKey { get; set; }
+        public string? EncryptedIV { get; set; }
+        public string? SignedIV { get; set; }
+        public string? EncryptedSqlCipherKey { get; set; }
+        public string? EncryptedSqlCipherLicense { get; set; }
+    }
+
+    public class QueuingGetAuthTicketRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_GetAuthTicket; }
+        public string? ClientGeneratedKey { get; set; }
+        public string? ClientGeneratedIV { get; set; }
+        public long YostarUID { get; set; }
+        public string? YostarToken { get; set; }
+        public bool PassCheck { get; set; }
+        public bool MakeStandby { get; set; }
+        public bool PassCheckYostar { get; set; }
+        public string? ClientVersion { get; set; }
+        public string? OSType { get; set; }
+    }
+
+    public class QueuingGetAuthTicketResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_GetAuthTicket; }
+        public string? EncryptedKey { get; set; }
+        public string? SignedKey { get; set; }
+        public string? EncryptedIV { get; set; }
+        public string? SignedIV { get; set; }
+        public string? EncryptedSqlCipherKey { get; set; }
+        public string? EncryptedSqlCipherLicense { get; set; }
+        public string? Birth { get; set; }
+        public string? AuthTicket { get; set; }
+    }
+
+    public class QueuingProcessWaitingQueueRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_ProcessWaitingQueue; }
+        public string? WaitingTicket { get; set; }
+        public string? ClientVersion { get; set; }
+        public string? OSType { get; set; }
+        public string? AuthTicket { get; set; }
+    }
+
+    public class QueuingProcessWaitingQueueResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Queuing_ProcessWaitingQueue; }
+        public string? WaitingTicket { get; set; }
+        public string? EnterTicket { get; set; }
+        public long TicketSequence { get; set; }
+        public long AllowedSequence { get; set; }
+        public double RequiredSecondsPerUser { get; set; }
         public string? ServerSeed { get; set; }
     }
 

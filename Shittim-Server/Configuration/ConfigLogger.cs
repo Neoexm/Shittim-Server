@@ -37,7 +37,10 @@ namespace BlueArchiveAPI.Configuration
                 }
 
                 Log.Logger = new LoggerConfiguration()
-                    .WriteTo.Console()
+                    .MinimumLevel.Information()
+                    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+                    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
                     .WriteTo.File(
                         logFilePath,
                         restrictedToMinimumLevel: LogEventLevel.Verbose,

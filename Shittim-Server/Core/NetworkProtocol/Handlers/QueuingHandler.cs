@@ -1,5 +1,6 @@
 using System.Text;
 using BlueArchiveAPI.Configuration;
+using BlueArchiveAPI.Core.Crypto;
 using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.MX.NetworkProtocol;
@@ -18,8 +19,26 @@ public class QueuingHandler : ProtocolHandlerBase
         _sessionService = sessionService;
     }
 
-    [ProtocolHandler(Protocol.Queuing_GetTicketGL)]
-    public async Task<QueuingGetTicketResponse> GetTicket(
+    [ProtocolHandler(Protocol.Queuing_GetCryptoKeys)]
+    public Task<QueuingGetCryptoKeysResponse> GetCryptoKeys(
+        SchaleDataContext db,
+        QueuingGetCryptoKeysRequest request,
+        QueuingGetCryptoKeysResponse response)
+    {
+        var sqlCipher = BuildSqlCipherResponse(request.ClientGeneratedKey, request.ClientGeneratedIV);
+
+        response.EncryptedKey = "";
+        response.SignedKey = "";
+        response.EncryptedIV = "";
+        response.SignedIV = "";
+        response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
+        response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
+
+        return Task.FromResult(response);
+    }
+
+    [ProtocolHandler(Protocol.Queuing_GetTicket)]
+    public Task<QueuingGetTicketResponse> GetTicket(
         SchaleDataContext db,
         QueuingGetTicketRequest request,
         QueuingGetTicketResponse response)
@@ -41,7 +60,139 @@ public class QueuingHandler : ProtocolHandlerBase
         
         byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");
         response.EnterTicket = Convert.ToBase64String(rawTicketBytes);
+        response.Birth = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        response.ServerSeed = "";
 
-        return response;
+        return Task.FromResult(response);
+    }
+
+    [ProtocolHandler(Protocol.Queuing_GetAuthTicket)]
+    public Task<QueuingGetAuthTicketResponse> GetAuthTicket(
+        SchaleDataContext db,
+        QueuingGetAuthTicketRequest request,
+        QueuingGetAuthTicketResponse response)
+    {
+        var sqlCipher = BuildSqlCipherResponse(request.ClientGeneratedKey, request.ClientGeneratedIV);
+        var rawTicketBytes = Encoding.UTF8.GetBytes($"{request.YostarUID}/{request.YostarToken}");
+
+        response.EncryptedKey = "";
+        response.SignedKey = "";
+        response.EncryptedIV = "";
+        response.SignedIV = "";
+        response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
+        response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
+        response.Birth = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        response.AuthTicket = Convert.ToBase64String(rawTicketBytes);
+
+        return Task.FromResult(response);
+    }
+
+    [ProtocolHandler(Protocol.Queuing_ProcessWaitingQueue)]
+    public Task<QueuingProcessWaitingQueueResponse> ProcessWaitingQueue(
+        SchaleDataContext db,
+        QueuingProcessWaitingQueueRequest request,
+        QueuingProcessWaitingQueueResponse response)
+    {
+        response.WaitingTicket = request.WaitingTicket;
+        response.EnterTicket = string.IsNullOrEmpty(request.AuthTicket) ? request.WaitingTicket : request.AuthTicket;
+        response.ServerSeed = "";
+
+        return Task.FromResult(response);
+    }
+
+    private static (string EncryptedKey, string EncryptedLicense) BuildSqlCipherResponse(string? clientKeyText, string? clientIvText)
+    {
+        var (clientKey, clientIv) = DecodeClientCrypto(clientKeyText, clientIvText);
+        var sqlCipherKey = Convert.ToBase64String(GetSqlCipherKeyBytes());
+        var sqlCipherLicense = GetSqlCipherLicense();
+
+        return (
+            EncryptAesBase64(sqlCipherKey, clientKey, clientIv),
+            EncryptAesBase64(sqlCipherLicense, clientKey, clientIv)
+        );
+    }
+
+    private static (byte[] Key, byte[] Iv) DecodeClientCrypto(string? keyText, string? ivText)
+    {
+        if (string.IsNullOrWhiteSpace(keyText) || string.IsNullOrWhiteSpace(ivText))
+            throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "Missing client generated crypto material");
+
+        try
+        {
+            var key = Convert.FromBase64String(keyText);
+            var iv = Convert.FromBase64String(ivText);
+
+            if (key.Length is not (16 or 24 or 32) || iv.Length != 16)
+                throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "Invalid client generated crypto material length");
+
+            return (key, iv);
+        }
+        catch (FormatException ex)
+        {
+            throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Invalid client generated crypto material: {ex.Message}");
+        }
+    }
+
+    private static string EncryptAesBase64(string text, byte[] key, byte[] iv)
+    {
+        var encrypted = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(text), key, iv);
+        return Convert.ToBase64String(encrypted);
+    }
+
+    private static byte[] GetSqlCipherKeyBytes()
+    {
+        var key = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_KEY");
+        if (string.IsNullOrWhiteSpace(key))
+            key = Config.Instance.ServerConfiguration.ExcelDbSqlCipherKey;
+
+        key = (key ?? "").Trim();
+
+        if (key.StartsWith("x'", StringComparison.OrdinalIgnoreCase) && key.EndsWith("'"))
+            key = key[2..^1];
+
+        if (key.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            key = key[2..];
+
+        if (TryHexKey(key, out var hexKey))
+            return hexKey;
+
+        if (TryBase64Key(key, out var base64Key))
+            return base64Key;
+
+        return Encoding.UTF8.GetBytes(key);
+    }
+
+    private static string GetSqlCipherLicense()
+    {
+        var license = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_LICENSE");
+        if (license == null)
+            license = Config.Instance.ServerConfiguration.ExcelDbSqlCipherLicense;
+
+        return license ?? "";
+    }
+
+    private static bool TryHexKey(string key, out byte[] keyBytes)
+    {
+        keyBytes = [];
+
+        if (key.Length == 0 || key.Length % 2 != 0 || key.Any(value => !Uri.IsHexDigit(value)))
+            return false;
+
+        keyBytes = Convert.FromHexString(key);
+        return true;
+    }
+
+    private static bool TryBase64Key(string key, out byte[] keyBytes)
+    {
+        try
+        {
+            keyBytes = Convert.FromBase64String(key);
+            return keyBytes.Length > 0;
+        }
+        catch (FormatException)
+        {
+            keyBytes = [];
+            return false;
+        }
     }
 }

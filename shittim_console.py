@@ -90,6 +90,7 @@ class ShittimConsole:
             "mitm": RuntimeProcess("MITM Proxy", None, "stopped", "Proxy is not running"),
         }
         self.log_queue: queue.Queue[tuple[str, str]] = queue.Queue()
+        self.log_file_queue: queue.Queue[str] = queue.Queue()
         self.mail_items: list[dict] = []
         self.accounts_cache: list[tuple[int, str]] = []
         self.current_view = None
@@ -106,6 +107,7 @@ class ShittimConsole:
         self.update_state = self.load_update_state()
         self.update_status = {"state": "unknown", "detail": "", "release_tag": None, "asset_url": None, "release_name": None}
         self._prepare_log_file()
+        threading.Thread(target=self._log_file_writer_loop, daemon=True).start()
         self.refresh_runtime_paths()
         self._apply_window_chrome()
         self._configure_theme()
@@ -932,7 +934,7 @@ class ShittimConsole:
         stamp = datetime.now().strftime("%H:%M:%S")
         line = f"[{stamp}] {source}: {message}"
         self.log_queue.put((source, line))
-        self.write_log_line(line)
+        self.log_file_queue.put(line)
 
     def _prepare_log_file(self):
         header = textwrap.dedent(
@@ -948,16 +950,53 @@ class ShittimConsole:
         with self.current_log_path.open("a", encoding="utf-8") as log_file:
             log_file.write(line + "\n")
 
+    def _log_file_writer_loop(self):
+        """Background thread that drains log_file_queue and writes to disk.
+
+        This keeps synchronous file I/O off the pipe-reader thread so that
+        a slow disk can never cause the OS pipe buffer to fill up and block
+        the child process's stdout writes.
+        """
+        while True:
+            try:
+                line = self.log_file_queue.get()
+                self.write_log_line(line)
+            except Exception:
+                pass
+
+    # Maximum number of lines kept in the live-activity text widget.
+    # Older lines are trimmed to prevent the widget from growing
+    # indefinitely (which makes every insert progressively slower).
+    LOG_WIDGET_MAX_LINES = 2000
+
+    # Maximum lines to flush from the queue into the widget per poll
+    # cycle.  Capping this keeps each cycle short so the Tkinter main
+    # loop stays responsive even under heavy request traffic.
+    LOG_POLL_BATCH_LIMIT = 80
+
     def poll_logs(self):
+        lines: list[str] = []
         try:
-            while True:
+            for _ in range(self.LOG_POLL_BATCH_LIMIT):
                 _source, message = self.log_queue.get_nowait()
-                self.log_text.configure(state="normal")
-                self.log_text.insert(tk.END, message + "\n")
-                self.log_text.see(tk.END)
-                self.log_text.configure(state="disabled")
+                lines.append(message)
         except queue.Empty:
             pass
+
+        if lines:
+            batch = "\n".join(lines) + "\n"
+            self.log_text.configure(state="normal")
+            self.log_text.insert(tk.END, batch)
+
+            # Trim oldest lines when the widget exceeds the cap.
+            total = int(self.log_text.index("end-1c").split(".")[0])
+            if total > self.LOG_WIDGET_MAX_LINES:
+                excess = total - self.LOG_WIDGET_MAX_LINES
+                self.log_text.delete("1.0", f"{excess + 1}.0")
+
+            self.log_text.see(tk.END)
+            self.log_text.configure(state="disabled")
+
         self.root.after(250, self.poll_logs)
 
     def refresh_environment_async(self, initial=False):

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using BlueArchiveAPI.Configuration;
 using Google.FlatBuffers;
 using Microsoft.Data.Sqlite;
 using Schale.Crypto;
@@ -8,6 +9,7 @@ namespace BlueArchiveAPI.Services
 {
     public class ExcelTableService
     {
+        private const string DefaultExcelDbSqlCipherKey = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0";
         private readonly ConcurrentDictionary<Type, object> caches = [];
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
         public static string DumpedDir = Path.Combine(ResourceDir, "Dumped");
@@ -69,11 +71,10 @@ namespace BlueArchiveAPI.Services
                     if (fbType == null)
                         throw new InvalidOperationException($"FlatBuffer type '{type.Namespace}.{baseTypeName}' not found for {type.FullName}");
 
-                    using (var dbConnection = new SqliteConnection($"Data Source = {excelDBDir}"))
+                    using (var dbConnection = OpenExcelDbConnection(excelDBDir))
                     {
-                        dbConnection.Open();
                         var command = dbConnection.CreateCommand();
-                        command.CommandText = $"SELECT Bytes FROM {schemaName}";
+                        command.CommandText = $"SELECT Bytes FROM [{schemaName}]";
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -103,6 +104,83 @@ namespace BlueArchiveAPI.Services
             });
 
             return unpacked;
+        }
+
+        private static SqliteConnection OpenExcelDbConnection(string dbPath)
+        {
+            SqliteProvider.EnsureInitialized();
+
+            var dbConnection = new SqliteConnection(new SqliteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString());
+
+            dbConnection.Open();
+
+            if (NeedsSqlCipherKey(dbPath))
+            {
+                using var keyCommand = dbConnection.CreateCommand();
+                keyCommand.CommandText = BuildKeyPragma(GetExcelDbSqlCipherKey());
+                keyCommand.ExecuteNonQuery();
+            }
+
+            return dbConnection;
+        }
+
+        private static bool NeedsSqlCipherKey(string dbPath)
+        {
+            Span<byte> header = stackalloc byte[16];
+
+            using var stream = File.OpenRead(dbPath);
+            if (stream.Read(header) != header.Length)
+                return false;
+
+            return !header.SequenceEqual("SQLite format 3\0"u8);
+        }
+
+        private static string GetExcelDbSqlCipherKey()
+        {
+            var key = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_KEY");
+            if (string.IsNullOrWhiteSpace(key))
+                key = Config.Instance.ServerConfiguration.ExcelDbSqlCipherKey;
+
+            return string.IsNullOrWhiteSpace(key) ? DefaultExcelDbSqlCipherKey : key;
+        }
+
+        private static string BuildKeyPragma(string key)
+        {
+            var trimmed = key.Trim();
+
+            if (trimmed.StartsWith("x'", StringComparison.OrdinalIgnoreCase) && trimmed.EndsWith("'"))
+                return $"PRAGMA key = \"{trimmed.Replace("\"", "\"\"")}\";";
+
+            if (IsHex(trimmed) && trimmed.Length % 2 == 0)
+                return $"PRAGMA key = \"x'{trimmed}'\";";
+
+            if (TryBase64Key(trimmed, out var keyBytes))
+                return $"PRAGMA key = \"x'{Convert.ToHexString(keyBytes).ToLowerInvariant()}'\";";
+
+            return $"PRAGMA key = '{trimmed.Replace("'", "''")}';";
+        }
+
+        private static bool TryBase64Key(string key, out byte[] keyBytes)
+        {
+            try
+            {
+                keyBytes = Convert.FromBase64String(key);
+                return keyBytes.Length is 16 or 24 or 32;
+            }
+            catch (FormatException)
+            {
+                keyBytes = [];
+                return false;
+            }
+        }
+
+        private static bool IsHex(string value)
+        {
+            return value.All(Uri.IsHexDigit);
         }
     }
 

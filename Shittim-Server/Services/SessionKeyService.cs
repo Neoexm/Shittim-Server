@@ -17,7 +17,9 @@ namespace BlueArchiveAPI.Services
         private static readonly HashSet<Protocol> _publicProtocols = new()
         {
             Protocol.Queuing_GetTicket,
-            Protocol.Queuing_GetTicketGL,
+            Protocol.Queuing_GetCryptoKeys,
+            Protocol.Queuing_GetAuthTicket,
+            Protocol.Queuing_ProcessWaitingQueue,
             Protocol.Account_CheckYostar,
             Protocol.Account_CheckNexon,
             Protocol.Account_Auth,

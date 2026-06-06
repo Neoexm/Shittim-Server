@@ -16,6 +16,7 @@ using Shittim_Server.Managers;
 using Shittim_Server.GameClient;
 using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
+using Shittim.Utils;
 using Serilog;
 using AutoMapper;
 
@@ -25,6 +26,11 @@ namespace Shittim.CLI
     {
         public static async Task Main(bool update, bool console, long? id)
         {
+            // Prevent console freezes: disables QuickEdit mode on Windows
+            // and replaces Console.Out with a non-blocking async writer so
+            // that pipe buffer saturation can never block request threads.
+            ConsoleHelper.Harden();
+
             var config = ConfigLogger.LogConfiguration();
 
             Console.WriteLine("===========================================");
@@ -81,6 +87,8 @@ namespace Shittim.CLI
                 builder.Services.AddHexaMapService();
                 builder.Services.AddSharedDataCache();
 
+                builder.Services.AddHostedService<ClientMetadataPatchService>();
+                builder.Services.AddHostedService<ClientNexonPlatformPatchService>();
                 builder.Services.AddGameClient();
                 builder.Services.AddManagers();
                 builder.Services.AddHandlers();
