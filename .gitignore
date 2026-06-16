@@ -108,6 +108,11 @@ TESTING_ISSUES.txt
 *.til
 *.nam
 
+# Large IL2CPP metadata dumps (generated; exceed GitHub's 100 MB file limit).
+# Kept locally only — the small il2cpp.py extractor stays tracked.
+ida_pro_metadata/il2cpp.json
+ida_pro_metadata/il2cpp.h
+
 # AI assistant tool caches/configs
 .ida-mcp/
 .roo/
