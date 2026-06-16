@@ -94,7 +94,6 @@ progress.md
 /protocol_dump.log
 /Scripts/tidy_protocol_dump.ps1
 /Scripts/cheatengine_protocol_dump.lua
-/Shittim-Server/config/ba_version_cache.json
 
 # Reverse-engineering / debugging artifacts
 Tools/procdump/
@@ -118,3 +117,9 @@ ida_pro_metadata/il2cpp.h
 .roo/
 .aider*
 .cursor/
+
+# Project requirement: ALWAYS track Shittim-Server/config and every file inside it.
+# These negations MUST stay at the end of the file so they override the *.pem,
+# *.key, *.crt and other rules above (Git uses last-match-wins).
+!/Shittim-Server/config/
+!/Shittim-Server/config/**
