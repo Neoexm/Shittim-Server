@@ -27,6 +27,14 @@ contextBridge.exposeInMainWorld('host', {
   // diagnostics
   envCheck: () => ipcRenderer.invoke('env:check'),
 
+  // one-click toolchain setup (.NET SDK, mitmproxy, CA certificate)
+  setupInstall: (which) => ipcRenderer.invoke('setup:install', which),
+  onSetupProgress: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on('setup:progress', fn);
+    return () => ipcRenderer.removeListener('setup:progress', fn);
+  },
+
   // project location + first-run acquisition
   projectStatus: () => ipcRenderer.invoke('project:status'),
   projectDownload: (opts) => ipcRenderer.invoke('project:download', opts),

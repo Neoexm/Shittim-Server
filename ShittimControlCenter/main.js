@@ -556,6 +556,226 @@ function rebuildServer() {
   });
 }
 
+// ----------------------------------------------------------- toolchain setup
+//
+// One-click acquisition of the three host prerequisites the readiness card
+// reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert.
+// Everything installs per-user without admin EXCEPT trusting the CA into the
+// machine root store — which the Steam client validates against — and which
+// prompts once for elevation. Each installer is idempotent and streams progress
+// to the renderer over the 'setup:progress' channel. Windows only; on other
+// platforms each returns a message pointing at the manual install.
+
+const TOOLS_DIR = () => path.join(app.getPath('userData'), 'tools');
+const DOTNET_DIR = () => path.join(process.env.LOCALAPPDATA || os.homedir(), 'Microsoft', 'dotnet');
+const MITM_DIR = () => path.join(TOOLS_DIR(), 'mitmproxy');
+const CERT_PATH = () => path.join(os.homedir(), '.mitmproxy', 'mitmproxy-ca-cert.cer');
+
+function setupLog(step, line) { broadcast('setup:progress', { step, line }); }
+function setupPhase(step, status, extra) { broadcast('setup:progress', { step, status, ...(extra || {}) }); }
+
+// Run a PowerShell snippet, streaming each output line to onLine. Resolves with
+// the exit code — never rejects, so callers branch on `ok`.
+function runPwsh(script, onLine) {
+  return new Promise((resolve) => {
+    let child;
+    try {
+      child = spawn('powershell.exe',
+        ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', script],
+        { windowsHide: true, env: { ...process.env } });
+    } catch (e) { resolve({ ok: false, code: -1, out: String(e.message || e) }); return; }
+    let out = '';
+    const onData = (c) => {
+      const s = c.toString(); out += s;
+      if (onLine) s.split(/\r?\n/).forEach((l) => { if (l.trim()) onLine(l.replace(/\s+$/, '')); });
+    };
+    if (child.stdout) child.stdout.on('data', onData);
+    if (child.stderr) child.stderr.on('data', onData);
+    child.on('error', (e) => resolve({ ok: false, code: -1, out: `${out}\n${e.message}` }));
+    child.on('exit', (code) => resolve({ ok: code === 0, code, out }));
+  });
+}
+
+// Append a directory to the persistent per-user PATH (and to this process's live
+// PATH so spawns in the current session resolve the tool without a restart).
+async function addToUserPath(dir, step) {
+  const cur = process.env.PATH || process.env.Path || '';
+  if (!cur.split(path.delimiter).some((s) => s.toLowerCase() === dir.toLowerCase())) {
+    process.env.PATH = cur ? `${cur}${path.delimiter}${dir}` : dir;
+  }
+  if (process.platform !== 'win32') return { ok: true };
+  const ps = [
+    `$dir = ${psQuote(dir)}`,
+    `$cur = [Environment]::GetEnvironmentVariable('Path','User')`,
+    `$parts = @(); if ($cur) { $parts = $cur -split ';' | Where-Object { $_ -ne '' } }`,
+    `if ($parts -notcontains $dir) {`,
+    `  $new = (@($parts) + $dir) -join ';'`,
+    `  [Environment]::SetEnvironmentVariable('Path', $new, 'User')`,
+    `  Write-Output "added to user PATH: $dir"`,
+    `} else { Write-Output "already on user PATH: $dir" }`,
+  ].join('\n');
+  const r = await runPwsh(ps, (l) => setupLog(step, l));
+  return { ok: r.ok };
+}
+
+// .NET 10 SDK via Microsoft's official dotnet-install.ps1 (per-user, no admin).
+async function installDotnet() {
+  const step = 'dotnet';
+  if (process.platform !== 'win32') {
+    return { ok: false, error: 'Automated .NET install is wired up for Windows only — install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
+  }
+  setupPhase(step, 'running', { message: 'Installing .NET 10 SDK…' });
+  let tmp = null;
+  try {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-dotnet-'));
+    const scriptPath = path.join(tmp, 'dotnet-install.ps1');
+    setupLog(step, '> downloading dotnet-install.ps1');
+    await downloadFile('https://dot.net/v1/dotnet-install.ps1', scriptPath);
+    const dir = DOTNET_DIR();
+    setupLog(step, `> dotnet-install.ps1 -Channel 10.0 -InstallDir "${dir}"`);
+    // -NoPath: the script's session-only PATH edit is useless to us; we persist
+    // it ourselves below. The install is a no-op if the SDK is already present.
+    const ps = `& ${psQuote(scriptPath)} -Channel 10.0 -InstallDir ${psQuote(dir)} -Architecture x64 -NoPath`;
+    const r = await runPwsh(ps, (l) => setupLog(step, l));
+    if (!r.ok) { setupPhase(step, 'failed', { message: 'dotnet-install.ps1 failed' }); return { ok: false, error: 'dotnet-install.ps1 failed', out: r.out }; }
+    await addToUserPath(dir, step);
+    setupPhase(step, 'done', { message: '.NET 10 SDK installed' });
+    return { ok: true, dir };
+  } catch (e) {
+    setupPhase(step, 'failed', { message: String(e.message || e) });
+    return { ok: false, error: String(e.message || e) };
+  } finally {
+    if (tmp) { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ } }
+  }
+}
+
+// Find the directory holding mitmweb.exe inside an extracted archive (flat or
+// one level down).
+function findMitmBinDir(root) {
+  const hit = (d) => fs.existsSync(path.join(d, 'mitmweb.exe'));
+  if (hit(root)) return root;
+  try {
+    for (const n of fs.readdirSync(root)) {
+      const sub = path.join(root, n);
+      try { if (fs.statSync(sub).isDirectory() && hit(sub)) return sub; } catch { /* ignore */ }
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+// mitmproxy: download the latest standalone Windows zip from GitHub releases,
+// unpack it under userData/tools and put it on PATH.
+async function installMitmproxy() {
+  const step = 'mitmproxy';
+  if (process.platform !== 'win32') {
+    return { ok: false, error: 'Automated mitmproxy install is wired up for Windows only — install it from https://mitmproxy.org/.' };
+  }
+  setupPhase(step, 'running', { message: 'Installing mitmproxy…' });
+  let tmp = null;
+  try {
+    setupLog(step, '> resolving latest mitmproxy release');
+    const rel = await httpGet('https://api.github.com/repos/mitmproxy/mitmproxy/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json' },
+    });
+    if (rel.statusCode < 200 || rel.statusCode >= 300) throw new Error(`GitHub API responded ${rel.statusCode}`);
+    const data = JSON.parse(rel.body.toString('utf8'));
+    const assets = data.assets || [];
+    const asset = assets.find((a) => /windows/i.test(a.name) && /\.zip$/i.test(a.name) && /(x86_64|x64|amd64)/i.test(a.name))
+      || assets.find((a) => /windows/i.test(a.name) && /\.zip$/i.test(a.name));
+    if (!asset) throw new Error('no Windows .zip asset in the latest mitmproxy release');
+
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-mitm-'));
+    const zipPath = path.join(tmp, asset.name);
+    setupLog(step, `> downloading ${asset.name}`);
+    await downloadFile(asset.browser_download_url, zipPath, (recv, total) => broadcast('setup:progress', { step, recv, total }));
+
+    const dir = MITM_DIR();
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* ignore */ }
+    setupLog(step, '> extracting…');
+    await extractZip(zipPath, dir);
+
+    const binDir = findMitmBinDir(dir);
+    if (!binDir) throw new Error('mitmweb.exe not found after extraction');
+    await addToUserPath(binDir, step);
+    setupPhase(step, 'done', { message: 'mitmproxy installed' });
+    return { ok: true, dir: binDir };
+  } catch (e) {
+    setupPhase(step, 'failed', { message: String(e.message || e) });
+    return { ok: false, error: String(e.message || e) };
+  } finally {
+    if (tmp) { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ } }
+  }
+}
+
+// Run mitmdump just long enough for it to write ~/.mitmproxy/*.cer on first
+// start, then stop it. mitmproxy generates its CA lazily on proxy startup, so a
+// brief launch on a throwaway port is the supported way to materialise the cert.
+function generateMitmCert(step) {
+  return new Promise((resolve, reject) => {
+    const certPath = CERT_PATH();
+    const exe = firstExisting([path.join(MITM_DIR(), 'mitmdump.exe')])
+      || (process.platform === 'win32' ? 'mitmdump.exe' : 'mitmdump');
+    let child;
+    try { child = spawn(exe, ['--listen-port', '48080', '-q'], { windowsHide: true, env: { ...process.env } }); }
+    catch (e) { reject(e); return; }
+    let done = false;
+    const finish = (err) => {
+      if (done) return; done = true;
+      clearInterval(poll); clearTimeout(timer);
+      killTree(child);
+      err ? reject(err) : resolve();
+    };
+    child.on('error', (e) => finish(e));
+    const poll = setInterval(() => { if (fs.existsSync(certPath)) finish(null); }, 400);
+    const timer = setTimeout(() => finish(fs.existsSync(certPath) ? null : new Error('timed out waiting for CA generation')), 25000);
+  });
+}
+
+// Trust the mitmproxy CA. Generates it first if it has never been created, then
+// adds it to the machine root store via certutil (one elevation prompt).
+async function installCertificate() {
+  const step = 'certificate';
+  if (process.platform !== 'win32') {
+    return { ok: false, error: 'Automated certificate trust is wired up for Windows only.' };
+  }
+  setupPhase(step, 'running', { message: 'Preparing CA certificate…' });
+  try {
+    const certPath = CERT_PATH();
+    if (!fs.existsSync(certPath)) {
+      setupLog(step, '> generating mitmproxy CA (first run)…');
+      await generateMitmCert(step);
+    }
+    if (!fs.existsSync(certPath)) throw new Error('mitmproxy CA certificate was not generated — install mitmproxy first.');
+    setupLog(step, '> trusting CA in machine root store (certutil — approve the elevation prompt)…');
+    // Machine root store is what the Steam client validates against, so it needs
+    // admin. Start-Process -Verb RunAs raises the single UAC prompt.
+    const ps = `$p = Start-Process -FilePath 'certutil.exe' -ArgumentList @('-addstore','-f','Root', ${psQuote(certPath)}) -Verb RunAs -PassThru -Wait; exit $p.ExitCode`;
+    const r = await runPwsh(ps, (l) => setupLog(step, l));
+    if (!r.ok) { setupPhase(step, 'failed', { message: 'certutil failed or elevation was declined' }); return { ok: false, error: 'certutil failed or elevation was declined', out: r.out }; }
+    setupPhase(step, 'done', { message: 'CA certificate trusted', certPath });
+    return { ok: true, certPath };
+  } catch (e) {
+    setupPhase(step, 'failed', { message: String(e.message || e) });
+    return { ok: false, error: String(e.message || e) };
+  }
+}
+
+// Orchestrate one step, or all three in dependency order (the cert step needs
+// mitmproxy's mitmdump, so mitmproxy is installed before it).
+async function runSetup(which) {
+  const order = which === 'all' ? ['dotnet', 'mitmproxy', 'certificate'] : [which];
+  const results = {};
+  for (const step of order) {
+    if (step === 'dotnet') results.dotnet = await installDotnet();
+    else if (step === 'mitmproxy') results.mitmproxy = await installMitmproxy();
+    else if (step === 'certificate') results.certificate = await installCertificate();
+    else return { ok: false, error: `unknown setup step: ${step}` };
+  }
+  const ok = Object.values(results).every((r) => r && r.ok);
+  broadcast('setup:progress', { step: which, status: ok ? 'all-done' : 'all-failed' });
+  return { ok, results };
+}
+
 // ------------------------------------------------------------------- window
 
 function appIcon() {
@@ -636,6 +856,9 @@ ipcMain.handle('proc:status', () => ({
 }));
 
 ipcMain.handle('env:check', () => runEnvChecks());
+
+// one-click toolchain setup: 'dotnet' | 'mitmproxy' | 'certificate' | 'all'
+ipcMain.handle('setup:install', (_e, which) => runSetup(which || 'all'));
 
 ipcMain.handle('dialog:pickFolder', async () => {
   const r = await dialog.showOpenDialog({ properties: ['openDirectory'] });
