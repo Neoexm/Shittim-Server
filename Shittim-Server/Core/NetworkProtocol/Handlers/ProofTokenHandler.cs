@@ -24,6 +24,10 @@ public class ProofTokenHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        // Hint/Question are the proof-of-work challenge. 42 is the known-working value: the client
+        // solves it and fires ProofToken_Submit, and login completes. (Tested Hint=0 to try to kill
+        // the transient "cannot be processed" login popup -- it instead BROKE the client's solver so
+        // Submit never fires and login stalls, so that popup is NOT caused by this difficulty.)
         response.Hint = 42;
         response.Question = "proof";
 

@@ -79,8 +79,18 @@ public class HexaMapService
             var unitInfo = new HexaUnit
             {
                 EntityId = hexaUnit.EntityId,
+                // Enemies need non-null HP/dying collections and non-zero tactical stats, the same
+                // way deployed player echelons do (see DeployConcentratedEchelon). Leaving HpInfos
+                // null / Mobility=ActionCountMax=StrategySightRange=0 left the client unable to build
+                // the enemy tactical entities, so the tactical-map scene hung on "Now Loading".
+                HpInfos = new Dictionary<long, long>(),
+                DyingInfos = new Dictionary<long, long>(),
                 ActionCount = 1,
+                ActionCountMax = 1,
+                Mobility = 1,
+                StrategySightRange = 1,
                 Id = hexaUnit.Id,
+                IsPlayer = hexaUnit.IsPlayer,
                 Rotate = new SimpleVector3
                 {
                     x = hexaUnit.Rotate?.x ?? 0f,
@@ -140,32 +150,25 @@ public class HexaMapService
 
     public static Dictionary<int, HexaTileState> AddHexaTileList(HexaTileMap hexaTileMap)
     {
+        // TileMapStates is keyed by the tile's index in HexaTileList, and HexaTileState.Id must be
+        // that same index (a HexaTile has no numeric id, only a Location). The previous code padded
+        // the front of the map with one blank tile per strategy object, which shifted every real
+        // tile's index/Id by StrategyCount and desynced the client's hex grid from the tile list.
         var tileDataset = new Dictionary<int, HexaTileState>();
-        var i = 0;
 
-        if (hexaTileMap.HexaStrageyList != null)
-        {
-            foreach (var _ in hexaTileMap.HexaStrageyList)
-            {
-                tileDataset.Add(i, new HexaTileState());
-                i++;
-            }
-        }
+        if (hexaTileMap.HexaTileList == null)
+            return tileDataset;
 
-        if (hexaTileMap.HexaTileList != null)
+        for (var i = 0; i < hexaTileMap.HexaTileList.Count; i++)
         {
-            foreach (var tileData in hexaTileMap.HexaTileList)
+            var tileData = hexaTileMap.HexaTileList[i];
+            tileDataset.Add(i, new HexaTileState
             {
-                var tileSet = new HexaTileState
-                {
-                    Id = i,
-                    CanNotMove = tileData.CanNotMove,
-                    IsFog = tileData.IsFog,
-                    IsHide = tileData.IsHide
-                };
-                tileDataset.Add(i, tileSet);
-                i++;
-            }
+                Id = i,
+                CanNotMove = tileData.CanNotMove,
+                IsFog = tileData.IsFog,
+                IsHide = tileData.IsHide
+            });
         }
 
         return tileDataset;

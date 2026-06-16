@@ -41,7 +41,7 @@ namespace Shittim_Server.Controllers.Api
                 ["desc"] = serverInfoConfig.Desc
             };
             
-            return Content(result.ToString(), "application/json");
+            return Content(result.ToString(Newtonsoft.Json.Formatting.None), "text/plain");
         }
 
         [HttpPost("log")]

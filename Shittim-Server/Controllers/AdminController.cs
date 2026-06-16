@@ -27,46 +27,6 @@ public class AdminController : ControllerBase
         _mapper = mapper;
     }
 
-    // [HttpPost("character/add")]
-    // public async Task<IActionResult> AddCharacter([FromBody] AddCharacterRequest request)
-    // {
-    //     try
-    //     {
-    //         var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
-    //         if (account == null)
-    //             return NotFound(new { error = "Account not found" });
-
-    //         // TODO: Implement with new static CharacterGM
-    //         // await _characterGM.AddCharacter(account, request.CharacterId, request.Quality ?? "");
-            
-    //         return Ok(new { success = true, message = $"Character {request.CharacterId} added with quality {request.Quality ?? "default"}" });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return BadRequest(new { error = ex.Message });
-    //     }
-    // }
-
-    // [HttpPost("character/remove")]
-    // public async Task<IActionResult> RemoveCharacter([FromBody] RemoveCharacterRequest request)
-    // {
-    //     try
-    //     {
-    //         var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
-    //         if (account == null)
-    //             return NotFound(new { error = "Account not found" });
-
-    //         // TODO: Implement with new static CharacterGM
-    //         // await _characterGM.RemoveCharacter(account, request.CharacterId);
-            
-    //         return Ok(new { success = true, message = $"Character {request.CharacterId} removed" });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return BadRequest(new { error = ex.Message });
-    //     }
-    // }
-
     [HttpPost("mail/send")]
     public async Task<IActionResult> SendMail([FromBody] SendMailRequest request)
     {

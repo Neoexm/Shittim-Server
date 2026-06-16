@@ -105,6 +105,8 @@ namespace Schale.MX.NetworkProtocol
         Mail_List = 7000,
         Mail_Check = 7001,
         Mail_Receive = 7002,
+        Mail_ListSemiPermanent = 7003,
+        Mail_ReceiveSemiPermanent = 7004,
         Mission_List = 8000,
         Mission_Reward = 8001,
         Mission_MultipleReward = 8002,

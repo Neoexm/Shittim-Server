@@ -88,7 +88,11 @@ namespace Shittim.CLI
                 builder.Services.AddSharedDataCache();
 
                 builder.Services.AddHostedService<ClientMetadataPatchService>();
-                builder.Services.AddHostedService<ClientNexonPlatformPatchService>();
+                builder.Services.AddHostedService<ClientGameAssemblyIasPatchService>();
+                builder.Services.AddHostedService<ClientGrap64ManagementService>();
+                builder.Services.AddHostedService<ClientInfaceConfigPatchService>();
+                builder.Services.AddHostedService<ClientNativeIasPatchService>();
+                builder.Services.AddHostedService<ClientExcelBannerPatchService>();
                 builder.Services.AddGameClient();
                 builder.Services.AddManagers();
                 builder.Services.AddHandlers();
@@ -135,6 +139,9 @@ namespace Shittim.CLI
                     }
                 }
 
+                var apiPort = ParsePort(Config.Instance.ServerConfiguration.HostPort, 5000, nameof(Config.Instance.ServerConfiguration.HostPort));
+                var gatewayPort = ParsePort(Config.Instance.ServerConfiguration.GatewayPort, 5100, nameof(Config.Instance.ServerConfiguration.GatewayPort));
+
                 builder.WebHost.ConfigureKestrel(options =>
                 {
                     if (httpsCert != null)
@@ -150,10 +157,11 @@ namespace Shittim.CLI
                         Console.WriteLine("✗ HTTPS on port 443 disabled (no certificate)");
                     }
                     
-                    options.Listen(System.Net.IPAddress.Any, 5000);
-                    options.Listen(System.Net.IPAddress.Any, 5100);
+                    options.Listen(System.Net.IPAddress.Any, apiPort);
+                    if (gatewayPort != apiPort)
+                        options.Listen(System.Net.IPAddress.Any, gatewayPort);
                 });
-                Console.WriteLine("✓ HTTP on ports 5000 (API) & 5100 (Gateway)");
+                Console.WriteLine($"HTTP on ports {apiPort} (API) & {gatewayPort} (Gateway)");
 
                 var app = builder.Build();
 
@@ -224,6 +232,13 @@ namespace Shittim.CLI
 
                 app.UseAuthorization();
                 app.UseSerilogRequestLogging();
+                app.Use(async (context, next) =>
+                {
+                    if (context.Request.Path.Value?.Contains("/ias", StringComparison.OrdinalIgnoreCase) == true)
+                        Log.Information("[IAS Raw] {Method} {Scheme}://{Host}{Path}{QueryString}", context.Request.Method, context.Request.Scheme, context.Request.Host, context.Request.Path, context.Request.QueryString);
+
+                    await next();
+                });
 
                 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "BlueArchiveAPI" }));
                 app.MapControllers();
@@ -239,6 +254,15 @@ namespace Shittim.CLI
             {
                 Log.CloseAndFlush();
             }
+        }
+
+        private static int ParsePort(string value, int fallback, string configName)
+        {
+            if (int.TryParse(value, out var port) && port > 0 && port <= ushort.MaxValue)
+                return port;
+
+            Log.Warning("Invalid {ConfigName} value {PortValue}; using {FallbackPort}", configName, value, fallback);
+            return fallback;
         }
     }
 }

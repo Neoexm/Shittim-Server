@@ -97,6 +97,14 @@ namespace Schale.MX.NetworkProtocol
         public AccountRestrictionsDB? AccountRestrictionsDB { get; set; }
         public IEnumerable<IssueAlertInfoDB>? IssueAlertInfos { get; set; }
         public IEnumerable<AccountBanByNexonDB>? accountBanByNexonDBs { get; set; }
+        // v1.90.433063 client (AccountAuthNetworkTask.HandleMessage) reads these unconditionally and
+        // calls SyncDailyRecordDBs / SyncLimitedFlashProductInfo on them; if absent they deserialize to
+        // null and the client throws -> "A request that cannot be processed has been received." popup.
+        // Emit them as empty collections (element type is irrelevant for an empty [] on the wire).
+        public IEnumerable<object>? DailyRecordDBs { get; set; } = new List<object>();
+        public bool IsArenaAnonymous { get; set; }
+        public IEnumerable<object>? AccountLimitedFlashSaleDBs { get; set; } = new List<object>();
+        public IEnumerable<long>? NewlyAddedShopCashIds { get; set; } = new List<long>();
     }
 
     public class AccountAuth2Request : AccountAuthRequest
@@ -4160,6 +4168,45 @@ namespace Schale.MX.NetworkProtocol
         public List<BattlePassInfoDB>? BattlePassInfoDBs { get; set; }
     }
 
+    // Semi-permanent mailbox = the second mail tab (recurring/subscription rewards: monthly
+    // products, battle pass, etc.). The client queries it right after clearing the normal box,
+    // so an unregistered protocol here aborts login/lobby with "server failed to process request".
+    // Shapes mirror the client il2cpp defs (MailListSemiPermanent / MailReceiveSemiPermanent).
+    public class MailListSemiPermanentRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Mail_ListSemiPermanent; }
+        public bool IsReadMail { get; set; }
+        public DateTime PivotTime { get; set; }
+        public long PivotIndex { get; set; }
+        public MailSortingRule mailSortingRule { get; set; }
+        public bool IsDescending { get; set; }
+    }
+
+    public class MailListSemiPermanentResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Mail_ListSemiPermanent; }
+        public List<MailDB>? MailDBs { get; set; }
+        public long Count { get; set; }
+    }
+
+    public class MailReceiveSemiPermanentRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Mail_ReceiveSemiPermanent; }
+        public long? ProductId { get; set; }
+        public long MailDBId { get; set; }
+    }
+
+    public class MailReceiveSemiPermanentResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Mail_ReceiveSemiPermanent; }
+        public long MailDBId { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+        public MonthlyProductPurchaseDB? AppliedMonthlyProductPurchaseDB { get; set; }
+        public BattlePassProductPurchaseDB? AppliedBattlePassProductPurchaseDB { get; set; }
+        public BattlePassInfoDB? AppliedBattlePassInfoDB { get; set; }
+        public List<BattlePassInfoDB>? BattlePassInfoDBs { get; set; }
+    }
+
     public class ManagementBannerListRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Management_BannerList; }
@@ -5095,7 +5142,7 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.OpenCondition_EventList; }
         public List<long>? ConquestEventIds { get; set; }
-        public Dictionary<long, long>? WorldRaidSeasonAndGroupIds { get; set; }
+        public Dictionary<long, List<long>>? WorldRaidSeasonAndGroupIds { get; set; }
     }
 
     public class OpenConditionEventListResponse : ResponsePacket

@@ -108,7 +108,6 @@ public class MissionHandler : ProtocolHandlerBase
         {
              // For debugging/permissive mode, maybe allow it? But officially should throw.
              // We'll trust the checked logic for now.
-             // throw new Exception("Mission not complete.");
         }
 
         // Load Mission Excel to get rewards

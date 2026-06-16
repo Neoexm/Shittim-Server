@@ -11,9 +11,9 @@ namespace Shittim_Server.Services
 
         private static readonly MetadataChunk[] MetadataChunks =
         [
-            new(0x145D3C0, 0),
-            new(0xFA65E8, 1),
-            new(0x145D300, 2)
+            new(0x145D428, 0),
+            new(0xFA6650, 1),
+            new(0x145D368, 2)
         ];
 
         private static readonly JsonSerializerOptions JsonOptions = new()

@@ -83,9 +83,14 @@ public class AccountHandler : ProtocolHandlerBase
         }
 
         var sessionKey = await _sessionService.GenerateSession(publisherId);
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
         
         response.ResultState = 1;
         response.SessionKey = sessionKey;
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
         return response;
     }
     [ProtocolHandler(Protocol.Account_Auth)]
@@ -100,6 +105,10 @@ public class AccountHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         response.CurrentVersion = request.Version;
+        response.MinimumVersion = 0;
+        response.IsDevelopment = false;
+        response.BattleValidation = false;
+        response.UpdateRequired = false;
         response.TTSCdnUri = "https://ba.dn.nexoncdn.co.kr/tts/version2/";
         response.IssueAlertInfos = [];
         response.AttendanceBookRewards = [];
@@ -113,6 +122,7 @@ public class AccountHandler : ProtocolHandlerBase
         response.WeeklyProductMail = [];
         response.EncryptedUID = "";
         response.AccountRestrictionsDB = new();
+        response.accountBanByNexonDBs = [];
         response.ServerNotification = ServerNotificationFlag.None;
         response.StaticOpenConditions = Enum.GetValues<OpenConditionContent>()
             .ToDictionary(c => c, _ => OpenConditionLockReason.None);

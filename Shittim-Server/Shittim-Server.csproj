@@ -42,4 +42,17 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Keep the gateway RSA key pair in the runtime Config dir even across a clean rebuild
+         (deleting bin/obj). Without this, a clean rebuild loses the keys that the client's
+         patched global-metadata.dat expects, so the gateway crypto handshake (50001) can't be
+         decoded and the client hangs at "Unpacking game resources". -->
+    <None Include="config\GatewayPrivateKey.pem" Link="Config\GatewayPrivateKey.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="config\GatewayPublicKey.pem" Link="Config\GatewayPublicKey.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -26,7 +26,6 @@ Write-Host "Starting game server..." -ForegroundColor Green
 Start-Process cmd -ArgumentList "/k", "cd $baseDir\Shittim-Server && dotnet run --project Shittim-Server.csproj" -WindowStyle Normal
 
 Start-Sleep -Seconds 2
-
 Write-Host "Starting mitmproxy..." -ForegroundColor Green
 Start-Process cmd -ArgumentList "/k", "cd $baseDir\Scripts\redirect_server_mitmproxy && mitmweb -m wireguard --no-http2 -s redirect_server.py --set termlog_verbosity=warn --mode local:BlueArchive.exe" -WindowStyle Normal
 

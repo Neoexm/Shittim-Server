@@ -208,8 +208,6 @@ namespace Schale.MX.Logic.Battles.Summary
         [JsonIgnore]
         public int ExSkillUseCount { get; }
 
-        // Originally use an KillLogCollection class
-        // public KillLogCollection? KillLog { get; set; }
         public Dictionary<string, int>? KillLog { get; set; }
 
         [JsonIgnore]
@@ -274,47 +272,6 @@ namespace Schale.MX.Logic.Battles.Summary
             return other != null && this.Equals(other);
         }
     }
-
-    // public class KillLogCollectionConverter : JsonConverter<KillLogCollection>
-    // {
-    //     public override KillLogCollection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    //     {
-    //         var collection = new KillLogCollection();
-    //         reader.Read(); 
-    //         while (reader.TokenType != JsonTokenType.EndArray)
-    //         {
-    //             KillLog? log = JsonSerializer.Deserialize<KillLog>(ref reader, options);
-    //             if (log.HasValue)
-    //             {
-    //                 collection.Add(log.Value);
-    //             }
-    //             reader.Read(); 
-    //         }
-
-    //         return collection;
-    //     }
-
-    //     public override void Write(Utf8JsonWriter writer, KillLogCollection value, JsonSerializerOptions options)
-    //     {
-    //         writer.WriteStartArray();
-
-    //         foreach (var log in value)
-    //         {
-    //             JsonSerializer.Serialize(writer, log, options);
-    //         }
-
-    //         writer.WriteEndArray();
-    //     }
-    // }
-
-    // [JsonConverter(typeof(KillLogCollectionConverter))]
-	// public class KillLogCollection : Collection<KillLog>
-	// {
-    //     public void Add(int frame, EntityId targetId)
-    //     {
-    //         this.Add(new KillLog(frame, targetId));
-    //     }
-	// }
 
     public struct KillLog : IEquatable<KillLog>
     {

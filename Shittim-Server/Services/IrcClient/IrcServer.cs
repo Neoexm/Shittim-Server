@@ -177,8 +177,6 @@ namespace Shittim.Services.IrcClient
             var channel = args[0];
             var payloadStr = args[1].TrimStart(':');
 
-            //Log.Debug("payload: " + payloadStr);
-
             var payload = JsonSerializer.Deserialize(payloadStr, typeof(IrcMessage)) as IrcMessage;
 
             if (payload.Text.StartsWith('/'))
@@ -189,9 +187,6 @@ namespace Shittim.Services.IrcClient
                 var cmdArgs = cmdStrings[1..];
 
                 var connection = clients[client];
-
-                // Log.Debug($"Command Name: {cmdName}");
-                // Log.Debug($"Command Arguments: {string.Join(" ", cmdArgs)}");
 
                 try
                 {

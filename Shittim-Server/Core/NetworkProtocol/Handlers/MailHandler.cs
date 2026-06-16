@@ -99,4 +99,57 @@ public class MailHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    // Semi-permanent mailbox (second mail tab: monthly product / battle pass recurring rewards).
+    // This server never seeds semi-permanent mail, so the box is always empty — but the client
+    // queries it right after clearing the normal box, and an unhandled protocol there throws the
+    // user back to the title screen with "server failed to process request".
+    [ProtocolHandler(Protocol.Mail_ListSemiPermanent)]
+    public async Task<MailListSemiPermanentResponse> ListSemiPermanent(
+        SchaleDataContext db,
+        MailListSemiPermanentRequest request,
+        MailListSemiPermanentResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.MailDBs = new List<MailDB>();
+        response.Count = 0;
+        response.ServerNotification = ServerNotificationFlag.None;
+
+        return response;
+    }
+
+    // Defensive: the semi-permanent box is empty, so the client won't normally reach this. If a
+    // semi-permanent mail ever exists, receive the single requested mail like a regular one.
+    [ProtocolHandler(Protocol.Mail_ReceiveSemiPermanent)]
+    public async Task<MailReceiveSemiPermanentResponse> ReceiveSemiPermanent(
+        SchaleDataContext db,
+        MailReceiveSemiPermanentRequest request,
+        MailReceiveSemiPermanentResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var mail = db.GetAccountMails(account.ServerId)
+            .FirstOrDefault(m => m.ServerId == request.MailDBId);
+
+        var parcelResults = new List<ParcelResult>();
+        if (mail != null)
+        {
+            if (mail.Type == MailType.System && mail.ParcelInfos != null)
+            {
+                foreach (var parcel in mail.ParcelInfos)
+                    parcelResults.Add(new ParcelResult(parcel.Key.Type, parcel.Key.Id, parcel.Amount));
+            }
+            db.Mails.Remove(mail);
+            await db.SaveChangesAsync();
+        }
+
+        var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcelResults);
+
+        response.MailDBId = request.MailDBId;
+        response.ParcelResultDB = parcelResolver.ParcelResult;
+        response.ServerNotification = ServerNotificationFlag.None;
+
+        return response;
+    }
 }

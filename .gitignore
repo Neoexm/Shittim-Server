@@ -95,3 +95,21 @@ progress.md
 /Scripts/tidy_protocol_dump.ps1
 /Scripts/cheatengine_protocol_dump.lua
 /Shittim-Server/config/ba_version_cache.json
+
+# Reverse-engineering / debugging artifacts
+Tools/procdump/
+Tools/cdb_*.txt
+Tools/*_trace.txt
+Tools/*.bin
+Tools/server_run*.log
+TESTING_ISSUES.txt
+*.i64
+*.idb
+*.til
+*.nam
+
+# AI assistant tool caches/configs
+.ida-mcp/
+.roo/
+.aider*
+.cursor/

@@ -24,6 +24,8 @@ namespace BlueArchiveAPI.Services
 
             unpacked = (List<T>)caches.GetOrAdd(type, (t) =>
             {
+                try
+                {
                 var excelDir = Path.Combine(DumpedDir, "Excel");
                 var excelDBDir = Path.Combine(DumpedDir, "ExcelDB.db");
 
@@ -99,6 +101,17 @@ namespace BlueArchiveAPI.Services
                 else
                 {
                     Console.WriteLine($"[ExcelTableService] WARNING: No Excel data found for {baseTypeName}, returning empty list");
+                    return new List<T>();
+                }
+                }
+                catch (Exception ex)
+                {
+                    // A dumped table whose bytes don't match the current Schale FlatBuffer schema
+                    // (e.g. RaidStageExcel.GroundDevName offset mismatch) would otherwise throw out of
+                    // the handler and become Error 500 -> client shows "Server failed to process
+                    // request. Returning to the title screen." Degrade to an empty table instead so the
+                    // request still completes.
+                    Console.WriteLine($"[ExcelTableService] WARNING: failed to load {type.Name} table ({ex.GetBaseException().Message}); degrading to empty table");
                     return new List<T>();
                 }
             });

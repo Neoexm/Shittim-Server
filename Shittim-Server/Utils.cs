@@ -148,29 +148,7 @@ namespace BlueArchiveAPI
                 throw new Exception($"packet decompressed size mismatch: {packetSize} != {decompressed.Length}");
             return Encoding.UTF8.GetString(decompressed);
         }
-        /*
-        public static string EncryptRequestPacket(JToken data)
-        {
-            var json = data.ToString(Formatting.None);
-            var bytes = Encoding.UTF8.GetBytes(json);
-            var compressed = GZipCompress(bytes);
-            var packetSize = BitConverter.GetBytes(bytes.Length);
-            var packet = new byte[packetSize.Length + compressed.Length];
-            Array.Copy(packetSize, packet, packetSize.Length);
-            Array.Copy(compressed, 0, packet, packetSize.Length, compressed.Length);
-            return Convert.ToBase64String(packet);
-        }
-        
-        public static JToken DecryptResponsePacket(byte[] packet, out Protocol proto)
-        {
-            var decompressed = GZipDecompress(packet);
-            var result = JsonConvert.DeserializeObject<ServerResponsePacket>(Encoding.UTF8.GetString(decompressed));
-            // if (proto != result.protocol && result.protocol != Protocol.Error)
-            //    throw new Exception($"Protocol mismatch: {result.protocol} != {proto}");
-            proto = Enum.Parse<Protocol>(result.Protocol);
-            return JToken.Parse(result.Packet);
-        }
-        */
+
         private static readonly JsonSerializerSettings settings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore

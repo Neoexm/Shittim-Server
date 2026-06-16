@@ -1,6 +1,5 @@
 using System.Text;
 using BlueArchiveAPI.Configuration;
-using BlueArchiveAPI.Core.Crypto;
 using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.MX.NetworkProtocol;
@@ -25,12 +24,13 @@ public class QueuingHandler : ProtocolHandlerBase
         QueuingGetCryptoKeysRequest request,
         QueuingGetCryptoKeysResponse response)
     {
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
         var sqlCipher = BuildSqlCipherResponse(request.ClientGeneratedKey, request.ClientGeneratedIV);
 
-        response.EncryptedKey = "";
-        response.SignedKey = "";
-        response.EncryptedIV = "";
-        response.SignedIV = "";
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
         response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
         response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
 
@@ -72,13 +72,14 @@ public class QueuingHandler : ProtocolHandlerBase
         QueuingGetAuthTicketRequest request,
         QueuingGetAuthTicketResponse response)
     {
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
         var sqlCipher = BuildSqlCipherResponse(request.ClientGeneratedKey, request.ClientGeneratedIV);
         var rawTicketBytes = Encoding.UTF8.GetBytes($"{request.YostarUID}/{request.YostarToken}");
 
-        response.EncryptedKey = "";
-        response.SignedKey = "";
-        response.EncryptedIV = "";
-        response.SignedIV = "";
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
         response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
         response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
         response.Birth = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -102,41 +103,14 @@ public class QueuingHandler : ProtocolHandlerBase
 
     private static (string EncryptedKey, string EncryptedLicense) BuildSqlCipherResponse(string? clientKeyText, string? clientIvText)
     {
-        var (clientKey, clientIv) = DecodeClientCrypto(clientKeyText, clientIvText);
+        var (clientKey, clientIv) = GatewaySessionCryptoBuilder.DecodeClientCrypto(clientKeyText, clientIvText);
         var sqlCipherKey = Convert.ToBase64String(GetSqlCipherKeyBytes());
         var sqlCipherLicense = GetSqlCipherLicense();
 
         return (
-            EncryptAesBase64(sqlCipherKey, clientKey, clientIv),
-            EncryptAesBase64(sqlCipherLicense, clientKey, clientIv)
+            GatewaySessionCryptoBuilder.EncryptAesBase64(sqlCipherKey, clientKey, clientIv),
+            GatewaySessionCryptoBuilder.EncryptAesBase64(sqlCipherLicense, clientKey, clientIv)
         );
-    }
-
-    private static (byte[] Key, byte[] Iv) DecodeClientCrypto(string? keyText, string? ivText)
-    {
-        if (string.IsNullOrWhiteSpace(keyText) || string.IsNullOrWhiteSpace(ivText))
-            throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "Missing client generated crypto material");
-
-        try
-        {
-            var key = Convert.FromBase64String(keyText);
-            var iv = Convert.FromBase64String(ivText);
-
-            if (key.Length is not (16 or 24 or 32) || iv.Length != 16)
-                throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "Invalid client generated crypto material length");
-
-            return (key, iv);
-        }
-        catch (FormatException ex)
-        {
-            throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Invalid client generated crypto material: {ex.Message}");
-        }
-    }
-
-    private static string EncryptAesBase64(string text, byte[] key, byte[] iv)
-    {
-        var encrypted = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(text), key, iv);
-        return Convert.ToBase64String(encrypted);
     }
 
     private static byte[] GetSqlCipherKeyBytes()

@@ -61,6 +61,17 @@ namespace BlueArchiveAPI.Services
                 return;
             }
 
+            // Auto resource update is opt-in. When it's disabled and we already have resources,
+            // keep the existing ones instead of re-downloading on a version change. A first-time
+            // bootstrap (no resources present yet) still downloads so the server can start.
+            bool hasExistingResources = Directory.Exists(DumpedDir)
+                && Directory.GetFiles(DumpedDir, "*", SearchOption.AllDirectories).Length > 0;
+            if (!Config.Instance.ServerConfiguration.AutoUpdateResources && hasExistingResources)
+            {
+                Console.WriteLine($"{typeLabel} resources are out of date, but auto resource update is disabled; keeping existing resources.");
+                return;
+            }
+
             Console.WriteLine($"{typeLabel} resources version mismatch; deleting old resources...");
             if (Directory.Exists(DumpedDir))
                 Directory.Delete(DumpedDir, recursive: true);
