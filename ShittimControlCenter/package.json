@@ -1,7 +1,7 @@
 {
   "name": "shittim-control-center",
   "productName": "Shittim Control Center",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Blue Archive themed control center for the Shittim-Server: configure, launch, and administer the server, accounts, inventory, mail, events and gacha.",
   "main": "main.js",
   "author": "Shittim",
@@ -9,7 +9,11 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "publish": "electron-builder --win --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   },
   "devDependencies": {
     "electron": "^33.2.0",
@@ -22,6 +26,13 @@
       "output": "dist",
       "buildResources": "build"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Neoexm",
+        "repo": "Shittim-Server"
+      }
+    ],
     "files": [
       "main.js",
       "preload.js",

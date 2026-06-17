@@ -133,22 +133,58 @@ export default {
       }
     }
 
-    // Drive setupInstall for one step or 'all', streaming progress to toasts and
-    // re-checking the environment when it finishes. mitmproxy/.NET install
-    // per-user (silent); trusting the CA raises one Windows elevation prompt.
+    // A live progress panel shown in place of the readiness list while an install
+    // runs. The .NET SDK download (~250 MB) is silent for minutes, so a spinner
+    // plus an always-ticking elapsed counter is what stops it reading as "hung".
+    function setupPanel() {
+      const titleEl = el('div', { style: { fontWeight: '700', fontSize: '13.5px' } });
+      const subEl = el('div', { style: { fontSize: '12px', color: 'var(--ink-3)', marginTop: '3px' } });
+      const logEl = el('div.mono', { style: { fontSize: '11px', color: 'var(--ink-3)', marginTop: '9px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: '0' } });
+      const wrap = el('div', { style: { display: 'flex', gap: '13px', alignItems: 'flex-start', padding: '16px 4px' } },
+        frag('<div class="spinner"></div>'),
+        el('div', { style: { minWidth: '0', flex: '1' } }, titleEl, subEl, logEl));
+      return { wrap, titleEl, subEl, logEl };
+    }
+
+    function fmtMB(n) { return `${(n / (1024 * 1024)).toFixed(0)} MB`; }
+
+    // Drive setupInstall for one step or 'all', rendering live progress in the
+    // card and re-checking the environment when it finishes. mitmproxy/.NET
+    // install per-user (silent); trusting the CA raises one Windows elevation
+    // prompt.
     async function runSetup(which) {
       if (busy) return;
       busy = true;
       setupBtn.disabled = true; refreshBtn.disabled = true;
-      const labels = { dotnet: '.NET 10 SDK', mitmproxy: 'mitmproxy', certificate: 'CA certificate', all: 'prerequisites' };
-      toast(`Installing ${labels[which] || which}… this can take a few minutes.`, 'good', 'Setup started');
+      const labels = { dotnet: '.NET 10 SDK', mitmproxy: 'mitmproxy', certificate: 'CA certificate' };
+
+      clear(diagBody);
+      const panel = setupPanel();
+      diagBody.appendChild(panel.wrap);
+
+      let curStep = which === 'all' ? 'dotnet' : which;
+      let msg = 'Starting…';
+      const t0 = Date.now();
+      const elapsed = () => { const s = Math.floor((Date.now() - t0) / 1000); const m = Math.floor(s / 60); return m ? `${m}m ${s % 60}s` : `${s}s`; };
+      const render = () => {
+        panel.titleEl.textContent = `Installing ${labels[curStep] || curStep}…`;
+        panel.subEl.textContent = `${msg} · ${elapsed()} elapsed`;
+      };
+      render();
+      // tick every second so the elapsed time always moves, even while a step is
+      // mid-download and emitting nothing
+      const timer = setInterval(render, 1000);
+
       const unsub = window.host.onSetupProgress((d) => {
-        if (d.status === 'done') toast(d.message || `${labels[d.step] || d.step} ready`, 'good');
-        else if (d.status === 'failed') toast(d.message || `${labels[d.step] || d.step} failed`, 'bad');
-        else if (d.status === 'running' && d.message) toast(d.message, 'good');
-        // reflect each phase change live in the readiness list
-        if (d.status === 'done' || d.status === 'failed') loadDiag();
+        if (d.step && labels[d.step]) curStep = d.step;
+        if (typeof d.recv === 'number' && d.total) msg = `Downloading… ${fmtMB(d.recv)} / ${fmtMB(d.total)}`;
+        else if (d.status === 'running' && d.message) msg = d.message;
+        if (d.line) panel.logEl.textContent = d.line;
+        if (d.status === 'done') { msg = d.message || `${labels[d.step] || d.step} ready`; toast(msg, 'good'); }
+        if (d.status === 'failed') { msg = d.message || `${labels[d.step] || d.step} failed`; toast(msg, 'bad'); }
+        render();
       });
+
       try {
         const res = await window.host.setupInstall(which);
         if (res.ok) toast('All prerequisites are ready.', 'good', 'Setup complete');
@@ -159,6 +195,7 @@ export default {
       } catch (e) {
         toast(String(e.message || e), 'bad', 'Setup failed');
       } finally {
+        clearInterval(timer);
         unsub();
         busy = false;
         refreshBtn.disabled = false;
@@ -204,12 +241,29 @@ function buildActions(container) {
     const p = await window.host.paths();
     window.host.openPath(p.serverDir);
   }});
+  const exportLogs = button('Export logs', { variant: 'ghost', iconName: 'save', block: true, onClick: async () => {
+    exportLogs.disabled = true;
+    try {
+      const r = await window.host.exportLogs();
+      if (!r || r.canceled) return;
+      if (r.ok) {
+        toast(`Bundled ${r.count} file${r.count === 1 ? '' : 's'} into ${r.name}.`, 'good', 'Logs exported');
+        window.host.revealPath(r.path);
+      } else {
+        toast(r.error || 'Could not export logs.', 'bad', 'Export failed');
+      }
+    } catch (e) {
+      toast(String(e.message || e), 'bad', 'Export failed');
+    } finally {
+      exportLogs.disabled = false;
+    }
+  }});
 
-  const grid = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } }, power, folder);
+  const grid = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } }, power, folder, exportLogs);
   container.appendChild(grid);
   container.appendChild(el('div', { style: { height: '12px' } }));
   container.appendChild(frag(`<div class="hazard"></div>`));
-  container.appendChild(el('p', { html: 'One button controls the server and proxy together. The live console and shortcuts live in <b>Server Control</b>.', style: { fontSize: '12.5px', color: 'var(--ink-3)', marginTop: '12px', marginBottom: '0' } }));
+  container.appendChild(el('p', { html: 'One button controls the server and proxy together. The live console and shortcuts live in <b>Server Control</b>. <b>Export logs</b> bundles the server log and a diagnostic snapshot into a zip to attach to bug reports.', style: { fontSize: '12.5px', color: 'var(--ink-3)', marginTop: '12px', marginBottom: '0' } }));
 
   return { power, isUp };
 }

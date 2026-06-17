@@ -202,6 +202,11 @@ namespace Shittim_Server.Services
                 }
             }
 
+            // Locate the game across any Steam library on the machine, not just F:\.
+            var located = SteamGameLocator.FindGameFile(relative);
+            if (!string.IsNullOrWhiteSpace(located))
+                return located;
+
             var fallback = Path.Combine(@"F:\SteamLibrary\steamapps\common\BlueArchive", relative);
             return File.Exists(fallback) ? fallback : string.Empty;
         }

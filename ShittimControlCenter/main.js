@@ -136,9 +136,48 @@ function killTree(child) {
   }
 }
 
+// Resolve the dotnet host to launch. Prefer the per-user SDK our setup installs
+// and launch it by ABSOLUTE PATH so machine-PATH ordering can't shadow it with a
+// runtime-only host — the classic "SDK 'Microsoft.NET.Sdk.Web' could not be
+// found" build failure on an otherwise-working machine. Falls back to whatever
+// 'dotnet' is on PATH when we never installed our own.
+function resolveDotnet() {
+  const exe = process.platform === 'win32' ? 'dotnet.exe' : 'dotnet';
+  const ours = path.join(DOTNET_DIR(), exe);
+  if (fs.existsSync(ours)) return { cmd: ours, root: DOTNET_DIR() };
+  return { cmd: exe, root: null };
+}
+
+// Child env that forces the chosen dotnet: DOTNET_ROOT points at the install and
+// its dir is prepended to PATH so nested 'dotnet' calls (run → build → exec) all
+// resolve to the same host instead of a shadowing one earlier on PATH.
+function dotnetEnv(root) {
+  const env = { ...process.env };
+  if (root) {
+    env.DOTNET_ROOT = root;
+    env['DOTNET_ROOT(x64)'] = root;
+    const cur = env.PATH || env.Path || '';
+    env.PATH = cur ? `${root}${path.delimiter}${cur}` : root;
+  }
+  env.DOTNET_CLI_TELEMETRY_OPTOUT = '1';
+  return env;
+}
+
+// Does the SDK tree under `dir` contain the ASP.NET Core Web SDK the project's
+// `<Project Sdk="Microsoft.NET.Sdk.Web">` header requires?
+function hasWebSdk(dir) {
+  const sdkRoot = path.join(dir, 'sdk');
+  try {
+    return fs.readdirSync(sdkRoot).some((v) =>
+      fs.existsSync(path.join(sdkRoot, v, 'Sdks', 'Microsoft.NET.Sdk.Web', 'Sdk', 'Sdk.props')));
+  } catch { return false; }
+}
+
 function startServer() {
   if (procs.server && !procs.server.killed) return { ok: false, error: 'Server already running' };
   const p = resolvePaths();
+  const dn = resolveDotnet();
+  const env = dotnetEnv(dn.root);
 
   let cmd, args, cwd;
   if (p.exePath) {
@@ -146,7 +185,7 @@ function startServer() {
     args = [];
     cwd = p.serverDir;
   } else if (fs.existsSync(p.csproj)) {
-    cmd = process.platform === 'win32' ? 'dotnet.exe' : 'dotnet';
+    cmd = dn.cmd;
     args = ['run', '--project', p.csproj];
     cwd = p.serverDir;
   } else {
@@ -154,7 +193,7 @@ function startServer() {
   }
 
   broadcast('proc:log', { source: 'server', line: `> launching ${path.basename(cmd)} (cwd: ${cwd})` });
-  const child = spawn(cmd, args, { cwd, windowsHide: true, env: { ...process.env } });
+  const child = spawn(cmd, args, { cwd, windowsHide: true, env });
   procs.server = child;
   broadcast('proc:state', { server: 'starting', serverPid: child.pid });
   pipeLines(child, 'server');
@@ -234,17 +273,50 @@ function execCheck(command, timeout = 6000) {
   });
 }
 
+function execOut(command, timeout = 8000) {
+  return new Promise((resolve) => {
+    exec(command, { timeout, windowsHide: true }, (err, stdout) => resolve({ ok: !err, out: (stdout || '').toString() }));
+  });
+}
+
+// For a PATH-resolved dotnet (we didn't install our own), parse `--list-sdks`
+// and check each listed SDK dir for the Web SDK.
+async function pathDotnetHasWeb(dn) {
+  const q = process.platform === 'win32' ? `"${dn.cmd}" --list-sdks` : `${dn.cmd} --list-sdks`;
+  const r = await execOut(q);
+  if (!r.ok) return false;
+  for (const line of r.out.split(/\r?\n/)) {
+    const m = line.match(/^(\S+)\s+\[(.+)\]\s*$/); // "10.0.301 [C:\...\sdk]"
+    if (m && fs.existsSync(path.join(m[2], m[1], 'Sdks', 'Microsoft.NET.Sdk.Web', 'Sdk', 'Sdk.props'))) return true;
+  }
+  return false;
+}
+
+// Report on the exact dotnet host the server will launch, including whether its
+// SDK carries the ASP.NET Core Web SDK — a base SDK alone yields the
+// "Sdk.Web could not be found" build failure even though `dotnet --version` works.
+async function checkDotnet() {
+  const dn = resolveDotnet();
+  const verCmd = process.platform === 'win32' ? `"${dn.cmd}" --version` : `${dn.cmd} --version`;
+  const ver = await execCheck(verCmd);
+  if (!ver.ok) return { status: 'missing', detail: '.NET SDK not found — click Install' };
+  const where = dn.root ? 'per-user' : 'system';
+  const webOk = dn.root ? hasWebSdk(dn.root) : await pathDotnetHasWeb(dn);
+  if (!webOk) return { status: 'warning', detail: `SDK ${ver.detail} (${where}) — ASP.NET Core Web SDK missing; click Install` };
+  return { status: 'ready', detail: `SDK ${ver.detail} (${where})` };
+}
+
 async function runEnvChecks() {
   const p = resolvePaths();
   const certPath = path.join(os.homedir(), '.mitmproxy', 'mitmproxy-ca-cert.cer');
 
   const [dotnet, mitm] = await Promise.all([
-    execCheck('dotnet --version'),
+    checkDotnet(),
     execCheck('mitmweb --version'),
   ]);
 
   return {
-    dotnet: { status: dotnet.ok ? 'ready' : 'missing', detail: dotnet.ok ? `SDK ${dotnet.detail}` : '.NET SDK not found in PATH' },
+    dotnet,
     mitmproxy: { status: mitm.ok ? 'ready' : 'missing', detail: mitm.ok ? mitm.detail : 'mitmproxy not found in PATH' },
     certificate: { status: fs.existsSync(certPath) ? 'ready' : 'warning', detail: fs.existsSync(certPath) ? certPath : 'CA certificate not generated yet' },
     database: { status: fs.existsSync(p.dbPath) ? 'ready' : 'warning', detail: fs.existsSync(p.dbPath) ? p.dbPath : 'created on first server run' },
@@ -546,9 +618,9 @@ function rebuildServer() {
   return new Promise((resolve) => {
     broadcast('proc:log', { source: 'server', line: '> dotnet build -c Debug (rebuilding after update)…' });
     broadcast('proc:state', { rebuild: 'building' });
-    const cmd = process.platform === 'win32' ? 'dotnet.exe' : 'dotnet';
+    const dn = resolveDotnet();
     let child;
-    try { child = spawn(cmd, ['build', '-c', 'Debug', p.csproj], { cwd: p.serverDir, windowsHide: true, env: { ...process.env } }); }
+    try { child = spawn(dn.cmd, ['build', '-c', 'Debug', p.csproj], { cwd: p.serverDir, windowsHide: true, env: dotnetEnv(dn.root) }); }
     catch (e) { resolve({ ok: false, error: String(e.message || e) }); return; }
     pipeLines(child, 'server');
     child.on('exit', (code) => { broadcast('proc:state', { rebuild: 'done' }); broadcast('proc:log', { source: 'server', line: `> build exited (code ${code})` }); resolve({ ok: code === 0, code }); });
@@ -559,17 +631,30 @@ function rebuildServer() {
 // ----------------------------------------------------------- toolchain setup
 //
 // One-click acquisition of the three host prerequisites the readiness card
-// reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert.
-// Everything installs per-user without admin EXCEPT trusting the CA into the
-// machine root store — which the Steam client validates against — and which
-// prompts once for elevation. Each installer is idempotent and streams progress
-// to the renderer over the 'setup:progress' channel. Windows only; on other
-// platforms each returns a message pointing at the manual install.
+// reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert. The
+// .NET SDK installs per-user (no admin); mitmproxy's official installer and
+// trusting the CA into the machine root store both require admin and prompt once
+// for elevation. Each installer is idempotent and streams progress to the
+// renderer over 'setup:progress'. Windows only; elsewhere each returns a message
+// pointing at the manual install.
 
-const TOOLS_DIR = () => path.join(app.getPath('userData'), 'tools');
 const DOTNET_DIR = () => path.join(process.env.LOCALAPPDATA || os.homedir(), 'Microsoft', 'dotnet');
-const MITM_DIR = () => path.join(TOOLS_DIR(), 'mitmproxy');
 const CERT_PATH = () => path.join(os.homedir(), '.mitmproxy', 'mitmproxy-ca-cert.cer');
+
+// mitmproxy ships an official, per-version Windows installer (Inno Setup, admin-
+// only — its manifest is requireAdministrator). We pin a known-good version,
+// install it into Program Files silently+elevated, then add it to PATH ourselves
+// because the installer does not modify PATH.
+const MITM_VERSION = '12.2.3';
+const MITM_INSTALLER_URL = (v) => `https://downloads.mitmproxy.org/${v}/mitmproxy-${v}-windows-x86_64-installer.exe`;
+const MITM_INSTALL_DIR = () => path.join(process.env.ProgramFiles || 'C:\\Program Files', 'mitmproxy');
+
+// Resolve a mitmproxy tool (mitmdump/mitmweb) from the install dir, else PATH.
+function mitmExe(name) {
+  const dir = findMitmBinDir(MITM_INSTALL_DIR());
+  const cand = dir ? path.join(dir, `${name}.exe`) : null;
+  return firstExisting([cand]) || (process.platform === 'win32' ? `${name}.exe` : name);
+}
 
 function setupLog(step, line) { broadcast('setup:progress', { step, line }); }
 function setupPhase(step, status, extra) { broadcast('setup:progress', { step, status, ...(extra || {}) }); }
@@ -624,8 +709,9 @@ async function installDotnet() {
   if (process.platform !== 'win32') {
     return { ok: false, error: 'Automated .NET install is wired up for Windows only — install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
   }
-  setupPhase(step, 'running', { message: 'Installing .NET 10 SDK…' });
+  setupPhase(step, 'running', { message: 'Downloading & installing the .NET 10 SDK (~250 MB) — this can take a few minutes' });
   let tmp = null;
+  let beat = null;
   try {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-dotnet-'));
     const scriptPath = path.join(tmp, 'dotnet-install.ps1');
@@ -633,71 +719,92 @@ async function installDotnet() {
     await downloadFile('https://dot.net/v1/dotnet-install.ps1', scriptPath);
     const dir = DOTNET_DIR();
     setupLog(step, `> dotnet-install.ps1 -Channel 10.0 -InstallDir "${dir}"`);
+    setupLog(step, '> the SDK download is large and runs quietly — give it a few minutes, it is not stuck');
+    // dotnet-install.ps1 emits almost nothing during the big transfer, so keep a
+    // heartbeat going to prove the step is still alive in the log/UI.
+    const t0 = Date.now();
+    beat = setInterval(() => {
+      const s = Math.round((Date.now() - t0) / 1000);
+      setupPhase(step, 'running', { message: `Installing the .NET 10 SDK… (${s}s elapsed — downloading in the background)` });
+    }, 3000);
     // -NoPath: the script's session-only PATH edit is useless to us; we persist
     // it ourselves below. The install is a no-op if the SDK is already present.
     const ps = `& ${psQuote(scriptPath)} -Channel 10.0 -InstallDir ${psQuote(dir)} -Architecture x64 -NoPath`;
     const r = await runPwsh(ps, (l) => setupLog(step, l));
+    clearInterval(beat); beat = null;
     if (!r.ok) { setupPhase(step, 'failed', { message: 'dotnet-install.ps1 failed' }); return { ok: false, error: 'dotnet-install.ps1 failed', out: r.out }; }
+    // A base SDK without the ASP.NET Core Web SDK still builds far enough to fail
+    // with "SDK 'Microsoft.NET.Sdk.Web' could not be found" — catch that here
+    // rather than letting the first server launch surface it.
+    if (!hasWebSdk(dir)) {
+      setupPhase(step, 'failed', { message: 'Install finished but the ASP.NET Core Web SDK is missing — re-run install.' });
+      return { ok: false, error: `Microsoft.NET.Sdk.Web not found under ${path.join(dir, 'sdk')} — the SDK install looks incomplete.` };
+    }
     await addToUserPath(dir, step);
+    setupLog(step, `> verified ASP.NET Core Web SDK is present in ${dir}`);
     setupPhase(step, 'done', { message: '.NET 10 SDK installed' });
     return { ok: true, dir };
   } catch (e) {
     setupPhase(step, 'failed', { message: String(e.message || e) });
     return { ok: false, error: String(e.message || e) };
   } finally {
+    if (beat) { clearInterval(beat); beat = null; }
     if (tmp) { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ } }
   }
 }
 
-// Find the directory holding mitmweb.exe inside an extracted archive (flat or
-// one level down).
-function findMitmBinDir(root) {
+// Find the directory holding mitmweb.exe under `root` (the install root, or one
+// of its sub-dirs like bin/), searching up to `depth` levels deep.
+function findMitmBinDir(root, depth = 2) {
   const hit = (d) => fs.existsSync(path.join(d, 'mitmweb.exe'));
   if (hit(root)) return root;
+  if (depth <= 0) return null;
   try {
     for (const n of fs.readdirSync(root)) {
       const sub = path.join(root, n);
-      try { if (fs.statSync(sub).isDirectory() && hit(sub)) return sub; } catch { /* ignore */ }
+      try {
+        if (fs.statSync(sub).isDirectory()) {
+          const found = findMitmBinDir(sub, depth - 1);
+          if (found) return found;
+        }
+      } catch { /* ignore */ }
     }
   } catch { /* ignore */ }
   return null;
 }
 
-// mitmproxy: download the latest standalone Windows zip from GitHub releases,
-// unpack it under userData/tools and put it on PATH.
+// mitmproxy: download the official pinned Windows installer and run it
+// silently+elevated into Program Files, then add the install dir to PATH (the
+// installer itself never modifies PATH).
 async function installMitmproxy() {
   const step = 'mitmproxy';
   if (process.platform !== 'win32') {
     return { ok: false, error: 'Automated mitmproxy install is wired up for Windows only — install it from https://mitmproxy.org/.' };
   }
-  setupPhase(step, 'running', { message: 'Installing mitmproxy…' });
+  setupPhase(step, 'running', { message: `Downloading mitmproxy ${MITM_VERSION}…` });
   let tmp = null;
   try {
-    setupLog(step, '> resolving latest mitmproxy release');
-    const rel = await httpGet('https://api.github.com/repos/mitmproxy/mitmproxy/releases/latest', {
-      headers: { Accept: 'application/vnd.github+json' },
-    });
-    if (rel.statusCode < 200 || rel.statusCode >= 300) throw new Error(`GitHub API responded ${rel.statusCode}`);
-    const data = JSON.parse(rel.body.toString('utf8'));
-    const assets = data.assets || [];
-    const asset = assets.find((a) => /windows/i.test(a.name) && /\.zip$/i.test(a.name) && /(x86_64|x64|amd64)/i.test(a.name))
-      || assets.find((a) => /windows/i.test(a.name) && /\.zip$/i.test(a.name));
-    if (!asset) throw new Error('no Windows .zip asset in the latest mitmproxy release');
-
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-mitm-'));
-    const zipPath = path.join(tmp, asset.name);
-    setupLog(step, `> downloading ${asset.name}`);
-    await downloadFile(asset.browser_download_url, zipPath, (recv, total) => broadcast('setup:progress', { step, recv, total }));
+    const installer = path.join(tmp, `mitmproxy-${MITM_VERSION}-installer.exe`);
+    const url = MITM_INSTALLER_URL(MITM_VERSION);
+    setupLog(step, `> downloading ${url}`);
+    await downloadFile(url, installer, (recv, total) => broadcast('setup:progress', { step, recv, total }));
 
-    const dir = MITM_DIR();
-    try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* ignore */ }
-    setupLog(step, '> extracting…');
-    await extractZip(zipPath, dir);
+    const dir = MITM_INSTALL_DIR();
+    setupPhase(step, 'running', { message: 'Installing mitmproxy (approve the elevation prompt)…' });
+    setupLog(step, `> running installer silently into ${dir} (requires elevation)`);
+    // Inno Setup silent switches; -Verb RunAs raises the one UAC prompt the
+    // requireAdministrator manifest forces. ArgumentList as a single string is
+    // passed verbatim so /DIR="…with spaces…" reaches Inno intact.
+    const innoArgs = `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="${dir}"`;
+    const ps = `$p = Start-Process -FilePath ${psQuote(installer)} -ArgumentList ${psQuote(innoArgs)} -Verb RunAs -PassThru -Wait; exit $p.ExitCode`;
+    const r = await runPwsh(ps, (l) => setupLog(step, l));
+    if (!r.ok) { setupPhase(step, 'failed', { message: 'installer failed or elevation was declined' }); return { ok: false, error: 'mitmproxy installer failed or elevation was declined', out: r.out }; }
 
     const binDir = findMitmBinDir(dir);
-    if (!binDir) throw new Error('mitmweb.exe not found after extraction');
+    if (!binDir) throw new Error(`mitmweb.exe not found under ${dir} after install`);
     await addToUserPath(binDir, step);
-    setupPhase(step, 'done', { message: 'mitmproxy installed' });
+    setupPhase(step, 'done', { message: `mitmproxy ${MITM_VERSION} installed` });
     return { ok: true, dir: binDir };
   } catch (e) {
     setupPhase(step, 'failed', { message: String(e.message || e) });
@@ -713,8 +820,7 @@ async function installMitmproxy() {
 function generateMitmCert(step) {
   return new Promise((resolve, reject) => {
     const certPath = CERT_PATH();
-    const exe = firstExisting([path.join(MITM_DIR(), 'mitmdump.exe')])
-      || (process.platform === 'win32' ? 'mitmdump.exe' : 'mitmdump');
+    const exe = mitmExe('mitmdump');
     let child;
     try { child = spawn(exe, ['--listen-port', '48080', '-q'], { windowsHide: true, env: { ...process.env } }); }
     catch (e) { reject(e); return; }
@@ -774,6 +880,220 @@ async function runSetup(which) {
   const ok = Object.values(results).every((r) => r && r.ok);
   broadcast('setup:progress', { step: which, status: ok ? 'all-done' : 'all-failed' });
   return { ok, results };
+}
+
+// ----------------------------------------------------------------- log export
+//
+// Bundle the server logs plus a short diagnostic snapshot into a single .zip the
+// user can attach when reporting an issue. The classic "stuck on Unpacking game
+// resources" hang, for instance, shows up plainly in the server log (a failed
+// gateway-key handshake, or a client metadata file that was never found). Uses
+// PowerShell's Compress-Archive on Windows — mirroring extractZip's
+// Expand-Archive — so no zip dependency is bundled.
+
+function logsDir() {
+  // ConfigLogger writes to <exeBaseDir>/logs/log.txt (+ log-prev.txt).
+  return path.join(resolvePaths().exeBaseDir, 'logs');
+}
+
+function documentsDir() {
+  try { return app.getPath('documents'); } catch { return os.homedir(); }
+}
+
+function compressArchive(items, destZip) {
+  return new Promise((resolve, reject) => {
+    if (process.platform === 'win32') {
+      const list = items.map(psQuote).join(',');
+      const ps = `$ProgressPreference='SilentlyContinue'; Compress-Archive -LiteralPath ${list} -DestinationPath ${psQuote(destZip)} -Force`;
+      execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps],
+        { windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
+        (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
+    } else {
+      execFile('zip', ['-j', destZip, ...items], { maxBuffer: 64 * 1024 * 1024 },
+        (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
+    }
+  });
+}
+
+// A plain-text snapshot of versions, resolved paths, process state and the
+// environment readiness checks — the context that makes a log bundle actionable.
+async function buildDiagnosticInfo() {
+  const p = resolvePaths();
+  let env = null;
+  try { env = await runEnvChecks(); } catch (e) { env = { error: String(e.message || e) }; }
+  let appVersion = '';
+  try { appVersion = app.getVersion(); } catch { /* ignore */ }
+
+  return [
+    '# Shittim Control Center diagnostic snapshot',
+    `generated:     ${new Date().toISOString()}`,
+    `controlCenter: ${appVersion}`,
+    `packaged:      ${app.isPackaged}`,
+    `electron:      ${process.versions.electron}`,
+    `node:          ${process.versions.node}`,
+    `os:            ${os.type()} ${os.release()} (${process.arch})`,
+    '',
+    '## Paths',
+    `repoRoot:      ${p.repoRoot}`,
+    `serverDir:     ${p.serverDir}`,
+    `exePath:       ${p.exePath || '(not built)'}`,
+    `configPath:    ${p.configPath}`,
+    `dbPath:        ${p.dbPath}`,
+    `logsDir:       ${logsDir()}`,
+    '',
+    '## Processes',
+    `server:        ${procs.server && !procs.server.killed ? 'running' : 'stopped'}`,
+    `mitmproxy:     ${procs.mitm && !procs.mitm.killed ? 'running' : 'stopped'}`,
+    '',
+    '## Environment checks',
+    JSON.stringify(env, null, 2),
+    '',
+  ].join('\r\n');
+}
+
+// Prompt for a save location, then stage the logs + diagnostic file and zip them.
+async function exportLogs() {
+  const p = resolvePaths();
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '');
+  const res = await dialog.showSaveDialog({
+    title: 'Export logs',
+    defaultPath: path.join(documentsDir(), `shittim-logs-${stamp}.zip`),
+    filters: [{ name: 'Zip archive', extensions: ['zip'] }],
+  });
+  if (res.canceled || !res.filePath) return { ok: false, canceled: true };
+  const destZip = res.filePath;
+
+  let staging = null;
+  try {
+    staging = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-logs-'));
+    let count = 0;
+
+    // server logs — carry the gateway/metadata patch outcome + handshake errors
+    const ld = logsDir();
+    for (const name of ['log.txt', 'log-prev.txt']) {
+      const src = path.join(ld, name);
+      try { if (fs.existsSync(src)) { fs.copyFileSync(src, path.join(staging, name)); count++; } } catch { /* skip */ }
+    }
+
+    // server config — toggles + client paths (no private key material by default)
+    try { if (fs.existsSync(p.configPath)) { fs.copyFileSync(p.configPath, path.join(staging, 'Config.json')); count++; } } catch { /* skip */ }
+
+    // diagnostic snapshot — always present so the bundle is never empty
+    try { fs.writeFileSync(path.join(staging, 'controlcenter-info.txt'), await buildDiagnosticInfo()); count++; } catch { /* skip */ }
+
+    const entries = fs.readdirSync(staging).map((n) => path.join(staging, n));
+    if (!entries.length) return { ok: false, error: 'No logs were found to export.' };
+
+    try { if (fs.existsSync(destZip)) fs.rmSync(destZip, { force: true }); } catch { /* -Force handles overwrite */ }
+    await compressArchive(entries, destZip);
+
+    return { ok: true, path: destZip, name: path.basename(destZip), count };
+  } catch (e) {
+    return { ok: false, error: String(e.message || e) };
+  } finally {
+    if (staging) { try { fs.rmSync(staging, { recursive: true, force: true }); } catch { /* ignore */ } }
+  }
+}
+
+// --------------------------------------------------- control-center self-update
+//
+// The Control Center is a packaged Electron app, so its own exe/files can only be
+// replaced by a newer packaged build — the source pull on the Updates page only
+// updates the .NET server's source. electron-updater pulls new Control Center
+// builds from this repo's GitHub Releases (configured by the `publish` block in
+// package.json), prompts before downloading, and installs on quit. It needs a
+// published Release whose version is higher than this app's package.json version,
+// carrying the latest.yml + installer assets that `npm run publish` uploads (set a
+// GH_TOKEN env var first). Older already-distributed builds have no update feed
+// embedded, so self-update begins working from the first published build onward.
+
+let cachedAutoUpdater = null;
+let updaterWired = false;
+
+// Compare dotted numeric versions: 1 if a>b, -1 if a<b, 0 if equal.
+function cmpVer(a, b) {
+  const pa = String(a || '0').split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = String(b || '0').split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
+// Lazily require + wire electron-updater. Returns the configured autoUpdater, or
+// null when running from source (no packaged feed) or if the module is absent.
+function setupAutoUpdate(win) {
+  if (!app.isPackaged) return null;
+
+  if (!cachedAutoUpdater) {
+    try { ({ autoUpdater: cachedAutoUpdater } = require('electron-updater')); }
+    catch (e) {
+      broadcast('proc:log', { source: 'server', line: `> auto-update unavailable (electron-updater not bundled): ${e.message}` });
+      return null;
+    }
+    cachedAutoUpdater.autoDownload = false;        // prompt before pulling the build
+    cachedAutoUpdater.autoInstallOnAppQuit = true; // if declined now, install on quit
+    try { cachedAutoUpdater.logger = null; } catch { /* ignore */ }
+  }
+
+  const autoUpdater = cachedAutoUpdater;
+
+  if (!updaterWired) {
+    updaterWired = true;
+
+    autoUpdater.on('update-available', async (info) => {
+      broadcast('update:self', { phase: 'available', version: info.version });
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'info',
+        buttons: ['Download && install', 'Later'],
+        defaultId: 0,
+        cancelId: 1,
+        title: 'Control Center update available',
+        message: `Shittim Control Center ${info.version} is available.`,
+        detail: `You are running ${app.getVersion()}. Download it now? The update installs when you close the app.`,
+      });
+      if (response === 0) {
+        broadcast('update:self', { phase: 'downloading', percent: 0 });
+        autoUpdater.downloadUpdate().catch((e) => broadcast('proc:log', { source: 'server', line: `> update download failed: ${e.message}` }));
+      }
+    });
+
+    autoUpdater.on('download-progress', (p) => broadcast('update:self', { phase: 'downloading', percent: Math.round(p.percent || 0) }));
+
+    autoUpdater.on('update-downloaded', async (info) => {
+      broadcast('update:self', { phase: 'downloaded', version: info.version });
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'info',
+        buttons: ['Restart now', 'On next quit'],
+        defaultId: 0,
+        cancelId: 1,
+        title: 'Update ready',
+        message: `Shittim Control Center ${info.version} downloaded.`,
+        detail: 'Restart now to finish installing.',
+      });
+      if (response === 0) setImmediate(() => autoUpdater.quitAndInstall());
+    });
+
+    autoUpdater.on('error', (err) => broadcast('proc:log', { source: 'server', line: `> auto-update error: ${(err && err.message) || err}` }));
+  }
+
+  return autoUpdater;
+}
+
+// Manual "check now": triggers a check (the update-available handler still drives
+// the prompt) and reports the result so the renderer can toast up-to-date / dev.
+async function checkSelfUpdate() {
+  if (!app.isPackaged) return { ok: true, dev: true, current: app.getVersion() };
+  const autoUpdater = setupAutoUpdate(BrowserWindow.getAllWindows()[0] || null);
+  if (!autoUpdater) return { ok: false, error: 'Updater is not available in this build.' };
+  try {
+    const r = await autoUpdater.checkForUpdates();
+    const version = r && r.updateInfo ? r.updateInfo.version : null;
+    return { ok: true, current: app.getVersion(), version, available: version ? cmpVer(version, app.getVersion()) > 0 : false };
+  } catch (e) {
+    return { ok: false, error: String(e.message || e) };
+  }
 }
 
 // ------------------------------------------------------------------- window
@@ -848,6 +1168,8 @@ ipcMain.handle('project:setPath', (_e, dir) => setProjectPath(dir));
 ipcMain.handle('updates:check', () => checkUpdates());
 ipcMain.handle('updates:apply', () => applyUpdate());
 ipcMain.handle('updates:rebuild', () => rebuildServer());
+// self-update for the packaged Control Center app (electron-updater / GitHub Releases)
+ipcMain.handle('updates:checkSelf', () => checkSelfUpdate());
 ipcMain.handle('proc:status', () => ({
   server: procs.server && !procs.server.killed ? 'running' : 'stopped',
   mitm: procs.mitm && !procs.mitm.killed ? 'running' : 'stopped',
@@ -870,6 +1192,10 @@ ipcMain.handle('dialog:pickFile', async (_e, filters) => {
 });
 ipcMain.handle('shell:openPath', (_e, p) => shell.openPath(p));
 ipcMain.handle('shell:openExternal', (_e, url) => shell.openExternal(url));
+ipcMain.handle('shell:showItem', (_e, p) => { try { shell.showItemInFolder(p); return true; } catch { return false; } });
+
+// bundle server logs + a diagnostic snapshot into a .zip for bug reports
+ipcMain.handle('logs:export', () => exportLogs());
 
 ipcMain.on('window:control', (e, action) => {
   const win = BrowserWindow.fromWebContents(e.sender);
@@ -882,7 +1208,11 @@ ipcMain.on('window:control', (e, action) => {
 // ------------------------------------------------------------------- bootstrap
 
 app.whenReady().then(() => {
-  createWindow();
+  const win = createWindow();
+  // On launch, check GitHub Releases for a newer packaged Control Center build and
+  // prompt to install (packaged builds only; a dev/source run skips this quietly).
+  const updater = setupAutoUpdate(win);
+  if (updater) updater.checkForUpdates().catch(() => { /* offline or no releases yet — stay quiet */ });
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

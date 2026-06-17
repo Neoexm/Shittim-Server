@@ -40,16 +40,28 @@ contextBridge.exposeInMainWorld('host', {
   projectDownload: (opts) => ipcRenderer.invoke('project:download', opts),
   projectSetPath: (dir) => ipcRenderer.invoke('project:setPath', dir),
 
-  // self-update (GitHub REST — no git required)
+  // server self-update (GitHub REST — no git required)
   updatesCheck: () => ipcRenderer.invoke('updates:check'),
   updatesApply: () => ipcRenderer.invoke('updates:apply'),
   updatesRebuild: () => ipcRenderer.invoke('updates:rebuild'),
+
+  // Control Center app self-update (electron-updater / GitHub Releases)
+  updatesCheckSelf: () => ipcRenderer.invoke('updates:checkSelf'),
+  onSelfUpdate: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on('update:self', fn);
+    return () => ipcRenderer.removeListener('update:self', fn);
+  },
 
   // dialogs + shell
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),
   pickFile: (filters) => ipcRenderer.invoke('dialog:pickFile', filters),
   openPath: (p) => ipcRenderer.invoke('shell:openPath', p),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+  revealPath: (p) => ipcRenderer.invoke('shell:showItem', p),
+
+  // bundle server logs + diagnostics into a .zip (returns { ok, path, name, count })
+  exportLogs: () => ipcRenderer.invoke('logs:export'),
 
   // window chrome
   windowControl: (action) => ipcRenderer.send('window:control', action),

@@ -205,6 +205,7 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientGamescaleCorePath,
                 () =>
                 [
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "gamescale.core.dll")) ?? "",
                     @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\gamescale.core.dll",
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "gamescale.core.dll")
                 ],
@@ -220,6 +221,7 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientNexonPlatformModulesPath,
                 () =>
                 [
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")) ?? "",
                     @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\NexonPlatformModules.dll",
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")
                 ],
@@ -235,6 +237,7 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientInfacePath,
                 () =>
                 [
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "inface.dll")) ?? "",
                     @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\inface.dll",
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "inface.dll")
                 ],

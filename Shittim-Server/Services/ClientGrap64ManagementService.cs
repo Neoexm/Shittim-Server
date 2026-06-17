@@ -163,6 +163,12 @@ namespace Shittim_Server.Services
                     return candidate;
             }
 
+            // Locate the game across any Steam library on the machine, not just F:\
+            // or Program Files.
+            var located = SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "grap64.dll"));
+            if (!string.IsNullOrWhiteSpace(located) && (File.Exists(located) || File.Exists(located + ".bak")))
+                return located;
+
             var candidates = new[]
             {
                 @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\grap64.dll",

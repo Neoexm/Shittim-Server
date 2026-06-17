@@ -28,14 +28,15 @@ export default {
       el('div.card-body', {}, headInfo, resultBody));
 
     const rebuildBtn = button('Rebuild server', { variant: 'ghost', iconName: 'bolt', onClick: doRebuild });
+    const selfBtn = button('Check for app update', { variant: 'ghost', iconName: 'refresh', onClick: doSelfCheck });
     const maintCard = el('div.card', { style: { marginTop: '18px' } },
       el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Maintenance' })),
       el('div.card-body', {},
         el('p', {
-          html: 'After installing an update, rebuild the .NET server so the new code is compiled into the executable, then restart the control center to pick up any of its own changes. Build output streams to the console in <b>Server Control</b>.',
+          html: 'The update above pulls the latest <b>server</b> source — rebuild it afterwards so the new code is compiled in (build output streams to the console in <b>Server Control</b>). The <b>Control Center app</b> updates itself separately from GitHub Releases: it checks on launch and prompts you, or check now below.',
           style: { fontSize: '13px', color: 'var(--ink-2)', margin: '0 0 14px', lineHeight: '1.6' },
         }),
-        el('div.row.wrap', { style: { gap: '10px' } }, rebuildBtn)));
+        el('div.row.wrap', { style: { gap: '10px' } }, rebuildBtn, selfBtn)));
 
     root.appendChild(versionCard);
     root.appendChild(maintCard);
@@ -231,6 +232,21 @@ export default {
         toast(String(e.message || e), 'bad');
         clear(resultBody);
         resultBody.appendChild(statusRow('bad', 'Update failed', String(e.message || e)));
+      }
+    }
+
+    async function doSelfCheck() {
+      selfBtn.disabled = true;
+      try {
+        const r = await window.host.updatesCheckSelf();
+        if (r.dev) { toast('Running from source — pull the repo and restart to update the app.', 'warn', 'Dev build'); return; }
+        if (!r.ok) { toast(r.error || 'Update check failed.', 'bad', 'App update'); return; }
+        if (r.available) toast(`Control Center ${r.version} is available — follow the prompt to install.`, 'good', 'Update available');
+        else toast(`Control Center is up to date (v${r.current}).`, 'good', 'App update');
+      } catch (e) {
+        toast(String(e.message || e), 'bad', 'App update');
+      } finally {
+        selfBtn.disabled = false;
       }
     }
 
