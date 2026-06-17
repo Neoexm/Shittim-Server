@@ -1,0 +1,48 @@
+name: Release Control Center
+
+# Builds and publishes the Shittim Control Center desktop app to GitHub Releases
+# via electron-builder, which also produces the `latest.yml` update feed that the
+# app's electron-updater reads to self-update. Running this from a GitHub-hosted
+# runner uploads the (~80 MB) installers from GitHub's own network, avoiding the
+# ECONNRESET/TLS drops that interrupt large uploads from a local machine.
+#
+# Usage:
+#   1. Bump "version" in ShittimControlCenter/package.json and commit/push it
+#      (electron-updater compares this semver to decide an update is available).
+#   2. Actions tab -> "Release Control Center" -> Run workflow.
+#   3. electron-builder uploads a DRAFT release. Review it under Releases, then
+#      click "Publish release" to make the update live to users.
+#
+# Note: only the NSIS "Setup" (installed) build self-updates — the portable .exe
+# has no installer to apply an update, so portable users won't auto-update.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ShittimControlCenter
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build & publish to GitHub Releases
+        env:
+          # electron-builder reads GH_TOKEN to publish; the built-in token has the
+          # contents:write permission granted above, so no PAT/secret is needed.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run publish
