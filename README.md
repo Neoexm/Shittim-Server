@@ -2,7 +2,7 @@
 
 A functional Blue Archive private server implemented in C# on ASP.NET Core (.NET 10).
 
-Official Discord — https://discord.gg/JNp6SUhrk2
+Official Discord — https://discord.gg/GANwPn9xX6
 
 ## What it does
 
