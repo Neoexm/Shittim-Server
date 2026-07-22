@@ -9,7 +9,6 @@ namespace BlueArchiveAPI.Services
 {
     public class ExcelTableService
     {
-        private const string DefaultExcelDbSqlCipherKey = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0";
         private readonly ConcurrentDictionary<Type, object> caches = [];
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
         public static string DumpedDir = Path.Combine(ResourceDir, "Dumped");
@@ -119,6 +118,45 @@ namespace BlueArchiveAPI.Services
             return unpacked;
         }
 
+        // Validates that the configured ExcelDB SQLCipher key can actually decrypt the ExcelDB.db that
+        // was downloaded for the current client version. The ExcelDB key rotates between some game
+        // updates; when it does, every DB-backed table silently degrades to empty and the failure only
+        // surfaces as broken client screens much later. Running this once at startup turns that into a
+        // single, actionable error naming the key as the cause. No-ops when ExcelDB.db is absent (a
+        // .bytes-only / custom-Excel setup) or is stored as a plain, unencrypted SQLite file.
+        public static void ValidateExcelDbKey()
+        {
+            var excelDbPath = Path.Combine(DumpedDir, "ExcelDB.db");
+            if (!File.Exists(excelDbPath))
+            {
+                Console.WriteLine("[ExcelTableService] ExcelDB.db not present; skipping SQLCipher key validation.");
+                return;
+            }
+
+            if (!NeedsSqlCipherKey(excelDbPath))
+            {
+                Console.WriteLine("[ExcelTableService] ExcelDB.db is an unencrypted SQLite file; no SQLCipher key required.");
+                return;
+            }
+
+            try
+            {
+                using var connection = OpenExcelDbConnection(excelDbPath);
+                using var command = connection.CreateCommand();
+                // Reads and decrypts page 1; a wrong key fails here with SQLITE_NOTADB (26).
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master;";
+                var tableCount = command.ExecuteScalar();
+                Console.WriteLine($"[ExcelTableService] ExcelDB SQLCipher key validated ({tableCount} schema entries).");
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 26 /* SQLITE_NOTADB */)
+            {
+                throw new InvalidOperationException(
+                    "ExcelDB SQLCipher key is invalid for the current ExcelDB.db. The key most likely rotated " +
+                    "with this client version. Re-extract it from a Queuing_GetCryptoKeys capture (Tools/ExcelDbKeyTool) " +
+                    "and set ServerConfiguration.ExcelDbSqlCipherKey (or SHITTIM_EXCELDB_SQLCIPHER_KEY).", ex);
+            }
+        }
+
         private static SqliteConnection OpenExcelDbConnection(string dbPath)
         {
             SqliteProvider.EnsureInitialized();
@@ -152,13 +190,24 @@ namespace BlueArchiveAPI.Services
             return !header.SequenceEqual("SQLite format 3\0"u8);
         }
 
+        // The ExcelDB SQLCipher key lives in exactly one place: ServerConfiguration.ExcelDbSqlCipherKey
+        // (overridable per-machine via the SHITTIM_EXCELDB_SQLCIPHER_KEY environment variable). The
+        // same value is handed to the client in QueuingHandler.GetSqlCipherKeyBytes, so both the server
+        // and the client decrypt the CDN's ExcelDB.db with an identical key. There is intentionally no
+        // hard-coded fallback here — a missing key is a configuration error, not something to paper over.
         private static string GetExcelDbSqlCipherKey()
         {
             var key = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_KEY");
             if (string.IsNullOrWhiteSpace(key))
                 key = Config.Instance.ServerConfiguration.ExcelDbSqlCipherKey;
 
-            return string.IsNullOrWhiteSpace(key) ? DefaultExcelDbSqlCipherKey : key;
+            if (string.IsNullOrWhiteSpace(key))
+                throw new InvalidOperationException(
+                    "ExcelDB SQLCipher key is not configured. Set ServerConfiguration.ExcelDbSqlCipherKey " +
+                    "in Config.json (or the SHITTIM_EXCELDB_SQLCIPHER_KEY environment variable) to the key " +
+                    "for the current client version.");
+
+            return key;
         }
 
         private static string BuildKeyPragma(string key)

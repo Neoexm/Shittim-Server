@@ -69,6 +69,10 @@ namespace Shittim.CLI
                 Console.WriteLine("\n[Resource Manager] Checking Excel tables...");
                 await ResourceService.LoadResources(Config.Instance.ServerConfiguration.UseCustomExcel);
 
+                // Fail fast with a clear message if the ExcelDB SQLCipher key cannot decrypt the
+                // ExcelDB.db for this client version (the key rotates between some game updates).
+                ExcelTableService.ValidateExcelDbKey();
+
                 var builder = WebApplication.CreateBuilder(Environment.GetCommandLineArgs());
 
                 builder.Configuration.AddConfiguration(config);
