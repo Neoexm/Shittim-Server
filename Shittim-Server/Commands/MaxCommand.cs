@@ -6,7 +6,7 @@ using Schale.Excel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("max", "Max out character stats", "/max <all|charactername>")]
+    [CommandHandler("max", "Max out character stats", "!max <all|charactername>")]
     internal class MaxCommand : Command
     {
         public MaxCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }

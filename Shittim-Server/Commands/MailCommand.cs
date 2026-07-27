@@ -6,7 +6,7 @@ using Schale.MX.GameLogic.Parcel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("mail", "Command to sending mail to player", "/mail [type] [id,...] [amount]")]
+    [CommandHandler("mail", "Command to sending mail to player", "!mail [type] [id,...] [amount]")]
     internal class MailCommand : Command
     {
         public MailCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -31,7 +31,7 @@ namespace Shittim.Commands
             var account = context.GetAccount(connection.AccountServerId);
             if (args == null || args.Length == 0)
             {
-                await connection.SendChatMessage("Usage: /mail [type] [id,...] [amount]");
+                await connection.SendChatMessage("Usage: !mail [type] [id,...] [amount]");
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace Shittim.Commands
             });
 
             await connection.SendChatMessage("Send mail successfully, please check your mailbox");
-            await connection.SendChatMessage("If the client abnormal after sending email, please use '/mail clear' to fix it.");
+            await connection.SendChatMessage("If the client abnormal after sending email, please use '!mail clear' to fix it.");
             await context.SaveChangesAsync();
 
             // Mid-session delivery: the player's next Mail_Check reports NewMailArrived once.
@@ -148,12 +148,12 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/mail - Command to sending mail to player");
-            await connection.SendChatMessage("Usage: /mail [type] [id,...] [amount]");
+            await connection.SendChatMessage("!mail - Command to sending mail to player");
+            await connection.SendChatMessage("Usage: !mail [type] [id,...] [amount]");
             await connection.SendChatMessage("Type: currency | equipment | item |  furniture - 2/3/4/13");
             await connection.SendChatMessage("Support sending multiple items of the same type, use ',' to separate each ID");
             await connection.SendChatMessage("You can find item ID at schaledb.com");
-            await connection.SendChatMessage("If the client abnormal after sending email, use '/mail clear' to fix it.");
+            await connection.SendChatMessage("If the client abnormal after sending email, use '!mail clear' to fix it.");
         }
     }
 }

@@ -37,21 +37,28 @@ public class EventContentScenarioHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        if (!db.GetAccountScenarioGroupHistories(account.ServerId).Any(x => x.ScenarioGroupUqniueId == request.ScenarioGroupUniqueId))
+        if (!db.GetAccountScenarioGroupHistories(account.ServerId).Any(x =>
+                x.ScenarioGroupUqniueId == request.ScenarioGroupUniqueId
+                && x.EventContentId == request.EventContentId))
         {
             db.ScenarioGroupHistories.Add(new ScenarioGroupHistoryDBServer
             {
-                AccountServerId = request.AccountId,
+                AccountServerId = account.ServerId,
                 EventContentId = request.EventContentId,
                 ScenarioGroupUqniueId = request.ScenarioGroupUniqueId,
                 ScenarioType = request.ScenarioType,
-                ClearDateTime = DateTime.UtcNow
+                ClearDateTime = account.GameSettings.ServerDateTime()
             });
 
             await db.SaveChangesAsync();
         }
 
-        response.ScenarioGroupHistoryDBs = db.GetAccountScenarioGroupHistories(account.ServerId).ToMapList(_mapper);
+        // Only this event's rows: leaking the account's whole scenario history (main story rows
+        // with no EventContentId) into the per-event view wedged the client after event stories.
+        response.ScenarioGroupHistoryDBs = db.GetAccountScenarioGroupHistories(account.ServerId)
+            .Where(x => x.EventContentId == request.EventContentId)
+            .ToMapList(_mapper);
+        response.EventContentCollectionDBs = [];
         response.ParcelResultDB = new ParcelResultDB();
 
         return response;

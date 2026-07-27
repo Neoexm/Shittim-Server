@@ -6,7 +6,7 @@ using Schale.FlatData;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("inventory", "Command to manage inventory", "/inventory [command] [type] [options]")]
+    [CommandHandler("inventory", "Command to manage inventory", "!inventory [command] [type] [options]")]
     internal class InventoryCommand : Command
     {
         public InventoryCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -160,8 +160,8 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/inventory - Command to manage inventory.");
-            await connection.SendChatMessage("Usage: /inventory [command] [type] [options]");
+            await connection.SendChatMessage("!inventory - Command to manage inventory.");
+            await connection.SendChatMessage("Usage: !inventory [command] [type] [options]");
             await connection.SendChatMessage("Commands: add | remove");
             await connection.SendChatMessage("Type: all | characters | weapons | equipments | items | gears | lobbies | scenarios | furniture");
             await connection.SendChatMessage("Options: barebone | basic | ue30 | ue50 | max");

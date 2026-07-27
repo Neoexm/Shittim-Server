@@ -7,7 +7,7 @@ using Schale.Data;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("setraid", "Command to change content teams data", "/setraid [type] [options] [snapshotid] [battleId]")]
+    [CommandHandler("setraid", "Command to change content teams data", "!setraid [type] [options] [snapshotid] [battleId]")]
     internal class SetRaidCommand : Command
     {
         public SetRaidCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -273,16 +273,16 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/setraid - Command to change content teams data");
-            await connection.SendChatMessage("Usage: /setraid <total|grand> <show|to> [snapshotNum] [battleNum]");
+            await connection.SendChatMessage("!setraid - Command to change content teams data");
+            await connection.SendChatMessage("Usage: !setraid <total|grand> <show|to> [snapshotNum] [battleNum]");
             await connection.SendChatMessage("Type: total, grand");
             await connection.SendChatMessage("Option: show, to");
             await connection.SendChatMessage(" show - Show current raid data");
             await connection.SendChatMessage(" to - Set raid data to current raid progress");
             await connection.SendChatMessage("SnapshotID: 0, 1, 2, 3, ... (0 for current raid data)");
             await connection.SendChatMessage("BattleID: 1, 2, 3, ...");
-            await connection.SendChatMessage("/setraid total show 0 - Show all current raid data");
-            await connection.SendChatMessage("/setraid total set 2 2 - Set current raid data to snapshot 2 team 2");
+            await connection.SendChatMessage("!setraid total show 0 - Show all current raid data");
+            await connection.SendChatMessage("!setraid total set 2 2 - Set current raid data to snapshot 2 team 2");
         }
     }
 }

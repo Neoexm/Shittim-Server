@@ -3,7 +3,7 @@ using Schale.Data.GameModel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("setting", "Command to change player's account settings", "/setting [type] [value]")]
+    [CommandHandler("setting", "Command to change player's account settings", "!setting [type] [value]")]
     internal class SettingCommand : Command
     {
         public SettingCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -134,8 +134,8 @@ namespace Shittim.Commands
         
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/setting - Command to change player's account settings");
-            await connection.SendChatMessage("Usage: /setting [type] [value]");
+            await connection.SendChatMessage("!setting - Command to change player's account settings");
+            await connection.SendChatMessage("Usage: !setting [type] [value]");
             await connection.SendChatMessage("Available Types:");
             await connection.SendChatMessage("  trackpvp: Enable/disable exporting Arena Battles data.");
             await connection.SendChatMessage("  usefinal: Enable/disable Multi-Floor Raid.");

@@ -158,6 +158,23 @@ public class MomoTalkHandler : ProtocolHandlerBase
             }
         }
 
+        // A FavorRankUp-gated group only opens once the student's relationship rank reaches the
+        // condition value; advancing past it regardless handed every story out at rank 1.
+        if (nextGroupId > 0)
+        {
+            var nextGroupEntry = _academyMessengers
+                .FirstOrDefault(x => x.MessageGroupId == nextGroupId);
+            if (nextGroupEntry != null
+                && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp)
+            {
+                var favorRank = db.Characters
+                    .FirstOrDefault(c => c.AccountServerId == account.ServerId
+                        && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
+                if (favorRank < nextGroupEntry.ConditionValue)
+                    nextGroupId = 0;
+            }
+        }
+
         if (nextGroupId > 0)
         {
             momotalkOutline.LatestMessageGroupId = nextGroupId;

@@ -6,7 +6,7 @@ using Schale.Data.GameModel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("currency", "Command to manage currency", "/currency [currencyId] [amount]")]
+    [CommandHandler("currency", "Command to manage currency", "!currency [currencyId] [amount]")]
     internal class CurrencyCommand : Command
     {
         public CurrencyCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -59,9 +59,23 @@ namespace Shittim.Commands
             if (currencyType != CurrencyTypes.Invalid && long.TryParse(amountStr, out amount))
             {
                 var currencies = context.Currencies.First(x => x.AccountServerId == account.ServerId);
-                currencies.CurrencyDict[currencyType] = amount;
-                currencies.UpdateTimeDict[currencyType] = account.GameSettings.ServerDateTime();
-                currencies.UpdateGem(account.GameSettings.ServerDateTime());
+                var now = account.GameSettings.ServerDateTime();
+
+                // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every
+                // parcel update), so a direct Gem write would be discarded; set the sources.
+                if (currencyType == CurrencyTypes.Gem)
+                {
+                    currencies.CurrencyDict[CurrencyTypes.GemBonus] = amount;
+                    currencies.CurrencyDict[CurrencyTypes.GemPaid] = 0;
+                    currencies.UpdateTimeDict[CurrencyTypes.GemBonus] = now;
+                    currencies.UpdateTimeDict[CurrencyTypes.GemPaid] = now;
+                }
+                else
+                {
+                    currencies.CurrencyDict[currencyType] = amount;
+                }
+                currencies.UpdateTimeDict[currencyType] = now;
+                currencies.UpdateGem(now);
                 context.Entry(currencies).State = EntityState.Modified;
                 await context.SaveChangesAsync();
 
@@ -92,10 +106,10 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/Currency - Command to manage currency");
-            await connection.SendChatMessage("Usage: /Currency [currencyID] [amount]");
+            await connection.SendChatMessage("!Currency - Command to manage currency");
+            await connection.SendChatMessage("Usage: !Currency [currencyID] [amount]");
             await connection.SendChatMessage("CurrencyID: credits | pyroxenes | 1, 2, 3...");
-            await connection.SendChatMessage("/currency show - List all currencies and their amounts");
+            await connection.SendChatMessage("!currency show - List all currencies and their amounts");
         }
     }
 }

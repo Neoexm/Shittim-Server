@@ -8,7 +8,7 @@ using Schale.Data.GameModel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("setaccount", "Command to change player's account data", "/setaccount [type] [value]")]
+    [CommandHandler("setaccount", "Command to change player's account data", "!setaccount [type] [value]")]
     internal class SetAccountCommand : Command
     {
         public SetAccountCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -81,10 +81,10 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/setaccount - Command to change player's account data");
-            await connection.SendChatMessage("Usage: /setaccount [type] [value]");
+            await connection.SendChatMessage("!setaccount - Command to change player's account data");
+            await connection.SendChatMessage("Usage: !setaccount [type] [value]");
             await connection.SendChatMessage("Type: level | nickname | raidseasonid | property | ...");
-            await connection.SendChatMessage("/setaccount show - List all available properties");
+            await connection.SendChatMessage("!setaccount show - List all available properties");
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("gacha", "Command to set gacha rates and guarantee", "/gacha [type] [value]")]
+    [CommandHandler("gacha", "Command to set gacha rates and guarantee", "!gacha [type] [value]")]
     internal class GachaCommand : Command
     {
         public GachaCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -207,14 +207,14 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/gacha - Command to set gacha rates and guarantee");
-            await connection.SendChatMessage("Usage: /gacha [type] [value] [rate]");
+            await connection.SendChatMessage("!gacha - Command to set gacha rates and guarantee");
+            await connection.SendChatMessage("Usage: !gacha [type] [value] [rate]");
             await connection.SendChatMessage("Types:");
             await connection.SendChatMessage("rate [rarity] [percentage] - Set rate for rarity (SSR/SR/R)");
             await connection.SendChatMessage("guarantee [pickupcharacterId] - Set guaranteed character (Warning: This Operation can break your client if your not careful)");
-            await connection.SendChatMessage("/gacha show - Show list of available Pickup Characters");
-            await connection.SendChatMessage("/gacha reset - Reset to default settings");
-            await connection.SendChatMessage("/gacha settings - Show current settings");
+            await connection.SendChatMessage("!gacha show - Show list of available Pickup Characters");
+            await connection.SendChatMessage("!gacha reset - Reset to default settings");
+            await connection.SendChatMessage("!gacha settings - Show current settings");
         }
 
         public static Dictionary<long, double> GetCustomRates() => customRates;

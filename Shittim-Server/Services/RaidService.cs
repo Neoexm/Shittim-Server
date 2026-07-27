@@ -4,6 +4,7 @@ using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.Logic.Battles.Summary;
 using Schale.MX.Logic.Data;
+using Schale.MX.NetworkProtocol;
 
 namespace Shittim_Server.Services;
 
@@ -41,7 +42,14 @@ public static class RaidService
         ClanAssistUseInfo clanAssistUse)
     {
         if (assistCharacter == null)
-            return new AssistCharacterDB();
+        {
+            // A blank AssistCharacterDB (UniqueId 0) wedges the client's battle setup and
+            // softlocks the whole game; failing the request is strictly better.
+            Serilog.Log.Error(
+                "Assist character {CharacterDBId} (echelon {EchelonType}) not found in the assist cache",
+                clanAssistUse.CharacterDBId, clanAssistUse.EchelonType);
+            throw new WebAPIException(WebAPIErrorCode.ClanAssistNotValidUse);
+        }
 
         assistCharacter.CombatStyleIndex = clanAssistUse.CombatStyleIndex;
         assistCharacter.IsMulligan = clanAssistUse.IsMulligan;

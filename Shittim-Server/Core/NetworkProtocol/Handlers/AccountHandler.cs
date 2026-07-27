@@ -9,6 +9,7 @@ using Schale.Data.ModelMapping;
 using Schale.Data.Models;
 using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
+using Schale.MX.GameLogic.Parcel;
 using Schale.MX.GameLogic.Services;
 using Schale.MX.NetworkProtocol;
 using Shittim_Server.Core;
@@ -24,6 +25,7 @@ public class AccountHandler : ProtocolHandlerBase
     private readonly ILogger<AccountHandler> _logger;
     private readonly MissionService _missionService;
     private readonly AttendanceService _attendanceService;
+    private readonly ParcelHandler _parcelHandler;
 
     public AccountHandler(
         IProtocolHandlerRegistry registry,
@@ -32,7 +34,8 @@ public class AccountHandler : ProtocolHandlerBase
         IMapper mapper,
         ILogger<AccountHandler> logger,
         MissionService missionService,
-        AttendanceService attendanceService) : base(registry)
+        AttendanceService attendanceService,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
@@ -40,6 +43,7 @@ public class AccountHandler : ProtocolHandlerBase
         _logger = logger;
         _missionService = missionService;
         _attendanceService = attendanceService;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.Account_CheckNexon)]
@@ -107,6 +111,12 @@ public class AccountHandler : ProtocolHandlerBase
             throw new UnauthorizedAccessException("Session key required");
 
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // The client evaluates content locks (cafe, clan, crafting, schedule, ...) client-side
+        // from OpenConditionExcel's ScenarioModeId prerequisites against the account's scenario
+        // history. Seed every referenced mode as cleared so all content is unlocked by default —
+        // this also repairs accounts created before this seeding existed.
+        await EnsureOpenConditionScenariosCleared(db, account);
 
         // The client always sends Version: 0 here; the official server answers with its own
         // current data-build number (446690 against the captured 1.90.443855 client).
@@ -176,6 +186,38 @@ public class AccountHandler : ProtocolHandlerBase
 
     internal static Dictionary<OpenConditionContent, OpenConditionLockReason> BuildOfficialStaticOpenConditions()
         => OfficialStaticOpenConditionKeys.ToDictionary(c => c, _ => OpenConditionLockReason.None);
+
+    private async Task EnsureOpenConditionScenariosCleared(SchaleDataContext db, AccountDBServer account)
+    {
+        var requiredModeIds = _excelService.GetTable<OpenConditionExcelT>()
+            .Where(x => x.ScenarioModeId != 0)
+            .Select(x => x.ScenarioModeId)
+            .Distinct()
+            .ToList();
+
+        if (requiredModeIds.Count == 0)
+            return;
+
+        var cleared = db.GetAccountScenarioHistories(account.ServerId)
+            .Select(x => x.ScenarioUniqueId)
+            .ToHashSet();
+
+        var now = account.GameSettings.ServerDateTime();
+        var added = false;
+        foreach (var modeId in requiredModeIds.Where(id => !cleared.Contains(id)))
+        {
+            db.ScenarioHistories.Add(new ScenarioHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                ScenarioUniqueId = modeId,
+                ClearDateTime = now
+            });
+            added = true;
+        }
+
+        if (added)
+            await db.SaveChangesAsync();
+    }
 
     // Deterministic 26-char base32 (A-Z2-7) support UID, mirroring the official format
     // (e.g. "2YIXKGSNBP435QRHVUZD3VYUHE"). Opaque to the client.
@@ -321,8 +363,13 @@ public class AccountHandler : ProtocolHandlerBase
             ArenaPlayerInfoDB = new ArenaPlayerInfoDB
             {
                 CurrentSeasonId = account.ContentInfo.ArenaDataInfo.SeasonId,
+                PlayerGroupId = 1,
                 CurrentRank = 1,
-                TimeRewardLastUpdateTime = account.GameSettings.ServerDateTime()
+                TimeRewardLastUpdateTime = account.ContentInfo.ArenaDataInfo.TimeRewardLastUpdateTime
+                    ?? account.GameSettings.ServerDateTime(),
+                BattleEnterActiveTime = account.ContentInfo.ArenaDataInfo.BattleEnterActiveTime
+                    ?? account.GameSettings.ServerDateTime(),
+                DailyRewardActiveTime = account.GameSettings.ServerDateTime()
             }
         };
 
@@ -596,6 +643,27 @@ public class AccountHandler : ProtocolHandlerBase
             .Where(r => r.Level <= account.Level && !claimedIds.Contains(r.Id))
             .ToList();
 
+        // Grant the excel parcels BEFORE marking the ids consumed; the old order marked them
+        // claimed while granting nothing, permanently losing the rewards for the account.
+        var parcels = availableRewards
+            .Select(r => new ParcelResult(r.RewardParcelType, r.RewardParcelId, r.RewardParcelAmount))
+            .Where(p => p.Amount > 0)
+            .ToList();
+
+        if (parcels.Count > 0)
+        {
+            var resolver = await _parcelHandler.BuildParcel(db, account, parcels);
+            response.ParcelResultDB = resolver.ParcelResult;
+        }
+        else
+        {
+            response.ParcelResultDB = new ParcelResultDB
+            {
+                AccountDB = account.ToMap(_mapper),
+                AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper)
+            };
+        }
+
         var newRewards = availableRewards.Select(r => new AccountLevelRewardDBServer
         {
             AccountServerId = account.ServerId,
@@ -606,7 +674,6 @@ public class AccountHandler : ProtocolHandlerBase
         await db.SaveChangesAsync();
 
         response.ReceivedAccountLevelRewardIds = availableRewards.Select(r => r.Id).ToList();
-        response.ParcelResultDB = new();
 
         return response;
     }

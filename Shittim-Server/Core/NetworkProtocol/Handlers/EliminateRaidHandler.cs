@@ -11,6 +11,7 @@ using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
 using Shittim.Services;
+using Shittim_Server.GameClient;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -87,7 +88,7 @@ public class EliminateRaidHandler : ProtocolHandlerBase
 
         if (request.AssistUseInfo != null)
         {
-            var assistCharacter = ShittimService.GetAssistCharacter(request.AssistUseInfo.EchelonType)
+            var assistCharacter = SchaleService.GetAssistCharacter(request.AssistUseInfo.EchelonType)
                 .FirstOrDefault(x => x.AssistCharacterServerId == request.AssistUseInfo.CharacterDBId);
             response.AssistCharacterDB = RaidService.FinishingAssistCharacterInfo(assistCharacter, request.AssistUseInfo);
         }
@@ -114,7 +115,7 @@ public class EliminateRaidHandler : ProtocolHandlerBase
 
         if (request.AssistUseInfo != null)
         {
-            var assistCharacter = ShittimService.GetAssistCharacter(request.AssistUseInfo.EchelonType)
+            var assistCharacter = SchaleService.GetAssistCharacter(request.AssistUseInfo.EchelonType)
                 .FirstOrDefault(x => x.AssistCharacterServerId == request.AssistUseInfo.CharacterDBId);
             response.AssistCharacterDB = RaidService.FinishingAssistCharacterInfo(assistCharacter, request.AssistUseInfo);
         }

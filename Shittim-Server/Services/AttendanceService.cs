@@ -39,13 +39,19 @@ public class AttendanceService
         _excelService = excelService;
     }
 
-    /// <summary>Books whose window is open and whose level gate the account passes.</summary>
+    /// <summary>
+    /// Books whose window is open, whose level gate the account passes, and whose AccountType
+    /// matches the account's state. Official only advertises matching books (a Normal account
+    /// never sees the Comeback/Newbie variants); over-advertising desynchronised the client's
+    /// claim loop into resubmitting already-claimed books (error 9000 on the wire).
+    /// </summary>
     private List<AttendanceExcelT> OpenBooks(AccountDBServer account, DateTime now)
     {
         return _excelService.GetTable<AttendanceExcelT>()
             .Where(x => TryParse(x.StartDate) is { } start && start <= now
                 && TryParse(x.EndDate) is { } end && now < end
-                && account.Level >= x.AccountLevelLimit)
+                && account.Level >= x.AccountLevelLimit
+                && (x.AccountType == AccountState.WaitingSignIn || x.AccountType == account.State))
             .ToList();
     }
 
@@ -87,12 +93,13 @@ public class AttendanceService
         var history = db.GetAccountAttendanceHistories(account.ServerId)
             .FirstOrDefault(x => x.AttendanceBookUniqueId == bookUniqueId);
 
-        if (ClaimedToday(history, now))
-            throw new WebAPIException(WebAPIErrorCode.AttendanceInvalid, $"Attendance book {bookUniqueId} already claimed today");
+        // Idempotent: a client that re-submits an already-claimed (or completed) book gets the
+        // current state back instead of an error popup — the claim loop can desync after menu
+        // backouts and re-logins, and error 9000 there is purely user-hostile.
+        if (ClaimedToday(history, now) || NextDay(excel, history) <= 0)
+            return (BuildBook(excel), ToWire(history!));
 
         var day = NextDay(excel, history);
-        if (day <= 0)
-            throw new WebAPIException(WebAPIErrorCode.AttendanceInvalid, $"Attendance book {bookUniqueId} is complete");
 
         if (history == null)
         {
@@ -189,7 +196,7 @@ public class AttendanceService
         {
             UniqueId = excel.Id,
             Type = excel.Type,
-            AccountType = excel.AccountType,
+            // AccountType deliberately left at default: official never emits it on the wire.
             DisplayOrder = excel.DisplayOrder,
             AccountLevelLimit = excel.AccountLevelLimit,
             // Official emits '' rather than omitting the title on books with no localisation key.

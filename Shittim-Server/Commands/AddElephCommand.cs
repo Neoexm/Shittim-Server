@@ -5,7 +5,7 @@ using Schale.FlatData;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("addeleph", "Add character elephs: /addeleph <charactername> <amount>", "/addeleph <character> <amount>")]
+    [CommandHandler("addeleph", "Add character elephs: !addeleph <charactername> <amount>", "!addeleph <character> <amount>")]
     internal class AddElephCommand : Command
     {
         public AddElephCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -20,8 +20,8 @@ namespace Shittim.Commands
         {
             if (string.IsNullOrEmpty(CharacterName))
             {
-                await connection.SendChatMessage("Usage: /addeleph <charactername> <amount>");
-                await connection.SendChatMessage("Example: /addeleph Kotama 9999");
+                await connection.SendChatMessage("Usage: !addeleph <charactername> <amount>");
+                await connection.SendChatMessage("Example: !addeleph Kotama 9999");
                 return;
             }
 

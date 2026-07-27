@@ -189,19 +189,31 @@ public class CafeManager
         var cafeDb = context.Cafes.GetCafeByCafeDBId(account.ServerId, req.CafeDBId);
         var characterData = context.Characters.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.ServerId == req.CharacterServerId);
 
-        cafeDb.LastUpdate = account.GameSettings.ServerDateTime();
-        if (!account.GameSettings.BypassCafeSummon)
-            cafeDb.LastSummonDate = account.GameSettings.ServerDateTime();
-
-        cafeDb.CafeVisitCharacterDBs.Add(characterData.UniqueId,
-        new CafeDBServer.CafeCharacterDBServer()
+        // Summoning a student who is already in the cafe is an ordinary thing for the client to
+        // ask: they can already be there as a random visitor. Dictionary.Add threw on that, and an
+        // unhandled handler exception becomes ErrorCode 500, which the client renders as
+        // "A request that cannot be processed has been received." Upsert instead — same shape as
+        // CafeSummonCharacterTicketUse, which never had the bug.
+        if (characterData != null)
         {
-            IsSummon = true,
-            UniqueId = characterData.UniqueId,
-            ServerId = characterData.ServerId
+            cafeDb.LastUpdate = account.GameSettings.ServerDateTime();
+            if (!account.GameSettings.BypassCafeSummon)
+                cafeDb.LastSummonDate = account.GameSettings.ServerDateTime();
+
+            // A re-summon keeps the existing visit's LastInteractTime: interaction is once per
+            // visit, and resetting it here would let a summon be used to farm the favor grant.
+            cafeDb.CafeVisitCharacterDBs.TryGetValue(characterData.UniqueId, out var existing);
+            cafeDb.CafeVisitCharacterDBs[characterData.UniqueId] = new CafeDBServer.CafeCharacterDBServer
+            {
+                IsSummon = true,
+                UniqueId = characterData.UniqueId,
+                ServerId = characterData.ServerId,
+                LastInteractTime = existing?.LastInteractTime ?? default
+            };
+
+            context.Cafes.Update(cafeDb);
+            await context.SaveChangesAsync();
         }
-        );
-        await context.SaveChangesAsync();
 
         return cafeDb;
     }
@@ -243,6 +255,13 @@ public class CafeManager
         var cafeDb = context.Cafes.GetCafeByCafeDBId(account.ServerId, req.CafeDBId);
 
         var visitEntry = cafeDb.CafeVisitCharacterDBs.Values.FirstOrDefault(x => x.UniqueId == req.CharacterId);
+
+        // The client can send an interact for a student who is no longer in the cafe — a stale UI
+        // tap after the visit rotated, or a duplicate of an in-flight request. Dereferencing null
+        // here surfaced as ErrorCode 500 ("A request that cannot be processed"); refuse it as a
+        // domain error so the client just declines the interaction.
+        if (visitEntry == null)
+            throw new WebAPIException(WebAPIErrorCode.CafeInteractionNotFound, $"Character {req.CharacterId} is not visiting cafe {req.CafeDBId}");
 
         visitEntry.LastInteractTime = dateTime;
         cafeDb.LastUpdate = dateTime;

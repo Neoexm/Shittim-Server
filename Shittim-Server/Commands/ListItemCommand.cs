@@ -6,7 +6,7 @@ using Schale.Excel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("listitem", "List items by category or search term", "/listitem <category|searchterm>")]
+    [CommandHandler("listitem", "List items by category or search term", "!listitem <category|searchterm>")]
     internal class ListItemCommand : Command
     {
         public ListItemCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -112,7 +112,7 @@ namespace Shittim.Commands
                 await connection.SendChatMessage($"... and {results.Count - 30} more (showing first 30)");
             }
 
-            await connection.SendChatMessage($"Total: {results.Count} items. Use /give <id> <amount>");
+            await connection.SendChatMessage($"Total: {results.Count} items. Use !give <id> <amount>");
         }
 
         private static string GetIconBaseName(string icon)

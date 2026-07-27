@@ -116,6 +116,16 @@ namespace Shittim_Server.Controllers.Api
         private readonly HandlerManager _handlerManager;
         private readonly Microsoft.EntityFrameworkCore.IDbContextFactory<Schale.Data.SchaleDataContext> _dbFactory;
         private static readonly byte[] RequestXorKey = { 0xD9 };
+
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<long, SemaphoreSlim> _accountGates = new();
+
+        private static SemaphoreSlim GetAccountGate(long accountServerId)
+            => _accountGates.GetOrAdd(accountServerId, _ => new SemaphoreSlim(1, 1));
+
+        // Controllers are instantiated per request, so this safely carries the decoded request body
+        // to CreateProtocolErrorResponse — which is reached from catch blocks where the local is out
+        // of scope, and which needs it to write a complete exchange to the wire dump.
+        private string _wireRequestJson = "";
         
         // Official packet serialization rules (verified against live captures):
         // - null members omitted, AND default-valued members omitted (0 / false / default enum /
@@ -184,6 +194,7 @@ namespace Shittim_Server.Controllers.Api
                 responseCrypto = gatewayPayload.ResponseCrypto;
 
                 var payloadStr = gatewayPayload.Json;
+                _wireRequestJson = payloadStr;
                 var jsonNode = JObject.Parse(payloadStr);
                 protocol = ReadProtocol(jsonNode);
                 var responseProtocolName = protocol.ToString();
@@ -247,7 +258,27 @@ namespace Shittim_Server.Controllers.Api
                 // and only the following response drops it. Snapshot before dispatch.
                 var notification = await ReadServerNotificationAsync(payload, protocol);
 
-                var rsp = await lease.Handler.Handle(payload);
+                // The client fires bursts of claims concurrently (e.g. several Mission_Reward at
+                // once); parallel write transactions on one SQLite file can stall past the client's
+                // socket timeout, and an unanswered request soft-locks the game. Serialize per
+                // account, and fail loudly instead of silently when a slot can't be obtained.
+                var accountGate = GetAccountGate(payload.SessionKey?.AccountServerId ?? 0);
+                if (!await accountGate.WaitAsync(TimeSpan.FromSeconds(20)))
+                {
+                    _logger.LogError("Timed out waiting for the per-account dispatch gate on {Protocol}", protocol);
+                    await CreateProtocolErrorResponse("Server busy", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
+                    return;
+                }
+
+                ResponsePacket rsp;
+                try
+                {
+                    rsp = await lease.Handler.Handle(payload);
+                }
+                finally
+                {
+                    accountGate.Release();
+                }
 
                 if (rsp == null)
                 {
@@ -272,6 +303,9 @@ namespace Shittim_Server.Controllers.Api
                     responseJson = OverridePacketProtocol(responseJson, responseProtocolOverride.Value);
 
                 _logger.LogDebug("Response: {Rsp}", responseJson);
+                Core.Diagnostics.GatewayWireLog.Write(
+                    payloadStr, responseProtocolName, responseJson,
+                    ShouldUseAes(responseCrypto), responseCrypto.Key.Length);
 
                 var serverPacket = new ServerResponsePacket { Protocol = responseProtocolName, Packet = responseJson };
                 await CreateProtocolResponse(serverPacket, responseCrypto);
@@ -281,6 +315,17 @@ namespace Shittim_Server.Controllers.Api
                 if (!Response.HasStarted)
                 {
                     await CreateProtocolErrorResponse(ex.Message, ex.ErrorCode, responseCrypto);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // A dead/mismatched session must NOT surface as the generic 500 ("A request that
+                // cannot be processed") — InvalidSession triggers the client's clean
+                // return-to-title + relogin flow instead.
+                _logger.LogWarning("Rejected request with invalid session: {Message}", ex.Message);
+                if (!Response.HasStarted)
+                {
+                    await CreateProtocolErrorResponse(ex.Message, WebAPIErrorCode.InvalidSession, responseCrypto);
                 }
             }
             catch (Exception ex)
@@ -917,6 +962,9 @@ namespace Shittim_Server.Controllers.Api
             var res = new ServerResponsePacket { Protocol = Protocol.Error.ToString(), Packet = JsonConvert.SerializeObject(errorPacket, jsonSettings) };
 
             _logger.LogInformation("Error Response: {Rsp}", res.Packet);
+            Core.Diagnostics.GatewayWireLog.Write(
+                _wireRequestJson, res.Protocol, res.Packet,
+                ShouldUseAes(crypto), crypto.Key.Length);
 
             // Same envelope rule as CreateProtocolResponse: plaintext envelope, encrypt only the inner packet.
             if (ShouldUseAes(crypto))

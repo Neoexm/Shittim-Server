@@ -6,7 +6,7 @@ using Schale.Excel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("giveequip", "Give yourself equipment by ID or name", "/giveequip <equipmentname> <tierstr> <amountstr>")]
+    [CommandHandler("giveequip", "Give yourself equipment by ID or name", "!giveequip <equipmentname> <tierstr> <amountstr>")]
     internal class GiveEquipCommand : Command
     {
         public GiveEquipCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }

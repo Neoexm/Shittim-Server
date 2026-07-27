@@ -251,4 +251,39 @@ public class ClanHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Clan_MyAssistList)]
+    public async Task<ClanMyAssistListResponse> MyAssistList(
+        SchaleDataContext db,
+        ClanMyAssistListRequest request,
+        ClanMyAssistListResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // "Which of my characters am I lending out" — legitimately empty on a solo server,
+        // but the list itself must be present or the client faults on it.
+        response.ClanAssistSlotDBs = [];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_SetAssist)]
+    public async Task<ClanSetAssistResponse> SetAssist(
+        SchaleDataContext db,
+        ClanSetAssistRequest request,
+        ClanSetAssistResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ClanAssistSlotDB = new ClanAssistSlotDB
+        {
+            EchelonType = request.EchelonType,
+            SlotNumber = request.SlotNumber,
+            CharacterDBId = request.CharacterDBId,
+            CombatStyleIndex = request.CombatStyleIndex,
+            DeployDate = account.GameSettings.ServerDateTime()
+        };
+
+        return response;
+    }
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("unlockbattlepass", "Command to unlock Battle Pass paid track (keep level)", "/unlockbattlepass")]
+    [CommandHandler("unlockbattlepass", "Command to unlock Battle Pass paid track (keep level)", "!unlockbattlepass")]
     internal class UnlockBattlePassCommand : Command
     {
         public UnlockBattlePassCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }

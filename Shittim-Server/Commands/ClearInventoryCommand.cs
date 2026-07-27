@@ -2,7 +2,7 @@ using Shittim.Services.Client;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("clearinventory", "Removes ALL items and equipment from inventory", "/clearinventory")]
+    [CommandHandler("clearinventory", "Removes ALL items and equipment from inventory", "!clearinventory")]
     internal class ClearInventoryCommand : Command
     {
         public ClearInventoryCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }

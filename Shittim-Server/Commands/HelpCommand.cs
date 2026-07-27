@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace Shittim.Commands
 {
 
-    [CommandHandler("help", "Show this help.", "/help [command]")]
+    [CommandHandler("help", "Show this help.", "!help [command]")]
     internal class HelpCommand : Command
     {
         public HelpCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -56,7 +56,7 @@ namespace Shittim.Commands
                 }
             }
             
-            await connection.SendChatMessage("/{command} help - To get more information about that command");
+            await connection.SendChatMessage("!{command} help - To get more information about that command");
         }
     }
 

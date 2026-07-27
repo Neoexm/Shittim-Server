@@ -308,9 +308,12 @@ public class MissionHandler : ProtocolHandlerBase
             .Where(x => x.AccountServerId == account.ServerId && x.Complete)
             .ToList();
 
+        // MissionCategory.All is the client's "claim everything" tab value; no excel row ever
+        // carries it, so it must bypass the category filter rather than match against it.
         var targetProgresses = progresses
             .Where(p => missionExcelById.TryGetValue(p.MissionUniqueId, out var missionExcel)
-                && missionExcel.Category == request.MissionCategory
+                && (request.MissionCategory == MissionCategory.All
+                    || missionExcel.Category == request.MissionCategory)
                 && (!request.EventContentId.HasValue
                     || p.MissionUniqueId.ToString().StartsWith(request.EventContentId.Value.ToString())))
             .ToList();
@@ -318,6 +321,11 @@ public class MissionHandler : ProtocolHandlerBase
         if (targetProgresses.Count == 0)
         {
             response.AddedHistoryDBs = [];
+            response.ParcelResultDB = new ParcelResultDB
+            {
+                AccountDB = account.ToMap(_mapper),
+                AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper)
+            };
             return response;
         }
 
@@ -362,13 +370,19 @@ public class MissionHandler : ProtocolHandlerBase
 
         response.AddedHistoryDBs = addedHistory;
 
-        if (request.MissionCategory == MissionCategory.Daily)
+        // Count only the rows that actually were Daily missions (with the All tab, the batch
+        // can span every category).
+        var claimedDailyCount = targetProgresses.Count(p =>
+            missionExcelById.TryGetValue(p.MissionUniqueId, out var excel)
+            && excel.Category == MissionCategory.Daily);
+
+        if (claimedDailyCount > 0)
         {
             var updatedMetaMissions = _missionService.UpdateMissionProgress(
                 db,
                 account,
                 MissionCompleteConditionType.Reset_DailyMissionFulfill,
-                targetProgresses.Count);
+                claimedDailyCount);
 
             if (updatedMetaMissions.Count > 0)
                 response.MissionProgressDBs = updatedMetaMissions;

@@ -3,7 +3,7 @@ using Schale.Excel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("checkitem", "Check item details: /checkitem <itemname>", "/checkitem <name>")]
+    [CommandHandler("checkitem", "Check item details: !checkitem <itemname>", "!checkitem <name>")]
     internal class CheckItemCommand : Command
     {
         public CheckItemCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -15,8 +15,8 @@ namespace Shittim.Commands
         {
             if (string.IsNullOrEmpty(ItemName))
             {
-                await connection.SendChatMessage("Usage: /checkitem <itemname>");
-                await connection.SendChatMessage("Example: /checkitem Eligma");
+                await connection.SendChatMessage("Usage: !checkitem <itemname>");
+                await connection.SendChatMessage("Example: !checkitem Eligma");
                 return;
             }
 

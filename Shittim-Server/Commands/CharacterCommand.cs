@@ -6,7 +6,7 @@ using Schale.Data.GameModel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("character", "Command to interact with user's characters", "/character [command] [characterID] [options] [parameters]")]
+    [CommandHandler("character", "Command to interact with user's characters", "!character [command] [characterID] [options] [parameters]")]
     internal class CharacterCommand : Command
     {
         public CharacterCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -140,8 +140,8 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/character - Command to interact with user's characters");
-            await connection.SendChatMessage("Usage: /character [command] [characterID] [options] [parameters]");
+            await connection.SendChatMessage("!character - Command to interact with user's characters");
+            await connection.SendChatMessage("Usage: !character [command] [characterID] [options] [parameters]");
             await connection.SendChatMessage("Command: add | remove | modify | show");
             await connection.SendChatMessage("CharacterID: all | characterID");
             await connection.SendChatMessage("Options for add: barebone | basic | ue30 | ue50 | max");
@@ -150,7 +150,7 @@ namespace Shittim.Commands
             await connection.SendChatMessage("  star {star} - Set character star grade");
             await connection.SendChatMessage("  skill {skill1 skill2 skill3 skill4} - Set skill levels");
             await connection.SendChatMessage("  ps {ps1 ps2 ps3} - Set potential stats");
-            await connection.SendChatMessage("/character show - List all current characters");
+            await connection.SendChatMessage("!character show - List all current characters");
         }
     }
 }

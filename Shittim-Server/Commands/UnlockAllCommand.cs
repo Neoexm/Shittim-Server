@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("unlockall", "Command to unlock all of its contents", "/unlockall [target content]")]
+    [CommandHandler("unlockall", "Command to unlock all of its contents", "!unlockall [target content]")]
     internal class UnlockAllCommand : Command
     {
         public UnlockAllCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -173,8 +173,8 @@ namespace Shittim.Commands
 
         private async Task ShowHelp()
         {
-            await connection.SendChatMessage("/unlockall - Command to unlock all of its contents");
-            await connection.SendChatMessage("Usage: /unlockall [content]");
+            await connection.SendChatMessage("!unlockall - Command to unlock all of its contents");
+            await connection.SendChatMessage("Usage: !unlockall [content]");
             await connection.SendChatMessage("Content: campaign | weekdungeon | schooldungeon | battlepass | mission");
         }
     }

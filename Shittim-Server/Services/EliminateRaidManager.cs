@@ -94,6 +94,20 @@ public class EliminateRaidManager
                     { targetSeason.OpenRaidBossGroup02, Difficulty.Lunatic },
                     { targetSeason.OpenRaidBossGroup03, Difficulty.Lunatic }
                 },
+                // The client's Mobilize handler resolves the selected boss group through these
+                // two members; leaving them empty faults it before the request is even built.
+                OpenedBossGroups =
+                [
+                    targetSeason.OpenRaidBossGroup01,
+                    targetSeason.OpenRaidBossGroup02,
+                    targetSeason.OpenRaidBossGroup03
+                ],
+                BestRankingPointPerBossGroup = new Dictionary<string, long>
+                {
+                    { targetSeason.OpenRaidBossGroup01, 0 },
+                    { targetSeason.OpenRaidBossGroup02, 0 },
+                    { targetSeason.OpenRaidBossGroup03, 0 }
+                },
                 SweepPointByRaidUniqueId = new Dictionary<long, long>(),
                 SeasonStartDate = serverTime.AddHours(-3),
                 SeasonEndDate = serverTime.AddDays(4),
@@ -124,6 +138,20 @@ public class EliminateRaidManager
             }
             raidLobby.BestRankingPoint = account.ContentInfo.EliminateRaidDataInfo.BestRankingPoint;
             raidLobby.TotalRankingPoint = account.ContentInfo.EliminateRaidDataInfo.TotalRankingPoint;
+
+            // Repair rows persisted before OpenedBossGroups/BestRankingPointPerBossGroup were set.
+            if (raidLobby.OpenedBossGroups == null || raidLobby.OpenedBossGroups.Count == 0)
+            {
+                raidLobby.OpenedBossGroups =
+                [
+                    targetSeason.OpenRaidBossGroup01,
+                    targetSeason.OpenRaidBossGroup02,
+                    targetSeason.OpenRaidBossGroup03
+                ];
+            }
+            raidLobby.BestRankingPointPerBossGroup ??= new Dictionary<string, long>();
+            foreach (var group in raidLobby.OpenedBossGroups)
+                raidLobby.BestRankingPointPerBossGroup.TryAdd(group, 0);
         }
         await context.SaveChangesAsync();
         

@@ -5,7 +5,7 @@ using Schale.Data.GameModel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("setseason", "Set season for raids and challenges", "/setseason [type] [seasonId]")]
+    [CommandHandler("setseason", "Set season for raids and challenges", "!setseason [type] [seasonId]")]
     internal class SetSeason : Command
     {
         public SetSeason(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -92,11 +92,11 @@ namespace Shittim.Commands
 
         public static async Task ShowHelp(IClientConnection connection)
         {
-            await connection.SendChatMessage("/setseason - Command to set season for raids and challenges");
-            await connection.SendChatMessage("Usage: /setseason [type] [seasonId]");
+            await connection.SendChatMessage("!setseason - Command to set season for raids and challenges");
+            await connection.SendChatMessage("Usage: !setseason [type] [seasonId]");
             await connection.SendChatMessage("Type: total | grand | drill | final");
             await connection.SendChatMessage("SeasonID: 1, 2, 3, ...");
-            await connection.SendChatMessage("/setseason show - List all available season id");
+            await connection.SendChatMessage("!setseason show - List all available season id");
         }
     }
 }

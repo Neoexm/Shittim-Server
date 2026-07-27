@@ -50,38 +50,44 @@ public class ContentSweepHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        return request.Content switch
+        {
+            ContentType.WeekDungeon => await SweepWeekDungeon(db, account, request, response),
+            ContentType.SchoolDungeon => await SweepSchoolDungeon(db, account, request, response),
+            _ => await SweepCampaign(db, account, request, response)
+        };
+    }
+
+    private async Task<ContentSweepResponse> SweepCampaign(
+        SchaleDataContext db,
+        AccountDBServer account,
+        ContentSweepRequest request,
+        ContentSweepResponse response)
+    {
         var campaignStageExcels = _excelService.GetTable<CampaignStageExcelT>();
         var campaignStageRewardExcels = _excelService.GetTable<CampaignStageRewardExcelT>();
         var campaignChapterExcels = _excelService.GetTable<CampaignChapterExcelT>();
 
         var stageExcel = campaignStageExcels.GetCampaignStageId(request.StageId);
-        
+
         var apCost = stageExcel.StageEnterCostAmount * request.Count;
         var apCostParcel = new ParcelResult(stageExcel.StageEnterCostType, stageExcel.StageEnterCostId, apCost);
         await _parcelHandler.BuildParcel(db, account, apCostParcel, isConsume: true);
 
         var clearParcels = new List<List<ParcelInfo>>();
         var allRewardParcels = new List<ParcelResult>();
-        
+
         for (int i = 0; i < request.Count; i++)
         {
             var rewardDatas = campaignStageRewardExcels.GetAllRewardsByGroupId(stageExcel.CampaignStageRewardId);
             var sweepRewards = GetCalcProbability(rewardDatas);
-            
-            var parcelInfoList = sweepRewards.Select(r => new ParcelInfo
-            {
-                Key = new ParcelKeyPair { Type = r.Type, Id = r.Id },
-                Amount = r.Amount,
-                Multiplier = BasisPoint.One,
-                Probability = BasisPoint.One
-            }).ToList();
-            
-            clearParcels.Add(parcelInfoList);
+
+            clearParcels.Add(ToParcelInfos(sweepRewards));
             allRewardParcels.AddRange(sweepRewards);
         }
 
         var bonusParcels = new List<ParcelInfo>();
-        
+
         var expAmount = stageExcel.StageEnterCostAmount * request.Count;
         allRewardParcels.Add(new ParcelResult(ParcelType.AccountExp, 0, expAmount));
 
@@ -115,6 +121,130 @@ public class ContentSweepHandler : ProtocolHandlerBase
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
 
         return response;
+    }
+
+    private async Task<ContentSweepResponse> SweepWeekDungeon(
+        SchaleDataContext db,
+        AccountDBServer account,
+        ContentSweepRequest request,
+        ContentSweepResponse response)
+    {
+        var stageExcel = _excelService.GetTable<WeekDungeonExcelT>().GetDungeonByStageId(request.StageId);
+        var rewardExcels = _excelService.GetTable<WeekDungeonRewardExcelT>();
+
+        var costParcels = ParcelResult.ConvertParcelResult(
+            stageExcel.StageEnterCostType,
+            stageExcel.StageEnterCostId,
+            stageExcel.StageEnterCostAmount.Select(x => (long)x * request.Count).ToList());
+        await _parcelHandler.BuildParcel(db, account, costParcels, isConsume: true);
+
+        var clearParcels = new List<List<ParcelInfo>>();
+        var allRewardParcels = new List<ParcelResult>();
+
+        for (int i = 0; i < request.Count; i++)
+        {
+            var rewardDatas = rewardExcels.GetAllRewardsByGroupId(stageExcel.StageRewardId);
+            var sweepRewards = GetCalcWeekDungeonProbability(rewardDatas);
+
+            clearParcels.Add(ToParcelInfos(sweepRewards));
+            allRewardParcels.AddRange(sweepRewards);
+        }
+
+        // Mirrors WeekDungeonManager.AddExperience: only the commission (FindGift/Blood)
+        // dungeons grant account exp, equal to the stage enter cost.
+        if (stageExcel.WeekDungeonType is WeekDungeonType.FindGift or WeekDungeonType.Blood)
+            allRewardParcels.Add(new ParcelResult(
+                ParcelType.AccountExp, 0, stageExcel.StageEnterCostAmount.Sum() * request.Count));
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, allRewardParcels);
+        await db.SaveChangesAsync();
+
+        response.ClearParcels = clearParcels;
+        response.BonusParcels = [];
+        response.ParcelResult = parcelResult.ParcelResult;
+
+        return response;
+    }
+
+    private async Task<ContentSweepResponse> SweepSchoolDungeon(
+        SchaleDataContext db,
+        AccountDBServer account,
+        ContentSweepRequest request,
+        ContentSweepResponse response)
+    {
+        var stageExcel = _excelService.GetTable<SchoolDungeonStageExcelT>().GetDungeonByStageId(request.StageId);
+        var rewardExcels = _excelService.GetTable<SchoolDungeonRewardExcelT>();
+
+        var costParcels = ParcelResult.ConvertParcelResult(
+            stageExcel.StageEnterCostType,
+            stageExcel.StageEnterCostId,
+            stageExcel.StageEnterCostAmount.Select(x => x * request.Count).ToList());
+        await _parcelHandler.BuildParcel(db, account, costParcels, isConsume: true);
+
+        var clearParcels = new List<List<ParcelInfo>>();
+        var allRewardParcels = new List<ParcelResult>();
+
+        for (int i = 0; i < request.Count; i++)
+        {
+            var rewardDatas = rewardExcels.GetAllRewardsByGroupId(stageExcel.StageRewardId);
+            var sweepRewards = GetCalcSchoolDungeonProbability(rewardDatas);
+
+            clearParcels.Add(ToParcelInfos(sweepRewards));
+            allRewardParcels.AddRange(sweepRewards);
+        }
+
+        // Mirrors SchoolDungeonManager: account exp equals the AP portion of the enter cost.
+        var expParcels = ParcelResult.ConvertParcelResult(
+            stageExcel.StageEnterCostType,
+            stageExcel.StageEnterCostId,
+            stageExcel.StageEnterCostAmount.Select(x => x * request.Count).ToList());
+        allRewardParcels.Add(expParcels.ConvertToAccountExp());
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, allRewardParcels);
+        await db.SaveChangesAsync();
+
+        response.ClearParcels = clearParcels;
+        response.BonusParcels = [];
+        response.ParcelResult = parcelResult.ParcelResult;
+
+        return response;
+    }
+
+    private static List<ParcelInfo> ToParcelInfos(List<ParcelResult> parcels)
+        => parcels.Select(r => new ParcelInfo
+        {
+            Key = new ParcelKeyPair { Type = r.Type, Id = r.Id },
+            Amount = r.Amount,
+            Multiplier = BasisPoint.One,
+            Probability = BasisPoint.One
+        }).ToList();
+
+    private static List<ParcelResult> GetCalcWeekDungeonProbability(IEnumerable<WeekDungeonRewardExcelT> rewardExcels)
+    {
+        var result = new List<ParcelResult>();
+        foreach (var rewardExcel in rewardExcels)
+        {
+            if (!GenerateProbability(rewardExcel.RewardParcelProbability)) continue;
+            result.Add(new ParcelResult(
+                rewardExcel.RewardParcelType,
+                rewardExcel.RewardParcelId,
+                rewardExcel.RewardParcelAmount));
+        }
+        return result;
+    }
+
+    private static List<ParcelResult> GetCalcSchoolDungeonProbability(IEnumerable<SchoolDungeonRewardExcelT> rewardExcels)
+    {
+        var result = new List<ParcelResult>();
+        foreach (var rewardExcel in rewardExcels)
+        {
+            if (!GenerateProbability(rewardExcel.RewardParcelProbability)) continue;
+            result.Add(new ParcelResult(
+                rewardExcel.RewardParcelType,
+                rewardExcel.RewardParcelId,
+                rewardExcel.RewardParcelAmount));
+        }
+        return result;
     }
 
     [ProtocolHandler(Protocol.ContentSweep_MultiSweep)]

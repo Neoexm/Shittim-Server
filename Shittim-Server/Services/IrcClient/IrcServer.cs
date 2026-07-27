@@ -166,7 +166,7 @@ namespace Shittim.Services.IrcClient
 
             // custom welcome
             await connection.SendChatMessage("Welcome, Sensei.");
-            await connection.SendChatMessage("Type /help for more information.");
+            await connection.SendChatMessage("Type !help for more information.");
             await connection.SendEmote(2);
         }
 
@@ -179,11 +179,14 @@ namespace Shittim.Services.IrcClient
 
             var payload = JsonSerializer.Deserialize(payloadStr, typeof(IrcMessage)) as IrcMessage;
 
-            if (payload.Text.StartsWith('/'))
+            // The client's chat censor masks '/' into '*' on some locales, so accept '!'
+            // and '.' as uncensored alternatives (and tolerate the masked '*' itself).
+            if (payload.Text.StartsWith('/') || payload.Text.StartsWith('!')
+                || payload.Text.StartsWith('.') || payload.Text.StartsWith('*'))
             {
                 var cmdStrings = payload.Text.Split(" ");
 
-                var cmdName = cmdStrings.First().Split('/').Last();
+                var cmdName = cmdStrings.First().TrimStart('/', '!', '.', '*');
                 var cmdArgs = cmdStrings[1..];
 
                 var connection = clients[client];
@@ -194,7 +197,7 @@ namespace Shittim.Services.IrcClient
 
                     if (cmd is null)
                     {
-                        await connection.SendChatMessage($"Invalid command {cmdName}, try /help");
+                        await connection.SendChatMessage($"Invalid command {cmdName}, try !help");
                         return;
                     }
 

@@ -10,7 +10,7 @@ using Serilog;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("accountdata", "Command to load account data from saved files", "/accountdata <list|load|export|help> <file_name>")]
+    [CommandHandler("accountdata", "Command to load account data from saved files", "!accountdata <list|load|export|help> <file_name>")]
     internal class AccountDataCommand : Command
     {
         public AccountDataCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
@@ -59,7 +59,7 @@ namespace Shittim.Commands
             {
                 Log.Debug(dataFilePath);
                 await connection.SendChatMessage($"File {DataFileName} was not found! Be sure to include \".json\".");
-                await connection.SendChatMessage($"Usage: /loaddata <file_name>");
+                await connection.SendChatMessage($"Usage: !loaddata <file_name>");
                 throw new FileNotFoundException("File not found!");
             }
 
@@ -371,8 +371,8 @@ namespace Shittim.Commands
 
         public async Task ShowHelp()
         {
-            await connection.SendChatMessage("/accountdata - Command to load or export account data");
-            await connection.SendChatMessage("Usage: /accountdata <list|load|export|help> <file_name>");
+            await connection.SendChatMessage("!accountdata - Command to load or export account data");
+            await connection.SendChatMessage("Usage: !accountdata <list|load|export|help> <file_name>");
         }
     }
 }

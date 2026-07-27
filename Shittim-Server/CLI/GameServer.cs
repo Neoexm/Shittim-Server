@@ -43,6 +43,11 @@ namespace Shittim.CLI
             {
                 Config.Load();
 
+                Shittim_Server.Core.Diagnostics.GatewayWireLog.Configure(
+                    Config.Instance.ServerConfiguration.PacketLogging.WireDump);
+                if (Shittim_Server.Core.Diagnostics.GatewayWireLog.Enabled)
+                    Log.Information("Gateway wire dump is Enabled (logs/wire-{Date:yyyy-MM-dd}.txt)", DateTime.Now);
+
                 // Initialize Version State
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddSerilog());
                 var resolverLogger = loggerFactory.CreateLogger<BlueArchiveVersionResolver>();

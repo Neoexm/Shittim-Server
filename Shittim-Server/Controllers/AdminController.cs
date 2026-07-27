@@ -73,12 +73,24 @@ public class AdminController : ControllerBase
                 return NotFound(new { error = "Account not found" });
 
             var currencyType = (CurrencyTypes)request.CurrencyType;
+            var serverNow = account.GameSettings.ServerDateTime();
+
+            // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every parcel
+            // update), so a direct Gem write would be reverted on the next grant/consume; set the
+            // sources instead.
+            if (currencyType == CurrencyTypes.Gem)
+            {
+                currencies.CurrencyDict[CurrencyTypes.GemBonus] = request.Amount;
+                currencies.CurrencyDict[CurrencyTypes.GemPaid] = 0;
+                currencies.UpdateTimeDict[CurrencyTypes.GemBonus] = serverNow;
+                currencies.UpdateTimeDict[CurrencyTypes.GemPaid] = serverNow;
+            }
             currencies.CurrencyDict[currencyType] = request.Amount;
 
             // Must be the account's own clock, not the wall clock: AP regeneration is computed from
             // the delta between now and this timestamp, so stamping a ForceDateTime account with real
             // time hands it a bogus amount of regenerated AP on the next read.
-            currencies.UpdateTimeDict[currencyType] = account.GameSettings.ServerDateTime();
+            currencies.UpdateTimeDict[currencyType] = serverNow;
             
             await _context.SaveChangesAsync();
             

@@ -147,6 +147,7 @@ public class ParcelResolver
             };
             Context.Equipments.Add(equipment);
             _newEquipments.Add(equipment);
+            CreateParcelInfo(parcel);
             return;
         }
         else if (equipment != null)
@@ -183,6 +184,7 @@ public class ParcelResolver
             };
             Context.Items.Add(item);
             _newItems.Add(item);
+            CreateParcelInfo(parcel);
             return;
         }
         else if (item != null)
@@ -301,6 +303,7 @@ public class ParcelResolver
             };
             Context.Furnitures.Add(furniture);
             _newFurnitures.Add(furniture);
+            CreateParcelInfo(parcel);
             return;
         }
         else if (furniture != null)

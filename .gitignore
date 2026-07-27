@@ -2,7 +2,7 @@
 requests/
 request_logs/
 captures/
-CAPTURE_COMPARISON_STATUS.md
+issues.md
 /data/
 nexon.har
 nexon.flows

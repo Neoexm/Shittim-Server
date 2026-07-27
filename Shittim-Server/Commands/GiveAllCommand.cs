@@ -6,7 +6,7 @@ using Schale.Excel;
 
 namespace Shittim.Commands
 {
-    [CommandHandler("giveall", "Unlocks all playable characters", "/giveall")]
+    [CommandHandler("giveall", "Unlocks all playable characters", "!giveall")]
     internal class GiveAllCommand : Command
     {
         public GiveAllCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }

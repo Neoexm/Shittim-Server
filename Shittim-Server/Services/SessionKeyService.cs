@@ -27,10 +27,53 @@ namespace BlueArchiveAPI.Services
             Protocol.ProofToken_RequestQuestion
         };
 
+        // Sessions used to be RAM-only: every server restart silently invalidated the client's
+        // MxToken, and the next request died with a generic error the client surfaces as
+        // "Abnormal client" / "A request that cannot be processed". Persist them write-through
+        // to a sidecar file so restarts are seamless.
+        private static readonly string PersistPath =
+            Path.Combine(AppContext.BaseDirectory, "Config", "sessions.json");
+        private readonly object _persistLock = new();
+
         public SessionKeyService(IDbContextFactory<SchaleDataContext> dbFactory)
         {
             _dbFactory = dbFactory;
             _activeSessions = new ConcurrentDictionary<long, ActiveSession>();
+            LoadPersistedSessions();
+        }
+
+        private void LoadPersistedSessions()
+        {
+            try
+            {
+                if (!File.Exists(PersistPath))
+                    return;
+                var stored = System.Text.Json.JsonSerializer.Deserialize<List<ActiveSession>>(
+                    File.ReadAllText(PersistPath));
+                foreach (var session in stored ?? [])
+                    _activeSessions.TryAdd(session.UserId, session);
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Failed to load persisted sessions; starting empty");
+            }
+        }
+
+        private void PersistSessions()
+        {
+            try
+            {
+                lock (_persistLock)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(PersistPath)!);
+                    File.WriteAllText(PersistPath,
+                        System.Text.Json.JsonSerializer.Serialize(_activeSessions.Values.ToList()));
+                }
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Failed to persist sessions");
+            }
         }
 
         public async Task<SessionKey?> GenerateSession(long publisherAccountId, string? customToken = null)
@@ -56,6 +99,7 @@ namespace BlueArchiveAPI.Services
             };
 
             _activeSessions.AddOrUpdate(account.ServerId, session, (_, _) => session);
+            PersistSessions();
 
             return new SessionKey
             {
@@ -119,6 +163,7 @@ namespace BlueArchiveAPI.Services
         public void RevokeSession(long userId)
         {
             _activeSessions.TryRemove(userId, out _);
+            PersistSessions();
         }
 
         public int PurgeExpiredSessions(TimeSpan maxInactivity)

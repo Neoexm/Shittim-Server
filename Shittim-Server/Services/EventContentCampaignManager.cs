@@ -61,14 +61,18 @@ namespace Shittim_Server.Services
 
             var historyDb = new CampaignStageHistoryDBServer
             {
-                AccountServerId = req.AccountId,
+                AccountServerId = account.ServerId,
                 StageUniqueId = req.StageUniqueId,
-                TodayPlayCount = 0,
-                LastPlay = dateTime
+                ClearTurnRecord = 1,
+                IsClearedEver = true,
+                TodayPlayCount = 1,
+                LastPlay = dateTime,
+                FirstClearRewardReceive = dateTime,
+                StarRewardReceive = dateTime
             };
 
             var existingHistory = await context.CampaignStageHistories
-                .FirstOrDefaultAsync(x => x.AccountServerId == req.AccountId && x.StageUniqueId == req.StageUniqueId);
+                .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.StageUniqueId == req.StageUniqueId);
 
             if (existingHistory == null)
             {
@@ -80,45 +84,8 @@ namespace Shittim_Server.Services
                 historyDb = existingHistory;
             }
 
-            var missionExcels = _excelService.GetTable<EventContentMissionExcelT>();
-            var missionExcel = missionExcels
-                .GetMissionExcelByEventContentId(req.EventContentId)
-                .GetMissionExcelFromConditionParameter(req.StageUniqueId);
-
-            Dictionary<long, List<MissionProgressDB>> eventMissionProgressDBDict = new();
-
-            if (missionExcel.Count != 0)
-            {
-                var missionExcelId = missionExcel.GetMissionExcelByCompleteExtensionTime().Id;
-                var existingMission = await context.MissionProgresses
-                    .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == missionExcelId);
-
-                if (existingMission != null)
-                {
-                    if (existingMission.ProgressParameters == null)
-                    {
-                        existingMission.ProgressParameters = new Dictionary<long, long>();
-                    }
-                    existingMission.ProgressParameters[req.StageUniqueId] = 1;
-                }
-                else
-                {
-                    var newMission = new MissionProgressDBServer
-                    {
-                        AccountServerId = account.ServerId,
-                        MissionUniqueId = missionExcelId,
-                        StartTime = account.GameSettings.ServerDateTime(),
-                        ProgressParameters = new Dictionary<long, long> { { req.StageUniqueId, 1 } }
-                    };
-                    context.MissionProgresses.Add(newMission);
-                    existingMission = newMission;
-                }
-
-                eventMissionProgressDBDict = new Dictionary<long, List<MissionProgressDB>>
-                {
-                    { req.EventContentId, new List<MissionProgressDB> { existingMission.ToMap(_mapper) } }
-                };
-            }
+            var eventMissionProgressDBDict = await ProgressEventMissions(
+                context, account, req.EventContentId, req.StageUniqueId);
 
             var rewardExcels = _excelService.GetTable<EventContentStageRewardExcelT>();
             var campaignRewardExcel = rewardExcels.GetAllRewardsByGroupId(campaignStageExcel.Id).ToList();
@@ -155,16 +122,19 @@ namespace Shittim_Server.Services
             {
                 historyDb = new CampaignStageHistoryDBServer
                 {
-                    AccountServerId = req.AccountId,
+                    AccountServerId = account.ServerId,
                     StageUniqueId = req.Summary.StageId,
-                    TodayPlayCount = 0,
-                    LastPlay = dateTime
+                    IsClearedEver = true,
+                    TodayPlayCount = 1,
+                    LastPlay = dateTime,
+                    FirstClearRewardReceive = dateTime,
+                    StarRewardReceive = dateTime
                 };
 
                 CalcStrategySkipStarGoals(historyDb, req.Summary);
 
                 var existingHistory = await context.CampaignStageHistories
-                    .FirstOrDefaultAsync(x => x.AccountServerId == req.AccountId && x.StageUniqueId == req.Summary.StageId);
+                    .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.StageUniqueId == req.Summary.StageId);
 
                 if (existingHistory != null)
                 {
@@ -184,45 +154,8 @@ namespace Shittim_Server.Services
                 return (historyDb, parcelRetreat.ParcelResult, new Dictionary<long, List<MissionProgressDB>>());
             }
 
-            var missionExcels = _excelService.GetTable<EventContentMissionExcelT>();
-            var missionExcel = missionExcels
-                .GetMissionExcelByEventContentId(req.EventContentId)
-                .GetMissionExcelFromConditionParameter(req.Summary.StageId);
-
-            Dictionary<long, List<MissionProgressDB>> eventMissionProgressDBDict = new();
-
-            if (missionExcel.Count != 0)
-            {
-                var missionExcelId = missionExcel.GetMissionExcelByCompleteExtensionTime().Id;
-                var existingMission = await context.MissionProgresses
-                    .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == missionExcelId);
-
-                if (existingMission != null)
-                {
-                    if (existingMission.ProgressParameters == null)
-                    {
-                        existingMission.ProgressParameters = new Dictionary<long, long>();
-                    }
-                    existingMission.ProgressParameters[req.Summary.StageId] = 1;
-                }
-                else
-                {
-                    var newMission = new MissionProgressDBServer
-                    {
-                        AccountServerId = account.ServerId,
-                        MissionUniqueId = missionExcelId,
-                        StartTime = account.GameSettings.ServerDateTime(),
-                        ProgressParameters = new Dictionary<long, long> { { req.Summary.StageId, 1 } }
-                    };
-                    context.MissionProgresses.Add(newMission);
-                    existingMission = newMission;
-                }
-
-                eventMissionProgressDBDict = new Dictionary<long, List<MissionProgressDB>>
-                {
-                    { req.EventContentId, new List<MissionProgressDB> { existingMission.ToMap(_mapper) } }
-                };
-            }
+            var eventMissionProgressDBDict = await ProgressEventMissions(
+                context, account, req.EventContentId, req.Summary.StageId);
 
             var rewardExcels = _excelService.GetTable<EventContentStageRewardExcelT>();
             var campaignRewardExcel = rewardExcels.GetAllRewardsByGroupId(campaignStageExcel.Id).ToList();
@@ -237,6 +170,57 @@ namespace Shittim_Server.Services
             await context.SaveChangesAsync();
 
             return (historyDb, parcelResolver.ParcelResult, eventMissionProgressDBDict);
+        }
+
+        // Advances EVERY event mission whose condition parameters contain the cleared stage (not
+        // just the post-event extension-time variant), and marks them Complete when the condition
+        // count is met — without Complete the client never unlocks the next quest in the chain.
+        private async Task<Dictionary<long, List<MissionProgressDB>>> ProgressEventMissions(
+            SchaleDataContext context,
+            AccountDBServer account,
+            long eventContentId,
+            long stageUniqueId)
+        {
+            var matchingExcels = _excelService.GetTable<EventContentMissionExcelT>()
+                .GetMissionExcelByEventContentId(eventContentId)
+                .GetMissionExcelFromConditionParameter(stageUniqueId);
+
+            if (matchingExcels.Count == 0)
+                return new Dictionary<long, List<MissionProgressDB>>();
+
+            var progressDBs = new List<MissionProgressDB>();
+
+            foreach (var missionExcel in matchingExcels)
+            {
+                var existingMission = await context.MissionProgresses
+                    .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == missionExcel.Id);
+
+                if (existingMission == null)
+                {
+                    existingMission = new MissionProgressDBServer
+                    {
+                        AccountServerId = account.ServerId,
+                        MissionUniqueId = missionExcel.Id,
+                        StartTime = account.GameSettings.ServerDateTime(),
+                        ProgressParameters = new Dictionary<long, long>()
+                    };
+                    context.MissionProgresses.Add(existingMission);
+                }
+
+                existingMission.ProgressParameters ??= new Dictionary<long, long>();
+                existingMission.ProgressParameters[stageUniqueId] = 1;
+
+                var conditionCount = Math.Max(1, missionExcel.CompleteConditionCount);
+                if (existingMission.ProgressParameters.Values.Sum() >= conditionCount)
+                    existingMission.Complete = true;
+
+                progressDBs.Add(existingMission.ToMap(_mapper));
+            }
+
+            return new Dictionary<long, List<MissionProgressDB>>
+            {
+                { eventContentId, progressDBs }
+            };
         }
 
         private void MergeExistHistoryWithNew(
