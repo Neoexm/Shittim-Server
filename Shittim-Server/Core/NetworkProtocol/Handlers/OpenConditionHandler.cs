@@ -36,8 +36,8 @@ public class OpenConditionHandler : ProtocolHandlerBase
         response.ConquestTiles = new();
         response.WorldRaidLocalBossDBs = db.GetAccountWorldRaidLocalBosses(account.ServerId).ToMapList(_mapper)
             .GroupBy(x => x.GroupId).ToDictionary(x => x.Key, x => x.ToList());
-        response.StaticOpenConditions = Enum.GetValues<OpenConditionContent>()
-            .ToDictionary(c => c, _ => OpenConditionLockReason.None);
+        // Official OpenCondition_EventList responses carry no StaticOpenConditions
+        // (that dict only appears on Account_Auth / Account_LoginSync).
 
         return response;
     }

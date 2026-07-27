@@ -37,7 +37,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IAS LoginLink] {Payload}", payload);
+                logger.LogDebug("[IAS LoginLink] {Payload}", payload);
 
             // ROOT-CAUSE FIX for the intermittent "Abnormal client. Returning to the title
             // screen." hang. A genuine new login carries a fresh link_platform_token. The three
@@ -86,7 +86,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IAS IssueTicketByWebToken] {Payload}", payload);
+                logger.LogDebug("[IAS IssueTicketByWebToken] {Payload}", payload);
 
             var webToken = ReadRequestWebToken(payload);
             var existingSession = FindSession(payload, webToken);
@@ -155,7 +155,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IAS IssueGameTokenByTicket] {Payload}", payload);
+                logger.LogDebug("[IAS IssueGameTokenByTicket] {Payload}", payload);
 
             var ticket = Request.Headers["x-ias-ticket"].FirstOrDefault();
             var session = SessionsByWebToken.Values.FirstOrDefault(x => x.Ticket == ticket)
@@ -218,7 +218,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IMS IssueLinkTicket] {Payload}", payload);
+                logger.LogDebug("[IMS IssueLinkTicket] {Payload}", payload);
 
             var ticket = $"shittim-link-ticket:{Guid.NewGuid():N}";
             return Results.Json(new
@@ -244,7 +244,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IMS LinkGuest] {Payload}", payload);
+                logger.LogDebug("[IMS LinkGuest] {Payload}", payload);
 
             var session = FindSession(payload, ReadRequestWebToken(payload))
                 ?? RememberSession(payload, CreateWebToken(), ResolveIdentity(payload, ""));
@@ -274,7 +274,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IMS LinkVerifyAccount] {Payload}", payload);
+                logger.LogDebug("[IMS LinkVerifyAccount] {Payload}", payload);
 
             var primary = BuildPrimaryLinkDetails();
             return Results.Json(new
@@ -470,7 +470,9 @@ namespace Shittim_Server.Controllers.SDK
                 : "IAS";
             logger.LogInformation("[{Prefix} LinkAccountPrimary]", prefix);
             var response = BuildPrimaryLinkResponse(CreateDefaultSession());
-            logger.LogInformation("[{Prefix} LinkAccountPrimary Response] {Response}", prefix, JsonSerializer.Serialize(response));
+            // Guarded so the body is not serialized at all unless Debug is on.
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("[{Prefix} LinkAccountPrimary Response] {Response}", prefix, JsonSerializer.Serialize(response));
             return Results.Json(response);
         }
 
@@ -488,7 +490,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var gameToken = Request.Headers["x-ias-game-token"].FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(gameToken))
-                logger.LogInformation("[IAS VerifyGameToken] {Token}", gameToken);
+                logger.LogDebug("[IAS VerifyGameToken] {Token}", gameToken);
 
             return Results.Json(new
             {
@@ -543,7 +545,7 @@ namespace Shittim_Server.Controllers.SDK
         {
             var payload = await ReadBody();
             if (!string.IsNullOrWhiteSpace(payload))
-                logger.LogInformation("[IAS IssueWebTicketByGameToken] {Payload}", payload);
+                logger.LogDebug("[IAS IssueWebTicketByGameToken] {Payload}", payload);
 
             var gameToken = Request.Headers["x-ias-game-token"].FirstOrDefault();
             if (string.IsNullOrWhiteSpace(gameToken))
@@ -605,14 +607,19 @@ namespace Shittim_Server.Controllers.SDK
             // call is (get_primary_link vs an IMS service/config GET) to serve the right body.
             // Logs full path+query and all request headers (incl. Authorization / x-ias-* /
             // web_token) so the next natural re-fetch reveals the operation unambiguously.
-            var headerDump = string.Join(" | ", Request.Headers
-                .OrderBy(h => h.Key, StringComparer.OrdinalIgnoreCase)
-                .Select(h => $"{h.Key}={h.Value}"));
-            logger.LogInformation("[IAS Public Detail] {Method} {FullPath}{Query} HEADERS[ {Headers} ]",
-                Request.Method,
-                Request.Path.Value,
-                Request.QueryString.Value,
-                headerDump);
+            // Debug + guarded: the header join is pure diagnostic cost, and the headers carry
+            // credentials that have no business in the default log.
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var headerDump = string.Join(" | ", Request.Headers
+                    .OrderBy(h => h.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(h => $"{h.Key}={h.Value}"));
+                logger.LogDebug("[IAS Public Detail] {Method} {FullPath}{Query} HEADERS[ {Headers} ]",
+                    Request.Method,
+                    Request.Path.Value,
+                    Request.QueryString.Value,
+                    headerDump);
+            }
 
             if (route.EndsWith("login/link") || route.Contains("/login/link"))
                 return await LoginLink();
@@ -675,7 +682,7 @@ namespace Shittim_Server.Controllers.SDK
                 var payload = await ReadBody();
                 if (IsPrimaryLinkFetchPayload(payload))
                 {
-                    logger.LogInformation("[IAS PrimaryLinkFetch] {Payload}", payload);
+                    logger.LogDebug("[IAS PrimaryLinkFetch] {Payload}", payload);
                     var session = FindSession(payload, ReadRequestWebToken(payload))
                         ?? RememberSession(payload, CreateWebToken(), ResolveIdentity(payload, ""));
 
@@ -697,7 +704,9 @@ namespace Shittim_Server.Controllers.SDK
                     // the success-callback continuation, NOT here. (Earlier markPrimary=false test was
                     // doubly wrong: confounded by the scheme bug AND triggers the picker dialog.)
                     var response = BuildPrimaryLinkResponse(session, markPrimary: true);
-                    logger.LogInformation("[IAS PrimaryLinkFetch Response Body] {Response}", JsonSerializer.Serialize(response));
+                    // Guarded so the body is not serialized at all unless Debug is on.
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("[IAS PrimaryLinkFetch Response Body] {Response}", JsonSerializer.Serialize(response));
                     return Results.Json(response);
                 }
             }

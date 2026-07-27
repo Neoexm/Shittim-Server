@@ -140,7 +140,10 @@ export default {
       clear(consoleEl);
       const rows = logBuffer.filter((e) => filter === 'all' || e.source === filter);
       if (!rows.length) { consoleEl.appendChild(frag('<div class="ln" style="color:var(--ink-3)">— no output yet — launch the server to see logs —</div>')); return; }
-      for (const e of rows) consoleEl.appendChild(lineNode(e));
+      // batch into a fragment: one reflow for up to 1200 lines instead of 1200
+      const batch = document.createDocumentFragment();
+      for (const e of rows) batch.appendChild(lineNode(e));
+      consoleEl.appendChild(batch);
       if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
     }
 

@@ -125,10 +125,19 @@ public static class RaidService
         return newBattleSummary;
     }
 
+    /// <summary>
+    /// Derives the bare boss name that <see cref="AIPhaseCheck"/> keys its phase tables on from a
+    /// stage's RaidBossGroup. The shipped ExcelDB writes that column either bare ("HOD", "Goz",
+    /// "EN0006") or suffixed with terrain and armour ("Binah_Street", "Goz_Outdoor_HeavyArmor"),
+    /// so the boss is the segment before the first underscore.
+    /// </summary>
+    internal static string BossNameOf(string raidBossGroup) =>
+        raidBossGroup is null ? string.Empty : raidBossGroup.Split('_')[0];
+
     public static void UpdateRaidBossStats(
         BattleSummary summary,
         List<CharacterStatExcelT> characterStatExcels,
-        string groundDevName,
+        string bossName,
         Difficulty difficulty,
         List<long> bossCharacterId,
         RaidDBServer raid,
@@ -147,7 +156,7 @@ public static class RaidService
             long groggyPoint = givenGroggy;
             long bossAIPhase = AIPhaseCheck(
                 bossResult.RaidDamage.Index, hpLeft, bossResult.AIPhase,
-                groundDevName, difficulty, bossCharacterId, characterStatExcels);
+                bossName, difficulty, bossCharacterId, characterStatExcels);
 
             if (hpLeft <= 0)
             {
@@ -159,7 +168,7 @@ public static class RaidService
                 {
                     long nextBossAIPhase = AIPhaseCheck(
                         nextBossIndex, hpLeft, bossResult.AIPhase,
-                        groundDevName, difficulty, bossCharacterId, characterStatExcels);
+                        bossName, difficulty, bossCharacterId, characterStatExcels);
                     
                     var nextBoss = raid.RaidBossDBs[nextBossIndex];
                     raidBattle.CurrentBossHP = nextBoss.BossCurrentHP;

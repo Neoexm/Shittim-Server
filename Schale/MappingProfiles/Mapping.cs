@@ -1,11 +1,51 @@
 using AutoMapper;
 using Schale.Data.GameModel;
+using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 
 namespace Schale.MappingProfiles
 {
     public class GameModelsMappingProfile : Profile
     {
+        // Exact key set + order the official server serializes for AccountCurrencyDB.CurrencyDict
+        // (live captures, client 1.90): no Invalid/deprecated WeekDungeon tickets, no Max sentinel.
+        private static readonly CurrencyTypes[] OfficialCurrencyKeys =
+        {
+            CurrencyTypes.Gem, CurrencyTypes.GemPaid, CurrencyTypes.GemBonus, CurrencyTypes.Gold,
+            CurrencyTypes.ActionPoint, CurrencyTypes.AcademyTicket, CurrencyTypes.ArenaTicket,
+            CurrencyTypes.RaidTicket, CurrencyTypes.WeekDungeonChaserATicket,
+            CurrencyTypes.WeekDungeonChaserBTicket, CurrencyTypes.WeekDungeonChaserCTicket,
+            CurrencyTypes.SchoolDungeonATicket, CurrencyTypes.SchoolDungeonBTicket,
+            CurrencyTypes.SchoolDungeonCTicket, CurrencyTypes.TimeAttackDungeonTicket,
+            CurrencyTypes.MasterCoin, CurrencyTypes.WorldRaidTicketA, CurrencyTypes.WorldRaidTicketB,
+            CurrencyTypes.WorldRaidTicketC, CurrencyTypes.ChaserTotalTicket,
+            CurrencyTypes.SchoolDungeonTotalTicket, CurrencyTypes.EliminateTicketA,
+            CurrencyTypes.EliminateTicketB, CurrencyTypes.EliminateTicketC,
+            CurrencyTypes.EliminateTicketD, CurrencyTypes.CafeSummonTicket1,
+            CurrencyTypes.CafeSummonTicket2,
+        };
+
+        // Official UpdateTimeDict = the same set minus the four non-regenerating currencies.
+        private static readonly CurrencyTypes[] OfficialCurrencyTimeKeys =
+            OfficialCurrencyKeys
+                .Where(c => c is not (CurrencyTypes.Gem or CurrencyTypes.GemPaid or CurrencyTypes.GemBonus or CurrencyTypes.Gold))
+                .ToArray();
+
+        // Official localized mail text carries exactly these languages, in this order (no Jp on GL).
+        private static readonly Language[] OfficialMailLanguages =
+        {
+            Language.Kr, Language.En, Language.Th, Language.Tw,
+        };
+
+        private static Dictionary<CurrencyTypes, long> ToOfficialCurrencyDict(Dictionary<CurrencyTypes, long>? source)
+            => OfficialCurrencyKeys.ToDictionary(k => k, k => source != null && source.TryGetValue(k, out var v) ? v : 0L);
+
+        private static Dictionary<CurrencyTypes, DateTime> ToOfficialCurrencyTimeDict(Dictionary<CurrencyTypes, DateTime>? source)
+            => OfficialCurrencyTimeKeys.ToDictionary(k => k, k => source != null && source.TryGetValue(k, out var v) ? v : DateTime.Now);
+
+        private static Dictionary<Language, string>? ToOfficialLocalized(Dictionary<Language, string>? source)
+            => source == null ? null : OfficialMailLanguages.ToDictionary(l => l, l => source.TryGetValue(l, out var v) ? v : string.Empty);
+
         public GameModelsMappingProfile()
         {
             ConfigureUserDataMappings();
@@ -17,8 +57,12 @@ namespace Schale.MappingProfiles
 
         private void ConfigureUserDataMappings()
         {
-            CreateMap<AccountDBServer, AccountDB>();
-            CreateMap<AccountCurrencyDBServer, AccountCurrencyDB>();
+            CreateMap<AccountDBServer, AccountDB>()
+                // Official emits RetentionDays: 0 even for fresh accounts.
+                .ForMember(dest => dest.RetentionDays, opt => opt.MapFrom(_ => (int?)0));
+            CreateMap<AccountCurrencyDBServer, AccountCurrencyDB>()
+                .ForMember(dest => dest.CurrencyDict, opt => opt.MapFrom(src => ToOfficialCurrencyDict(src.CurrencyDict)))
+                .ForMember(dest => dest.UpdateTimeDict, opt => opt.MapFrom(src => ToOfficialCurrencyTimeDict(src.UpdateTimeDict)));
             CreateMap<ItemDBServer, ItemDB>()
                 .ForMember(dest => dest.CanConsume, opt => opt.Ignore());
             CreateMap<CharacterDBServer, CharacterDB>();
@@ -31,7 +75,12 @@ namespace Schale.MappingProfiles
             CreateMap<CafeDBServer, CafeDB>();
             CreateMap<FurnitureDBServer, FurnitureDB>();
             CreateMap<MemoryLobbyDBServer, MemoryLobbyDB>();
-            CreateMap<MailDBServer, MailDB>();
+            CreateMap<MailDBServer, MailDB>()
+                .ForMember(dest => dest.LocalizedSender, opt => opt.MapFrom(src => ToOfficialLocalized(src.LocalizedSender)))
+                .ForMember(dest => dest.LocalizedComment, opt => opt.MapFrom(src => ToOfficialLocalized(src.LocalizedComment)))
+                // Official MailDB never carries RemainParcelInfos (absent, not []).
+                .ForMember(dest => dest.RemainParcelInfos, opt => opt.MapFrom(src =>
+                    src.RemainParcelInfos != null && src.RemainParcelInfos.Count > 0 ? src.RemainParcelInfos : null));
             CreateMap<EmblemDBServer, EmblemDB>();
             CreateMap<IdCardBackgroundDBServer, IdCardBackgroundDB>();
             CreateMap<CostumeDBServer, CostumeDB>();
@@ -44,6 +93,8 @@ namespace Schale.MappingProfiles
         {
             CreateMap<MissionProgressDBServer, MissionProgressDB>();
             CreateMap<AttendanceHistoryDBServer, AttendanceHistoryDB>();
+            // AcademyDB.ZoneScheduleGroupRecords is [OmitWhenEmpty]: AutoMapper always materialises
+            // an empty dictionary here, and the gateway drops it on the way out.
             CreateMap<AcademyDBServer, AcademyDB>();
             CreateMap<AcademyLocationDBServer, AcademyLocationDB>();
             CreateMap<CampaignMainStageSaveDBServer, CampaignMainStageSaveDB>();

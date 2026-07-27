@@ -27,6 +27,7 @@ namespace Shittim.Managers
             services.AddSingleton<WorldRaidManager>();
             services.AddSingleton<EventContentCampaignManager>();
             services.AddSingleton<MissionService>();
+            services.AddSingleton<AttendanceService>();
         }
     }
 }

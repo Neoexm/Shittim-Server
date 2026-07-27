@@ -11,6 +11,7 @@ namespace Shittim_Server.Controllers;
 
 [ApiController]
 [Route("api/admin")]
+[AdminAuth]
 public class AdminController : ControllerBase
 {
     private readonly SchaleDataContext _context;
@@ -67,9 +68,17 @@ public class AdminController : ControllerBase
             if (currencies == null)
                 return NotFound(new { error = "Account currencies not found" });
 
+            var account = _context.Accounts.FirstOrDefault(a => a.ServerId == request.AccountServerId);
+            if (account == null)
+                return NotFound(new { error = "Account not found" });
+
             var currencyType = (CurrencyTypes)request.CurrencyType;
             currencies.CurrencyDict[currencyType] = request.Amount;
-            currencies.UpdateTimeDict[currencyType] = DateTime.Now;
+
+            // Must be the account's own clock, not the wall clock: AP regeneration is computed from
+            // the delta between now and this timestamp, so stamping a ForceDateTime account with real
+            // time hands it a bogus amount of regenerated AP on the next read.
+            currencies.UpdateTimeDict[currencyType] = account.GameSettings.ServerDateTime();
             
             await _context.SaveChangesAsync();
             

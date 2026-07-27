@@ -6789,16 +6789,26 @@ table EventContentSeasonExcelTable{
     DataList: [EventContentSeasonExcel];
 }
 
+// 38 fields, verified against the vtables of all 477 rows in the shipped ExcelDB. The previous
+// declaration here listed 18 fields in a different order and included a ContentLockType_ that
+// the data does not carry, so it did not describe anything the client actually ships.
 table EventContentSeasonExcel{
     EventContentId: long;
+    OriginalEventContentId: long;
+    IsReturn: bool;
     Name: string;
-    EventContentType_: EventContentType;
-    OpenConditionContent_: OpenConditionContent;
-    ContentLockType_: ContentLockType;
+    EventContentType: EventContentType;
+    OpenConditionContent: OpenConditionContent;
     EventDisplay: bool;
+    IconOrder: int;
+    SubEventType: SubEventType;
+    SubEvent: bool;
     EventItemId: long;
+    MainEventId: long;
+    EventChangeOpenCondition: long;
     BeforehandExposedTime: string;
     EventContentOpenTime: string;
+    EventContentPhaseCloseTime: string;
     EventContentCloseTime: string;
     ExtensionTime: string;
     MainIconParcelPath: string;
@@ -6808,6 +6818,19 @@ table EventContentSeasonExcel{
     BeforehandScenarioGroupId: [long];
     MainBannerImagePath: string;
     MainBgImagePath: string;
+    ShiftTriggerStageId: long;
+    ShiftMainBgImagePath: string;
+    MinigameLobbyPrefabName: string;
+    MinigameVictoryPrefabName: string;
+    MinigameMissionBgPrefabName: string;
+    MinigameMissionBgImagePath: string;
+    CardBgImagePath: string;
+    EventAssist: bool;
+    EventContentReleaseType: EventContentReleaseType;
+    EventContentStageRewardIdPermanent: long;
+    RewardTagPermanent: RewardTag;
+    MiniEventShortCutScenarioModeId: long;
+    ScenarioContentCollectionGroupId: long;
 }
 
 table EventContentShopExcelTable{
@@ -7202,6 +7225,8 @@ table GoodsExcelTable{
     DataList: [GoodsExcel];
 }
 
+// Layout recovered from the shipped ExcelDB vtables (22 slots at client build 439170); the
+// sixth product-id long's upstream name is unknown.
 table GoodsExcel{
     Id: long;
     Type: int;
@@ -7210,7 +7235,15 @@ table GoodsExcel{
     ConsumeParcelType: [ParcelType];
     ConsumeParcelId: [long];
     ConsumeParcelAmount: [long];
-    ConsumeCondition: [string];
+    ConsumeCondition: [ConsumeCondition];
+    ConsumeGachaTicketType: [GachaTicketType];
+    ConsumeGachaTicketTypeAmount: [long];
+    ProductIdAOS: long;
+    ProductIdiOS: long;
+    ProductIdONE: long;
+    ProductIdSGS: long;
+    ProductIdSTEAM: long;
+    ProductIdExtra: long;
     ConsumeExtraStep: [long];
     ConsumeExtraAmount: [long];
     State: int;

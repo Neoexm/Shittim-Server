@@ -22,6 +22,7 @@ namespace Shittim_Server.Controllers;
 // are reused by the GUI alongside the richer surface below.
 [ApiController]
 [Route("api/admin")]
+[AdminAuth]
 public class ManagementController : ControllerBase
 {
     private static readonly DateTime ProcessStart = Process.GetCurrentProcess().StartTime;
@@ -187,6 +188,15 @@ public class ManagementController : ControllerBase
         }
     }
 
+    // SQL identifiers cannot be parameterized, so any name that is interpolated into a statement is
+    // required to be a bare identifier first.
+    private static bool IsPlainSqlIdentifier(string name)
+    {
+        return !string.IsNullOrEmpty(name)
+            && (char.IsLetter(name[0]) || name[0] == '_')
+            && name.All(c => char.IsLetterOrDigit(c) || c == '_');
+    }
+
     public class DeleteAccountRequest { public long ServerId { get; set; } }
 
     [HttpPost("account/delete")]
@@ -207,11 +217,23 @@ public class ManagementController : ControllerBase
                     "WHERE m.type='table' AND p.name='AccountServerId'")
                 .ToListAsync();
 
+            // The id is bound as a parameter rather than interpolated. A table name cannot be
+            // parameterized in SQL, so each one is checked to be a bare identifier before it is
+            // quoted into the statement; the names come from the catalogue rather than the request,
+            // and this makes it structurally impossible for one to carry SQL regardless.
             foreach (var table in tables.Distinct())
-                await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\" WHERE AccountServerId = {request.ServerId}");
+            {
+                if (!IsPlainSqlIdentifier(table))
+                    continue;
 
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"Accounts\" WHERE ServerId = {request.ServerId}");
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"UserAccounts\" WHERE Uid = {request.ServerId}");
+                await db.Database.ExecuteSqlRawAsync(
+                    $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}", request.ServerId);
+            }
+
+            await db.Database.ExecuteSqlRawAsync(
+                "DELETE FROM \"Accounts\" WHERE ServerId = {0}", request.ServerId);
+            await db.Database.ExecuteSqlRawAsync(
+                "DELETE FROM \"UserAccounts\" WHERE Uid = {0}", request.ServerId);
 
             return Ok(new { success = true });
         }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Schale.FlatData;
+using Serilog;
 
 namespace Shittim_Server.Core
 {
@@ -28,11 +29,13 @@ namespace Shittim_Server.Core
             try
             {
                 var configPath = Path.GetFullPath(ConfigPath);
-                Console.WriteLine($"[GachaCommand] Loading config from: {configPath}");
-                
+                // Re-reads every 5s while gacha is in use, so these are Debug rather than console
+                // spam. An absent config is the normal case (no rate overrides), not a failure.
+                Log.Debug("[GachaCommand] Loading config from: {ConfigPath}", configPath);
+
                 if (!File.Exists(configPath))
                 {
-                    Console.WriteLine($"[GachaCommand] Config file not found at: {configPath}");
+                    Log.Debug("[GachaCommand] Config file not found at: {ConfigPath}", configPath);
                     _customRates = null;
                     _guaranteedCharacterId = null;
                     return;
@@ -55,24 +58,24 @@ namespace Shittim_Server.Core
                     if (config.custom_rates.TryGetValue("ssr", out double ssrRate))
                     {
                         _customRates[3] = ssrRate;
-                        Console.WriteLine($"[GachaCommand] Loaded SSR rate: {ssrRate}%");
+                        Log.Debug("[GachaCommand] Loaded SSR rate: {Rate}%", ssrRate);
                     }
                     
                     if (config.custom_rates.TryGetValue("sr", out double srRate))
                     {
                         _customRates[2] = srRate;
-                        Console.WriteLine($"[GachaCommand] Loaded SR rate: {srRate}%");
+                        Log.Debug("[GachaCommand] Loaded SR rate: {Rate}%", srRate);
                     }
                     
                     if (config.custom_rates.TryGetValue("r", out double rRate))
                     {
                         _customRates[1] = rRate;
-                        Console.WriteLine($"[GachaCommand] Loaded R rate: {rRate}%");
+                        Log.Debug("[GachaCommand] Loaded R rate: {Rate}%", rRate);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("[GachaCommand] No custom rates found in config");
+                    Log.Debug("[GachaCommand] No custom rates found in config");
                     _customRates = null;
                 }
 

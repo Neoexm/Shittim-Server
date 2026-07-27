@@ -80,7 +80,7 @@ public class FriendHandler : ProtocolHandlerBase
                     Level = targetAccount.Level,
                     RepresentCharacterUniqueId = targetAccount.RepresentCharacterServerId,
                     RepresentCharacterCostumeId = targetAccount.RepresentCharacterServerId,
-                    LastConnectTime = DateTime.Now,
+                    LastConnectTime = account.GameSettings.ServerDateTime(),
                     ComfortValue = 10000,
                     FriendCount = 0,
                     AttachmentDB = attachment != null ? _mapper.Map<AccountAttachmentDB>(attachment) : null

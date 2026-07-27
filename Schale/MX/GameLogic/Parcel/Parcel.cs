@@ -128,6 +128,8 @@ namespace Schale.MX.GameLogic.Parcel
         public required ParcelKeyPair Key { get; set; }
         public long Amount { get; set; }
         public BasisPoint Multiplier { get; set; }
+        // Client-side computed value; official wire ParcelInfo never carries it.
+        [Newtonsoft.Json.JsonIgnore]
         public long MultipliedAmount { get { return Amount * Multiplier; } }
         public BasisPoint Probability { get; set; }
 
@@ -193,12 +195,21 @@ namespace Schale.MX.GameLogic.Parcel
     }
 
 
+    // Official ParcelResultDB only carries the collections the reward actually touched: across
+    // every captured Mail_Receive / Mission_MultipleReward it holds no more than
+    // AccountCurrencyDB + ItemDBs + DisplaySequence + ParcelForMission, with the other ~20
+    // collections absent rather than [] / {}.
+    [OmitWhenEmpty]
     public class ParcelResultDB
     {
         public List<AcademyLocationDB> AcademyLocationDBs { get; set; } = new();
         public List<ParcelInfo> AcquiredItems { get; set; } = new();
         public AccountCurrencyDB AccountCurrencyDB { get; set; } = new();
-        public AccountDB AccountDB { get; set; } = new();
+
+        // Not initialized: [OmitWhenEmpty] only drops empty collections, so an eagerly created
+        // AccountDB would serialize as {} — a key no official ParcelResultDB carries. It stays
+        // null unless the reward actually changed the account row (see ParcelResolver).
+        public AccountDB? AccountDB { get; set; }
         public long AdditionalAccountExp { get; set; }
         public long BaseAccountExp { get; set; }
         public List<CharacterDB> CharacterDBs { get; set; } = new();

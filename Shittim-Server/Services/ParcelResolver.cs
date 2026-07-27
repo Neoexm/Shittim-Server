@@ -49,7 +49,8 @@ public class ParcelResolver
         IsConsume = isConsume;
         ParcelResult = parcelResult ?? new ParcelResultDB
         {
-            AccountDB = account.ToMap(mapper),
+            // AccountDB is deliberately not pre-filled: FinalizeUpdates adds it only if the reward
+            // actually modified the account row (see the comment there).
             AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, mapper),
             AcademyLocationDBs = new List<AcademyLocationDB>(),
             CharacterDBs = new List<CharacterDB>(),
@@ -468,7 +469,17 @@ public class ParcelResolver
         if (Account.Level != accountCurrencyDB.AccountLevel)
             accountCurrencyDB.UpdateAccountLevel(Account.Level);
 
-        ParcelResult.AccountDB = Account.ToMap(Mapper);
+        // Official includes AccountDB in a ParcelResultDB only when the reward changed the account
+        // row itself. Every captured reward claim (Mail_Receive x1, Mission_MultipleReward x2)
+        // granted currency/items and carried no AccountDB, so mirror that by asking the change
+        // tracker — this must happen before SaveChanges, while the entity is still Modified.
+        // Scan the tracker rather than calling Context.Entry(Account): the account is frequently
+        // loaded on a different context, and Entry() would attach it here (throwing if this
+        // context already tracks the same row).
+        var trackedAccount = Context.ChangeTracker.Entries<AccountDBServer>()
+            .FirstOrDefault(x => x.Entity.ServerId == Account.ServerId);
+        if (trackedAccount?.State == EntityState.Modified)
+            ParcelResult.AccountDB = Account.ToMap(Mapper);
         ParcelResult.AccountCurrencyDB = accountCurrencyDB.ToMap(Mapper);
 
         await Context.SaveChangesAsync();

@@ -40,11 +40,15 @@ namespace Schale.Data.GameModel
         {
             var currencyTypes = Enum.GetValues<CurrencyTypes>();
             var now = DateTime.Now;
-            
+
             foreach (var currencyType in currencyTypes)
             {
-                if (currencyType == CurrencyTypes.Invalid) continue;
-                
+                // The Max sentinel and the two deprecated WeekDungeon tickets never appear in
+                // official CurrencyDicts; don't seed them.
+                if (currencyType is CurrencyTypes.Invalid or CurrencyTypes.Max
+                    or CurrencyTypes.WeekDungeonFindGiftTicket or CurrencyTypes.WeekDungeonBloodTicket)
+                    continue;
+
                 CurrencyDict[currencyType] = 0;
                 UpdateTimeDict[currencyType] = now;
             }

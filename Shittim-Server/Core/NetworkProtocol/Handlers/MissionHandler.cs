@@ -4,6 +4,7 @@ using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Data.ModelMapping;
+using Schale.MX.Core.Math;
 using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
@@ -63,17 +64,122 @@ public class MissionHandler : ProtocolHandlerBase
             .Select(h => h.StoryUniqueId)
             .ToList();
 
+        // Official's account-wide MissionHistoryUniqueIds includes every claimed mission — an id
+        // claimed via Mission_Reward shows up in the next account-wide call (verified in the
+        // detailed capture: 873 ids including the freshly claimed 1513). The event-scoped calls
+        // return a fixed subset whose rule is still unknown, so they keep the campaign-only list.
+        var claimHistories = request.EventContentId == null
+            ? db.GetAccountMissionHistories(account.ServerId).Select(x => x.MissionUniqueId).ToList()
+            : [];
+
         var missions = db.GetAccountMissionProgresses(account.ServerId);
 
         var missionProgresses = request.EventContentId == null
             ? missions.ToList()
             : missions.Where(x => x.MissionUniqueId.ToString().StartsWith(request.EventContentId.ToString())).ToList();
 
-        response.MissionHistoryUniqueIds = campaignHistories;
+        response.MissionHistoryUniqueIds = campaignHistories.Concat(claimHistories).Distinct().ToList();
         response.ProgressDBs = _mapper.Map<List<MissionProgressDB>>(missionProgresses);
-        response.DailySuddenMissionInfo = new { };
+        // Official Mission_List always carries today's sudden-mission definition (never {}).
+        response.DailySuddenMissionInfo = BuildDailySuddenMissionInfo(account);
+        response.ClearedOrignalMissionIds = BuildClearedOriginalMissionIds(db, account, request.EventContentId);
 
         return response;
+    }
+
+    // Official sends ClearedOrignalMissionIds only when the queried event is a rerun (a "return"
+    // event), so the client can mark the missions the account already cleared during the original
+    // run; for every other scope the key is omitted rather than sent as []. Both captures agree:
+    // EventContentId null -> absent, 856 (a normal event) -> absent, 10842 -> present and empty.
+    // 10842 is a rerun of 842 and that account, despite 950 cleared missions, had never played
+    // 842, so empty is the correct content and not an omission.
+    private List<long>? BuildClearedOriginalMissionIds(
+        SchaleDataContext db,
+        AccountDBServer account,
+        long? eventContentId)
+    {
+        if (eventContentId is not long queriedEventId)
+            return null;
+
+        var season = _excelService.GetTable<EventContentSeasonExcelT>()
+            .FirstOrDefault(x => x.EventContentId == queriedEventId);
+
+        if (season is not { IsReturn: true })
+            return null;
+
+        // Past this point the key is present even when it resolves to nothing.
+        if (season.OriginalEventContentId <= 0)
+            return [];
+
+        var originalIdPrefix = season.OriginalEventContentId.ToString();
+
+        return db.GetAccountMissionProgresses(account.ServerId)
+            .Where(x => x.Complete)
+            .Select(x => x.MissionUniqueId)
+            .ToList()
+            .Where(x => x.ToString().StartsWith(originalIdPrefix, StringComparison.Ordinal))
+            .ToList();
+    }
+
+    // Official Mission_List always includes a fully-populated DailySuddenMissionInfo (the
+    // MissionExcel row of the day's DailySudden mission projected to the client MissionInfo
+    // shape). Pick deterministically per day among the currently-active DailySudden rows.
+    private object BuildDailySuddenMissionInfo(AccountDBServer account)
+    {
+        var now = account.GameSettings.ServerDateTime();
+
+        var candidates = _excelService.GetTable<MissionExcelT>()
+            .Where(x => x.Category == MissionCategory.DailySudden)
+            .Where(x => ParseExcelDate(x.StartDate, DateTime.MinValue) <= now
+                     && now < ParseExcelDate(x.StartableEndDate, DateTime.MaxValue)
+                     && now < ParseExcelDate(x.EndDate, DateTime.MaxValue))
+            .OrderBy(x => x.Id)
+            .ToList();
+
+        if (candidates.Count == 0)
+            return new { };
+
+        var pick = candidates[(int)((now.Date.Ticks / TimeSpan.TicksPerDay) % candidates.Count)];
+
+        var rewards = new List<ParcelInfo>();
+        for (int i = 0; i < pick.MissionRewardParcelType.Count; i++)
+        {
+            rewards.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = pick.MissionRewardParcelType[i], Id = pick.MissionRewardParcelId[i] },
+                Amount = pick.MissionRewardAmount[i],
+                Multiplier = BasisPoint.One,
+                Probability = BasisPoint.One
+            });
+        }
+
+        return new DailySuddenMissionInfo
+        {
+            Id = pick.Id,
+            Category = pick.Category,
+            ResetType = pick.ResetType,
+            Description = pick.Description,
+            IsVisible = pick.ViewFlag,
+            StartDate = ParseExcelDate(pick.StartDate, DateTime.MinValue),
+            StartableEndDate = ParseExcelDate(pick.StartableEndDate, DateTime.MaxValue),
+            EndDate = ParseExcelDate(pick.EndDate, DateTime.MaxValue),
+            Rewards = rewards,
+            CompleteConditionType = pick.CompleteConditionType,
+            CompleteConditionCount = pick.CompleteConditionCount,
+            CompleteConditionParameters = pick.CompleteConditionParameter ?? [],
+            PreMissionIds = pick.PreMissionId ?? [],
+            AccountLevel = Math.Max(1, pick.AccountLevel),
+            TargetGroup = 1,
+            SuddenMissionContentTypes = pick.ContentTags ?? []
+        };
+    }
+
+    private static DateTime ParseExcelDate(string? value, DateTime fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return fallback;
+        return DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var parsed) ? parsed : fallback;
     }
 
     [ProtocolHandler(Protocol.Mission_GuideMissionSeasonList)]
@@ -83,6 +189,11 @@ public class MissionHandler : ProtocolHandlerBase
         GuideMissionSeasonListResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Official always sends both collections; they are empty for an account that has not
+        // started a guide-mission season yet.
+        response.GuideMissionSeasonDBs = [];
+        response.MissionProgressDBs = [];
 
         return response;
     }
@@ -101,45 +212,60 @@ public class MissionHandler : ProtocolHandlerBase
 
         if (missionProgress == null)
         {
-            throw new Exception("Mission progress not found.");
+            throw new WebAPIException(WebAPIErrorCode.MissionRewardInvalid,
+                $"Mission {request.MissionUniqueId} has no progress row for this account");
         }
 
+        // The client only offers the claim button once the mission is complete, so a request for an
+        // incomplete one is either a desync or a crafted packet. Claiming used to be allowed either
+        // way, which handed out the reward and consumed the progress row for missions the player had
+        // not finished.
         if (!missionProgress.Complete)
         {
-             // For debugging/permissive mode, maybe allow it? But officially should throw.
-             // We'll trust the checked logic for now.
+            throw new WebAPIException(WebAPIErrorCode.MissionCannotComplete,
+                $"Mission {request.MissionUniqueId} is not complete");
         }
 
-        // Load Mission Excel to get rewards
-        var missionExcel = _excelService.GetTable<MissionExcelT>().FirstOrDefault(x => x.Id == request.MissionUniqueId);
-        
+        // Load Mission Excel to get rewards. Validated before anything is mutated: an unknown id used
+        // to fall through with a null excel, which skipped the reward but still deleted the progress
+        // row and wrote a history entry — the mission became permanently unclaimable and the player
+        // silently got nothing. It also made the Category check further down a null dereference.
+        var missionExcel = _excelService.GetTable<MissionExcelT>().FirstOrDefault(x => x.Id == request.MissionUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound,
+                $"Mission excel {request.MissionUniqueId} not found");
+
         // Prepare response lists
         response.MissionProgressDBs = new List<MissionProgressDB>();
 
-        if (missionExcel != null)
-        {
-            // Use ParcelHandler to process rewards
-            var parcelResultList = ParcelResult.ConvertParcelResult(
-                missionExcel.MissionRewardParcelType, 
-                missionExcel.MissionRewardParcelId, 
-                missionExcel.MissionRewardAmount
-            );
+        // Use ParcelHandler to process rewards
+        var parcelResultList = ParcelResult.ConvertParcelResult(
+            missionExcel.MissionRewardParcelType,
+            missionExcel.MissionRewardParcelId,
+            missionExcel.MissionRewardAmount
+        );
 
-            var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcelResultList);
-            response.ParcelResultDB = parcelResolver.ParcelResult;
-        }
+        var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcelResultList);
+        response.ParcelResultDB = parcelResolver.ParcelResult;
 
         // Delete progress to mark as claimed
         db.MissionProgresses.Remove(missionProgress);
-        
-        // Notify client that mission is now in history
-        response.AddedHistoryDB = new MissionHistoryDB
+
+        var completeTime = account.GameSettings.ServerDateTime();
+
+        // Persist the claim: official's account-wide Mission_List returns it forever after.
+        db.MissionHistories.Add(new MissionHistoryDBServer
         {
             AccountServerId = account.ServerId,
             MissionUniqueId = missionProgress.MissionUniqueId,
-            ServerId = missionProgress.ServerId, // Use existing ID or 0
-            CompleteTime = DateTime.Now,
-            Expired = false
+            CompleteTime = completeTime
+        });
+
+        // Official's wire history carries only these two members — ServerId/AccountServerId are
+        // omitted (the local-session contrast in the detailed capture exposed ours leaking both).
+        response.AddedHistoryDB = new MissionHistoryDB
+        {
+            MissionUniqueId = missionProgress.MissionUniqueId,
+            CompleteTime = completeTime
         };
 
         await db.SaveChangesAsync();
@@ -208,13 +334,21 @@ public class MissionHandler : ProtocolHandlerBase
                 missionExcel.MissionRewardParcelId,
                 missionExcel.MissionRewardAmount));
 
-            addedHistory.Add(new MissionHistoryDB
+            var completeTime = account.GameSettings.ServerDateTime();
+
+            // Persist the claim for the account-wide MissionHistoryUniqueIds; the wire copy
+            // carries only the two members official emits.
+            db.MissionHistories.Add(new MissionHistoryDBServer
             {
                 AccountServerId = account.ServerId,
                 MissionUniqueId = missionProgress.MissionUniqueId,
-                ServerId = missionProgress.ServerId,
-                CompleteTime = account.GameSettings.ServerDateTime(),
-                Expired = false
+                CompleteTime = completeTime
+            });
+
+            addedHistory.Add(new MissionHistoryDB
+            {
+                MissionUniqueId = missionProgress.MissionUniqueId,
+                CompleteTime = completeTime
             });
         }
 

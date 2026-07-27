@@ -15,7 +15,9 @@ namespace Schale.MX.NetworkProtocol
     {
         public SessionKey? SessionKey { get; set; }
         public abstract Protocol Protocol { get; }
-        [JsonIgnore]
+        // Official responses carry a top-level AccountId exactly when they carry a SessionKey
+        // (Account_CheckNexon / Account_Auth / ProofToken_*); everywhere else both are omitted.
+        // Serialized: 0 (no session) is dropped by the gateway's DefaultValueHandling.Ignore.
         public long AccountId => SessionKey?.AccountServerId ?? 0;
     }
 
@@ -43,9 +45,13 @@ namespace Schale.MX.NetworkProtocol
 
     public abstract class ResponsePacket : BasePacket
     {
-        public long ServerTimeTicks { get; set; } = DateTimeOffset.Now.Ticks;
-        [JsonIgnore]
+        // Official ServerTimeTicks are whole-second precision (…0000000); mirror that.
+        public long ServerTimeTicks { get; set; } = TruncateToSeconds(DateTimeOffset.Now.Ticks);
+        // Official emits this whenever non-zero (e.g. 8 = HasUnreadMail on every response while
+        // unclaimed mail exists); zero is dropped by the gateway's DefaultValueHandling.Ignore.
         public ServerNotificationFlag ServerNotification { get; set; } = ServerNotificationFlag.None;
+
+        public static long TruncateToSeconds(long ticks) => ticks - (ticks % TimeSpan.TicksPerSecond);
         public List<MissionProgressDB>? MissionProgressDBs { get; set; }
         public Dictionary<long, List<MissionProgressDB>>? EventMissionProgressDBDict { get; set; }
         public Dictionary<OpenConditionContent, OpenConditionLockReason>? StaticOpenConditions { get; set; }

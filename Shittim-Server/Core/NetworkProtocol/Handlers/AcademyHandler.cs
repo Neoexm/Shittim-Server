@@ -9,6 +9,7 @@ using Schale.MX.NetworkProtocol;
 using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;
 using Shittim_Server.Core;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -17,16 +18,19 @@ public class AcademyHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
+    private readonly MissionService _missionService;
 
     public AcademyHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        MissionService missionService) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
+        _missionService = missionService;
     }
 
     [ProtocolHandler(Protocol.Academy_GetInfo)]
@@ -74,6 +78,13 @@ public class AcademyHandler : ProtocolHandlerBase
             AccountDB = account.ToMap(_mapper),
             AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
         };
+
+        // Official's Academy_AttendSchedule ticks the schedule dailies (MissionProgressDBs on
+        // every captured attend).
+        var updatedMissions = _missionService.UpdateMissionProgress(
+            db, account, MissionCompleteConditionType.Reset_CompleteScheduleCount);
+        if (updatedMissions.Count > 0)
+            response.MissionProgressDBs = updatedMissions;
 
         return response;
     }

@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Core.Crypto;
+using Microsoft.EntityFrameworkCore;
+using Schale.Data.GameModel;
 using Schale.MX.NetworkProtocol;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -29,19 +31,78 @@ namespace Shittim_Server.Controllers.Api
         }
     }
 
-    // BA's MX protocol represents time as .NET ticks (longs) — the ResponsePacket.ServerTimeTicks
-    // field is emitted as a tick count, so the client deserializes DateTime members as ticks too.
-    // Newtonsoft's default ISO-8601 string for DateTime members (e.g. AccountDB.LastConnectTime)
-    // therefore fails client-side deserialization -> "A request that cannot be processed has been
-    // received." right after Account_Auth (the first response that carries DateTime fields).
-    // Emit every DateTime as its tick count to match.
-    public class DateTimeTicksConverter : JsonConverter<DateTime>
+    // Official gateway DateTimes are ISO strings with NO timezone offset and whole-second
+    // precision — DB-backed values like "2026-07-27T04:12:50". The only fractional value the
+    // official server ever emits is DateTime.MaxValue ("9999-12-31T23:59:59.9999999", used for
+    // never-ending excel dates), so preserve full precision for that one. This also stops
+    // DateTimeKind.Local values from leaking a "+01:00" suffix.
+    // Deliberately NOT JsonConverter<DateTime>: that base seals CanConvert as
+    // typeof(DateTime).IsAssignableFrom(objectType), which is false for DateTime?, so every
+    // nullable date on the wire skipped this converter and fell back to Newtonsoft's ISO format —
+    // e.g. a mail's ExpireDate went out as "2026-08-02T23:12:17.3047071" where official sends
+    // "2026-08-03T04:19:59".
+    public class OfficialDateTimeConverter : JsonConverter
     {
-        public override void WriteJson(JsonWriter writer, DateTime value, JsonSerializer serializer)
-            => writer.WriteValue(value.Ticks);
+        public override bool CanConvert(Type objectType) =>
+            objectType == typeof(DateTime) || objectType == typeof(DateTime?);
 
-        public override DateTime ReadJson(JsonReader reader, Type objectType, DateTime existingValue, bool hasExistingValue, JsonSerializer serializer)
-            => reader.Value is null ? default : new DateTime(Convert.ToInt64(reader.Value));
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            if (value is not DateTime dateTime)
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            if (dateTime.Ticks >= DateTime.MaxValue.Ticks - TimeSpan.TicksPerSecond)
+            {
+                writer.WriteValue("9999-12-31T23:59:59.9999999");
+                return;
+            }
+
+            writer.WriteValue(dateTime.ToString("yyyy-MM-dd'T'HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            var nullable = objectType == typeof(DateTime?);
+
+            return reader.Value switch
+            {
+                null => nullable ? null : default(DateTime),
+                DateTime dt => dt,
+                string s => DateTime.Parse(s, System.Globalization.CultureInfo.InvariantCulture),
+                _ => Convert.ToDateTime(reader.Value, System.Globalization.CultureInfo.InvariantCulture),
+            };
+        }
+    }
+
+    // The official server omits members it never assigned, including collection members: e.g.
+    // ParcelResultDB only carries the handful of collections a given reward actually touched,
+    // and EchelonDB/AcademyDB never carry their server-internal maps. Newtonsoft's
+    // DefaultValueHandling.Ignore drops 0/false/null but keeps [] and {}, so honour
+    // [OmitWhenEmpty] here to reproduce the official key set.
+    public class OfficialContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+    {
+        protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(
+            System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+
+            var omitEmpty = member.IsDefined(typeof(Schale.MX.OmitWhenEmptyAttribute), true)
+                || (member.DeclaringType?.IsDefined(typeof(Schale.MX.OmitWhenEmptyAttribute), true) ?? false);
+
+            if (omitEmpty)
+            {
+                var previous = property.ShouldSerialize;
+                var valueProvider = property.ValueProvider;
+                property.ShouldSerialize = instance =>
+                    (previous == null || previous(instance))
+                    && valueProvider?.GetValue(instance) is not System.Collections.ICollection { Count: 0 };
+            }
+
+            return property;
+        }
     }
 }
 
@@ -53,13 +114,30 @@ namespace Shittim_Server.Controllers.Api
     {
         private readonly ILogger<GatewayController> _logger;
         private readonly HandlerManager _handlerManager;
+        private readonly Microsoft.EntityFrameworkCore.IDbContextFactory<Schale.Data.SchaleDataContext> _dbFactory;
         private static readonly byte[] RequestXorKey = { 0xD9 };
         
+        // Official packet serialization rules (verified against live captures):
+        // - null members omitted, AND default-valued members omitted (0 / false / default enum /
+        //   default DateTime) — e.g. ServerNotification only appears when non-zero, ItemDB fields
+        //   with 0/false vanish, empty AccountRestrictionsDB serializes as {}.
+        // - floats keep Newtonsoft's default formatting (whole values carry ".0", e.g. 270.0),
+        //   so no FloatConverter here.
+        // - DateTimes: see OfficialDateTimeConverter.
+        // - empty arrays/objects are only sent where the official server actually assigns the
+        //   member; members it leaves unassigned are absent. DefaultValueHandling does not cover
+        //   that, so [OmitWhenEmpty] members are dropped by OfficialContractResolver.
         private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
-            Converters = { new FloatConverter() }
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            ContractResolver = new OfficialContractResolver(),
+            Converters = { new OfficialDateTimeConverter() }
         };
+
+        /// <summary>The exact settings every gateway packet is serialized with, exposed so the
+        /// wire-contract tests assert against the real thing rather than a copy.</summary>
+        public static JsonSerializerSettings OfficialPacketJsonSettings => jsonSettings;
 
         private static readonly JsonSerializerSettings serverPacketSettings = new JsonSerializerSettings
         {
@@ -68,10 +146,14 @@ namespace Shittim_Server.Controllers.Api
             Converters = { new FloatConverter() }
         };
 
-        public GatewayController(ILogger<GatewayController> logger, HandlerManager handlerManager)
+        public GatewayController(
+            ILogger<GatewayController> logger,
+            HandlerManager handlerManager,
+            Microsoft.EntityFrameworkCore.IDbContextFactory<Schale.Data.SchaleDataContext> dbFactory)
         {
             _logger = logger;
             _handlerManager = handlerManager;
+            _dbFactory = dbFactory;
         }
 
         [HttpGet]
@@ -93,6 +175,8 @@ namespace Shittim_Server.Controllers.Api
             }
 
             var responseCrypto = GatewayCryptoContext.None;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var protocol = Protocol.None;
 
             try
             {
@@ -101,7 +185,7 @@ namespace Shittim_Server.Controllers.Api
 
                 var payloadStr = gatewayPayload.Json;
                 var jsonNode = JObject.Parse(payloadStr);
-                var protocol = ReadProtocol(jsonNode);
+                protocol = ReadProtocol(jsonNode);
                 var responseProtocolName = protocol.ToString();
                 int? responseProtocolOverride = null;
 
@@ -112,8 +196,10 @@ namespace Shittim_Server.Controllers.Api
                     responseProtocolOverride = 50001;
                 }
 
-                _logger.LogInformation("Protocol: {ProtocolInt} / {Protocol}", (int)protocol, protocol);
-                _logger.LogInformation("Request: {Payload}", payloadStr);
+                // Bodies are Debug, not Information: every packet a player sends used to be written
+                // to the log at default verbosity (session material included) for nobody to read.
+                // The one concise Information line per request is emitted in the finally below.
+                _logger.LogDebug("Request {ProtocolInt} / {Protocol}: {Payload}", (int)protocol, protocol, payloadStr);
 
                 if (protocol == Protocol.None)
                 {
@@ -148,12 +234,18 @@ namespace Shittim_Server.Controllers.Api
                 using var lease = _handlerManager.GetHandlerLease(protocol);
                 if (!lease.IsValid)
                 {
-                    _logger.LogInformation("{Protocol} {Payload}", protocol, payloadStr);
-                    _logger.LogError("Protocol {Protocol} is unimplemented and left unhandled", protocol);
+                    // The payload rides along on the error itself rather than as a second
+                    // Information-level body dump — this is a failure, so it keeps its context.
+                    _logger.LogError("Protocol {Protocol} is unimplemented and left unhandled. Request: {Payload}", protocol, payloadStr);
 
                     await CreateProtocolErrorResponse("Protocol not implemented (Server Error)", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
                     return;
                 }
+
+                // Official evaluates the notification flags at request ENTRY, not after handling:
+                // the Mail_Receive response that empties the mailbox still carries HasUnreadMail,
+                // and only the following response drops it. Snapshot before dispatch.
+                var notification = await ReadServerNotificationAsync(payload, protocol);
 
                 var rsp = await lease.Handler.Handle(payload);
 
@@ -164,14 +256,22 @@ namespace Shittim_Server.Controllers.Api
                     return;
                 }
 
-                if (rsp.SessionKey == null)
+                // Official responses echo SessionKey (+ the derived top-level AccountId) ONLY on the
+                // account/security handshake protocols; every other response omits both. Handlers
+                // that mint a new session (CheckNexon/Create) set SessionKey themselves.
+                if (rsp.SessionKey == null && ShouldEchoSessionKey(protocol))
                     rsp.SessionKey = payload.SessionKey;
+
+                // OR rather than assign: ServerNotification is a flag set, and official combines a
+                // handler's own bits with the mailbox baseline instead of letting either win. That
+                // is what produces Clan_Check = 2056 (CanReceiveClanAttendanceReward | HasUnreadMail).
+                rsp.ServerNotification |= notification;
 
                 var responseJson = JsonConvert.SerializeObject(rsp, jsonSettings);
                 if (responseProtocolOverride.HasValue)
                     responseJson = OverridePacketProtocol(responseJson, responseProtocolOverride.Value);
 
-                _logger.LogInformation("Response: {Rsp}", responseJson);
+                _logger.LogDebug("Response: {Rsp}", responseJson);
 
                 var serverPacket = new ServerResponsePacket { Protocol = responseProtocolName, Packet = responseJson };
                 await CreateProtocolResponse(serverPacket, responseCrypto);
@@ -191,6 +291,73 @@ namespace Shittim_Server.Controllers.Api
                     await CreateProtocolErrorResponse(ex.Message, WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
                 }
             }
+            finally
+            {
+                // The single Information-level line per gateway request: route + protocol + status
+                // + duration, so normal operation stays observable without the payloads.
+                _logger.LogInformation("{Method} {Route} {Protocol}({ProtocolInt}) -> {StatusCode} in {ElapsedMs}ms",
+                    Request.Method,
+                    Request.Path.Value,
+                    protocol,
+                    (int)protocol,
+                    Response.StatusCode,
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // Protocols whose responses officially carry SessionKey/AccountId (from live captures:
+        // Account_CheckNexon, Account_Auth, ProofToken_RequestQuestion, ProofToken_Submit).
+        private static bool ShouldEchoSessionKey(Protocol protocol) => protocol
+            is Protocol.Account_Auth
+            or Protocol.Account_Auth2
+            or Protocol.ProofToken_RequestQuestion
+            or Protocol.ProofToken_Submit;
+
+        // The official server stamps ServerNotification on every in-session response; the baseline
+        // computed here is HasUnreadMail (8) whenever unclaimed mail exists. Handlers contribute
+        // their own bits on top — ClanHandler.Check adds CanReceiveClanAttendanceReward (2048),
+        // giving 2048 alone or 2056 when mail is also waiting. NewMailArrived (4, seen as 12 = 8|4
+        // on official's Attendance_Reward) is deliberately not baseline either: MailNotificationService
+        // holds it per account, and only the delivering handler and Mail_Check (report-and-consume)
+        // ever surface it.
+        // Official answers these four outside the account pipeline: in a capture whose account had
+        // unread mail from login to logout, every response carried ServerNotification=8 except
+        // ProofToken_RequestQuestion / NetworkTime_Sync / ProofToken_Submit / Account_GetTutorial.
+        private static bool SkipsServerNotification(Protocol protocol) => protocol
+            is Protocol.NetworkTime_Sync
+            or Protocol.ProofToken_RequestQuestion
+            or Protocol.ProofToken_Submit
+            or Protocol.Account_GetTutorial;
+
+        private async Task<ServerNotificationFlag> ReadServerNotificationAsync(RequestPacket payload, Protocol protocol)
+        {
+            var accountServerId = payload.SessionKey?.AccountServerId ?? 0;
+            if (accountServerId == 0 || SkipsServerNotification(protocol))
+                return ServerNotificationFlag.None;
+
+            try
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                // Unclaimed and unexpired only — official drops the flag once the mail is claimed.
+                // Go through GetAccountMailbox so this uses the same predicate AND the same clock as
+                // Mail_Check/Mail_List. An account with ForceDateTime evaluates mail expiry against
+                // its own ServerDateTime(), so reading DateTime.Now here would let the two disagree
+                // in either direction: a red dot over an empty mailbox, or unread mail the client is
+                // never notified about. Official never contradicts itself that way — in both
+                // captures the flag and the count appear together and vanish together on
+                // Mail_Receive.
+                var account = await db.Accounts.AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.ServerId == accountServerId);
+                var now = account?.GameSettings?.ServerDateTime() ?? DateTime.Now;
+                if (await db.GetAccountMailbox(accountServerId, now).AnyAsync())
+                    return ServerNotificationFlag.HasUnreadMail;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "ServerNotification mail check failed");
+            }
+
+            return ServerNotificationFlag.None;
         }
 
         private GatewayPayload DecodeGatewayPayload(IFormFile formFile)
@@ -361,7 +528,7 @@ namespace Shittim_Server.Controllers.Api
                     ? new GatewayCryptoContext(true, headerKey, headerIv)
                     : GatewayCryptoContext.None;
 
-                _logger.LogInformation(
+                _logger.LogDebug(
                     "Gateway plaintext-body request: TypeConversion={TypeConversion}, headerKeyLen={KeyLen}, headerIvLen={IvLen} -> responseAes={ResponseAes}",
                     typeConversion,
                     headerKey.Length,
@@ -680,8 +847,6 @@ namespace Shittim_Server.Controllers.Api
                 var cands = GatewaySessionCryptoBuilder.GetClientCryptoCandidates();
                 if (keyIdx < cands.Count) { key = cands[keyIdx].Key; iv = cands[keyIdx].Iv; }
             }
-
-            Console.WriteLine($"[SWEEP] keyIdx={keyIdx} mode={mode} pad={pad} keyHex={Convert.ToHexString(key)} ivHex={Convert.ToHexString(iv)} plainLen={plain.Length}");
 
             var padMode = pad switch
             {

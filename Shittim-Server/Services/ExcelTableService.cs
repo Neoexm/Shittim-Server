@@ -10,6 +10,21 @@ namespace BlueArchiveAPI.Services
     public class ExcelTableService
     {
         private readonly ConcurrentDictionary<Type, object> caches = [];
+
+        // TableEncryptionService.UseEncryption is a global static that selects XOR-decryption of every
+        // string and numeric field, and it is read *per field* deep inside the generated UnPackTo
+        // methods — not once up front. The two branches below set it to opposite values, and
+        // ConcurrentDictionary.GetOrAdd does not serialize factories for different keys, so two
+        // requests loading different tables for the first time could each flip the flag out from under
+        // the other's in-flight unpack. The result was silently garbled rows (swallowed by the
+        // row-level catch) that varied run to run. Both branches are genuinely live — .bytes files and
+        // ExcelDB.db coexist in Resources/Dumped — so this is reachable, not theoretical.
+        //
+        // The flag cannot be threaded through as a parameter without regenerating several hundred
+        // FlatData files, so loads are serialized instead. This only ever contends on the very first
+        // load of each table; every subsequent call is served by the lock-free TryGetValue above.
+        private static readonly object loadLock = new();
+
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
         public static string DumpedDir = Path.Combine(ResourceDir, "Dumped");
 
@@ -23,6 +38,8 @@ namespace BlueArchiveAPI.Services
 
             unpacked = (List<T>)caches.GetOrAdd(type, (t) =>
             {
+                lock (loadLock)
+                {
                 try
                 {
                 var excelDir = Path.Combine(DumpedDir, "Excel");
@@ -77,10 +94,13 @@ namespace BlueArchiveAPI.Services
                         var command = dbConnection.CreateCommand();
                         command.CommandText = $"SELECT Bytes FROM [{schemaName}]";
 
+                        var skippedRows = 0;
                         using (var reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
+                                try
+                                {
                                 var byteBuffer = new ByteBuffer((byte[])reader[0]);
                                 var getRootMethod = fbType.GetMethod($"GetRootAs{baseTypeName}", BindingFlags.Static | BindingFlags.Public, [typeof(ByteBuffer)])
                                     ?? throw new MissingMethodException($"Could not find GetRootAs{baseTypeName} on type {fbType.FullName}");
@@ -91,8 +111,21 @@ namespace BlueArchiveAPI.Services
 
                                 var unpackedInstance = (T)unpackMethod.Invoke(flatInstance, null);
                                 excelList.Add(unpackedInstance);
+                                }
+                                catch (Exception rowEx)
+                                {
+                                    // A row whose bytes don't line up with the current FlatBuffer schema used
+                                    // to discard the ENTIRE table (the catch below), silently turning every
+                                    // lookup against it into "not found". Skip just the bad row so the rest of
+                                    // the table stays usable.
+                                    if (skippedRows++ == 0)
+                                        Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName} has rows that do not match the current schema ({rowEx.GetBaseException().Message}); skipping them");
+                                }
                             }
                         }
+
+                        if (skippedRows > 0)
+                            Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName}: skipped {skippedRows} unreadable row(s), loaded {excelList.Count}");
                     }
 
                     return excelList;
@@ -112,6 +145,7 @@ namespace BlueArchiveAPI.Services
                     // request still completes.
                     Console.WriteLine($"[ExcelTableService] WARNING: failed to load {type.Name} table ({ex.GetBaseException().Message}); degrading to empty table");
                     return new List<T>();
+                }
                 }
             });
 
@@ -157,7 +191,10 @@ namespace BlueArchiveAPI.Services
             }
         }
 
-        private static SqliteConnection OpenExcelDbConnection(string dbPath)
+        // internal so the layout-drift audit in the test project can read the shipped ExcelDB rows
+        // through the same key handling the server uses, rather than duplicating the SQLCipher pragma
+        // logic. See ExcelLayoutDriftTests.
+        internal static SqliteConnection OpenExcelDbConnection(string dbPath)
         {
             SqliteProvider.EnsureInitialized();
 

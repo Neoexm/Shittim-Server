@@ -10,6 +10,26 @@ using global::System.Collections.Generic;
 using global::Schale.Crypto;
 using global::Google.FlatBuffers;
 
+// The shipped ExcelDB writes 25 field slots here, not the 20 this model declares, and the five it
+// does not declare sit in the MIDDLE rather than at the end (data slots 3, 5, 6, 12 and 15). The
+// slot indices below are therefore the data's, not 0..19 -- the gaps are deliberate. Read
+// consecutively the model decoded IconPath off data slot 4, a 32-bit hash whose value is not a
+// valid string offset, so UnPack threw on all 1345 rows and ExcelTableService dropped every one:
+// the table loaded empty and every cash-shop lookup returned null.
+//
+// The layout was recovered from the data rather than guessed. Field width and buffer alignment
+// pin 18 of the 20 assignments uniquely; the two string pairs confirm themselves by decoding
+// ("UIs/01_Common/26_ShopContent/Goods_Icon_..." at 7, "2020-07-31 00:00:00" / "2023-01-31
+// 10:59:59" at 13 and 14), and slot 4's 228 distinct full-range values identify LocalizeEtcId.
+// CategoryType and DisplayTag are placed on value shape: slot 10 is populated in all 1345 rows
+// over the range ProductCategory declares, and slot 11 in 931 with the range ProductDisplayTag
+// declares, leaving None as the omitted default.
+//
+// PackageType is the one assignment that is inferred rather than proven: data slots 2 and 3 are
+// both 4-byte fields populated in every row, so either could be it. Slot 2 is used because it is
+// the smaller change. No handler reads PackageType -- only Id and CashProductId are consumed, and
+// both are proven -- so a wrong choice here is latent. Resolving it needs the field names from the
+// client's global-metadata; do not "fix" it by guessing again.
 public struct ShopCashExcel : IFlatbufferObject
 {
   private Table __p;
@@ -23,47 +43,47 @@ public struct ShopCashExcel : IFlatbufferObject
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long CashProductId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.PurchaseSourceType PackageType { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.PurchaseSourceType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchaseSourceType.None; } }
-  public uint LocalizeEtcId { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public string IconPath { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public uint LocalizeEtcId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public string IconPath { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIconPathBytes() { return __p.__vector_as_span<byte>(12, 1); }
+  public Span<byte> GetIconPathBytes() { return __p.__vector_as_span<byte>(18, 1); }
 #else
-  public ArraySegment<byte>? GetIconPathBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetIconPathBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public byte[] GetIconPathArray() { return __p.__vector_as_array<byte>(12); }
-  public long DisplayOrder { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long RenewalDisplayOrder { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.ProductCategory CategoryType { get { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ProductCategory)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductCategory.None; } }
-  public Schale.FlatData.ProductDisplayTag DisplayTag { get { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.ProductDisplayTag)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductDisplayTag.None; } }
-  public string SalePeriodFrom { get { int o = __p.__offset(22); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIconPathArray() { return __p.__vector_as_array<byte>(18); }
+  public long DisplayOrder { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RenewalDisplayOrder { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ProductCategory CategoryType { get { int o = __p.__offset(24); return o != 0 ? (Schale.FlatData.ProductCategory)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductCategory.None; } }
+  public Schale.FlatData.ProductDisplayTag DisplayTag { get { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.ProductDisplayTag)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductDisplayTag.None; } }
+  public string SalePeriodFrom { get { int o = __p.__offset(30); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSalePeriodFromBytes() { return __p.__vector_as_span<byte>(22, 1); }
+  public Span<byte> GetSalePeriodFromBytes() { return __p.__vector_as_span<byte>(30, 1); }
 #else
-  public ArraySegment<byte>? GetSalePeriodFromBytes() { return __p.__vector_as_arraysegment(22); }
+  public ArraySegment<byte>? GetSalePeriodFromBytes() { return __p.__vector_as_arraysegment(30); }
 #endif
-  public byte[] GetSalePeriodFromArray() { return __p.__vector_as_array<byte>(22); }
-  public string SalePeriodTo { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSalePeriodFromArray() { return __p.__vector_as_array<byte>(30); }
+  public string SalePeriodTo { get { int o = __p.__offset(32); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSalePeriodToBytes() { return __p.__vector_as_span<byte>(24, 1); }
+  public Span<byte> GetSalePeriodToBytes() { return __p.__vector_as_span<byte>(32, 1); }
 #else
-  public ArraySegment<byte>? GetSalePeriodToBytes() { return __p.__vector_as_arraysegment(24); }
+  public ArraySegment<byte>? GetSalePeriodToBytes() { return __p.__vector_as_arraysegment(32); }
 #endif
-  public byte[] GetSalePeriodToArray() { return __p.__vector_as_array<byte>(24); }
-  public bool PeriodTag { get { int o = __p.__offset(26); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long AccountLevelLimit { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool AccountLevelHide { get { int o = __p.__offset(30); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long ClearMissionLimit { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool ClearMissionHide { get { int o = __p.__offset(34); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public string PurchaseReportEventName { get { int o = __p.__offset(36); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSalePeriodToArray() { return __p.__vector_as_array<byte>(32); }
+  public bool PeriodTag { get { int o = __p.__offset(36); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long AccountLevelLimit { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool AccountLevelHide { get { int o = __p.__offset(40); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long ClearMissionLimit { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool ClearMissionHide { get { int o = __p.__offset(44); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public string PurchaseReportEventName { get { int o = __p.__offset(46); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetPurchaseReportEventNameBytes() { return __p.__vector_as_span<byte>(36, 1); }
+  public Span<byte> GetPurchaseReportEventNameBytes() { return __p.__vector_as_span<byte>(46, 1); }
 #else
-  public ArraySegment<byte>? GetPurchaseReportEventNameBytes() { return __p.__vector_as_arraysegment(36); }
+  public ArraySegment<byte>? GetPurchaseReportEventNameBytes() { return __p.__vector_as_arraysegment(46); }
 #endif
-  public byte[] GetPurchaseReportEventNameArray() { return __p.__vector_as_array<byte>(36); }
-  public Schale.FlatData.PurchaseSourceType PackageClientType { get { int o = __p.__offset(38); return o != 0 ? (Schale.FlatData.PurchaseSourceType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchaseSourceType.None; } }
-  public bool IsStartDash { get { int o = __p.__offset(40); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool ViewFlag { get { int o = __p.__offset(42); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public byte[] GetPurchaseReportEventNameArray() { return __p.__vector_as_array<byte>(46); }
+  public Schale.FlatData.PurchaseSourceType PackageClientType { get { int o = __p.__offset(48); return o != 0 ? (Schale.FlatData.PurchaseSourceType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchaseSourceType.None; } }
+  public bool IsStartDash { get { int o = __p.__offset(50); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool ViewFlag { get { int o = __p.__offset(52); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
 
   public static Offset<Schale.FlatData.ShopCashExcel> CreateShopCashExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -86,7 +106,7 @@ public struct ShopCashExcel : IFlatbufferObject
       Schale.FlatData.PurchaseSourceType PackageClientType = Schale.FlatData.PurchaseSourceType.None,
       bool IsStartDash = false,
       bool ViewFlag = false) {
-    builder.StartTable(20);
+    builder.StartTable(25);
     ShopCashExcel.AddClearMissionLimit(builder, ClearMissionLimit);
     ShopCashExcel.AddAccountLevelLimit(builder, AccountLevelLimit);
     ShopCashExcel.AddRenewalDisplayOrder(builder, RenewalDisplayOrder);
@@ -110,27 +130,27 @@ public struct ShopCashExcel : IFlatbufferObject
     return ShopCashExcel.EndShopCashExcel(builder);
   }
 
-  public static void StartShopCashExcel(FlatBufferBuilder builder) { builder.StartTable(20); }
+  public static void StartShopCashExcel(FlatBufferBuilder builder) { builder.StartTable(25); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddCashProductId(FlatBufferBuilder builder, long cashProductId) { builder.AddLong(1, cashProductId, 0); }
   public static void AddPackageType(FlatBufferBuilder builder, Schale.FlatData.PurchaseSourceType packageType) { builder.AddInt(2, (int)packageType, 0); }
-  public static void AddLocalizeEtcId(FlatBufferBuilder builder, uint localizeEtcId) { builder.AddUint(3, localizeEtcId, 0); }
-  public static void AddIconPath(FlatBufferBuilder builder, StringOffset iconPathOffset) { builder.AddOffset(4, iconPathOffset.Value, 0); }
-  public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(5, displayOrder, 0); }
-  public static void AddRenewalDisplayOrder(FlatBufferBuilder builder, long renewalDisplayOrder) { builder.AddLong(6, renewalDisplayOrder, 0); }
-  public static void AddCategoryType(FlatBufferBuilder builder, Schale.FlatData.ProductCategory categoryType) { builder.AddInt(7, (int)categoryType, 0); }
-  public static void AddDisplayTag(FlatBufferBuilder builder, Schale.FlatData.ProductDisplayTag displayTag) { builder.AddInt(8, (int)displayTag, 0); }
-  public static void AddSalePeriodFrom(FlatBufferBuilder builder, StringOffset salePeriodFromOffset) { builder.AddOffset(9, salePeriodFromOffset.Value, 0); }
-  public static void AddSalePeriodTo(FlatBufferBuilder builder, StringOffset salePeriodToOffset) { builder.AddOffset(10, salePeriodToOffset.Value, 0); }
-  public static void AddPeriodTag(FlatBufferBuilder builder, bool periodTag) { builder.AddBool(11, periodTag, false); }
-  public static void AddAccountLevelLimit(FlatBufferBuilder builder, long accountLevelLimit) { builder.AddLong(12, accountLevelLimit, 0); }
-  public static void AddAccountLevelHide(FlatBufferBuilder builder, bool accountLevelHide) { builder.AddBool(13, accountLevelHide, false); }
-  public static void AddClearMissionLimit(FlatBufferBuilder builder, long clearMissionLimit) { builder.AddLong(14, clearMissionLimit, 0); }
-  public static void AddClearMissionHide(FlatBufferBuilder builder, bool clearMissionHide) { builder.AddBool(15, clearMissionHide, false); }
-  public static void AddPurchaseReportEventName(FlatBufferBuilder builder, StringOffset purchaseReportEventNameOffset) { builder.AddOffset(16, purchaseReportEventNameOffset.Value, 0); }
-  public static void AddPackageClientType(FlatBufferBuilder builder, Schale.FlatData.PurchaseSourceType packageClientType) { builder.AddInt(17, (int)packageClientType, 0); }
-  public static void AddIsStartDash(FlatBufferBuilder builder, bool isStartDash) { builder.AddBool(18, isStartDash, false); }
-  public static void AddViewFlag(FlatBufferBuilder builder, bool viewFlag) { builder.AddBool(19, viewFlag, false); }
+  public static void AddLocalizeEtcId(FlatBufferBuilder builder, uint localizeEtcId) { builder.AddUint(4, localizeEtcId, 0); }
+  public static void AddIconPath(FlatBufferBuilder builder, StringOffset iconPathOffset) { builder.AddOffset(7, iconPathOffset.Value, 0); }
+  public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(8, displayOrder, 0); }
+  public static void AddRenewalDisplayOrder(FlatBufferBuilder builder, long renewalDisplayOrder) { builder.AddLong(9, renewalDisplayOrder, 0); }
+  public static void AddCategoryType(FlatBufferBuilder builder, Schale.FlatData.ProductCategory categoryType) { builder.AddInt(10, (int)categoryType, 0); }
+  public static void AddDisplayTag(FlatBufferBuilder builder, Schale.FlatData.ProductDisplayTag displayTag) { builder.AddInt(11, (int)displayTag, 0); }
+  public static void AddSalePeriodFrom(FlatBufferBuilder builder, StringOffset salePeriodFromOffset) { builder.AddOffset(13, salePeriodFromOffset.Value, 0); }
+  public static void AddSalePeriodTo(FlatBufferBuilder builder, StringOffset salePeriodToOffset) { builder.AddOffset(14, salePeriodToOffset.Value, 0); }
+  public static void AddPeriodTag(FlatBufferBuilder builder, bool periodTag) { builder.AddBool(16, periodTag, false); }
+  public static void AddAccountLevelLimit(FlatBufferBuilder builder, long accountLevelLimit) { builder.AddLong(17, accountLevelLimit, 0); }
+  public static void AddAccountLevelHide(FlatBufferBuilder builder, bool accountLevelHide) { builder.AddBool(18, accountLevelHide, false); }
+  public static void AddClearMissionLimit(FlatBufferBuilder builder, long clearMissionLimit) { builder.AddLong(19, clearMissionLimit, 0); }
+  public static void AddClearMissionHide(FlatBufferBuilder builder, bool clearMissionHide) { builder.AddBool(20, clearMissionHide, false); }
+  public static void AddPurchaseReportEventName(FlatBufferBuilder builder, StringOffset purchaseReportEventNameOffset) { builder.AddOffset(21, purchaseReportEventNameOffset.Value, 0); }
+  public static void AddPackageClientType(FlatBufferBuilder builder, Schale.FlatData.PurchaseSourceType packageClientType) { builder.AddInt(22, (int)packageClientType, 0); }
+  public static void AddIsStartDash(FlatBufferBuilder builder, bool isStartDash) { builder.AddBool(23, isStartDash, false); }
+  public static void AddViewFlag(FlatBufferBuilder builder, bool viewFlag) { builder.AddBool(24, viewFlag, false); }
   public static Offset<Schale.FlatData.ShopCashExcel> EndShopCashExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ShopCashExcel>(o);
@@ -250,23 +270,23 @@ static public class ShopCashExcelVerify
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*CashProductId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 8 /*PackageType*/, 4 /*Schale.FlatData.PurchaseSourceType*/, 4, false)
-      && verifier.VerifyField(tablePos, 10 /*LocalizeEtcId*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyString(tablePos, 12 /*IconPath*/, false)
-      && verifier.VerifyField(tablePos, 14 /*DisplayOrder*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 16 /*RenewalDisplayOrder*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 18 /*CategoryType*/, 4 /*Schale.FlatData.ProductCategory*/, 4, false)
-      && verifier.VerifyField(tablePos, 20 /*DisplayTag*/, 4 /*Schale.FlatData.ProductDisplayTag*/, 4, false)
-      && verifier.VerifyString(tablePos, 22 /*SalePeriodFrom*/, false)
-      && verifier.VerifyString(tablePos, 24 /*SalePeriodTo*/, false)
-      && verifier.VerifyField(tablePos, 26 /*PeriodTag*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 28 /*AccountLevelLimit*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*AccountLevelHide*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 32 /*ClearMissionLimit*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 34 /*ClearMissionHide*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyString(tablePos, 36 /*PurchaseReportEventName*/, false)
-      && verifier.VerifyField(tablePos, 38 /*PackageClientType*/, 4 /*Schale.FlatData.PurchaseSourceType*/, 4, false)
-      && verifier.VerifyField(tablePos, 40 /*IsStartDash*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 42 /*ViewFlag*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 12 /*LocalizeEtcId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyString(tablePos, 18 /*IconPath*/, false)
+      && verifier.VerifyField(tablePos, 20 /*DisplayOrder*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*RenewalDisplayOrder*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 24 /*CategoryType*/, 4 /*Schale.FlatData.ProductCategory*/, 4, false)
+      && verifier.VerifyField(tablePos, 26 /*DisplayTag*/, 4 /*Schale.FlatData.ProductDisplayTag*/, 4, false)
+      && verifier.VerifyString(tablePos, 30 /*SalePeriodFrom*/, false)
+      && verifier.VerifyString(tablePos, 32 /*SalePeriodTo*/, false)
+      && verifier.VerifyField(tablePos, 36 /*PeriodTag*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 38 /*AccountLevelLimit*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 40 /*AccountLevelHide*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 42 /*ClearMissionLimit*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*ClearMissionHide*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyString(tablePos, 46 /*PurchaseReportEventName*/, false)
+      && verifier.VerifyField(tablePos, 48 /*PackageClientType*/, 4 /*Schale.FlatData.PurchaseSourceType*/, 4, false)
+      && verifier.VerifyField(tablePos, 50 /*IsStartDash*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 52 /*ViewFlag*/, 1 /*bool*/, 1, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

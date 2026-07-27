@@ -30,7 +30,7 @@ public class NotificationHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         response.Reddots = new();
-        response.EventContentUnlockCGDBs = new();
+        // Official responses carry Reddots: {} but never EventContentUnlockCGDBs (omitted, not {}).
         if (account.GameSettings.EnableMultiFloorRaid)
             response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 

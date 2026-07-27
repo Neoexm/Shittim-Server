@@ -482,6 +482,7 @@ namespace Schale.MX.NetworkProtocol
         MultiFloorRaid_EnterBattle = 49001,
         MultiFloorRaid_EndBattle = 49002,
         MultiFloorRaid_ReceiveReward = 49003,
+        MultiFloorRaid_Login = 49004,
         Queuing_GetTicket = 50000,
         Queuing_GetCryptoKeys = 50001,
         Queuing_GetAuthTicket = 50002,

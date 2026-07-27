@@ -62,7 +62,7 @@ public class BattlePassHandler : ProtocolHandlerBase
                 ReceiveRewardLevel = 0,
                 ReceivePurchaseRewardLevel = 0,
                 WeeklyPassExp = 0,
-                LastWeeklyPassExpLimitRefreshDate = DateTime.Now
+                LastWeeklyPassExpLimitRefreshDate = account.GameSettings.ServerDateTime()
             };
             
             db.BattlePasses.Add(battlePass);
@@ -86,13 +86,13 @@ public class BattlePassHandler : ProtocolHandlerBase
             .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == request.BattlePassId);
 
         if (battlePass == null)
-            throw new Exception("Battle Pass not found");
+            throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
 
         var battlePassInfoExcel = _excelTableService.GetTable<BattlePassInfoExcelT>()
             .FirstOrDefault(x => x.Id == request.BattlePassId);
 
-        if (battlePassInfoExcel == null) 
-            throw new Exception("Battle Pass Info not found");
+        if (battlePassInfoExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.BattlePassSeasonNotOpen, "Battle Pass Info not found");
 
         var rewardExcels = _excelTableService.GetTable<BattlePassRewardExcelT>();
         var parcels = new List<ParcelInfo>();
@@ -161,7 +161,7 @@ public class BattlePassHandler : ProtocolHandlerBase
             .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == request.BattlePassId);
 
         if (battlePass == null)
-            throw new Exception("Battle Pass not found");
+            throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
 
         // Logic for buying levels
         // Simplifying: Increment level, assume checking currency is done or simplified (deduct if needed using ParcelHandler)

@@ -100,11 +100,12 @@ function buildShell() {
   rail.appendChild(el('div.hazard.rail-hazard', {}));
 
   const nav = el('div.nav', {});
+  let navIdx = 0; // stagger index for the entrance animation
   for (const grp of NAV) {
     nav.appendChild(el('div.nav-group', { text: grp.group }));
     for (const id of grp.items) {
       const p = byId[id];
-      const item = frag(`<div class="nav-item" data-id="${id}">${icon(p.icon)}<span>${p.title}</span></div>`);
+      const item = frag(`<div class="nav-item" data-id="${id}" style="--i:${navIdx++}">${icon(p.icon)}<span>${p.title}</span></div>`);
       item.addEventListener('click', () => navigate(id));
       nav.appendChild(item);
     }
@@ -191,39 +192,48 @@ function navigate(id, force = false) {
 
 // --------------------------------------------------------------- live status
 
+// Cache the last rendered strings so the 2–8s poll loop doesn't touch the DOM
+// (classList + two text nodes) unless something actually changed.
+let railPrev = { cls: '', title: '', sub: '' };
+
 function applyRailStatus() {
   const s = store.get();
   const node = document.getElementById('railStatus');
   if (!node) return;
-  const title = document.getElementById('railStTitle');
-  const sub = document.getElementById('railStSub');
-  node.classList.remove('up', 'down', 'starting');
 
+  let cls, title, sub;
   if (s.online) {
     // genuinely ready (db-backed status answered)
-    node.classList.add('up');
-    title.textContent = 'Server online';
-    sub.textContent = s.status
+    cls = 'up';
+    title = 'Server online';
+    sub = s.status
       ? `v${s.status.gameVersion} · :${s.status.apiPort} · ${s.status.accountCount} acct`
       : `Ready · ${s.probeTarget}`;
   } else if (s.live) {
     // web host answers /health but DB-backed status is not ready yet
-    node.classList.add('starting');
-    title.textContent = 'Starting…';
-    sub.textContent = `Listening · not ready · ${s.probeTarget}`;
+    cls = 'starting';
+    title = 'Starting…';
+    sub = `Listening · not ready · ${s.probeTarget}`;
   } else if (s.procServer === 'starting') {
-    node.classList.add('starting');
-    title.textContent = 'Starting…';
-    sub.textContent = 'Booting server';
+    cls = 'starting';
+    title = 'Starting…';
+    sub = 'Booting server';
   } else if (s.procServer === 'running') {
-    node.classList.add('starting');
-    title.textContent = 'Process up';
-    sub.textContent = `No response on ${s.probeTarget}`;
+    cls = 'starting';
+    title = 'Process up';
+    sub = `No response on ${s.probeTarget}`;
   } else {
-    node.classList.add('down');
-    title.textContent = 'Server offline';
-    sub.textContent = 'Not running';
+    cls = 'down';
+    title = 'Server offline';
+    sub = 'Not running';
   }
+
+  if (cls === railPrev.cls && title === railPrev.title && sub === railPrev.sub) return;
+  railPrev = { cls, title, sub };
+  node.classList.remove('up', 'down', 'starting');
+  node.classList.add(cls);
+  document.getElementById('railStTitle').textContent = title;
+  document.getElementById('railStSub').textContent = sub;
 }
 
 let wasReady = false;
@@ -245,6 +255,36 @@ async function poll() {
     serverPid: pStatus ? pStatus.serverPid : store.get().serverPid,
   });
 }
+
+// Adaptive scheduler: probe hard while the server is booting (that's when the
+// user is watching), relax once state is stable, and back off when the window
+// is hidden. Replaces a flat 4s setInterval.
+let pollTimer = null;
+let pollBusy = false;
+
+function pollDelay() {
+  const s = store.get();
+  if (document.hidden) return 15000;                       // minimized — relax
+  if (s.live && !s.online) return 1500;                    // booting — tight loop
+  if (s.procServer === 'starting') return 1500;
+  if (s.online) return 5000;                               // stable online
+  return 7000;                                             // offline idle
+}
+
+function schedulePoll(immediate = false) {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => {
+    if (pollBusy) { schedulePoll(); return; }
+    pollBusy = true;
+    try { await poll(); } catch { /* probe never throws, but stay safe */ }
+    pollBusy = false;
+    schedulePoll();
+  }, immediate ? 0 : pollDelay());
+}
+
+// When the window comes back, refresh immediately instead of waiting out a
+// long hidden-state delay.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePoll(true); });
 
 function refreshTargetPicker() {
   const actions = document.getElementById('phActions');
@@ -274,9 +314,12 @@ async function boot() {
   applyTheme(document.documentElement.dataset.theme); // sync the toggle button glyph
 
   window.host.onProcState((d) => {
+    const prevServer = store.get().procServer;
     if (d.server) store.set({ procServer: d.server });
     if (d.mitm) store.set({ procMitm: d.mitm });
     if (d.serverPid !== undefined) store.set({ serverPid: d.serverPid });
+    // lifecycle flip (start/stop) — re-probe right away so the UI reacts
+    if (d.server && d.server !== prevServer) schedulePoll(true);
   });
   window.host.onProcLog((d) => pushLog(d));
 
@@ -287,8 +330,7 @@ async function boot() {
 
   await api.refreshBase();
   store.set({ probeTarget: api.hostPort() });
-  poll();
-  setInterval(poll, 4000);
+  schedulePoll(true);
 }
 
 // Module scripts are deferred, so the DOM is already parsed here.

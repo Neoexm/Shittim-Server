@@ -209,6 +209,13 @@ public class CafeHandler : ProtocolHandlerBase
         response.CharacterDB = character;
         response.ParcelResultDB = parcelResult;
 
+        // Official's Cafe_Interact ticks the interaction dailies (MissionProgressDBs on every
+        // captured interact).
+        var updatedMissions = _missionService.UpdateMissionProgress(
+            db, account, MissionCompleteConditionType.Reset_CafeInteractionCount);
+        if (updatedMissions.Count > 0)
+            response.MissionProgressDBs = updatedMissions;
+
         return response;
     }
 

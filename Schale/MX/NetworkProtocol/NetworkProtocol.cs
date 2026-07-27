@@ -84,6 +84,8 @@ namespace Schale.MX.NetworkProtocol
         public bool UpdateRequired { get; set; }
         public string? TTSCdnUri { get; set; }
         public AccountDB? AccountDB { get; set; }
+        // Present on every official Account_Auth, always serialized as {}.
+        public Dictionary<string, object>? OptionDB { get; set; }
         public IEnumerable<AttendanceBookReward>? AttendanceBookRewards { get; set; }
         public IEnumerable<AttendanceHistoryDB>? AttendanceHistoryDBs { get; set; }
         public IEnumerable<PurchaseCountDB>? RepurchasableMonthlyProductCountDBs { get; set; }
@@ -96,13 +98,12 @@ namespace Schale.MX.NetworkProtocol
         public string? EncryptedUID { get; set; }
         public AccountRestrictionsDB? AccountRestrictionsDB { get; set; }
         public IEnumerable<IssueAlertInfoDB>? IssueAlertInfos { get; set; }
+        // Official Account_Auth never carries accountBanByNexonDBs, DailyRecordDBs or a false
+        // IsArenaAnonymous (both captured sessions omit them); the client tolerates the omission.
         public IEnumerable<AccountBanByNexonDB>? accountBanByNexonDBs { get; set; }
-        // v1.90.433063 client (AccountAuthNetworkTask.HandleMessage) reads these unconditionally and
-        // calls SyncDailyRecordDBs / SyncLimitedFlashProductInfo on them; if absent they deserialize to
-        // null and the client throws -> "A request that cannot be processed has been received." popup.
-        // Emit them as empty collections (element type is irrelevant for an empty [] on the wire).
-        public IEnumerable<object>? DailyRecordDBs { get; set; } = new List<object>();
+        public IEnumerable<object>? DailyRecordDBs { get; set; }
         public bool IsArenaAnonymous { get; set; }
+        // Official always emits these two (as [] when empty).
         public IEnumerable<object>? AccountLimitedFlashSaleDBs { get; set; } = new List<object>();
         public IEnumerable<long>? NewlyAddedShopCashIds { get; set; } = new List<long>();
     }
@@ -329,6 +330,7 @@ namespace Schale.MX.NetworkProtocol
         public ContentSweepMultiSweepPresetListResponse? ContentSweepMultiSweepPresetListResponse { get; set; }
         public StickerLoginResponse? StickerListResponse { get; set; }
         public MultiFloorRaidSyncResponse? MultiFloorRaidSyncResponse { get; set; }
+        public MultiFloorRaidLoginResponse? MultiFloorRaidLoginResponse { get; set; }
         public long FriendCount { get; set; }
         public string? FriendCode { get; set; }
         public List<PickupFirstGetHistoryDB>? PickupFirstGetHistoryDBs { get; set; }
@@ -423,7 +425,9 @@ namespace Schale.MX.NetworkProtocol
         public string? SignedKey { get; set; }
         public string? EncryptedIV { get; set; }
         public string? SignedIV { get; set; }
-        public new SessionKey? SessionKey { get; set; }
+        // No `new SessionKey` shadow here: it would hide BasePacket.SessionKey, leaving
+        // BasePacket.AccountId (derived from it) at 0 so the top-level AccountId official sends
+        // alongside the session key got dropped as a default value.
     }
 
     public class AccountDetachNexonRequest : RequestPacket
@@ -699,6 +703,9 @@ namespace Schale.MX.NetworkProtocol
     public class ErrorPacket : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Error; }
+        // Log-only: official error packets are exactly Protocol/ErrorCode/ServerTimeTicks (seen on
+        // the captured ShopCannotPurchaseActionPointLimitOver rejection) — no reason text on the wire.
+        [Newtonsoft.Json.JsonIgnore]
         public string? Reason { get; set; }
         public WebAPIErrorCode ErrorCode { get; set; }
     }
@@ -902,6 +909,7 @@ namespace Schale.MX.NetworkProtocol
         public List<BlockedProductDB>? BlockedProductDBs { get; set; }
         public List<BattlePassProductPurchaseDB>? BattlePassProductList { get; set; }
         public List<long>? BattlePassIdInMailList { get; set; }
+        public List<long>? DailyRecordIdInMailList { get; set; }
         public bool IsTeenage { get; set; }
     }
 
@@ -4139,6 +4147,9 @@ namespace Schale.MX.NetworkProtocol
     public class MailListResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Mail_List; }
+        // Official omits MailDBs entirely once the mailbox is empty (the response after
+        // Mail_Receive is just Protocol + ServerTimeTicks), rather than sending [].
+        [OmitWhenEmpty]
         public List<MailDB>? MailDBs { get; set; }
         public long Count { get; set; }
     }
@@ -4151,7 +4162,8 @@ namespace Schale.MX.NetworkProtocol
     public class MailCheckResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Mail_Check; }
-        public long Count { get; set; }
+        // Official field name is CommonMailCount (omitted when 0); "Count" is only used by Mail_List.
+        public long CommonMailCount { get; set; }
     }
 
     public class MailReceiveRequest : RequestPacket
@@ -4912,9 +4924,37 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Mission_List; }
         public List<long>? MissionHistoryUniqueIds { get; set; }
+        // Official sends ProgressDBs only when the queried scope actually has progress rows; the
+        // event-filtered calls in both captures omit the key instead of sending [].
+        [OmitWhenEmpty]
         public List<MissionProgressDB>? ProgressDBs { get; set; }
         public object? DailySuddenMissionInfo { get; set; }
         public List<long>? ClearedOrignalMissionIds { get; set; }
+    }
+
+    // Wire shape of the client's MissionInfo as the official server serializes it for
+    // MissionListResponse.DailySuddenMissionInfo (field set + order match live captures).
+    public class DailySuddenMissionInfo
+    {
+        public long Id { get; set; }
+        public MissionCategory Category { get; set; }
+        public MissionResetType ResetType { get; set; }
+        public long Description { get; set; }
+        public bool IsVisible { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime StartableEndDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public List<ParcelInfo> Rewards { get; set; } = new();
+        public MissionCompleteConditionType CompleteConditionType { get; set; }
+        public long CompleteConditionCount { get; set; }
+        public List<long> CompleteConditionParameters { get; set; } = new();
+        public List<ParcelInfo> CompleteConditionRewards { get; set; } = new();
+        public List<long> CompleteConditionMissionIds { get; set; } = new();
+        public List<long> PreMissionIds { get; set; } = new();
+        public long AccountLevel { get; set; }
+        public long TargetGroup { get; set; }
+        public List<long> Tags { get; set; } = new();
+        public List<SuddenMissionContentType> SuddenMissionContentTypes { get; set; } = new();
     }
 
     public class MissionRewardRequest : RequestPacket
@@ -5031,6 +5071,13 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.MultiFloorRaid_Sync; }
         public List<MultiFloorRaidDB>? MultiFloorRaidDBs { get; set; }
+    }
+
+    // Official Account_LoginSync carries this child alongside MultiFloorRaidSyncResponse;
+    // on the wire it is just {"Protocol":49004} (all other members at defaults).
+    public class MultiFloorRaidLoginResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.MultiFloorRaid_Login; }
     }
 
     public class MultiFloorRaidEnterBattleRequest : RequestPacket

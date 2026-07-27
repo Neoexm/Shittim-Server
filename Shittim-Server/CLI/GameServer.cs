@@ -184,30 +184,14 @@ namespace Shittim.CLI
                     if (context.Database.GetPendingMigrations().Any())
                         context.Database.Migrate();
 
-                    await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE TABLE IF NOT EXISTS ShopFreeRecruitHistories (
-                            ServerId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            AccountServerId INTEGER NOT NULL,
-                            UniqueId INTEGER NOT NULL,
-                            RecruitCount INTEGER NOT NULL,
-                            LastUpdateDate TEXT NOT NULL,
-                            FOREIGN KEY(AccountServerId) REFERENCES Accounts(ServerId)
-                        )");
-
-                    await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE TABLE IF NOT EXISTS BattlePasses (
-                            ServerId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            AccountServerId INTEGER NOT NULL,
-                            BattlePassId INTEGER NOT NULL,
-                            PassLevel INTEGER NOT NULL,
-                            PassExp INTEGER NOT NULL,
-                            PurchaseGroupId INTEGER NOT NULL,
-                            ReceiveRewardLevel INTEGER NOT NULL,
-                            ReceivePurchaseRewardLevel INTEGER NOT NULL,
-                            WeeklyPassExp INTEGER NOT NULL,
-                            LastWeeklyPassExpLimitRefreshDate TEXT NOT NULL,
-                            FOREIGN KEY(AccountServerId) REFERENCES Accounts(ServerId)
-                        )");
+                    // EnsureCreated only builds the schema for a brand-new database and does nothing
+                    // to one that already exists, and the project has no migrations. This used to be
+                    // a stack of hand-written CREATE TABLE IF NOT EXISTS blocks, one per entity added
+                    // after the fact — which covered new tables but silently missed new *columns*.
+                    // SchemaReconciler derives both from the EF model, so adding a property is enough.
+                    var schemaChanges = await SchemaReconciler.ReconcileAsync(context);
+                    foreach (var change in schemaChanges)
+                        Console.WriteLine($"Schema: {change}");
 
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);

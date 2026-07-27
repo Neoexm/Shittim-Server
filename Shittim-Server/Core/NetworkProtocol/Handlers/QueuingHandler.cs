@@ -33,6 +33,8 @@ public class QueuingHandler : ProtocolHandlerBase
         response.SignedIV = gatewayCrypto.SignedIV;
         response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
         response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
+        // Official queuing responses have no ServerTimeTicks (queue service, not game server).
+        response.ServerTimeTicks = 0;
 
         return Task.FromResult(response);
     }
@@ -60,8 +62,17 @@ public class QueuingHandler : ProtocolHandlerBase
         
         byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");
         response.EnterTicket = Convert.ToBase64String(rawTicketBytes);
-        response.Birth = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        // Official shape (live captures): Birth is an empty string, the ticket/allowed sequences are
+        // large non-zero counters with AllowedSequence ahead of TicketSequence (no queue wait), and
+        // RequiredSecondsPerUser is a small positive value. No ServerTimeTicks on queuing responses.
+        // ServerSeed stays empty: the official 1KB seed only feeds Nexon Game Security, which this
+        // server intentionally bypasses.
+        response.Birth = "";
+        response.TicketSequence = 130_000_000 + (DateTimeOffset.UtcNow.ToUnixTimeSeconds() % 10_000_000);
+        response.AllowedSequence = response.TicketSequence + 1722;
+        response.RequiredSecondsPerUser = 0.0058;
         response.ServerSeed = "";
+        response.ServerTimeTicks = 0;
 
         return Task.FromResult(response);
     }
@@ -82,8 +93,9 @@ public class QueuingHandler : ProtocolHandlerBase
         response.SignedIV = gatewayCrypto.SignedIV;
         response.EncryptedSqlCipherKey = sqlCipher.EncryptedKey;
         response.EncryptedSqlCipherLicense = sqlCipher.EncryptedLicense;
-        response.Birth = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        response.Birth = "";
         response.AuthTicket = Convert.ToBase64String(rawTicketBytes);
+        response.ServerTimeTicks = 0;
 
         return Task.FromResult(response);
     }
@@ -97,6 +109,7 @@ public class QueuingHandler : ProtocolHandlerBase
         response.WaitingTicket = request.WaitingTicket;
         response.EnterTicket = string.IsNullOrEmpty(request.AuthTicket) ? request.WaitingTicket : request.AuthTicket;
         response.ServerSeed = "";
+        response.ServerTimeTicks = 0;
 
         return Task.FromResult(response);
     }

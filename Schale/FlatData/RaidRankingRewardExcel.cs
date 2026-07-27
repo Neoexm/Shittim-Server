@@ -51,16 +51,14 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
   public ArraySegment<byte>? GetRewardParcelUniqueIdBytes() { return __p.__vector_as_arraysegment(36); }
 #endif
   public long[] GetRewardParcelUniqueIdArray() { return __p.__vector_as_array<long>(36); }
-  public string RewardParcelUniqueName(int j) { int o = __p.__offset(38); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int RewardParcelUniqueNameLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public long RewardParcelAmount(int j) { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int RewardParcelAmountLength { get { int o = __p.__offset(40); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long RewardParcelAmount(int j) { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int RewardParcelAmountLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetRewardParcelAmountBytes() { return __p.__vector_as_span<long>(40, 8); }
+  public Span<long> GetRewardParcelAmountBytes() { return __p.__vector_as_span<long>(38, 8); }
 #else
-  public ArraySegment<byte>? GetRewardParcelAmountBytes() { return __p.__vector_as_arraysegment(40); }
+  public ArraySegment<byte>? GetRewardParcelAmountBytes() { return __p.__vector_as_arraysegment(38); }
 #endif
-  public long[] GetRewardParcelAmountArray() { return __p.__vector_as_array<long>(40); }
+  public long[] GetRewardParcelAmountArray() { return __p.__vector_as_array<long>(38); }
 
   public static Offset<Schale.FlatData.RaidRankingRewardExcel> CreateRaidRankingRewardExcel(FlatBufferBuilder builder,
       long RankingRewardGroupId = 0,
@@ -80,9 +78,8 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
       int Tier = 0,
       VectorOffset RewardParcelTypeOffset = default(VectorOffset),
       VectorOffset RewardParcelUniqueIdOffset = default(VectorOffset),
-      VectorOffset RewardParcelUniqueNameOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
-    builder.StartTable(19);
+    builder.StartTable(18);
     RaidRankingRewardExcel.AddPercentRankEnd(builder, PercentRankEnd);
     RaidRankingRewardExcel.AddPercentRankStart(builder, PercentRankStart);
     RaidRankingRewardExcel.AddRankEndGlobal(builder, RankEndGlobal);
@@ -98,14 +95,13 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
     RaidRankingRewardExcel.AddId(builder, Id);
     RaidRankingRewardExcel.AddRankingRewardGroupId(builder, RankingRewardGroupId);
     RaidRankingRewardExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
-    RaidRankingRewardExcel.AddRewardParcelUniqueName(builder, RewardParcelUniqueNameOffset);
     RaidRankingRewardExcel.AddRewardParcelUniqueId(builder, RewardParcelUniqueIdOffset);
     RaidRankingRewardExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     RaidRankingRewardExcel.AddTier(builder, Tier);
     return RaidRankingRewardExcel.EndRaidRankingRewardExcel(builder);
   }
 
-  public static void StartRaidRankingRewardExcel(FlatBufferBuilder builder) { builder.StartTable(19); }
+  public static void StartRaidRankingRewardExcel(FlatBufferBuilder builder) { builder.StartTable(18); }
   public static void AddRankingRewardGroupId(FlatBufferBuilder builder, long rankingRewardGroupId) { builder.AddLong(0, rankingRewardGroupId, 0); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(1, id, 0); }
   public static void AddRankStart(FlatBufferBuilder builder, long rankStart) { builder.AddLong(2, rankStart, 0); }
@@ -133,13 +129,7 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
   public static VectorOffset CreateRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartRewardParcelUniqueIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddRewardParcelUniqueName(FlatBufferBuilder builder, VectorOffset rewardParcelUniqueNameOffset) { builder.AddOffset(17, rewardParcelUniqueNameOffset.Value, 0); }
-  public static VectorOffset CreateRewardParcelUniqueNameVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
-  public static void StartRewardParcelUniqueNameVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddRewardParcelAmount(FlatBufferBuilder builder, VectorOffset rewardParcelAmountOffset) { builder.AddOffset(18, rewardParcelAmountOffset.Value, 0); }
+  public static void AddRewardParcelAmount(FlatBufferBuilder builder, VectorOffset rewardParcelAmountOffset) { builder.AddOffset(17, rewardParcelAmountOffset.Value, 0); }
   public static VectorOffset CreateRewardParcelAmountVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelAmountVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
@@ -175,8 +165,6 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
     for (var _j = 0; _j < this.RewardParcelTypeLength; ++_j) {_o.RewardParcelType.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelType(_j), key) : this.RewardParcelType(_j));}
     _o.RewardParcelUniqueId = new List<long>();
     for (var _j = 0; _j < this.RewardParcelUniqueIdLength; ++_j) {_o.RewardParcelUniqueId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelUniqueId(_j), key) : this.RewardParcelUniqueId(_j));}
-    _o.RewardParcelUniqueName = new List<string>();
-    for (var _j = 0; _j < this.RewardParcelUniqueNameLength; ++_j) {_o.RewardParcelUniqueName.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelUniqueName(_j), key) : this.RewardParcelUniqueName(_j));}
     _o.RewardParcelAmount = new List<long>();
     for (var _j = 0; _j < this.RewardParcelAmountLength; ++_j) {_o.RewardParcelAmount.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelAmount(_j), key) : this.RewardParcelAmount(_j));}
   }
@@ -191,12 +179,6 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
     if (_o.RewardParcelUniqueId != null) {
       var __RewardParcelUniqueId = _o.RewardParcelUniqueId.ToArray();
       _RewardParcelUniqueId = CreateRewardParcelUniqueIdVector(builder, __RewardParcelUniqueId);
-    }
-    var _RewardParcelUniqueName = default(VectorOffset);
-    if (_o.RewardParcelUniqueName != null) {
-      var __RewardParcelUniqueName = new StringOffset[_o.RewardParcelUniqueName.Count];
-      for (var _j = 0; _j < __RewardParcelUniqueName.Length; ++_j) { __RewardParcelUniqueName[_j] = builder.CreateString(_o.RewardParcelUniqueName[_j]); }
-      _RewardParcelUniqueName = CreateRewardParcelUniqueNameVector(builder, __RewardParcelUniqueName);
     }
     var _RewardParcelAmount = default(VectorOffset);
     if (_o.RewardParcelAmount != null) {
@@ -222,7 +204,6 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
       _o.Tier,
       _RewardParcelType,
       _RewardParcelUniqueId,
-      _RewardParcelUniqueName,
       _RewardParcelAmount);
   }
 }
@@ -246,7 +227,6 @@ public class RaidRankingRewardExcelT
   public int Tier { get; set; }
   public List<Schale.FlatData.ParcelType> RewardParcelType { get; set; }
   public List<long> RewardParcelUniqueId { get; set; }
-  public List<string> RewardParcelUniqueName { get; set; }
   public List<long> RewardParcelAmount { get; set; }
 
   public RaidRankingRewardExcelT() {
@@ -267,7 +247,6 @@ public class RaidRankingRewardExcelT
     this.Tier = 0;
     this.RewardParcelType = null;
     this.RewardParcelUniqueId = null;
-    this.RewardParcelUniqueName = null;
     this.RewardParcelAmount = null;
   }
 }
@@ -295,8 +274,7 @@ static public class RaidRankingRewardExcelVerify
       && verifier.VerifyField(tablePos, 32 /*Tier*/, 4 /*int*/, 4, false)
       && verifier.VerifyVectorOfData(tablePos, 34 /*RewardParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
       && verifier.VerifyVectorOfData(tablePos, 36 /*RewardParcelUniqueId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 38 /*RewardParcelUniqueName*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 40 /*RewardParcelAmount*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 38 /*RewardParcelAmount*/, 8 /*long*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

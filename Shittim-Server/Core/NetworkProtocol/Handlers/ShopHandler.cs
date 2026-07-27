@@ -68,6 +68,11 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        // Official reports AlreadyPicked: true once the account has committed its beforehand
+        // pick; that state must survive the session, hence the history row.
+        var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        response.AlreadyPicked = history?.Picked ?? false;
+
         return response;
     }
 
@@ -80,6 +85,19 @@ public class ShopHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var gachaResults = new List<long> { 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000 };
+
+        // Remember the roll so Save/Pick/Get agree across sessions. (No official capture covers
+        // Run/Save/Pick payloads; only Get's AlreadyPicked is verified.)
+        var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (history == null)
+        {
+            history = new BeforehandGachaHistoryDBServer { AccountServerId = account.ServerId };
+            db.BeforehandGachaHistories.Add(history);
+        }
+        history.ShopUniqueId = request.ShopUniqueId;
+        history.GoodsId = request.GoodsId;
+        history.SavedResults = gachaResults;
+        await db.SaveChangesAsync();
 
         response.SelectGachaSnapshot = new BeforehandGachaSnapshotDB
         {
@@ -116,6 +134,22 @@ public class ShopHandler : ProtocolHandlerBase
         ShopBeforehandGachaPickResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // The pick is the committing step: from here on Shop_BeforehandGachaGet must report
+        // AlreadyPicked (official sends true on an account that picked long ago).
+        var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (history == null)
+        {
+            history = new BeforehandGachaHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                ShopUniqueId = request.ShopUniqueId,
+                GoodsId = request.GoodsId
+            };
+            db.BeforehandGachaHistories.Add(history);
+        }
+        history.Picked = true;
+        await db.SaveChangesAsync();
 
         var gachaResults = new List<GachaResult>
         {
@@ -365,7 +399,7 @@ public class ShopHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var shopExcels = _excelService.GetTable<ShopExcelT>();
-        response.ShopInfos = await _shopManager.GetShopList(account, shopExcels, request.CategoryList);
+        response.ShopInfos = await _shopManager.GetShopList(db, account, shopExcels, request.CategoryList);
         response.ShopEligmaHistoryDBs = [];
 
         return response;
@@ -379,11 +413,18 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        ValidatePurchaseCount(request.PurchaseCount);
+
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
-        if (shopExcel == null) return response;
+        if (shopExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
 
         var goodsExcel = _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == request.GoodsId);
-        if (goodsExcel == null) return response;
+        if (goodsExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsId} not found");
+
+        var purchaseHistory = await ShopManager.EnsurePurchasable(
+            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
 
         var consumeParcelTypes = goodsExcel.ConsumeParcelType ?? [];
         var consumeParcelIds = goodsExcel.ConsumeParcelId ?? [];
@@ -432,20 +473,37 @@ public class ShopHandler : ProtocolHandlerBase
             response.AccountCurrencyDB = accountCurrency.ToMap(_mapper);
         }
 
+        purchaseHistory.PurchaseCount += request.PurchaseCount;
+
         response.ShopProductDB = new ShopProductDB
         {
             ShopExcelId = request.ShopUniqueId,
             Category = shopExcel.CategoryType,
             DisplayOrder = shopExcel.DisplayOrder,
-            PurchaseCount = 0,
-            SoldOut = false,
-            PurchaseCountLimit = shopExcel.PurchaseCountLimit,
-            Price = consumeParcelAmounts.FirstOrDefault()
+            PurchaseCount = purchaseHistory.PurchaseCount,
+            SoldOut = shopExcel.PurchaseCountLimit > 0
+                && purchaseHistory.PurchaseCount >= shopExcel.PurchaseCountLimit,
+            PurchaseCountLimit = shopExcel.PurchaseCountLimit
+            // No Price — official omits it (see ShopManager.GetShopList).
         };
 
         await db.SaveChangesAsync();
 
         return response;
+    }
+
+    // PurchaseCount arrives from the client and multiplies both the consume and the reward. A
+    // non-positive count inverts the consume into a grant (a -30-gem cost is credited, not
+    // debited), and a huge one overflows the int64 multiply back into negative territory, so the
+    // bound has to be two-sided. The ceiling is far above any real shop's PurchaseCountLimit;
+    // per-shop limits are enforced separately in ShopManager.EnsurePurchasable.
+    internal const long MaxPurchaseCountPerRequest = 10_000;
+
+    internal static void ValidatePurchaseCount(long purchaseCount)
+    {
+        if (purchaseCount is <= 0 or > MaxPurchaseCountPerRequest)
+            throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
+                $"Invalid purchase count {purchaseCount}");
     }
 
     [ProtocolHandler(Protocol.Shop_BuyRefreshMerchandise)]
@@ -580,12 +638,18 @@ public class ShopHandler : ProtocolHandlerBase
         ShopBuyAPResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
-        
+
+        ValidatePurchaseCount(request.PurchaseCount);
+
+        // Failures are Error packets, never empty successes — official rejects with a bare
+        // {Protocol:-1, ErrorCode, ServerTimeTicks} envelope (captured on the AP-cap rejection).
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
-        if (shopExcel == null || shopExcel.GoodsId == null || shopExcel.GoodsId.Count == 0) return response;
+        if (shopExcel == null || shopExcel.GoodsId == null || shopExcel.GoodsId.Count == 0)
+            throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
 
         var goodsExcel = _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == shopExcel.GoodsId[0]);
-        if (goodsExcel == null) return response;
+        if (goodsExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods for shop {request.ShopUniqueId} not found");
 
         var costParcelType = goodsExcel.ConsumeParcelType != null && goodsExcel.ConsumeParcelType.Count > 0 
             ? goodsExcel.ConsumeParcelType[0] 
@@ -599,47 +663,104 @@ public class ShopHandler : ProtocolHandlerBase
 
         var costCurrency = costParcelType == ParcelType.Currency ? (CurrencyTypes)costParcelId : CurrencyTypes.Gem;
         
-        var rewardParcelType = goodsExcel.ParcelType != null && goodsExcel.ParcelType.Count > 0 
-            ? goodsExcel.ParcelType[0] 
+        var rewardParcelType = goodsExcel.ParcelType != null && goodsExcel.ParcelType.Count > 0
+            ? goodsExcel.ParcelType[0]
             : ParcelType.Currency;
-        var rewardParcelId = goodsExcel.ParcelId != null && goodsExcel.ParcelId.Count > 0 
-            ? goodsExcel.ParcelId[0] 
+        var rewardParcelId = goodsExcel.ParcelId != null && goodsExcel.ParcelId.Count > 0
+            ? goodsExcel.ParcelId[0]
             : (long)CurrencyTypes.ActionPoint;
-        var rewardAmount = (goodsExcel.ParcelAmount != null && goodsExcel.ParcelAmount.Count > 0 
-            ? goodsExcel.ParcelAmount[0] 
-            : 0) * request.PurchaseCount;
+        var rewardPerCount = goodsExcel.ParcelAmount != null && goodsExcel.ParcelAmount.Count > 0
+            ? goodsExcel.ParcelAmount[0]
+            : 0;
 
-        var rewardCurrency = rewardParcelType == ParcelType.Currency ? (CurrencyTypes)rewardParcelId : CurrencyTypes.ActionPoint;
+        // Shop_BuyAP grants ActionPoint by definition — the goods rows for shop 21 all carry
+        // Currency/5/120 now that the GoodsExcel model has its recovered 22-slot layout; the
+        // captured official buy matches (x3: +360 AP, -90 gems). The 120 fallback only covers a
+        // future data change that stops naming ActionPoint plausibly.
+        const CurrencyTypes rewardCurrency = CurrencyTypes.ActionPoint;
+        var rewardAmount = (rewardParcelType == ParcelType.Currency
+            && rewardParcelId == (long)CurrencyTypes.ActionPoint
+            && rewardPerCount is > 0 and <= 999
+                ? rewardPerCount
+                : 120) * request.PurchaseCount;
         
+        // The AP shop is capped at 20 purchases per game day (PurchaseCountLimit in the excel,
+        // confirmed on the wire); tracked per reset window so the counter rolls over at 04:00.
+        var purchaseHistory = await ShopManager.EnsurePurchasable(
+            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+
         var accountCurrency = db.GetAccountCurrencies(account.ServerId).FirstOrDefault();
-        if (accountCurrency == null) return response;
-        
+        if (accountCurrency == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward, "Account has no currency row");
+
         if (accountCurrency.CurrencyDict[costCurrency] < costAmount)
         {
-            return response;
+            // Official's error code for an unaffordable purchase is unobserved; this is the
+            // closest shop code. The envelope shape is what matters and matches.
+            throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
+                $"Not enough {costCurrency} ({accountCurrency.CurrencyDict[costCurrency]} < {costAmount})");
+        }
+
+        // AP is capped at 999. Official refuses a purchase that would overflow the cap with
+        // error 10006: the captured session bought at 170 AP (+360 -> 530, allowed) and was
+        // rejected at 970 AP (+120 would pass 999).
+        const long ActionPointCap = 999;
+        if (rewardCurrency == CurrencyTypes.ActionPoint
+            && accountCurrency.CurrencyDict[CurrencyTypes.ActionPoint] + rewardAmount > ActionPointCap)
+        {
+            throw new WebAPIException(WebAPIErrorCode.ShopCannotPurchaseActionPointLimitOver,
+                $"AP {accountCurrency.CurrencyDict[CurrencyTypes.ActionPoint]} + {rewardAmount} would exceed {ActionPointCap}");
         }
 
         accountCurrency.CurrencyDict[costCurrency] -= costAmount;
-        accountCurrency.UpdateTimeDict[costCurrency] = DateTime.Now;
+        accountCurrency.UpdateTimeDict[costCurrency] = account.GameSettings.ServerDateTime();
         
         accountCurrency.CurrencyDict[rewardCurrency] += rewardAmount;
-        accountCurrency.UpdateTimeDict[rewardCurrency] = DateTime.Now;
+        accountCurrency.UpdateTimeDict[rewardCurrency] = account.GameSettings.ServerDateTime();
+
+        purchaseHistory.PurchaseCount += request.PurchaseCount;
 
         await db.SaveChangesAsync();
 
-        response.AccountCurrencyDB = accountCurrency.ToMap(_mapper);
+        var currencyDb = accountCurrency.ToMap(_mapper);
+        // Official's DisplaySequence parcel: {Key: {Type: 2, Id: 5}, Amount: <AP granted>, 1x, 1x}.
+        var apParcel = new ParcelInfo
+        {
+            Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = (long)CurrencyTypes.ActionPoint },
+            Amount = rewardAmount,
+            Multiplier = Schale.MX.Core.Math.BasisPoint.One,
+            Probability = Schale.MX.Core.Math.BasisPoint.One
+        };
+
+        response.AccountCurrencyDB = currencyDb;
         response.ConsumeResultDB = new ConsumeResultDB();
-        response.ParcelResultDB = new ParcelResultDB();
+        // Official's successful purchase carries the granted parcel in ParcelResultDB
+        // (AccountCurrencyDB + DisplaySequence + ParcelForMission), not an empty object.
+        response.ParcelResultDB = new ParcelResultDB
+        {
+            AccountCurrencyDB = currencyDb,
+            DisplaySequence = [apParcel],
+            ParcelForMission = [apParcel]
+        };
+        // Official's product carries ProductType and the purchase count — and no Price key. The
+        // count is the running total for the reset window: the captured official Shop_List omitted
+        // it (0) immediately before a 3-unit buy whose response reported 3, so cumulative and
+        // per-request coincide in that sample; cumulative is the reading that can enforce the
+        // limit of 20, so that is what is tracked and reported.
         response.ShopProductDB = new ShopProductDB
         {
             ShopExcelId = request.ShopUniqueId,
             Category = shopExcel.CategoryType,
             DisplayOrder = shopExcel.DisplayOrder,
-            PurchaseCount = 0,
-            SoldOut = false,
+            PurchaseCount = purchaseHistory.PurchaseCount,
             PurchaseCountLimit = shopExcel.PurchaseCountLimit,
-            Price = costAmount / request.PurchaseCount
+            ProductType = ShopProductType.General
         };
+
+        var buyApMissions = _missionService.UpdateMissionProgress(
+            db, account, MissionCompleteConditionType.Reset_ShopBuyActionPointCount, request.PurchaseCount);
+        if (buyApMissions.Count > 0)
+            response.MissionProgressDBs = buyApMissions;
 
         return response;
     }

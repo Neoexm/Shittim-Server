@@ -37,14 +37,17 @@ public class MailManager
             Type = MailType.System,
             Sender = sender,
             Comment = comment,
-            SendDate = DateTime.Now,
-            ExpireDate = expireDate ?? DateTime.Now.AddDays(7),
+            SendDate = account.GameSettings.ServerDateTime(),
+            ExpireDate = expireDate ?? account.GameSettings.ServerDateTime().AddDays(7),
             ParcelInfos = parcelInfos,
             RemainParcelInfos = new List<ParcelInfo>()
         };
 
         context.Mails.Add(mail);
         await context.SaveChangesAsync();
+
+        // Mid-session delivery: the account's next Mail_Check reports NewMailArrived once.
+        MailNotificationService.MarkNewMail(account.ServerId);
 
         Log.Information($"System mail sent to account {account.ServerId} from {sender}");
     }
@@ -100,7 +103,7 @@ public class MailManager
             var targetMail = context.Mails.FirstOrDefault(y => y.ServerId == mailId);
             if (targetMail == null) continue;
 
-            targetMail.ReceiptDate = DateTime.Now;
+            targetMail.ReceiptDate = account.GameSettings.ServerDateTime();
             
             parcelResults.AddRange(ParcelResult.ConvertParcelResult(targetMail.ParcelInfos));
         }
@@ -108,7 +111,8 @@ public class MailManager
         var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelResults, parcelResultDb);
         await context.SaveChangesAsync();
 
-        parcelResultDb.AccountDB = account.ToMap(_mapper);
+        // AccountDB is left to the resolver, which adds it only when the claim changed the account
+        // row — official's mail claims carry AccountCurrencyDB but no AccountDB.
         parcelResultDb.AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, _mapper);
         
         return parcelResultDb;

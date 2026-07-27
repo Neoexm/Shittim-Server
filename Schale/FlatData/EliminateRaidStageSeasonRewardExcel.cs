@@ -37,33 +37,29 @@ public struct EliminateRaidStageSeasonRewardExcel : IFlatbufferObject
   public ArraySegment<byte>? GetSeasonRewardParcelUniqueIdBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
   public long[] GetSeasonRewardParcelUniqueIdArray() { return __p.__vector_as_array<long>(8); }
-  public string SeasonRewardParcelUniqueName(int j) { int o = __p.__offset(10); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int SeasonRewardParcelUniqueNameLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public long SeasonRewardAmount(int j) { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int SeasonRewardAmountLength { get { int o = __p.__offset(12); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long SeasonRewardAmount(int j) { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int SeasonRewardAmountLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetSeasonRewardAmountBytes() { return __p.__vector_as_span<long>(12, 8); }
+  public Span<long> GetSeasonRewardAmountBytes() { return __p.__vector_as_span<long>(10, 8); }
 #else
-  public ArraySegment<byte>? GetSeasonRewardAmountBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetSeasonRewardAmountBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public long[] GetSeasonRewardAmountArray() { return __p.__vector_as_array<long>(12); }
+  public long[] GetSeasonRewardAmountArray() { return __p.__vector_as_array<long>(10); }
 
   public static Offset<Schale.FlatData.EliminateRaidStageSeasonRewardExcel> CreateEliminateRaidStageSeasonRewardExcel(FlatBufferBuilder builder,
       long SeasonRewardId = 0,
       VectorOffset SeasonRewardParcelTypeOffset = default(VectorOffset),
       VectorOffset SeasonRewardParcelUniqueIdOffset = default(VectorOffset),
-      VectorOffset SeasonRewardParcelUniqueNameOffset = default(VectorOffset),
       VectorOffset SeasonRewardAmountOffset = default(VectorOffset)) {
-    builder.StartTable(5);
+    builder.StartTable(4);
     EliminateRaidStageSeasonRewardExcel.AddSeasonRewardId(builder, SeasonRewardId);
     EliminateRaidStageSeasonRewardExcel.AddSeasonRewardAmount(builder, SeasonRewardAmountOffset);
-    EliminateRaidStageSeasonRewardExcel.AddSeasonRewardParcelUniqueName(builder, SeasonRewardParcelUniqueNameOffset);
     EliminateRaidStageSeasonRewardExcel.AddSeasonRewardParcelUniqueId(builder, SeasonRewardParcelUniqueIdOffset);
     EliminateRaidStageSeasonRewardExcel.AddSeasonRewardParcelType(builder, SeasonRewardParcelTypeOffset);
     return EliminateRaidStageSeasonRewardExcel.EndEliminateRaidStageSeasonRewardExcel(builder);
   }
 
-  public static void StartEliminateRaidStageSeasonRewardExcel(FlatBufferBuilder builder) { builder.StartTable(5); }
+  public static void StartEliminateRaidStageSeasonRewardExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddSeasonRewardId(FlatBufferBuilder builder, long seasonRewardId) { builder.AddLong(0, seasonRewardId, 0); }
   public static void AddSeasonRewardParcelType(FlatBufferBuilder builder, VectorOffset seasonRewardParcelTypeOffset) { builder.AddOffset(1, seasonRewardParcelTypeOffset.Value, 0); }
   public static VectorOffset CreateSeasonRewardParcelTypeVector(FlatBufferBuilder builder, Schale.FlatData.ParcelType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
@@ -77,13 +73,7 @@ public struct EliminateRaidStageSeasonRewardExcel : IFlatbufferObject
   public static VectorOffset CreateSeasonRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateSeasonRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartSeasonRewardParcelUniqueIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddSeasonRewardParcelUniqueName(FlatBufferBuilder builder, VectorOffset seasonRewardParcelUniqueNameOffset) { builder.AddOffset(3, seasonRewardParcelUniqueNameOffset.Value, 0); }
-  public static VectorOffset CreateSeasonRewardParcelUniqueNameVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
-  public static VectorOffset CreateSeasonRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateSeasonRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateSeasonRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
-  public static void StartSeasonRewardParcelUniqueNameVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddSeasonRewardAmount(FlatBufferBuilder builder, VectorOffset seasonRewardAmountOffset) { builder.AddOffset(4, seasonRewardAmountOffset.Value, 0); }
+  public static void AddSeasonRewardAmount(FlatBufferBuilder builder, VectorOffset seasonRewardAmountOffset) { builder.AddOffset(3, seasonRewardAmountOffset.Value, 0); }
   public static VectorOffset CreateSeasonRewardAmountVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateSeasonRewardAmountVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateSeasonRewardAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
@@ -105,8 +95,6 @@ public struct EliminateRaidStageSeasonRewardExcel : IFlatbufferObject
     for (var _j = 0; _j < this.SeasonRewardParcelTypeLength; ++_j) {_o.SeasonRewardParcelType.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonRewardParcelType(_j), key) : this.SeasonRewardParcelType(_j));}
     _o.SeasonRewardParcelUniqueId = new List<long>();
     for (var _j = 0; _j < this.SeasonRewardParcelUniqueIdLength; ++_j) {_o.SeasonRewardParcelUniqueId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonRewardParcelUniqueId(_j), key) : this.SeasonRewardParcelUniqueId(_j));}
-    _o.SeasonRewardParcelUniqueName = new List<string>();
-    for (var _j = 0; _j < this.SeasonRewardParcelUniqueNameLength; ++_j) {_o.SeasonRewardParcelUniqueName.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonRewardParcelUniqueName(_j), key) : this.SeasonRewardParcelUniqueName(_j));}
     _o.SeasonRewardAmount = new List<long>();
     for (var _j = 0; _j < this.SeasonRewardAmountLength; ++_j) {_o.SeasonRewardAmount.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonRewardAmount(_j), key) : this.SeasonRewardAmount(_j));}
   }
@@ -122,12 +110,6 @@ public struct EliminateRaidStageSeasonRewardExcel : IFlatbufferObject
       var __SeasonRewardParcelUniqueId = _o.SeasonRewardParcelUniqueId.ToArray();
       _SeasonRewardParcelUniqueId = CreateSeasonRewardParcelUniqueIdVector(builder, __SeasonRewardParcelUniqueId);
     }
-    var _SeasonRewardParcelUniqueName = default(VectorOffset);
-    if (_o.SeasonRewardParcelUniqueName != null) {
-      var __SeasonRewardParcelUniqueName = new StringOffset[_o.SeasonRewardParcelUniqueName.Count];
-      for (var _j = 0; _j < __SeasonRewardParcelUniqueName.Length; ++_j) { __SeasonRewardParcelUniqueName[_j] = builder.CreateString(_o.SeasonRewardParcelUniqueName[_j]); }
-      _SeasonRewardParcelUniqueName = CreateSeasonRewardParcelUniqueNameVector(builder, __SeasonRewardParcelUniqueName);
-    }
     var _SeasonRewardAmount = default(VectorOffset);
     if (_o.SeasonRewardAmount != null) {
       var __SeasonRewardAmount = _o.SeasonRewardAmount.ToArray();
@@ -138,7 +120,6 @@ public struct EliminateRaidStageSeasonRewardExcel : IFlatbufferObject
       _o.SeasonRewardId,
       _SeasonRewardParcelType,
       _SeasonRewardParcelUniqueId,
-      _SeasonRewardParcelUniqueName,
       _SeasonRewardAmount);
   }
 }
@@ -148,14 +129,12 @@ public class EliminateRaidStageSeasonRewardExcelT
   public long SeasonRewardId { get; set; }
   public List<Schale.FlatData.ParcelType> SeasonRewardParcelType { get; set; }
   public List<long> SeasonRewardParcelUniqueId { get; set; }
-  public List<string> SeasonRewardParcelUniqueName { get; set; }
   public List<long> SeasonRewardAmount { get; set; }
 
   public EliminateRaidStageSeasonRewardExcelT() {
     this.SeasonRewardId = 0;
     this.SeasonRewardParcelType = null;
     this.SeasonRewardParcelUniqueId = null;
-    this.SeasonRewardParcelUniqueName = null;
     this.SeasonRewardAmount = null;
   }
 }
@@ -169,8 +148,7 @@ static public class EliminateRaidStageSeasonRewardExcelVerify
       && verifier.VerifyField(tablePos, 4 /*SeasonRewardId*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 6 /*SeasonRewardParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
       && verifier.VerifyVectorOfData(tablePos, 8 /*SeasonRewardParcelUniqueId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 10 /*SeasonRewardParcelUniqueName*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 12 /*SeasonRewardAmount*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 10 /*SeasonRewardAmount*/, 8 /*long*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

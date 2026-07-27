@@ -19,6 +19,9 @@ namespace Schale.MX.Data
         public string? TitleImagePath { get; set; }
         public AttendanceCountRule CountRule { get; set; }
         public AttendanceResetType CountReset { get; set; }
+        // Official emits this on every book (1 on the basic book, 3 on the Event20Days book); the
+        // generated AttendanceExcel model has no such column, so it is inferred from Type.
+        public long TargetGroup { get; set; }
         public long BookSize { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime StartableEndDate { get; set; }

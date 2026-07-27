@@ -88,7 +88,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
                 CharacterDBId = request.CharacterDBId,
                 CharacterId = character.UniqueId,
                 LatestMessageGroupId = request.LastReadMessageGroupId,
-                LastUpdateDate = DateTime.Now
+                LastUpdateDate = account.GameSettings.ServerDateTime()
             };
             db.MomoTalkOutLines.Add(momotalkOutline);
             // Save immediately or let the bottom SaveChanges call handle it?
@@ -161,7 +161,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
         if (nextGroupId > 0)
         {
             momotalkOutline.LatestMessageGroupId = nextGroupId;
-            momotalkOutline.LastUpdateDate = DateTime.Now;
+            momotalkOutline.LastUpdateDate = account.GameSettings.ServerDateTime();
             // Keep current outline choice null to prevent duplicate message bubbles.
             // Choice history is already represented by MomoTalkChoiceDBs.
             momotalkOutline.ChosenMessageId = null;
@@ -253,7 +253,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
         }
 
         targetOutline.ScheduleIds.Add(request.ScheduleId);
-        targetOutline.LastUpdateDate = DateTime.Now;
+        targetOutline.LastUpdateDate = account.GameSettings.ServerDateTime();
 
         if (parcelResults.Count > 0)
         {

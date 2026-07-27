@@ -69,13 +69,14 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
   public int RaidRoomLifeTime { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public long BattleDuration { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long GroundId { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string GroundDevName { get { int o = __p.__offset(40); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetGroundDevNameBytes() { return __p.__vector_as_span<byte>(40, 1); }
-#else
-  public ArraySegment<byte>? GetGroundDevNameBytes() { return __p.__vector_as_arraysegment(40); }
-#endif
-  public byte[] GetGroundDevNameArray() { return __p.__vector_as_array<byte>(40); }
+  // The shipped ExcelDB stores a 4-byte integer in this slot, not the string the dev schema
+  // declared here: every row populates it with a dense small index (1..13 over the 157 RaidStage
+  // rows, 1..11 over the 504 EliminateRaidStage rows) and no row leaves it at default. Read as a
+  // string the value is a uoffset of 1..13, which points back inside the table's own inline block,
+  // so UnPack threw and ExcelTableService skipped every row -- the table loaded empty and raid
+  // battle submission dereferenced a null stage. The official name needs the client's
+  // global-metadata, so the slot is named for its index rather than inventing semantics.
+  public int UnknownSlot18 { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public string EnterTimeLine { get { int o = __p.__offset(42); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
   public Span<byte> GetEnterTimeLineBytes() { return __p.__vector_as_span<byte>(42, 1); }
@@ -149,7 +150,7 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
       int RaidRoomLifeTime = 0,
       long BattleDuration = 0,
       long GroundId = 0,
-      StringOffset GroundDevNameOffset = default(StringOffset),
+      int UnknownSlot18 = 0,
       StringOffset EnterTimeLineOffset = default(StringOffset),
       Schale.FlatData.TacticEnvironment TacticEnvironment = Schale.FlatData.TacticEnvironment.None,
       long DefaultClearScore = 0,
@@ -196,7 +197,7 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
     EliminateRaidStageExcel.AddBattleReadyTimelinePath(builder, BattleReadyTimelinePathOffset);
     EliminateRaidStageExcel.AddTacticEnvironment(builder, TacticEnvironment);
     EliminateRaidStageExcel.AddEnterTimeLine(builder, EnterTimeLineOffset);
-    EliminateRaidStageExcel.AddGroundDevName(builder, GroundDevNameOffset);
+    EliminateRaidStageExcel.AddUnknownSlot18(builder, UnknownSlot18);
     EliminateRaidStageExcel.AddRaidRoomLifeTime(builder, RaidRoomLifeTime);
     EliminateRaidStageExcel.AddDifficulty(builder, Difficulty);
     EliminateRaidStageExcel.AddBossCharacterId(builder, BossCharacterIdOffset);
@@ -237,7 +238,7 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
   public static void AddRaidRoomLifeTime(FlatBufferBuilder builder, int raidRoomLifeTime) { builder.AddInt(15, raidRoomLifeTime, 0); }
   public static void AddBattleDuration(FlatBufferBuilder builder, long battleDuration) { builder.AddLong(16, battleDuration, 0); }
   public static void AddGroundId(FlatBufferBuilder builder, long groundId) { builder.AddLong(17, groundId, 0); }
-  public static void AddGroundDevName(FlatBufferBuilder builder, StringOffset groundDevNameOffset) { builder.AddOffset(18, groundDevNameOffset.Value, 0); }
+  public static void AddUnknownSlot18(FlatBufferBuilder builder, int unknownSlot18) { builder.AddInt(18, unknownSlot18, 0); }
   public static void AddEnterTimeLine(FlatBufferBuilder builder, StringOffset enterTimeLineOffset) { builder.AddOffset(19, enterTimeLineOffset.Value, 0); }
   public static void AddTacticEnvironment(FlatBufferBuilder builder, Schale.FlatData.TacticEnvironment tacticEnvironment) { builder.AddInt(20, (int)tacticEnvironment, 0); }
   public static void AddDefaultClearScore(FlatBufferBuilder builder, long defaultClearScore) { builder.AddLong(21, defaultClearScore, 0); }
@@ -303,7 +304,7 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
     _o.RaidRoomLifeTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidRoomLifeTime, key) : this.RaidRoomLifeTime;
     _o.BattleDuration = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BattleDuration, key) : this.BattleDuration;
     _o.GroundId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GroundId, key) : this.GroundId;
-    _o.GroundDevName = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GroundDevName, key) : this.GroundDevName;
+    _o.UnknownSlot18 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UnknownSlot18, key) : this.UnknownSlot18;
     _o.EnterTimeLine = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnterTimeLine, key) : this.EnterTimeLine;
     _o.TacticEnvironment = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TacticEnvironment, key) : this.TacticEnvironment;
     _o.DefaultClearScore = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DefaultClearScore, key) : this.DefaultClearScore;
@@ -339,7 +340,6 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
       var __BossCharacterId = _o.BossCharacterId.ToArray();
       _BossCharacterId = CreateBossCharacterIdVector(builder, __BossCharacterId);
     }
-    var _GroundDevName = _o.GroundDevName == null ? default(StringOffset) : builder.CreateString(_o.GroundDevName);
     var _EnterTimeLine = _o.EnterTimeLine == null ? default(StringOffset) : builder.CreateString(_o.EnterTimeLine);
     var _BattleReadyTimelinePath = default(VectorOffset);
     if (_o.BattleReadyTimelinePath != null) {
@@ -379,7 +379,7 @@ public struct EliminateRaidStageExcel : IFlatbufferObject
       _o.RaidRoomLifeTime,
       _o.BattleDuration,
       _o.GroundId,
-      _GroundDevName,
+      _o.UnknownSlot18,
       _EnterTimeLine,
       _o.TacticEnvironment,
       _o.DefaultClearScore,
@@ -423,7 +423,7 @@ public class EliminateRaidStageExcelT
   public int RaidRoomLifeTime { get; set; }
   public long BattleDuration { get; set; }
   public long GroundId { get; set; }
-  public string GroundDevName { get; set; }
+  public int UnknownSlot18 { get; set; }
   public string EnterTimeLine { get; set; }
   public Schale.FlatData.TacticEnvironment TacticEnvironment { get; set; }
   public long DefaultClearScore { get; set; }
@@ -464,7 +464,7 @@ public class EliminateRaidStageExcelT
     this.RaidRoomLifeTime = 0;
     this.BattleDuration = 0;
     this.GroundId = 0;
-    this.GroundDevName = null;
+    this.UnknownSlot18 = 0;
     this.EnterTimeLine = null;
     this.TacticEnvironment = Schale.FlatData.TacticEnvironment.None;
     this.DefaultClearScore = 0;
@@ -512,7 +512,7 @@ static public class EliminateRaidStageExcelVerify
       && verifier.VerifyField(tablePos, 34 /*RaidRoomLifeTime*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 36 /*BattleDuration*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 38 /*GroundId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 40 /*GroundDevName*/, false)
+      && verifier.VerifyField(tablePos, 40 /*UnknownSlot18*/, 4 /*int*/, 4, false)
       && verifier.VerifyString(tablePos, 42 /*EnterTimeLine*/, false)
       && verifier.VerifyField(tablePos, 44 /*TacticEnvironment*/, 4 /*Schale.FlatData.TacticEnvironment*/, 4, false)
       && verifier.VerifyField(tablePos, 46 /*DefaultClearScore*/, 8 /*long*/, 8, false)

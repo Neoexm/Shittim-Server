@@ -55,6 +55,9 @@ namespace Schale.Data
         public DbSet<StickerBookDBServer> StickerBooks { get; set; }
         public DbSet<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; set; }
         public DbSet<CraftInfoDBServer> CraftInfos { get; set; }
+        public DbSet<MissionHistoryDBServer> MissionHistories { get; set; }
+        public DbSet<BeforehandGachaHistoryDBServer> BeforehandGachaHistories { get; set; }
+        public DbSet<ShopPurchaseHistoryDBServer> ShopPurchaseHistories { get; set; }
 
         public DbSet<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; set; }
         public DbSet<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; set; }
@@ -259,6 +262,12 @@ namespace Schale.Data
             modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.Nodes).HasJsonConversion();
             modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ResultIds).HasJsonConversion();
             modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.RewardParcelInfos).HasJsonConversion();
+
+            modelBuilder.Entity<MissionHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<BeforehandGachaHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<ShopPurchaseHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<BeforehandGachaHistoryDBServer>().Property(x => x.SavedResults).HasJsonConversion();
         }
 
         private void ConfigureContentModels(ModelBuilder modelBuilder)

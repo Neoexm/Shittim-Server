@@ -44,13 +44,18 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         _logger.LogInformation("[SHITTIM] Creating campaign for stage {StageId}", request.StageUniqueId);
         var stageSave = await _concentrateCampaignManager.CreateConcentrateCampaign(db, account, request.StageUniqueId);
 
-        _logger.LogInformation("[SHITTIM] StageSave created - EntityId: {EntityId}, EnemyCount: {EnemyCount}, StrategyCount: {StrategyCount}",
+        _logger.LogDebug("[SHITTIM] StageSave created - EntityId: {EntityId}, EnemyCount: {EnemyCount}, StrategyCount: {StrategyCount}",
             stageSave.LastEnemyEntityId, stageSave.EnemyInfos?.Count ?? 0, stageSave.StrategyObjects?.Count ?? 0);
 
         response.SaveDataDB = stageSave.ToMap(_mapper);
 
-        var jsonResponse = JsonSerializer.Serialize(response.SaveDataDB, new JsonSerializerOptions { WriteIndented = true });
-        _logger.LogInformation("[SHITTIM] Response SaveDataDB JSON:\n{Json}", jsonResponse);
+        // Guarded: the indented serialization of a whole stage save is not worth paying for on
+        // every Campaign_EnterMainStage when nobody is reading Debug.
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("[SHITTIM] Response SaveDataDB JSON:\n{Json}",
+                JsonSerializer.Serialize(response.SaveDataDB, new JsonSerializerOptions { WriteIndented = true }));
+        }
 
         return response;
     }
@@ -112,9 +117,13 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         response.SaveDataDB = stageSave.ToMap(_mapper);
         response.StageInfo = await _concentrateCampaignManager.GetStageInfo(stageSave.StageUniqueId);
 
-        var stageInfoJson = JsonSerializer.Serialize(response.StageInfo, new JsonSerializerOptions { WriteIndented = true });
-        _logger.LogInformation("[SHITTIM] ConfirmMainStage - StageInfo:\n{Json}", stageInfoJson);
-        _logger.LogInformation("[SHITTIM] ConfirmMainStage - StrategySkipGroundId: {StrategySkipGroundId}", response.StageInfo?.StrategySkipGroundId ?? 0);
+        // Same as EnterMainStage: body dump only when Debug is actually on.
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("[SHITTIM] ConfirmMainStage - StageInfo:\n{Json}",
+                JsonSerializer.Serialize(response.StageInfo, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        _logger.LogDebug("[SHITTIM] ConfirmMainStage - StrategySkipGroundId: {StrategySkipGroundId}", response.StageInfo?.StrategySkipGroundId ?? 0);
 
         return response;
     }

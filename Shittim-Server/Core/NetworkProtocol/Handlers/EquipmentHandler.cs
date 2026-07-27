@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Managers;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -17,16 +18,19 @@ public class EquipmentHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly EquipmentManager _equipmentManager;
     private readonly IMapper _mapper;
+    private readonly MissionService _missionService;
 
     public EquipmentHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         EquipmentManager equipmentManager,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        MissionService missionService) : base(registry)
     {
         _sessionService = sessionService;
         _equipmentManager = equipmentManager;
         _mapper = mapper;
+        _missionService = missionService;
     }
 
     [ProtocolHandler(Protocol.Equipment_List)]
@@ -70,6 +74,14 @@ public class EquipmentHandler : ProtocolHandlerBase
 
         response.EquipmentDB = targetEquipment.ToMap(_mapper);
         response.ConsumeResultDB = consumeResult;
+        // Official's level-up always returns the updated currency (feeding costs gold) and ticks
+        // the equipment-growth missions.
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefault()?.ToMap(_mapper);
+
+        var updatedMissions = _missionService.UpdateMissionProgress(
+            db, account, MissionCompleteConditionType.Achieve_EquipmentLevelUpCount);
+        if (updatedMissions.Count > 0)
+            response.MissionProgressDBs = updatedMissions;
 
         return response;
     }
@@ -82,10 +94,16 @@ public class EquipmentHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (targetEquipment, parcelResult) = await _equipmentManager.EquipmentTierUp(db, account, request);
+        var (targetEquipment, parcelResult, consumeResult) = await _equipmentManager.EquipmentTierUp(db, account, request);
 
         response.EquipmentDB = targetEquipment.ToMap(_mapper);
         response.ParcelResultDB = parcelResult;
+        response.ConsumeResultDB = consumeResult;
+
+        var updatedMissions = _missionService.UpdateMissionProgress(
+            db, account, MissionCompleteConditionType.Achieve_EquipmentTierUpCount);
+        if (updatedMissions.Count > 0)
+            response.MissionProgressDBs = updatedMissions;
 
         return response;
     }

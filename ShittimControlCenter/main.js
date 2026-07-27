@@ -1114,7 +1114,7 @@ function createWindow() {
     minHeight: 600,
     show: false,
     frame: false,
-    backgroundColor: '#0e121c',
+    backgroundColor: '#0d1826',
     title: 'Shittim Control Center',
     icon: appIcon(),
     webPreferences: {

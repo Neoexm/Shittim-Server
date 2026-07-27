@@ -47,16 +47,14 @@ public struct ArenaRewardExcel : IFlatbufferObject
   public ArraySegment<byte>? GetRewardParcelUniqueIdBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
   public long[] GetRewardParcelUniqueIdArray() { return __p.__vector_as_array<long>(16); }
-  public string RewardParcelUniqueName(int j) { int o = __p.__offset(18); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int RewardParcelUniqueNameLength { get { int o = __p.__offset(18); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public long RewardParcelAmount(int j) { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int RewardParcelAmountLength { get { int o = __p.__offset(20); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long RewardParcelAmount(int j) { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int RewardParcelAmountLength { get { int o = __p.__offset(18); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetRewardParcelAmountBytes() { return __p.__vector_as_span<long>(20, 8); }
+  public Span<long> GetRewardParcelAmountBytes() { return __p.__vector_as_span<long>(18, 8); }
 #else
-  public ArraySegment<byte>? GetRewardParcelAmountBytes() { return __p.__vector_as_arraysegment(20); }
+  public ArraySegment<byte>? GetRewardParcelAmountBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public long[] GetRewardParcelAmountArray() { return __p.__vector_as_array<long>(20); }
+  public long[] GetRewardParcelAmountArray() { return __p.__vector_as_array<long>(18); }
 
   public static Offset<Schale.FlatData.ArenaRewardExcel> CreateArenaRewardExcel(FlatBufferBuilder builder,
       long UniqueId = 0,
@@ -66,14 +64,12 @@ public struct ArenaRewardExcel : IFlatbufferObject
       StringOffset RankIconPathOffset = default(StringOffset),
       VectorOffset RewardParcelTypeOffset = default(VectorOffset),
       VectorOffset RewardParcelUniqueIdOffset = default(VectorOffset),
-      VectorOffset RewardParcelUniqueNameOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
-    builder.StartTable(9);
+    builder.StartTable(8);
     ArenaRewardExcel.AddRankEnd(builder, RankEnd);
     ArenaRewardExcel.AddRankStart(builder, RankStart);
     ArenaRewardExcel.AddUniqueId(builder, UniqueId);
     ArenaRewardExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
-    ArenaRewardExcel.AddRewardParcelUniqueName(builder, RewardParcelUniqueNameOffset);
     ArenaRewardExcel.AddRewardParcelUniqueId(builder, RewardParcelUniqueIdOffset);
     ArenaRewardExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     ArenaRewardExcel.AddRankIconPath(builder, RankIconPathOffset);
@@ -81,7 +77,7 @@ public struct ArenaRewardExcel : IFlatbufferObject
     return ArenaRewardExcel.EndArenaRewardExcel(builder);
   }
 
-  public static void StartArenaRewardExcel(FlatBufferBuilder builder) { builder.StartTable(9); }
+  public static void StartArenaRewardExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
   public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
   public static void AddArenaRewardType(FlatBufferBuilder builder, Schale.FlatData.ArenaRewardType arenaRewardType) { builder.AddInt(1, (int)arenaRewardType, 0); }
   public static void AddRankStart(FlatBufferBuilder builder, long rankStart) { builder.AddLong(2, rankStart, 0); }
@@ -99,13 +95,7 @@ public struct ArenaRewardExcel : IFlatbufferObject
   public static VectorOffset CreateRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelUniqueIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartRewardParcelUniqueIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddRewardParcelUniqueName(FlatBufferBuilder builder, VectorOffset rewardParcelUniqueNameOffset) { builder.AddOffset(7, rewardParcelUniqueNameOffset.Value, 0); }
-  public static VectorOffset CreateRewardParcelUniqueNameVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
-  public static VectorOffset CreateRewardParcelUniqueNameVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
-  public static void StartRewardParcelUniqueNameVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddRewardParcelAmount(FlatBufferBuilder builder, VectorOffset rewardParcelAmountOffset) { builder.AddOffset(8, rewardParcelAmountOffset.Value, 0); }
+  public static void AddRewardParcelAmount(FlatBufferBuilder builder, VectorOffset rewardParcelAmountOffset) { builder.AddOffset(7, rewardParcelAmountOffset.Value, 0); }
   public static VectorOffset CreateRewardParcelAmountVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelAmountVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
@@ -131,8 +121,6 @@ public struct ArenaRewardExcel : IFlatbufferObject
     for (var _j = 0; _j < this.RewardParcelTypeLength; ++_j) {_o.RewardParcelType.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelType(_j), key) : this.RewardParcelType(_j));}
     _o.RewardParcelUniqueId = new List<long>();
     for (var _j = 0; _j < this.RewardParcelUniqueIdLength; ++_j) {_o.RewardParcelUniqueId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelUniqueId(_j), key) : this.RewardParcelUniqueId(_j));}
-    _o.RewardParcelUniqueName = new List<string>();
-    for (var _j = 0; _j < this.RewardParcelUniqueNameLength; ++_j) {_o.RewardParcelUniqueName.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelUniqueName(_j), key) : this.RewardParcelUniqueName(_j));}
     _o.RewardParcelAmount = new List<long>();
     for (var _j = 0; _j < this.RewardParcelAmountLength; ++_j) {_o.RewardParcelAmount.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardParcelAmount(_j), key) : this.RewardParcelAmount(_j));}
   }
@@ -149,12 +137,6 @@ public struct ArenaRewardExcel : IFlatbufferObject
       var __RewardParcelUniqueId = _o.RewardParcelUniqueId.ToArray();
       _RewardParcelUniqueId = CreateRewardParcelUniqueIdVector(builder, __RewardParcelUniqueId);
     }
-    var _RewardParcelUniqueName = default(VectorOffset);
-    if (_o.RewardParcelUniqueName != null) {
-      var __RewardParcelUniqueName = new StringOffset[_o.RewardParcelUniqueName.Count];
-      for (var _j = 0; _j < __RewardParcelUniqueName.Length; ++_j) { __RewardParcelUniqueName[_j] = builder.CreateString(_o.RewardParcelUniqueName[_j]); }
-      _RewardParcelUniqueName = CreateRewardParcelUniqueNameVector(builder, __RewardParcelUniqueName);
-    }
     var _RewardParcelAmount = default(VectorOffset);
     if (_o.RewardParcelAmount != null) {
       var __RewardParcelAmount = _o.RewardParcelAmount.ToArray();
@@ -169,7 +151,6 @@ public struct ArenaRewardExcel : IFlatbufferObject
       _RankIconPath,
       _RewardParcelType,
       _RewardParcelUniqueId,
-      _RewardParcelUniqueName,
       _RewardParcelAmount);
   }
 }
@@ -183,7 +164,6 @@ public class ArenaRewardExcelT
   public string RankIconPath { get; set; }
   public List<Schale.FlatData.ParcelType> RewardParcelType { get; set; }
   public List<long> RewardParcelUniqueId { get; set; }
-  public List<string> RewardParcelUniqueName { get; set; }
   public List<long> RewardParcelAmount { get; set; }
 
   public ArenaRewardExcelT() {
@@ -194,7 +174,6 @@ public class ArenaRewardExcelT
     this.RankIconPath = null;
     this.RewardParcelType = null;
     this.RewardParcelUniqueId = null;
-    this.RewardParcelUniqueName = null;
     this.RewardParcelAmount = null;
   }
 }
@@ -212,8 +191,7 @@ static public class ArenaRewardExcelVerify
       && verifier.VerifyString(tablePos, 12 /*RankIconPath*/, false)
       && verifier.VerifyVectorOfData(tablePos, 14 /*RewardParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
       && verifier.VerifyVectorOfData(tablePos, 16 /*RewardParcelUniqueId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 18 /*RewardParcelUniqueName*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 20 /*RewardParcelAmount*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 18 /*RewardParcelAmount*/, 8 /*long*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

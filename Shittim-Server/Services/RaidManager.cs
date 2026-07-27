@@ -226,7 +226,7 @@ public class RaidManager
 
         RaidService.CalculateRaidCollection(raidBattle, summary.RaidSummary);
         RaidService.UpdateRaidBossStats(summary, characterStatExcels,
-            targetStage.GroundDevName, targetStage.Difficulty, targetStage.BossCharacterId,
+            RaidService.BossNameOf(targetStage.RaidBossGroup), targetStage.Difficulty, targetStage.BossCharacterId,
             raid, raidBattle, raidLobby);
         RaidService.UpdateCharacterParticipation(account, raidLobby, summary);
 

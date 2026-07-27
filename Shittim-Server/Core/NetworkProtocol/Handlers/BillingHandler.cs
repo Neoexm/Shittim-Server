@@ -4,6 +4,7 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
 using Schale.FlatData;
+using Serilog;
 using Shittim_Server.Core;
 using Shittim_Server.Services;
 
@@ -40,6 +41,9 @@ public class BillingHandler : ProtocolHandlerBase
         response.BlockedProductDBs = [];
         response.GachaTicketItemIdList = [];
         response.ProductMonthlyIdInMailList = [];
+        // Official's standalone response carries this (as [] when empty) and has no IsTeenage key
+        // — that's a request-side field.
+        response.DailyRecordIdInMailList = [];
         
         // Populate BattlePassProductList
         var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
@@ -52,20 +56,11 @@ public class BillingHandler : ProtocolHandlerBase
 
             foreach (var bp in battlePasses)
             {
-                // Aggressive Debugging for BattlePass Product
-                Console.WriteLine($"[BillingHandler] Debugging BattlePassId: {bp.BattlePassId}. Total Products: {productExcels.Count}");
+                Log.Debug("[BillingHandler] BattlePassId: {BattlePassId}. Total Products: {ProductCount}", bp.BattlePassId, productExcels.Count);
 
                 // Targeted search for ProductBattlePass
                 var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
-                Console.WriteLine($"[BillingHandler] Found {battlePassProducts.Count} products containing ProductBattlePass type.");
-                
-                foreach(var p in battlePassProducts)
-                {
-                     // Find the index of ProductBattlePass
-                     var idx = p.ParcelType.IndexOf(ParcelType.ProductBattlePass);
-                     var bpId = idx >= 0 && idx < p.ParcelId.Count ? p.ParcelId[idx] : -1;
-                     Console.WriteLine($"[BillingHandler] BP Product: Id={p.Id}, ProductId={p.ProductId}, BP_ID={bpId}");
-                }
+                Log.Debug("[BillingHandler] Found {MatchCount} products containing ProductBattlePass type.", battlePassProducts.Count);
 
                 ProductExcelT product = null;
                 
@@ -88,27 +83,27 @@ public class BillingHandler : ProtocolHandlerBase
                             BattlePassId = bp.BattlePassId,
                             PurchaseBattlePassGroupId = bp.PurchaseGroupId
                         });
-                        Console.WriteLine($"[BillingHandler] Successfully mapped BattlePassId {bp.BattlePassId} to ShopCashId {shopCash.Id} via ProductId {product.Id}");
+                        Log.Debug("[BillingHandler] Mapped BattlePassId {BattlePassId} to ShopCashId {ShopCashId} via ProductId {ProductId}",
+                            bp.BattlePassId, shopCash.Id, product.Id);
                     }
                     else
                     {
-                        Console.WriteLine($"[BillingHandler] ShopCash not found for ProductId: {product.Id} (BattlePassId: {bp.BattlePassId})");
+                        Log.Warning("[BillingHandler] ShopCash not found for ProductId: {ProductId} (BattlePassId: {BattlePassId})", product.Id, bp.BattlePassId);
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[BillingHandler] CRITICAL: No product found for BattlePassId: {bp.BattlePassId} among {battlePassProducts.Count} candidates.");
+                    Log.Warning("[BillingHandler] No product found for BattlePassId: {BattlePassId} among {CandidateCount} candidates.", bp.BattlePassId, battlePassProducts.Count);
                 }
             }
         }
         else
         {
-             Console.WriteLine($"[BillingHandler] No BattlePasses found for Account: {account.ServerId} with PurchaseGroupId != 0");
+            Log.Debug("[BillingHandler] No BattlePasses found for Account: {AccountServerId} with PurchaseGroupId != 0", account.ServerId);
         }
 
         response.BattlePassProductList = battlePassProductList;
         response.BattlePassIdInMailList = [];
-        response.IsTeenage = request.IsTeenage;
 
         return response;
     }
@@ -163,7 +158,7 @@ public class BillingHandler : ProtocolHandlerBase
             ShopCashId = request.ShopCashId,
             PurchaseCount = 1,
             ResetDate = DateTime.MinValue,
-            PurchaseDate = DateTime.Now,
+            PurchaseDate = account.GameSettings.ServerDateTime(),
             ManualResetDate = null
         };
 

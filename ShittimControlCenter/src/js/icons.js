@@ -54,10 +54,20 @@ const VB = {
   win_close: '0 0 10 10',
 };
 
+// Rendered-markup cache: icons are requested constantly on re-render (status
+// pills, table repaints, nav) with a small set of distinct (name, cls, stroke)
+// combos, so memoising the string skips the rebuild entirely.
+const CACHE = new Map();
+
 export function icon(name, cls = 'ico', stroke = 1.85) {
+  const key = `${name}|${cls}|${stroke}`;
+  const hit = CACHE.get(key);
+  if (hit) return hit;
   const inner = P[name] || P.info;
   const vb = VB[name] || '0 0 24 24';
-  return `<svg class="${cls}" viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  const svg = `<svg class="${cls}" viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  CACHE.set(key, svg);
+  return svg;
 }
 
 // The Schale halo emblem used as the app mark. Brand-constant colors (BA gold +

@@ -38,9 +38,17 @@ public class MailHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var mailCount = db.GetAccountMails(account.ServerId).Count();
+        // Unclaimed, unexpired only: official's CommonMailCount matches Mail_List's Count and both
+        // fall to 0 (key omitted) after Mail_Receive.
+        response.CommonMailCount = db
+            .GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime())
+            .Count();
 
-        response.Count = mailCount;
+        // Report-and-consume: official's first Mail_Check after an in-session delivery carries
+        // NewMailArrived on top of the gateway's mailbox baseline (12 = 8|4) and the second is
+        // back to 8 while the mail still sits unread.
+        if (MailNotificationService.Consume(account.ServerId))
+            response.ServerNotification |= ServerNotificationFlag.NewMailArrived;
 
         return response;
     }
@@ -53,11 +61,10 @@ public class MailHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var mails = db.GetAccountMails(account.ServerId).ToList();
+        var mails = db.GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime()).ToList();
 
         response.MailDBs = _mapper.Map<List<MailDB>>(mails);
         response.Count = mails.Count;
-        response.ServerNotification = ServerNotificationFlag.None;
         if (account.GameSettings.EnableMultiFloorRaid)
             response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
@@ -72,14 +79,19 @@ public class MailHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var mailsToReceive = db.GetAccountMails(account.ServerId)
+        var mailsToReceive = db.GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime())
             .Where(m => request.MailServerIds.Contains(m.ServerId))
             .ToList();
 
         var parcelResults = new List<ParcelResult>();
         foreach (var mail in mailsToReceive)
         {
-            if (mail.Type == MailType.System && mail.ParcelInfos != null)
+            // Every mail type delivers its attachments, not just MailType.System (0). Official
+            // granted the rewards on ClanAttendance (11) and ExpiryChangeItem (10) mail in the
+            // captures, and this server's own seeder writes NewUserBonus (13) — all of which the
+            // old `Type == System` gate dropped on the floor while still deleting the mail, so the
+            // attachments vanished and ParcelResultDB came back with nothing but AccountCurrencyDB.
+            if (mail.ParcelInfos != null)
             {
                 foreach (var parcel in mail.ParcelInfos)
                 {
@@ -95,7 +107,8 @@ public class MailHandler : ProtocolHandlerBase
 
         response.MailServerIds = request.MailServerIds;
         response.ParcelResultDB = parcelResolver.ParcelResult;
-        response.ServerNotification = ServerNotificationFlag.None;
+        // Official Mail_Receive always carries BattlePassInfoDBs (as [] when none).
+        response.BattlePassInfoDBs = [];
 
         return response;
     }
@@ -114,7 +127,6 @@ public class MailHandler : ProtocolHandlerBase
 
         response.MailDBs = new List<MailDB>();
         response.Count = 0;
-        response.ServerNotification = ServerNotificationFlag.None;
 
         return response;
     }
@@ -135,7 +147,8 @@ public class MailHandler : ProtocolHandlerBase
         var parcelResults = new List<ParcelResult>();
         if (mail != null)
         {
-            if (mail.Type == MailType.System && mail.ParcelInfos != null)
+            // Same as Receive: deliver the attachments whatever the mail type says.
+            if (mail.ParcelInfos != null)
             {
                 foreach (var parcel in mail.ParcelInfos)
                     parcelResults.Add(new ParcelResult(parcel.Key.Type, parcel.Key.Id, parcel.Amount));
@@ -148,7 +161,6 @@ public class MailHandler : ProtocolHandlerBase
 
         response.MailDBId = request.MailDBId;
         response.ParcelResultDB = parcelResolver.ParcelResult;
-        response.ServerNotification = ServerNotificationFlag.None;
 
         return response;
     }

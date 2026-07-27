@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using Serilog;
+using Serilog.Events;
 
 namespace BlueArchiveAPI.Core.Crypto
 {
@@ -55,7 +57,13 @@ namespace BlueArchiveAPI.Core.Crypto
 
             if (zeroIv) iv = new byte[16];
 
-            Console.WriteLine($"[SWEEP] mode={mode} pad={pad} keyHex={Convert.ToHexString(key)} ivHex={Convert.ToHexString(iv)} plainLen={plain.Length}");
+            // Fires on every encrypted response, so it is Debug and the hex conversion is skipped
+            // entirely when Debug is off (session key material never reaches the default log).
+            if (Log.IsEnabled(LogEventLevel.Debug))
+            {
+                Log.Debug("[SWEEP] mode={Mode} pad={Pad} keyHex={KeyHex} ivHex={IvHex} plainLen={PlainLen}",
+                    mode, pad, Convert.ToHexString(key), Convert.ToHexString(iv), plain.Length);
+            }
 
             var padMode = pad switch
             {

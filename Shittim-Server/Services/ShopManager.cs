@@ -1,5 +1,6 @@
 using AutoMapper;
 using BlueArchiveAPI.Services;
+using Microsoft.EntityFrameworkCore;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Excel;
@@ -264,9 +265,14 @@ public class ShopManager
         return (itemList, gachaList);
     }
 
-    public async Task<List<ShopInfoDB>> GetShopList(AccountDBServer account, List<ShopExcelT> shopExcel, List<ShopCategoryType> reqCategoryList)
+    public async Task<List<ShopInfoDB>> GetShopList(
+        SchaleDataContext context,
+        AccountDBServer account,
+        List<ShopExcelT> shopExcel,
+        List<ShopCategoryType> reqCategoryList)
     {
         var dateTime = account.GameSettings.ServerDateTime();
+        var purchases = context.GetAccountShopPurchases(account.ServerId).ToList();
 
         List<ShopInfoDB> CategoryList = [];
         foreach (ShopCategoryType shopCategoryType in reqCategoryList)
@@ -279,22 +285,24 @@ public class ShopManager
 
             foreach (var product in products)
             {
-                var goods = _goodsExcels.FirstOrDefault(x => product.GoodsId.Contains(x.Id));
-                long price = 0;
-                
-                if (goods != null)
-                {
-                    price = goods.ConsumeParcelAmount?.FirstOrDefault() ?? 0;
-                }
+                // Purchases made in an expired reset window don't count towards the current one.
+                var history = purchases.FirstOrDefault(x => x.ShopUniqueId == product.Id);
+                var purchased = history != null
+                    && history.PeriodStart == PeriodStart(product.PurchaseCountResetType, dateTime)
+                        ? history.PurchaseCount
+                        : 0;
 
                 ShopProductList.Add(new ShopProductDB
                 {
                     ShopExcelId = product.Id,
                     Category = product.CategoryType,
                     DisplayOrder = product.DisplayOrder,
+                    PurchaseCount = purchased,
+                    SoldOut = product.PurchaseCountLimit > 0 && purchased >= product.PurchaseCountLimit,
                     PurchaseCountLimit = product.PurchaseCountLimit,
-                    ProductType = ShopProductType.General,
-                    Price = price
+                    ProductType = ShopProductType.General
+                    // No Price: across 876 products in the official Shop_List captures the key
+                    // appears exactly once, and that one response came from our own local server.
                 });
             }
 
@@ -309,5 +317,71 @@ public class ShopManager
         }
 
         return CategoryList;
+    }
+
+    /// <summary>
+    /// Loads (or creates) the account's purchase counter for a shop, rolls it over if its reset
+    /// window has passed, and rejects the purchase when it would exceed the shop's
+    /// PurchaseCountLimit. Returns the tracked row so the caller can increment it after the
+    /// consume/reward succeeds. The row is added to the context but not saved — the caller's
+    /// SaveChangesAsync commits the counter together with the parcels it paid for.
+    /// </summary>
+    public static async Task<ShopPurchaseHistoryDBServer> EnsurePurchasable(
+        SchaleDataContext context,
+        AccountDBServer account,
+        long shopUniqueId,
+        ShopExcelT shopExcel,
+        long purchaseCount)
+    {
+        var periodStart = PeriodStart(shopExcel.PurchaseCountResetType, account.GameSettings.ServerDateTime());
+
+        var history = await context.ShopPurchaseHistories
+            .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.ShopUniqueId == shopUniqueId);
+
+        if (history == null)
+        {
+            history = new ShopPurchaseHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                ShopUniqueId = shopUniqueId,
+                PurchaseCount = 0,
+                PeriodStart = periodStart
+            };
+            context.ShopPurchaseHistories.Add(history);
+        }
+        else if (history.PeriodStart != periodStart)
+        {
+            history.PurchaseCount = 0;
+            history.PeriodStart = periodStart;
+        }
+
+        if (shopExcel.PurchaseCountLimit > 0
+            && history.PurchaseCount + purchaseCount > shopExcel.PurchaseCountLimit)
+        {
+            throw new WebAPIException(WebAPIErrorCode.ShopExceedPurchaseCountLimit,
+                $"Shop {shopUniqueId}: {history.PurchaseCount} + {purchaseCount} exceeds limit {shopExcel.PurchaseCountLimit}");
+        }
+
+        return history;
+    }
+
+    /// <summary>
+    /// Start of the reset window a purchase falls into. The game day rolls over at 04:00, so a
+    /// purchase at 02:00 belongs to the previous calendar day's window. Weeks start Monday.
+    /// </summary>
+    internal static DateTime PeriodStart(PurchaseCountResetType resetType, DateTime now)
+    {
+        if (resetType == PurchaseCountResetType.None)
+            return DateTime.MinValue;
+
+        var gameDay = (now.TimeOfDay < TimeSpan.FromHours(4) ? now.AddDays(-1) : now).Date;
+
+        return resetType switch
+        {
+            PurchaseCountResetType.Day => gameDay,
+            PurchaseCountResetType.Week => gameDay.AddDays(-(((int)gameDay.DayOfWeek + 6) % 7)),
+            PurchaseCountResetType.Month => new DateTime(gameDay.Year, gameDay.Month, 1),
+            _ => DateTime.MinValue
+        };
     }
 }

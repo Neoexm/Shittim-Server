@@ -1,6 +1,8 @@
 # Request logs containing sensitive data
 requests/
 request_logs/
+captures/
+CAPTURE_COMPARISON_STATUS.md
 /data/
 nexon.har
 nexon.flows
