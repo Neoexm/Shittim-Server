@@ -30,7 +30,8 @@
       {
         "provider": "github",
         "owner": "Neoexm",
-        "repo": "Shittim-Server"
+        "repo": "Shittim-Server",
+        "releaseType": "release"
       }
     ],
     "files": [
