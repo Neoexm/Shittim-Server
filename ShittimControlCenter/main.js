@@ -682,6 +682,33 @@ async function applyUpdate() {
   return { ok: res.ok, method: 'download', head: res.sha, error: res.error };
 }
 
+// ------------------------------------------- automatic server-update watching
+//
+// Check-and-notify only: runs once shortly after launch and every few hours
+// while the app stays open, toasting the renderer when the server source is
+// behind origin. Applying + rebuilding stays a user action on the Updates page —
+// the server may be live mid-session, and an apply can need files closed.
+
+const SERVER_UPDATE_CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
+let lastNotifiedServerSha = null;
+
+async function watchServerUpdates() {
+  try {
+    const r = await checkUpdates();
+    if (!r || !r.ok || !r.versionKnown) return;        // no project or offline — stay quiet
+    if (!(r.behind > 0)) return;                        // up to date; compareFailed (local dev builds) also lands here
+    if (r.remoteSha === lastNotifiedServerSha) return;  // already announced this tip this session
+    lastNotifiedServerSha = r.remoteSha;
+    broadcast('update:server', {
+      behind: r.behind,
+      remoteShort: r.remoteShort,
+      remoteSubject: r.remoteSubject,
+      remoteWhen: r.remoteWhen,
+    });
+    broadcast('proc:log', { source: 'server', line: `> server update available: ${r.behind} commit(s) behind — ${r.remoteShort} "${r.remoteSubject}" (apply it from the Updates page)` });
+  } catch { /* offline or rate-limited — the next cycle retries */ }
+}
+
 function rebuildServer() {
   const p = resolvePaths();
   if (!fs.existsSync(p.csproj)) return Promise.resolve({ ok: false, error: 'Server project not found' });
@@ -1363,6 +1390,10 @@ app.whenReady().then(() => {
   // portable/feedless builds get a manual-download notice. Dev runs skip this,
   // and offline errors stay quiet (manual checks still surface them).
   checkSelfUpdate().catch(() => { /* offline or no releases yet — stay quiet */ });
+  // Server-source update check: once after the renderer has had time to come up
+  // (so the toast lands), then periodically while the app stays open.
+  setTimeout(watchServerUpdates, 8000);
+  setInterval(watchServerUpdates, SERVER_UPDATE_CHECK_EVERY_MS);
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

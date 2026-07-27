@@ -323,6 +323,13 @@ async function boot() {
   });
   window.host.onProcLog((d) => pushLog(d));
 
+  // Passive "server update available" notice (checked at launch + every few
+  // hours by the main process). Applying stays manual on the Updates page.
+  window.host.onServerUpdate((d) => {
+    const n = d.behind === 1 ? '1 commit' : `${d.behind} commits`;
+    toast(`Server update available — ${n} behind (${d.remoteShort}: ${d.remoteSubject}). Open the Updates page to install.`, 'good', 'Server update');
+  });
+
   store.subscribe(() => applyRailStatus());
 
   const start = (location.hash || '').replace('#/', '') || 'dashboard';

@@ -52,6 +52,12 @@ contextBridge.exposeInMainWorld('host', {
     ipcRenderer.on('update:self', fn);
     return () => ipcRenderer.removeListener('update:self', fn);
   },
+  // periodic "server source is behind origin" notice from the main process
+  onServerUpdate: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on('update:server', fn);
+    return () => ipcRenderer.removeListener('update:server', fn);
+  },
 
   // dialogs + shell
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),
