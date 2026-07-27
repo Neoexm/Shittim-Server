@@ -1,7 +1,7 @@
 {
   "name": "shittim-control-center",
   "productName": "Shittim Control Center",
-  "version": "1.0.1",
+  "version": "2026.7.27",
   "description": "Blue Archive themed control center for the Shittim-Server: configure, launch, and administer the server, accounts, inventory, mail, events and gacha.",
   "main": "main.js",
   "author": "Shittim",
@@ -48,13 +48,13 @@
       "icon": "build/icon.ico"
     },
     "portable": {
-      "artifactName": "${productName}-${version}-portable.${ext}"
+      "artifactName": "ShittimControlCenter-v${version}-portable.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "ShittimControlCenter-v${version}-Setup.${ext}"
     }
   }
 }
