@@ -399,21 +399,76 @@ function downloadFile(url, destPath, onProgress, redirects = 6) {
 
 function psQuote(s) { return `'${String(s).replace(/'/g, "''")}'`; }
 
-// Extract a .zip into destDir. Uses PowerShell's Expand-Archive on Windows and
-// `unzip` elsewhere — no third-party dependency is bundled.
+// Extract a .zip into destDir — no third-party dependency is bundled. Windows
+// prefers the in-box tar.exe (bsdtar, present since Win10 1803): it handles
+// long paths and exits non-zero when ANY entry fails. The Expand-Archive
+// fallback runs under $ErrorActionPreference='Stop' for the same reason — by
+// default it reports per-file failures as non-terminating errors and still
+// exits 0, which hands the caller a silently PARTIAL tree.
 function extractZip(zipPath, destDir) {
-  return new Promise((resolve, reject) => {
-    fs.mkdirSync(destDir, { recursive: true });
-    if (process.platform === 'win32') {
-      const ps = `$ProgressPreference='SilentlyContinue'; Expand-Archive -LiteralPath ${psQuote(zipPath)} -DestinationPath ${psQuote(destDir)} -Force`;
-      execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps],
-        { windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
-        (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
-    } else {
-      execFile('unzip', ['-o', zipPath, '-d', destDir], { maxBuffer: 64 * 1024 * 1024 },
-        (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
-    }
+  const run = (cmd, args) => new Promise((resolve, reject) => {
+    execFile(cmd, args, { windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
+      (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
   });
+  fs.mkdirSync(destDir, { recursive: true });
+  if (process.platform !== 'win32') return run('unzip', ['-o', zipPath, '-d', destDir]);
+  const strictPs = `$ProgressPreference='SilentlyContinue'; $ErrorActionPreference='Stop'; ` +
+    `try { Expand-Archive -LiteralPath ${psQuote(zipPath)} -DestinationPath ${psQuote(destDir)} -Force } ` +
+    `catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }`;
+  const psFallback = () => run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', strictPs]);
+  const tar = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+  if (!fs.existsSync(tar)) return psFallback();
+  return run(tar, ['-xf', zipPath, '-C', destDir]).catch(psFallback);
+}
+
+// Files whose on-disk copy must survive an update merge: the gateway keypair is
+// what the user's patched client metadata expects, so silently replacing it
+// with the repo copy would strand the install until the next metadata re-patch.
+const MERGE_PRESERVE = [/^Shittim-Server[\\/]config[\\/].*\.pem$/i];
+
+function sleepMs(ms) {
+  try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); } catch { /* best effort */ }
+}
+
+// Merge the extracted archive over the install. fs.cpSync aborts at the first
+// error and leaves a half-updated tree behind, so walk it ourselves: transient
+// locks (AV sweeps, an open editor) get retried with the read-only bit cleared,
+// and remaining failures are collected so an incomplete update fails LOUDLY
+// instead of stamping the new version marker over a mixed tree.
+function mergeTree(srcRoot, destRoot) {
+  const failures = [];
+  let copied = 0;
+  const walk = (rel) => {
+    const src = rel ? path.join(srcRoot, rel) : srcRoot;
+    const dest = rel ? path.join(destRoot, rel) : destRoot;
+    let entries;
+    try { entries = fs.readdirSync(src, { withFileTypes: true }); }
+    catch (e) { failures.push({ path: rel || '.', error: String(e.code || e.message) }); return; }
+    try { fs.mkdirSync(dest, { recursive: true }); }
+    catch (e) { failures.push({ path: rel || '.', error: String(e.code || e.message) }); return; }
+    for (const ent of entries) {
+      const entRel = rel ? path.join(rel, ent.name) : ent.name;
+      if (ent.isDirectory()) { walk(entRel); continue; }
+      if (!ent.isFile()) continue; // release archives carry no symlinks
+      if (MERGE_PRESERVE.some((re) => re.test(entRel)) && fs.existsSync(path.join(destRoot, entRel))) continue;
+      const from = path.join(srcRoot, entRel);
+      const to = path.join(destRoot, entRel);
+      let lastErr = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          if (attempt > 0) {
+            try { fs.chmodSync(to, 0o666); } catch { /* may not exist yet */ }
+            sleepMs(150 * attempt);
+          }
+          fs.copyFileSync(from, to);
+          lastErr = null; copied++; break;
+        } catch (e) { lastErr = e; }
+      }
+      if (lastErr) failures.push({ path: entRel, error: String(lastErr.code || lastErr.message) });
+    }
+  };
+  walk('');
+  return { copied, failures };
 }
 
 function readVersionMarker(repoRoot) {
@@ -489,9 +544,24 @@ async function downloadProject({ targetDir, branch } = {}) {
       .find((q) => { try { return fs.statSync(q).isDirectory(); } catch { return false; } });
     if (!top) throw new Error('downloaded archive was empty');
 
+    // Refuse to merge anything that doesn't look like a complete checkout —
+    // nothing in the install has been touched up to this point.
+    for (const probe of ['Shittim-Server/Shittim-Server.csproj', 'Schale/Schale.csproj']) {
+      if (!fs.existsSync(path.join(top, probe))) {
+        throw new Error(`downloaded archive is incomplete (missing ${probe}) — nothing was changed`);
+      }
+    }
+
     send('install', { message: 'Installing files…' });
     fs.mkdirSync(targetDir, { recursive: true });
-    fs.cpSync(top, targetDir, { recursive: true, force: true });
+    const merged = mergeTree(top, targetDir);
+    if (merged.failures.length) {
+      const shown = merged.failures.slice(0, 5).map((f) => `${f.path} (${f.error})`).join(', ');
+      const more = merged.failures.length > 5 ? ` and ${merged.failures.length - 5} more` : '';
+      throw new Error(`PARTIAL UPDATE — ${merged.failures.length} file(s) could not be replaced: ${shown}${more}. ` +
+        'Close the server and anything else using the folder, then run the update again. ' +
+        'Do not rebuild until an update completes cleanly.');
+    }
     writeVersionMarker(targetDir, {
       sha, shortSha: sha.slice(0, 7), branch, subject,
       date: date || null, source: 'download', updatedAt: new Date().toISOString(),
@@ -1001,14 +1071,78 @@ async function exportLogs() {
 // replaced by a newer packaged build — the source pull on the Updates page only
 // updates the .NET server's source. electron-updater pulls new Control Center
 // builds from this repo's GitHub Releases (configured by the `publish` block in
-// package.json), prompts before downloading, and installs on quit. It needs a
-// published Release whose version is higher than this app's package.json version,
-// carrying the latest.yml + installer assets that `npm run publish` uploads (set a
-// GH_TOKEN env var first). Older already-distributed builds have no update feed
-// embedded, so self-update begins working from the first published build onward.
+// package.json), prompts before downloading, and installs on quit. Releases must
+// carry the latest.yml + blockmap + installer assets that `npm run publish`
+// uploads (set a GH_TOKEN env var first).
+//
+// Two wrinkles this section absorbs:
+//  - This repo's releases mix SERVER builds and Control Center builds, and
+//    electron-updater's GitHub provider only ever inspects the newest release —
+//    a server release on top would 404 the feed. resolveSelfUpdateFeed() finds
+//    the newest release that actually carries latest.yml and points the generic
+//    provider at it; the embedded feed stays as a fallback.
+//  - Portable builds (and pre-2026.7.27 installs, which shipped without an
+//    embedded feed) cannot be swapped in place: they get a version check plus a
+//    link to the release page instead.
 
 let cachedAutoUpdater = null;
 let updaterWired = false;
+
+const SELF_RELEASES_PAGE = `https://github.com/${GH.owner}/${GH.repo}/releases`;
+
+// Newest non-draft release that carries updater metadata. Returns
+// { url, tag, htmlUrl } or null when none is published yet.
+async function resolveSelfUpdateFeed() {
+  const releases = await githubApi('/releases?per_page=20');
+  for (const r of releases) {
+    if (r.draft) continue;
+    if ((r.assets || []).some((a) => a.name === 'latest.yml')) {
+      return {
+        url: `https://github.com/${GH.owner}/${GH.repo}/releases/download/${encodeURIComponent(r.tag_name)}/`,
+        tag: r.tag_name,
+        htmlUrl: r.html_url || SELF_RELEASES_PAGE,
+      };
+    }
+  }
+  return null;
+}
+
+// Can electron-updater service this build in place? Only the NSIS install can:
+// portable exes have no install to patch, and builds packaged without a publish
+// config carry no app-update.yml.
+function hasInPlaceUpdater() {
+  if (!app.isPackaged) return false;
+  if (process.env.PORTABLE_EXECUTABLE_DIR || process.env.PORTABLE_EXECUTABLE_FILE) return false;
+  try { return fs.existsSync(path.join(process.resourcesPath, 'app-update.yml')); } catch { return false; }
+}
+
+// Manual-download flow for builds electron-updater can't patch: read the feed's
+// latest.yml, compare versions, and offer the release page.
+async function checkManualSelfUpdate() {
+  const feed = await resolveSelfUpdateFeed();
+  if (!feed) return { ok: true, portable: true, current: app.getVersion(), version: null, available: false };
+  const res = await httpGet(feed.url + 'latest.yml');
+  if (res.statusCode !== 200) throw new Error(`update feed responded HTTP ${res.statusCode}`);
+  const m = res.body.toString('utf8').match(/^version:\s*(\S+)/m);
+  const latest = m ? m[1] : null;
+  if (!latest || cmpVer(latest, app.getVersion()) <= 0) {
+    return { ok: true, portable: true, current: app.getVersion(), version: latest, available: false };
+  }
+  broadcast('update:self', { phase: 'available', version: latest, portable: true });
+  const win = BrowserWindow.getAllWindows()[0] || null;
+  const { response } = await dialog.showMessageBox(win, {
+    type: 'info',
+    buttons: ['Open download page', 'Later'],
+    defaultId: 0,
+    cancelId: 1,
+    title: 'Control Center update available',
+    message: `Shittim Control Center ${latest} is available.`,
+    detail: `You are running ${app.getVersion()} as a build that cannot update itself in place. ` +
+      'Grab the new installer or portable exe from the releases page.',
+  });
+  if (response === 0) shell.openExternal(feed.htmlUrl);
+  return { ok: true, portable: true, current: app.getVersion(), version: latest, available: true };
+}
 
 // Compare dotted numeric versions: 1 if a>b, -1 if a<b, 0 if equal.
 function cmpVer(a, b) {
@@ -1075,7 +1209,13 @@ function setupAutoUpdate(win) {
       if (response === 0) setImmediate(() => autoUpdater.quitAndInstall());
     });
 
-    autoUpdater.on('error', (err) => broadcast('proc:log', { source: 'server', line: `> auto-update error: ${(err && err.message) || err}` }));
+    autoUpdater.on('error', (err) => {
+      let line = `> auto-update error: ${(err && err.message) || err}`;
+      if (/404/.test(line) && /latest\.yml|update.*metadata|feed/i.test(line)) {
+        line += ' (the newest GitHub release carries no updater metadata — publish with `npm run publish` so latest.yml is attached)';
+      }
+      broadcast('proc:log', { source: 'server', line });
+    });
   }
 
   return autoUpdater;
@@ -1083,11 +1223,20 @@ function setupAutoUpdate(win) {
 
 // Manual "check now": triggers a check (the update-available handler still drives
 // the prompt) and reports the result so the renderer can toast up-to-date / dev.
+// Portable/feedless builds go through the manual-download flow instead.
 async function checkSelfUpdate() {
   if (!app.isPackaged) return { ok: true, dev: true, current: app.getVersion() };
+  if (!hasInPlaceUpdater()) {
+    try { return await checkManualSelfUpdate(); }
+    catch (e) { return { ok: false, error: String(e.message || e) }; }
+  }
   const autoUpdater = setupAutoUpdate(BrowserWindow.getAllWindows()[0] || null);
   if (!autoUpdater) return { ok: false, error: 'Updater is not available in this build.' };
   try {
+    // Aim electron-updater at the newest release that actually has a feed; the
+    // embedded app-update.yml remains the fallback if the API is unreachable.
+    const feed = await resolveSelfUpdateFeed().catch(() => null);
+    if (feed) autoUpdater.setFeedURL({ provider: 'generic', url: feed.url });
     const r = await autoUpdater.checkForUpdates();
     const version = r && r.updateInfo ? r.updateInfo.version : null;
     return { ok: true, current: app.getVersion(), version, available: version ? cmpVer(version, app.getVersion()) > 0 : false };
@@ -1208,11 +1357,12 @@ ipcMain.on('window:control', (e, action) => {
 // ------------------------------------------------------------------- bootstrap
 
 app.whenReady().then(() => {
-  const win = createWindow();
-  // On launch, check GitHub Releases for a newer packaged Control Center build and
-  // prompt to install (packaged builds only; a dev/source run skips this quietly).
-  const updater = setupAutoUpdate(win);
-  if (updater) updater.checkForUpdates().catch(() => { /* offline or no releases yet — stay quiet */ });
+  createWindow();
+  // On launch, check GitHub Releases for a newer packaged Control Center build
+  // and prompt to install. Installed builds go through electron-updater;
+  // portable/feedless builds get a manual-download notice. Dev runs skip this,
+  // and offline errors stay quiet (manual checks still surface them).
+  checkSelfUpdate().catch(() => { /* offline or no releases yet — stay quiet */ });
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

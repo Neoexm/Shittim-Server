@@ -241,6 +241,11 @@ export default {
         const r = await window.host.updatesCheckSelf();
         if (r.dev) { toast('Running from source — pull the repo and restart to update the app.', 'warn', 'Dev build'); return; }
         if (!r.ok) { toast(r.error || 'Update check failed.', 'bad', 'App update'); return; }
+        if (r.portable) {
+          if (r.available) toast(`Control Center ${r.version} is available — this build can't update in place, use the download page from the prompt.`, 'good', 'Update available');
+          else toast(`Control Center is up to date (v${r.current}).`, 'good', 'App update');
+          return;
+        }
         if (r.available) toast(`Control Center ${r.version} is available — follow the prompt to install.`, 'good', 'Update available');
         else toast(`Control Center is up to date (v${r.current}).`, 'good', 'App update');
       } catch (e) {
