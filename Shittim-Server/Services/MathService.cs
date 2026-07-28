@@ -4,6 +4,9 @@ namespace Shittim.Services;
 
 public static class MathService
 {
+    /// <summary>One whole unit on the basis-point scale the excels denominate ratios in.</summary>
+    private const long BasisPointScale = 10000L;
+
     public static (int, long) CalculateLevelExp(int currentLevel, long currentExp, long addedExp, List<ExpLevelData> expLevelDatas)
     {
         int maxLevel = expLevelDatas.Max(d => d.Level);
@@ -54,10 +57,13 @@ public static class MathService
 
         long bonusExpTotal = 0;
 
-        if (level <= currentLevelData.CloseInterval && currentLevelData.NewbieExpRatio > 0)
+        // NewbieExpRatio is the *total* payout in basis points, not the bonus on top of it: 15000 is
+        // "150% of the base exp altogether", so the bonus is the 50% above par. Treating the whole
+        // ratio as bonus paid 150% extra — official's clear of a 10-AP stage reports Base 10 with
+        // Additional 5, and this line was reporting 15.
+        if (level <= currentLevelData.CloseInterval && currentLevelData.NewbieExpRatio > BasisPointScale)
         {
-            double ratio = currentLevelData.NewbieExpRatio / 10000.0;
-            bonusExpTotal = (long)(addedExp * ratio);
+            bonusExpTotal = addedExp * (currentLevelData.NewbieExpRatio - BasisPointScale) / BasisPointScale;
         }
 
         long addedBonusExp = addedExp + bonusExpTotal;

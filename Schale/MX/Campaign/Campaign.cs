@@ -48,21 +48,35 @@ namespace Schale.MX.Campaign
         public bool StartTile { get; set; }
     }
 
+    // The client deserializes this into a UnityEngine.Vector3 through Newtonsoft's
+    // VectorConverter, whose PopulateVector3 reads x/y/z with Extensions.Value<float>() and
+    // throws ArgumentNullException on any missing component. The gateway's global
+    // DefaultValueHandling.Ignore would otherwise drop zero components — official sends
+    // {"x":0.0,"y":240.0,"z":0.0} — so every component is forced onto the wire here.
     public class SimpleVector3
     {
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public float x { get; set; }
+
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public float y { get; set; }
+
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public float z { get; set; }
     }
 
+    // Hex cube coordinates (x + y + z = 0), same lattice as HexLocation. Despite the name, z is a
+    // real, load-bearing component: the strategymap dumps carry it and official serializes it on
+    // the wire (omitting only zero-valued components, like every other default). This class used
+    // to type x/y as float and [JsonIgnore] z on both serializers, which silently dropped z when
+    // reading the dump AND on the wire — every enemy/strategy object landed off-lattice
+    // (x+y+z != 0) and the client could not build the strategy map, so "Mission Start" on any
+    // campaign main stage did nothing.
     public class HexLocation2D
     {
-        public float x { get; set; }
-        public float y { get; set; }
-        
-        [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
-        public float z { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
+        public int z { get; set; }
     }
     
     public class HexaUnit

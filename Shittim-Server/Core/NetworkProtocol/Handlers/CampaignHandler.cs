@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Managers;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -16,16 +17,19 @@ public class CampaignHandler : ProtocolHandlerBase
 {
     private readonly ISessionKeyService _sessionService;
     private readonly CampaignManager _campaignManager;
+    private readonly ConcentrateCampaignManager _concentrateCampaignManager;
     private readonly IMapper _mapper;
 
     public CampaignHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         CampaignManager campaignManager,
+        ConcentrateCampaignManager concentrateCampaignManager,
         IMapper mapper) : base(registry)
     {
         _sessionService = sessionService;
         _campaignManager = campaignManager;
+        _concentrateCampaignManager = concentrateCampaignManager;
         _mapper = mapper;
     }
 
@@ -206,6 +210,10 @@ public class CampaignHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var parcelResultDb = await _campaignManager.CampaignRetreat(db, account, request.StageUniqueId);
+
+        // Retreating ends the run. Leaving the save open would have ContentSave_Get keep offering it
+        // back — the client treats anything it gets from there as a mission still in progress.
+        await _concentrateCampaignManager.CloseConcentrateCampaigns(db, account, request.StageUniqueId);
 
         response.ParcelResultDB = parcelResultDb;
 

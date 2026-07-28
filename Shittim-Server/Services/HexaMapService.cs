@@ -1,7 +1,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Schale.FlatData;
 using Schale.MX.Campaign;
 using Schale.MX.Campaign.HexaTileMapEvent;
+using Schale.MX.Campaign.HexaTileMapEvent.HexaTileMapCommand;
+using Schale.MX.Campaign.HexaTileMapEvent.HexaTileMapCondition;
 using System.Reflection;
 
 namespace Shittim_Server.Services;
@@ -76,32 +79,37 @@ public class HexaMapService
 
         foreach (var hexaUnit in hexaUnitData)
         {
+            // Copy the dump verbatim. Official's enemy entries carry exactly EntityId/Id/Location/
+            // Rotate on the wire — the dump's zero stats and null HP/dying collections round-trip
+            // as-is (zeros and nulls drop in serialization; deployed PLAYER echelons are the ones
+            // that get live stats, in DeployConcentratedEchelon). An earlier comment here blamed
+            // null/zero enemies for a "Now Loading" hang, but official's working capture sends
+            // exactly that shape; the real hang cause was the HexLocation2D z-coordinate drop.
             var unitInfo = new HexaUnit
             {
                 EntityId = hexaUnit.EntityId,
-                // Enemies need non-null HP/dying collections and non-zero tactical stats, the same
-                // way deployed player echelons do (see DeployConcentratedEchelon). Leaving HpInfos
-                // null / Mobility=ActionCountMax=StrategySightRange=0 left the client unable to build
-                // the enemy tactical entities, so the tactical-map scene hung on "Now Loading".
-                HpInfos = new Dictionary<long, long>(),
-                DyingInfos = new Dictionary<long, long>(),
-                ActionCount = 1,
-                ActionCountMax = 1,
-                Mobility = 1,
-                StrategySightRange = 1,
+                HpInfos = hexaUnit.HpInfos,
+                DyingInfos = hexaUnit.DyingInfos,
+                BuffInfos = hexaUnit.BuffInfos,
+                ActionCount = hexaUnit.ActionCount,
+                ActionCountMax = hexaUnit.ActionCountMax,
+                Mobility = hexaUnit.Mobility,
+                StrategySightRange = hexaUnit.StrategySightRange,
+                MovementOrder = hexaUnit.MovementOrder,
                 Id = hexaUnit.Id,
                 IsPlayer = hexaUnit.IsPlayer,
-                Rotate = new SimpleVector3
+                Rotate = hexaUnit.Rotate == null ? null : new SimpleVector3
                 {
-                    x = hexaUnit.Rotate?.x ?? 0f,
-                    y = hexaUnit.Rotate?.y ?? 0f,
-                    z = hexaUnit.Rotate?.z ?? 0f
+                    x = hexaUnit.Rotate.x,
+                    y = hexaUnit.Rotate.y,
+                    z = hexaUnit.Rotate.z
                 }
             };
 
             if (hexaUnit.Location != null && (
-                hexaUnit.Location.x != 0 || 
-                hexaUnit.Location.y != 0))
+                hexaUnit.Location.x != 0 ||
+                hexaUnit.Location.y != 0 ||
+                hexaUnit.Location.z != 0))
             {
                 unitInfo.Location = hexaUnit.Location;
             }
@@ -203,6 +211,79 @@ public class HexaMapService
             EntityId = entityId,
             Location = destLocation
         };
+    }
+
+    /// <summary>
+    /// The map's stage-clear event, if its conditions are now satisfied.
+    ///
+    /// Clearing a campaign stage is data-driven, not "the map is empty": every one of the 321 dumped
+    /// strategy maps carries exactly one HexaCommandEndBattle gated by exactly one
+    /// HexaConditionUnitDead naming ONE designated boss, and on none of them is that boss the whole
+    /// enemy roster. On strategymap_1011104 the boss is 10013 while 10017 and 10018 are still
+    /// standing when official ends the mission; on the reported failure, stage 1111102, it is 10044
+    /// out of 10040-10044. Requiring an empty map made the player mop up units official never asks
+    /// for, and on the maps where a TileHide deletes an enemy for you it could never be satisfied.
+    ///
+    /// Membership is tested against the surviving enemies rather than against "the unit we just
+    /// killed" so this keeps working once TileHide and UnitDie start removing units too — the same
+    /// reason it takes the map and the state rather than reaching for either.
+    ///
+    /// The returned objects belong to the process-wide map cache: read them, never mutate them.
+    /// </summary>
+    public static (HexaEvent Event, List<long> ConditionIds, HexaCommandEndBattle Command)? FindSatisfiedEndBattle(
+        HexaTileMap map,
+        IReadOnlyDictionary<long, HexaUnit>? survivingEnemies,
+        IReadOnlyDictionary<long, List<long>>? alreadyActivated)
+    {
+        if (map.Events == null)
+            return null;
+
+        foreach (var hexaEvent in map.Events)
+        {
+            var endBattle = hexaEvent.HexaCommands?.OfType<HexaCommandEndBattle>().FirstOrDefault();
+            if (endBattle == null)
+                continue;
+
+            // A replayed or duplicated Campaign_TacticResult must not fire the clear twice.
+            if (alreadyActivated?.ContainsKey(hexaEvent.EventId) == true)
+                continue;
+
+            // No conditions means nothing to satisfy, not "satisfied by default" — this is the guard
+            // that stops an eventless or malformed map from clearing itself for free.
+            var conditions = hexaEvent.HexaConditions;
+            if (conditions == null || conditions.Count == 0)
+                continue;
+
+            // Every dump uses And. Or would need each condition's own trigger history to evaluate
+            // correctly, so rather than guess it, leave the event unfired and let the caller's
+            // fallback end the run.
+            if (hexaEvent.MultipleConditionCheckType != MultipleConditionCheckType.And)
+                continue;
+
+            // Conservative on purpose: a condition type we do not evaluate (ArriveTile, EveryTurn,
+            // ...) is treated as unsatisfied rather than skipped, so a partially-understood event
+            // can never fire early.
+            if (!conditions.All(c => IsUnitDeadConditionSatisfied(c, survivingEnemies)))
+                continue;
+
+            return (hexaEvent, conditions.Select(c => c.ConditionId).ToList(), endBattle);
+        }
+
+        return null;
+    }
+
+    private static bool IsUnitDeadConditionSatisfied(
+        HexaCondition condition,
+        IReadOnlyDictionary<long, HexaUnit>? survivingEnemies)
+    {
+        if (condition is not HexaConditionUnitDead unitDead)
+            return false;
+
+        // An empty id list would otherwise be vacuously true and clear the stage on the first kill.
+        if (unitDead.UnitEntityIds == null || unitDead.UnitEntityIds.Count == 0)
+            return false;
+
+        return unitDead.UnitEntityIds.All(id => survivingEnemies?.ContainsKey(id) != true);
     }
 }
 

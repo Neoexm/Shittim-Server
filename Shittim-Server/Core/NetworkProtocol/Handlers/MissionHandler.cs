@@ -47,7 +47,8 @@ public class MissionHandler : ProtocolHandlerBase
 
         var missionProgresses = db.GetAccountMissionProgresses(account.ServerId).ToList();
 
-        response.MissionProgressDBs = _mapper.Map<List<MissionProgressDB>>(missionProgresses);
+        response.MissionProgressDBs = _mapper.Map<List<MissionProgressDB>>(
+            FilterToMissionScreenIds(missionProgresses));
 
         return response;
     }
@@ -60,32 +61,100 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var campaignHistories = db.GetAccountCampaignStageHistories(account.ServerId)
-            .Select(h => h.StoryUniqueId)
+        // Official's MissionHistoryUniqueIds carries claimed-mission ids only — never campaign
+        // stage data. In the 2026-07-28 capture pair the account-wide list is every claim once,
+        // plus a second copy of exactly the claims whose id is NOT in MissionExcel (its 78
+        // guide-mission claims, ids 1000200-1000375 in GuideMissionExcel's range), and the
+        // event-scoped list is exactly that non-MissionExcel subset. An id the client cannot
+        // resolve against an excel (this handler used to leak a literal 0 from
+        // CampaignStageHistory.StoryUniqueId, which is 0 on every row we write) kills the
+        // mission screen — the client renders it from this login-cached response without any
+        // further request, so nothing loads and no error reaches the wire.
+        var claims = db.GetAccountMissionHistories(account.ServerId)
+            .Select(x => x.MissionUniqueId)
+            .Distinct()
             .ToList();
 
-        // Official's account-wide MissionHistoryUniqueIds includes every claimed mission — an id
-        // claimed via Mission_Reward shows up in the next account-wide call (verified in the
-        // detailed capture: 873 ids including the freshly claimed 1513). The event-scoped calls
-        // return a fixed subset whose rule is still unknown, so they keep the campaign-only list.
-        var claimHistories = request.EventContentId == null
-            ? db.GetAccountMissionHistories(account.ServerId).Select(x => x.MissionUniqueId).ToList()
-            : [];
+        var missionExcelIds = _excelService.GetTable<MissionExcelT>().Select(x => x.Id).ToHashSet();
+        var guideOrEventIds = _excelService.GetTable<GuideMissionExcelT>().Select(x => x.Id)
+            .Concat(_excelService.GetTable<EventContentMissionExcelT>().Select(x => x.Id))
+            .ToHashSet();
 
-        var missions = db.GetAccountMissionProgresses(account.ServerId);
+        response.MissionHistoryUniqueIds = BuildMissionHistoryIds(
+            claims, missionExcelIds, guideOrEventIds, eventScoped: request.EventContentId != null);
 
-        var missionProgresses = request.EventContentId == null
-            ? missions.ToList()
-            : missions.Where(x => x.MissionUniqueId.ToString().StartsWith(request.EventContentId.ToString())).ToList();
+        if (request.EventContentId == null)
+        {
+            // Official's account-wide ProgressDBs holds mission + guide-mission rows only.
+            // Battle-pass rows (shared MissionProgresses storage, served by BattlePass_MissionList)
+            // and event rows never appear here.
+            var missionProgresses = db.GetAccountMissionProgresses(account.ServerId).ToList();
+            response.ProgressDBs = _mapper.Map<List<MissionProgressDB>>(
+                FilterToMissionScreenIds(missionProgresses));
+        }
+        else
+        {
+            // Official omits ProgressDBs entirely on event-scoped calls (nulls are dropped by the
+            // serializer); event-mission progress reaches the client through other protocols.
+            response.ProgressDBs = null;
+        }
 
-        response.MissionHistoryUniqueIds = campaignHistories.Concat(claimHistories).Distinct().ToList();
-        response.ProgressDBs = _mapper.Map<List<MissionProgressDB>>(missionProgresses);
         // Official Mission_List always carries today's sudden-mission definition (never {}).
         response.DailySuddenMissionInfo = BuildDailySuddenMissionInfo(account);
         response.ClearedOrignalMissionIds = BuildClearedOriginalMissionIds(db, account, request.EventContentId);
 
         return response;
     }
+
+    // Official's account-wide list is every resolvable claim once plus a second copy of the
+    // non-MissionExcel claims, and the event-scoped list is only that non-MissionExcel subset
+    // (verified against the 2026-07-28 capture: 953 = 875 distinct claims + the 78 guide claims
+    // repeated; the event call returns exactly those 78). Ids no excel can resolve are dropped
+    // outright instead of copying official's trust in its own data.
+    internal static List<long> BuildMissionHistoryIds(
+        IEnumerable<long> claims,
+        HashSet<long> missionExcelIds,
+        HashSet<long> guideOrEventIds,
+        bool eventScoped)
+    {
+        if (missionExcelIds.Count == 0 && guideOrEventIds.Count == 0)
+            return eventScoped ? [] : claims.ToList();
+
+        var resolvable = claims
+            .Where(id => missionExcelIds.Contains(id) || guideOrEventIds.Contains(id))
+            .ToList();
+        var outsideMissionExcel = resolvable.Where(id => !missionExcelIds.Contains(id)).ToList();
+
+        return eventScoped
+            ? outsideMissionExcel
+            : outsideMissionExcel.Concat(resolvable).ToList();
+    }
+
+    // The ids the client's mission screen can resolve: MissionExcel plus GuideMissionExcel.
+    // MissionProgresses also stores battle-pass rows (BattlePassMissionExcel ids 2000001+) and
+    // event-content rows (856xxx...), and an unresolvable id in a mission-screen payload breaks
+    // the screen. When both tables degrade to empty (dump/schema failure) the filter passes
+    // everything through rather than blanking the screen.
+    internal static List<MissionProgressDBServer> FilterMissionScreenProgresses(
+        List<MissionProgressDBServer> progresses, ExcelTableService excelService)
+    {
+        var validIds = excelService.GetTable<MissionExcelT>().Select(x => x.Id)
+            .Concat(excelService.GetTable<GuideMissionExcelT>().Select(x => x.Id))
+            .ToHashSet();
+
+        return FilterMissionScreenProgresses(progresses, validIds);
+    }
+
+    internal static List<MissionProgressDBServer> FilterMissionScreenProgresses(
+        List<MissionProgressDBServer> progresses, HashSet<long> validIds)
+    {
+        return validIds.Count == 0
+            ? progresses
+            : progresses.Where(p => validIds.Contains(p.MissionUniqueId)).ToList();
+    }
+
+    private List<MissionProgressDBServer> FilterToMissionScreenIds(List<MissionProgressDBServer> progresses)
+        => FilterMissionScreenProgresses(progresses, _excelService);
 
     // Official sends ClearedOrignalMissionIds only when the queried event is a rerun (a "return"
     // event), so the client can mark the missions the account already cleared during the original

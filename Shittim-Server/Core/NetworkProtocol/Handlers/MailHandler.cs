@@ -63,13 +63,46 @@ public class MailHandler : ProtocolHandlerBase
 
         var mails = db.GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime()).ToList();
 
-        response.MailDBs = _mapper.Map<List<MailDB>>(mails);
+        // Count is the whole unreceived mailbox, not the returned window: official's second page
+        // (PivotTime = last row's SendDate) returned 1 row but kept Count at 3.
+        response.MailDBs = _mapper.Map<List<MailDB>>(ApplyListWindow(mails, request.PivotTime, request.IsDescending));
         response.Count = mails.Count;
         if (account.GameSettings.EnableMultiFloorRaid)
             response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
         return response;
     }
+
+    // Official Mail_List is a SendDate-ordered window: newest first for IsDescending (the only
+    // direction the client has been seen to send), and PivotTime bounds the page inclusively —
+    // the follow-up call passes the last row's SendDate and official returns that row again
+    // (capture 2026-07-28: page 1 = 22:03:12/22:03:00/22:02:53, page 2 with pivot 22:02:53 =
+    // the 22:02:53 row). The first page's pivot is the 9999-12-31 sentinel, which bounds nothing.
+    internal static List<MailDBServer> ApplyListWindow(
+        List<MailDBServer> mails, DateTime pivotTime, bool isDescending)
+    {
+        // The first-page sentinel (9999-12-31, or an unset pivot) bounds nothing in either
+        // direction — only a real timestamp from a previous page's last row narrows the window.
+        var unbounded = pivotTime == default || pivotTime.Year >= 9999;
+
+        // The pivot is a SendDate the client echoes back from a previous page, and the wire
+        // truncates to whole seconds while rows are stored with sub-second precision — compare
+        // at second granularity or the pivot row excludes itself.
+        var pivot = TruncateToSecond(pivotTime);
+
+        var window = unbounded
+            ? mails
+            : mails.Where(m => isDescending
+                ? TruncateToSecond(m.SendDate) <= pivot
+                : TruncateToSecond(m.SendDate) >= pivot);
+
+        return isDescending
+            ? window.OrderByDescending(m => m.SendDate).ThenByDescending(m => m.ServerId).ToList()
+            : window.OrderBy(m => m.SendDate).ThenBy(m => m.ServerId).ToList();
+    }
+
+    private static DateTime TruncateToSecond(DateTime value) =>
+        value.AddTicks(-(value.Ticks % TimeSpan.TicksPerSecond));
 
     [ProtocolHandler(Protocol.Mail_Receive)]
     public async Task<MailReceiveResponse> Receive(

@@ -47,7 +47,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         _logger.LogDebug("[SHITTIM] StageSave created - EntityId: {EntityId}, EnemyCount: {EnemyCount}, StrategyCount: {StrategyCount}",
             stageSave.LastEnemyEntityId, stageSave.EnemyInfos?.Count ?? 0, stageSave.StrategyObjects?.Count ?? 0);
 
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
 
         // Guarded: the indented serialization of a whole stage save is not worth paying for on
         // every Campaign_EnterMainStage when nobody is reading Debug.
@@ -70,7 +70,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 
         var stageSave = await _concentrateCampaignManager.DeployEchelon(db, account, request);
 
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
 
         return response;
     }
@@ -114,7 +114,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
             AdditionalAccountExp = 0,
             NewbieBoostAccountExp = 0
         };
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
         response.StageInfo = await _concentrateCampaignManager.GetStageInfo(stageSave.StageUniqueId);
 
         // Same as EnterMainStage: body dump only when Debug is actually on.
@@ -136,9 +136,16 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var stageSave = await _concentrateCampaignManager.MoveTarget(db, account, request);
+        var (stageSave, preMove) = await _concentrateCampaignManager.MoveTarget(db, account, request);
 
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        // Official echoes the mover back on every MapMove reply.
+        response.EchelonEntityId = request.EchelonEntityId;
+
+        // Rewind before shaping: the response reports the mover as it stood before this step, and the
+        // DisplayInfos entry is what walks it to the destination.
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(
+            ConcentrateCampaignManager.RewindMovedEchelonForWire(
+                stageSave.ToMap(_mapper), request.EchelonEntityId, preMove));
 
         return response;
     }
@@ -151,6 +158,10 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        // Official replies with nothing but the header here; the work is remembering which enemy
+        // was engaged so Campaign_TacticResult can clear it off the map.
+        await _concentrateCampaignManager.EnterTactic(db, account, request);
+
         return response;
     }
 
@@ -162,39 +173,39 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (stageSave, historyDb) = await _concentrateCampaignManager.TacticResult(db, account, request);
+        var (stageSave, historyDb, tacticRank, clearReward, endBattleType, parcelResult, missionProgresses) =
+            await _concentrateCampaignManager.TacticResult(db, account, request);
 
-        response.ParcelResultDB = new()
-        {
-            AccountDB = account.ToMap(_mapper),
-            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new(),
-            AcademyLocationDBs = new(),
-            CharacterDBs = new(),
-            CostumeDBs = new(),
-            DisplaySequence = new(),
-            EmblemDBs = new(),
-            EquipmentDBs = new(),
-            FurnitureDBs = new(),
-            GachaResultCharacters = new(),
-            ItemDBs = new(),
-            IdCardBackgroundDBs = new(),
-            MemoryLobbyDBs = new(),
-            ParcelForMission = new(),
-            ParcelResultStepInfoList = new(),
-            RemovedItemIds = new(),
-            RemovedEquipmentIds = new(),
-            RemovedFurnitureIds = new(),
-            StickerDBs = new(),
-            SecretStoneCharacterIdAndCounts = new(),
-            TSSCharacterDBs = new(),
-            WeaponDBs = new(),
-            CharacterNewUniqueIds = new(),
-            BaseAccountExp = 0,
-            AdditionalAccountExp = 0,
-            NewbieBoostAccountExp = 0
-        };
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        // The manager builds this now — a won tactic pays its characters exp whether or not it cleared
+        // the stage, so there is something to report on every response. This used to be a hand-rolled
+        // shell of two dozen empty collections; official never sends an empty collection inside a
+        // ParcelResultDB at all, and OmitWhenEmpty drops the ones the resolver did not touch.
+        response.ParcelResultDB = parcelResult;
+
+        // Killing the map's designated boss ends the mission, and the EndBattle entry attached here is
+        // the only thing that tells the client so. Attached after shaping — ShapeForWire nulls the
+        // empty DisplayInfos the manager leaves on the save row, and the reward payload is wire-only.
+        response.SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(
+            ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper)), clearReward, endBattleType);
         response.CampaignStageHistoryDB = historyDb;
+
+        // On the battle-skip path the client has no local battle to read the outcome from, so it
+        // takes the win/lose flag straight from TacticRank (> 0 means the player won). Omitting it
+        // left the field at 0 and every skipped victory was reported as a wipe.
+        response.TacticRank = tacticRank;
+
+        // Official always carries these, empty when there is nothing to award; the client Syncs them
+        // unconditionally after a tactic. On a clear they repeat what the EndBattle entry carries —
+        // official's top-level copies are byte-identical to the nested ones.
+        response.LevelUpCharacterDBs = new();
+        response.FirstClearReward = clearReward?.FirstClearReward ?? new();
+        response.ThreeStarReward = clearReward?.ThreeStarReward ?? new();
+        response.StrategyObjectRewards = clearReward?.StrategyObjectRewards ?? new();
+
+        // Official carries MissionProgressDBs on every tactic result; without it the client's mission
+        // screen only learned about campaign progress at the next login, when Mission_List re-read it.
+        if (missionProgresses.Count > 0)
+            response.MissionProgressDBs = missionProgresses;
 
         return response;
     }
@@ -209,7 +220,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 
         var stageSave = await _concentrateCampaignManager.EndTurn(db, account, request);
 
-        response.SaveDataDB = stageSave.ToMap(_mapper);
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
 
         return response;
     }

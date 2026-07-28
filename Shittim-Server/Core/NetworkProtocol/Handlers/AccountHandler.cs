@@ -150,8 +150,12 @@ public class AccountHandler : ProtocolHandlerBase
 
         response.AccountDB = _mapper.Map<AccountDB>(account);
         // Official omits the envelope MissionProgressDBs unless the login created/changed progress
-        // (first-login-of-day packs); an empty [] is never sent.
-        var missionProgresses = db.GetAccountMissionProgresses(account.ServerId).ToMapList(_mapper);
+        // (first-login-of-day packs); an empty [] is never sent. Battle-pass and event-content rows
+        // share the MissionProgresses table but never appear here on official — an id the client
+        // cannot resolve against MissionExcel/GuideMissionExcel poisons its mission model.
+        var missionProgresses = MissionHandler.FilterMissionScreenProgresses(
+                db.GetAccountMissionProgresses(account.ServerId).ToList(), _excelService)
+            .ToMapList(_mapper);
         response.MissionProgressDBs = missionProgresses.Count > 0 ? missionProgresses : null;
 
         return response;

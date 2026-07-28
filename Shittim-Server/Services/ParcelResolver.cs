@@ -243,6 +243,11 @@ public class ParcelResolver
         ParcelResult.BaseAccountExp += isLevelMaxed ? 0 : parcel.Amount;
         ParcelResult.AdditionalAccountExp += isLevelMaxed ? 0 : newbieExp;
         ParcelResult.NewbieBoostAccountExp += isLevelMaxed ? 0 : newbieExp;
+
+        // Account exp is a parcel like any other on official's wire: it shows up in ParcelForMission
+        // as {Type:9, Id:1}. BuildParcel is what keeps it out of DisplaySequence — the exp bars are
+        // drawn from the Base/Additional/NewbieBoost fields above, not from the reward strip.
+        CreateParcelInfo(parcel);
     }
 
     public async Task UpdateCharacterExp(ParcelResult parcel, List<ExpLevelData> expLevelDatas)
@@ -264,6 +269,11 @@ public class ParcelResolver
 
         Context.Characters.Update(character);
         _updatedCharacters[character.UniqueId] = character;
+
+        // Same as account exp: {Type:10, Id:<characterUniqueId>} belongs in ParcelForMission but not
+        // in the reward strip. Official's per-tactic ParcelResultDB is nothing but these six entries
+        // plus the CharacterDBs they updated.
+        CreateParcelInfo(parcel);
     }
 
     public async Task UpdateFavorCharacter(ParcelResult parcel, List<ExpLevelData> expLevelDatas)

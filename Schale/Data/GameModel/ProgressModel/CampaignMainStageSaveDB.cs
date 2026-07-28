@@ -29,7 +29,33 @@ namespace Schale.Data.GameModel
         [System.Text.Json.Serialization.JsonIgnore]
         [Newtonsoft.Json.JsonIgnore]
         public Dictionary<long, List<long>> WithdrawInfos { get; set; } = new();
-        
+
+        /// <summary>
+        /// EnemyInfos key of the enemy the player engaged with Campaign_EnterTactic, remembered so
+        /// that the following Campaign_TacticResult knows which unit to clear off the map. The
+        /// battle summary alone cannot identify it — it carries character ids, not hex entity ids.
+        /// Server-only; official has no such wire member.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public long EngagedEnemyEntityId { get; set; }
+
+        /// <summary>
+        /// Whether this run is still going. ContentSave_Get answers with the account's one open save
+        /// and nothing else — the client treats a save it gets back as resumable, so a finished or
+        /// abandoned run has to stop being visible to it. Rows are never deleted (the history is
+        /// worth keeping), they are just closed: on stage clear, on retreat, on ContentSave_Discard,
+        /// and whenever a newer run supersedes them.
+        ///
+        /// Deliberately phrased as "open" rather than "closed" so that the column the reconciler adds
+        /// to an existing database — NOT NULL DEFAULT 0 — backfills every historical row as closed.
+        /// The other polarity would have resurrected months of finished missions at the next login.
+        /// Server-only; official has no such wire member.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public bool IsOpen { get; set; }
+
         public Dictionary<long, Strategy> StrategyObjects { get; set; } = new();
         
         [System.Text.Json.Serialization.JsonIgnore]
