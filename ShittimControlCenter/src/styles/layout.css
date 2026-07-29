@@ -215,7 +215,8 @@
 }
 
 .page-head {
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: 12px 16px;
+  flex-wrap: wrap; /* actions (account picker) drop below the title instead of crushing it */
   padding: 22px 28px 14px;
   min-width: 0;
 }
@@ -228,8 +229,10 @@
   transform: skewX(var(--skew));
 }
 .page-head .ph-icon .ico { width: 24px; height: 24px; transform: skewX(calc(-1 * var(--skew))); }
-.page-head .ph-text { min-width: 0; }
-.page-head .ph-text h2 { font-size: 23px; font-weight: 800; letter-spacing: 0.2px; display: flex; align-items: center; gap: 12px; }
+/* flex-basis keeps the text block from being squeezed below a readable width —
+   past that the actions wrap to their own row instead */
+.page-head .ph-text { min-width: 0; flex: 1 1 240px; }
+.page-head .ph-text h2 { font-size: 23px; font-weight: 800; letter-spacing: 0.2px; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 /* gold slash after the page title — the BA screen-title flourish */
 .page-head .ph-text h2::after {
   content: ''; width: 30px; height: 10px; border-radius: 2px; flex: none;
@@ -237,7 +240,7 @@
   background: linear-gradient(180deg, var(--gold), var(--gold-deep));
   box-shadow: 0 2px 6px rgba(238, 179, 26, 0.35);
 }
-.page-head .ph-text p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+.page-head .ph-text p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .page-head .ph-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: none; }
 
 /* account target selector lives in the header */

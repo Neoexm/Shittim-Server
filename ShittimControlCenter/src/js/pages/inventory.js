@@ -1,4 +1,4 @@
-import { el, frag, clear, button, input, field, toast, modal, confirmDialog, openPicker, num, stars, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, input, field, toast, modal, confirmDialog, notifyRestart, openPicker, promptAmount, num, stars, escapeHtml, emptyState } from '../ui.js';
 import { icon } from '../icons.js';
 import { api, targetAccount } from '../api.js';
 import { gate, loadInto } from './_util.js';
@@ -49,13 +49,16 @@ export default {
         const rows = itemRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(itemsBody);
         if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with “Give item”')); return; }
-        const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:44px"></th></tr></thead><tbody></tbody></table>');
+        // 64px = 36px trash button + the 28px of cell padding (border-box) —
+        // narrower and the button overflows the fixed column, dragging a
+        // horizontal scrollbar into the list
+        const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:64px"></th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const r of rows) {
           const tr = frag(`<tr><td class="num mono" data-selectable>${r.uniqueId}</td><td style="min-width:0;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</td><td class="num">${num(r.stackCount)}</td><td></td></tr>`);
           const x = button('', { variant: 'ghost', sm: true, iconName: 'trash' });
           x.style.height = '26px'; x.style.padding = '0 8px';
-          x.addEventListener('click', async (e) => { e.stopPropagation(); await api.removeItem({ accountServerId: uid, uniqueId: r.uniqueId }); toast('Item removed', 'warn'); reloadItems(); });
+          x.addEventListener('click', async (e) => { e.stopPropagation(); await api.removeItem({ accountServerId: uid, uniqueId: r.uniqueId }); toast('Item removed', 'warn'); notifyRestart(); reloadItems(); });
           tr.lastElementChild.appendChild(x);
           tb.appendChild(tr);
         }
@@ -65,10 +68,10 @@ export default {
 
       function giveItem() {
         openPicker({ title: 'Pick an item', loader: (q) => api.staticItems(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: x.icon }))),
-          onPick: (it) => promptAmount(it, async (amount) => {
+          onPick: (it) => promptAmount({ title: `Give ${it.name}`, confirmLabel: 'Grant', onConfirm: async (amount) => {
             await api.giveItem({ accountServerId: uid, uniqueId: it.id, amount });
-            toast(`Gave ${num(amount)}× ${it.name}`, 'good'); reloadItems();
-          }) });
+            toast(`Gave ${num(amount)}× ${it.name}`, 'good'); notifyRestart(); reloadItems();
+          } }) });
       }
 
       // ---- characters
@@ -97,7 +100,7 @@ export default {
             const ok = await confirmDialog({ title: 'Max student', confirmLabel: 'Max out', message: `Max ${r.name} (level 90, max stars, skills, gear)?` });
             if (!ok) return;
             const target = r.devName || r.name;
-            try { await api.command(uid, `max ${target}`); toast(`${r.name} maxed`, 'good'); reloadChars(); }
+            try { await api.command(uid, `max ${target}`); toast(`${r.name} maxed`, 'good'); notifyRestart(); reloadChars(); }
             catch (e) { toast(e.message, 'bad'); }
           });
           tb.appendChild(tr);
@@ -116,7 +119,7 @@ export default {
             cancel.addEventListener('click', ref.close);
             add.addEventListener('click', async () => {
               const opt = (lvl.value.trim() || 'max').toLowerCase();
-              try { await api.command(uid, `character add ${it.id} ${opt}`); ref.close(); toast(`Added ${it.name}`, 'good'); reloadChars(); }
+              try { await api.command(uid, `character add ${it.id} ${opt}`); ref.close(); toast(`Added ${it.name}`, 'good'); notifyRestart(); reloadChars(); }
               catch (e) { toast(e.message, 'bad'); }
             });
           } });
@@ -127,7 +130,7 @@ export default {
 
       function cmdBtn(uid, label, ic, command, variant, after) {
         return button(label, { variant, sm: true, iconName: ic, onClick: async () => {
-          try { await api.command(uid, command); toast(`${label} ✓`, 'good'); after && after(); }
+          try { await api.command(uid, command); toast(`${label} ✓`, 'good'); notifyRestart(); after && after(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
@@ -135,20 +138,10 @@ export default {
         return button(label, { variant: 'danger', sm: true, iconName: ic, onClick: async () => {
           const ok = await confirmDialog({ title: label, danger: true, confirmLabel: label, message: 'This wipes inventory items and unbound equipment for this account.' });
           if (!ok) return;
-          try { await api.command(uid, command); toast(`${label} ✓`, 'warn'); after && after(); }
+          try { await api.command(uid, command); toast(`${label} ✓`, 'warn'); notifyRestart(); after && after(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
     });
   },
 };
-
-function promptAmount(it, onConfirm) {
-  const amt = input({ value: 1, type: 'number' });
-  const ok = button('Grant', { variant: 'primary', iconName: 'check' });
-  const cancel = button('Cancel', { variant: 'ghost' });
-  const ref = modal({ title: `Give ${it.name}`, body: el('div', {}, field('Amount', amt)), footer: [cancel, ok] });
-  cancel.addEventListener('click', ref.close);
-  ok.addEventListener('click', () => { ref.close(); onConfirm(Math.max(1, Number(amt.value) || 1)); });
-  setTimeout(() => { amt.focus(); amt.select(); }, 50);
-}

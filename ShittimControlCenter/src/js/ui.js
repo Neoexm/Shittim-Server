@@ -60,28 +60,33 @@ export function field(label, control, hint) {
     control);
 }
 
+// `style` must go through el() (Object.assign onto node.style) — assigning a
+// plain object to the read-only element.style property is silently ignored.
 export function input(props = {}) {
-  const i = el('input.input', {});
-  Object.assign(i, props);
-  if (props.value != null) i.value = props.value;
+  const { style, ...rest } = props;
+  const i = el('input.input', { style });
+  Object.assign(i, rest);
+  if (rest.value != null) i.value = rest.value;
   return i;
 }
 export function textarea(props = {}) {
-  const t = el('textarea.input', {});
-  Object.assign(t, props);
-  if (props.value != null) t.value = props.value;
+  const { style, ...rest } = props;
+  const t = el('textarea.input', { style });
+  Object.assign(t, rest);
+  if (rest.value != null) t.value = rest.value;
   return t;
 }
 export function select(options, props = {}) {
-  const s = el('select.select', {});
+  const { style, ...rest } = props;
+  const s = el('select.select', { style });
   for (const o of options) {
     const opt = document.createElement('option');
     opt.value = o.value;
     opt.textContent = o.label;
     s.appendChild(opt);
   }
-  Object.assign(s, props);
-  if (props.value != null) s.value = props.value;
+  Object.assign(s, rest);
+  if (rest.value != null) s.value = rest.value;
   return s;
 }
 export function toggle(on, onChange) {
@@ -106,6 +111,29 @@ export function toast(message, kind = '', title) {
     t.style.transform = 'translateX(20px)';
     setTimeout(() => t.remove(), 260);
   }, 3400);
+}
+
+// ------------------------------------------------------------------ restart notice
+
+// Reminder that the game client only loads account data at login — shown after
+// any edit that touches a live account (currency, roster, unlocks, …). Sticky
+// until dismissed so it survives a batch of edits; repeat calls re-flash the
+// existing banner instead of stacking a new one.
+let restartNoteEl = null;
+export function notifyRestart() {
+  if (restartNoteEl && restartNoteEl.isConnected) {
+    restartNoteEl.classList.remove('flash');
+    void restartNoteEl.offsetWidth; // restart the attention animation
+    restartNoteEl.classList.add('flash');
+    return;
+  }
+  const n = frag(`<div class="restart-note flash" role="status">${icon('refresh')}
+    <div class="rn-text"><b>Game restart required</b>
+    <span>Blue Archive loads account data at login — the player must restart the game to see this change.</span></div>
+    <button class="rn-x" title="Dismiss">✕</button></div>`);
+  n.querySelector('.rn-x').addEventListener('click', () => { n.remove(); restartNoteEl = null; });
+  document.body.appendChild(n);
+  restartNoteEl = n;
 }
 
 // ------------------------------------------------------------------ modal
@@ -136,6 +164,17 @@ export function modal({ title, body, footer, wide, onClose }) {
   });
   overlay.appendChild(veil);
   return { close, bodyEl };
+}
+
+// Numeric amount prompt as a modal — window.prompt() throws in Electron.
+export function promptAmount({ title, confirmLabel = 'Confirm', value = 1, onConfirm }) {
+  const amt = input({ value, type: 'number' });
+  const ok = button(confirmLabel, { variant: 'primary', iconName: 'check' });
+  const cancel = button('Cancel', { variant: 'ghost' });
+  const ref = modal({ title, body: el('div', {}, field('Amount', amt)), footer: [cancel, ok] });
+  cancel.addEventListener('click', ref.close);
+  ok.addEventListener('click', () => { ref.close(); onConfirm(Math.max(1, Number(amt.value) || 1)); });
+  setTimeout(() => { amt.focus(); amt.select(); }, 50);
 }
 
 export function confirmDialog({ title = 'Confirm', message, confirmLabel = 'Confirm', danger = false }) {

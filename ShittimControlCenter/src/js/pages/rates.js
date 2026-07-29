@@ -51,8 +51,8 @@ export default {
           bar,
           el('div.grid-3', { style: { marginTop: '14px' } },
             field('SSR (★3) %', fSsr), field('SR (★2) %', fSr), field('R (★1) %', fR)),
-          el('div.row', { style: { gap: '10px' } }, normalize,
-            frag('<span class="muted" style="font-size:12px">Leave all at 0 and reset to fall back to the game\'s built-in rates.</span>'))));
+          el('div.row.wrap', { style: { gap: '10px' } }, normalize,
+            frag('<span class="muted" style="font-size:12px;min-width:0;flex:1 1 200px">Leave all at 0 and reset to fall back to the game\'s built-in rates.</span>'))));
 
       // ---- guaranteed card
       const guaranteedLabel = el('div', {});

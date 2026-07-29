@@ -1,4 +1,4 @@
-import { el, frag, clear, button, input, textarea, select, field, toast, confirmDialog, openPicker, num, shortDate, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, input, textarea, select, field, toast, confirmDialog, openPicker, promptAmount, num, shortDate, escapeHtml, emptyState } from '../ui.js';
 import { icon } from '../icons.js';
 import { api, targetAccount } from '../api.js';
 import { gate, loadInto } from './_util.js';
@@ -57,9 +57,9 @@ export default {
         openPicker({ title: `Pick ${kind.label.toLowerCase()}`,
           loader: (q) => kind.loader(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: x.icon || x.devName }))),
           onPick: (it) => {
-            const amount = kind.amount ? Math.max(1, prompt(`Amount of ${it.name}?`, '1') | 0 || 1) : 1;
-            rewards.push({ type: kind.value, id: it.id, name: it.name, amount });
-            paintChips();
+            const add = (amount) => { rewards.push({ type: kind.value, id: it.id, name: it.name, amount }); paintChips(); };
+            if (kind.amount) promptAmount({ title: `Add ${it.name}`, confirmLabel: 'Add', onConfirm: add });
+            else add(1);
           } });
       }
       function paintChips() {
@@ -115,10 +115,11 @@ export default {
               <div style="font-size:12.5px;color:var(--ink-2);min-width:0;overflow-wrap:anywhere">${escapeHtml(m.comment || '')}</div>
               <div class="bc-feat">${parcels || '<span class="muted" style="font-size:12px">no attachments</span>'}</div>
               <div class="muted" style="font-size:11.5px;min-width:0;overflow-wrap:anywhere">sent ${shortDate(m.sendDate)} · expires ${shortDate(m.expireDate)}</div></div>`);
-            const del = frag(`<button class="chip-x" style="position:absolute;top:12px;right:12px">✕</button>`);
-            card.style.position = 'relative';
+            // delete sits in the flex row after the status pill — absolutely
+            // positioning it overlapped the pill at every window size
+            const del = frag(`<button class="chip-x" style="flex:none">✕</button>`);
             del.addEventListener('click', async () => { await api.deleteMail({ accountServerId: uid, mailServerId: m.serverId }); toast('Mail deleted', 'warn'); reloadInbox(); });
-            card.appendChild(del);
+            card.querySelector('.bc-top').appendChild(del);
             wrap.appendChild(card);
           }
           body.appendChild(wrap);

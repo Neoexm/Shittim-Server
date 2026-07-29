@@ -1,4 +1,4 @@
-import { el, frag, clear, button, toast, confirmDialog, shortDate, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, toast, confirmDialog, notifyRestart, shortDate, escapeHtml, emptyState } from '../ui.js';
 import { api, targetAccount } from '../api.js';
 import { gate, loadInto } from './_util.js';
 
@@ -39,21 +39,25 @@ export default {
           if (!seasons.length) {
             body.appendChild(emptyState('No seasons defined', 'This content has no Excel seasons'));
           } else {
-            const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th>Season</th><th style="width:104px">Window</th><th style="width:72px"></th></tr></thead><tbody></tbody></table>');
+            // Window 132px fits the nowrap date lines; 94px fits the Apply
+            // button (box-sizing includes the 28px cell padding) — anything
+            // narrower paints the button over the date column and past the
+            // card edge.
+            const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th>Season</th><th style="width:132px">Window</th><th style="width:94px"></th></tr></thead><tbody></tbody></table>');
             const tb = tbl.querySelector('tbody');
             for (const s of seasons) {
               const tr = frag(`<tr>
                 <td style="max-width:0"><b style="font-family:var(--font-round)" data-selectable>#${escapeHtml(String(s.seasonId))}</b><div class="muted" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(s.boss || '')}</div></td>
                 <td class="muted" style="font-size:11.5px;white-space:nowrap">${fmt(s.start)}<br>→ ${fmt(s.end)}</td>
                 <td style="text-align:right;white-space:nowrap"></td></tr>`);
-              const apply = button('Apply', { variant: 'primary', sm: true, iconName: 'check' });
+              const apply = button('Apply', { variant: 'primary', sm: true });
               apply.style.height = '28px'; apply.style.padding = '0 12px';
               apply.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const ok = await confirmDialog({ title: `${t.title} → season ${s.seasonId}`, confirmLabel: 'Apply season',
                   message: `Set ${acc.nickname}'s ${t.title} to season ${s.seasonId}? Pending battles in this mode will be closed.` });
                 if (!ok) return;
-                try { await api.command(uid, `setseason ${t.key} ${s.seasonId}`); toast(`${t.title} set to season ${s.seasonId}`, 'good'); }
+                try { await api.command(uid, `setseason ${t.key} ${s.seasonId}`); toast(`${t.title} set to season ${s.seasonId}`, 'good'); notifyRestart(); }
                 catch (err) { toast(err.message, 'bad'); }
               });
               tr.lastElementChild.appendChild(apply);

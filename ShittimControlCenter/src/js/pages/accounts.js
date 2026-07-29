@@ -1,4 +1,4 @@
-import { el, frag, clear, button, input, field, toast, modal, confirmDialog, num, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, input, field, toast, modal, confirmDialog, notifyRestart, num, escapeHtml, emptyState } from '../ui.js';
 import { icon } from '../icons.js';
 import { api, store, reloadAccounts, CURRENCY_ID, CURRENCY_NAME, PRIMARY_CURRENCIES } from '../api.js';
 import { gate, loadInto } from './_util.js';
@@ -99,7 +99,7 @@ export default {
         const saveId = button('Save identity', { variant: 'primary', iconName: 'save', onClick: async () => {
           const r = await api.accountUpdate({ serverId: d.serverId, nickname: fNick.value, comment: fComment.value, level: Number(fLevel.value), exp: Number(fExp.value), vipLevel: Number(fVip.value) }).then(() => ({ ok: true })).catch((e) => ({ ok: false, error: e.message }));
           toast(r.ok ? 'Account updated' : r.error, r.ok ? 'good' : 'bad');
-          if (r.ok) reloadAccounts().then((rows) => { allRows = rows; paintList(); });
+          if (r.ok) { notifyRestart(); reloadAccounts().then((rows) => { allRows = rows; paintList(); }); }
         }});
         body.appendChild(el('div', { style: { marginTop: '4px' } }, saveId));
 
@@ -122,6 +122,7 @@ export default {
             if (val !== e.orig) { await api.setCurrency({ accountServerId: d.serverId, currencyType: Number(cid), amount: val }); e.orig = val; n++; }
           }
           toast(n ? `Updated ${n} ${n === 1 ? 'currency' : 'currencies'}` : 'No changes', n ? 'good' : 'warn');
+          if (n) notifyRestart();
         }});
         body.appendChild(el('div.row.wrap', { style: { marginTop: '4px', gap: '10px' } },
           saveCur,
@@ -155,7 +156,7 @@ export default {
 
       function cmdButton(uid, label, ic, command, variant = 'ghost') {
         return button(label, { variant, sm: true, iconName: ic, onClick: async () => {
-          try { const r = await api.command(uid, command); toast(`${label} ✓`, 'good'); }
+          try { const r = await api.command(uid, command); toast(`${label} ✓`, 'good'); notifyRestart(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
@@ -163,6 +164,7 @@ export default {
         const MAX = 999999999;
         for (const [cid, e] of Object.entries(edits)) { await api.setCurrency({ accountServerId: id, currencyType: Number(cid), amount: MAX }); e.input.value = MAX; e.orig = MAX; }
         toast('All shown currencies maxed', 'good');
+        notifyRestart();
       }
 
       function openCreate() {

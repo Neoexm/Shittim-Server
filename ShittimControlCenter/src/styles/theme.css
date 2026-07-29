@@ -351,10 +351,13 @@ a { color: var(--blue-ink); text-decoration: none; }
 .card-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px 10px;
+  flex-wrap: wrap; /* controls drop to a second row instead of crushing */
   padding: 14px 18px;
   border-bottom: 1px solid var(--line-2);
 }
+/* head controls keep their natural width — a shrunk .btn clips its label */
+.card-head .btn, .card-head .select, .card-head .pill { flex: none; }
 .card-head .tab-mark {
   width: 6px; height: 20px;
   border-radius: 2px;
@@ -550,6 +553,53 @@ textarea.input { height: auto; padding: 11px 13px; resize: vertical; line-height
 .toast.warn .ico { color: var(--warn); }
 .toast b { font-family: var(--font-round); }
 @keyframes toast-in { from { opacity: 0; transform: translateX(24px) scale(.96); } to { opacity: 1; transform: none; } }
+
+/* ---------------------------------------------------- restart-game notice */
+
+/* Sticky reminder that account edits only appear after the game is
+   relaunched. Bottom-centre, under modals (8000) and toasts (9000). */
+.restart-note {
+  position: fixed; left: 50%; bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 7500;
+  display: flex; align-items: center; gap: 12px;
+  max-width: min(560px, calc(100vw - 48px));
+  padding: 12px 14px 12px 19px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line));
+  border-radius: var(--r);
+  box-shadow: var(--sh-3);
+  overflow: hidden;
+  animation: note-in .32s cubic-bezier(.2, .9, .3, 1.2);
+}
+/* skewed gold notch — same language as the toast edge, in "attention" gold */
+.restart-note::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  transform: skewX(var(--skew)) translateX(-1px);
+}
+.restart-note > .ico { width: 19px; height: 19px; flex: none; color: var(--gold-ink); }
+.restart-note .rn-text { min-width: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+.restart-note .rn-text b { display: block; font-family: var(--font-round); font-size: 13px; color: var(--ink); }
+.restart-note .rn-x {
+  width: 26px; height: 26px; flex: none; border: none; border-radius: 6px;
+  background: var(--surface-2); color: var(--ink-2); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .13s ease, color .13s ease, transform .12s ease;
+}
+.restart-note .rn-x:hover { background: var(--gold-soft); color: var(--gold-ink); transform: scale(1.06); }
+.restart-note.flash { animation: note-in .32s cubic-bezier(.2, .9, .3, 1.2), note-flash .9s ease .1s; }
+@keyframes note-in { from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.97); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes note-flash {
+  0%, 100% { box-shadow: var(--sh-3); }
+  30% { box-shadow: var(--sh-3), 0 0 0 3px var(--gold-soft), 0 0 22px rgba(238, 179, 26, 0.45); }
+}
+/* on narrow windows the centred note and the right-aligned toasts share
+   horizontal space — lift the note above the toast zone */
+@media (max-width: 1100px) {
+  .restart-note { bottom: 92px; }
+}
 
 /* ----------------------------------------------------------------- modal */
 
