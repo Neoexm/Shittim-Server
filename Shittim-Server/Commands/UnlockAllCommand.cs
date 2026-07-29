@@ -10,7 +10,7 @@ namespace Shittim.Commands
     {
         public UnlockAllCommand(IClientConnection connection, string[] args, bool validate = true) : base(connection, args, validate) { }
 
-        [Argument(0, @"^campaign$|^weekdungeon$|^schooldungeon$|^battlepass$|^mission$|^help$", "Target content name (campaign, weekdungeon, schooldungeon, battlepass, mission)", ArgumentFlags.IgnoreCase | ArgumentFlags.Optional)]
+        [Argument(0, @"^campaign$|^story$|^weekdungeon$|^schooldungeon$|^battlepass$|^mission$|^help$", "Target content name (campaign, story, weekdungeon, schooldungeon, battlepass, mission)", ArgumentFlags.IgnoreCase | ArgumentFlags.Optional)]
         public string target { get; set; } = string.Empty;
 
         public override async Task Execute()
@@ -28,30 +28,94 @@ namespace Shittim.Commands
             {
                 case "campaign":
                     var campaignChapterExcel = connection.ExcelTableService.GetTable<CampaignChapterExcelT>();
+                    var existingStages = context.CampaignStageHistories
+                        .Where(x => x.AccountServerId == account.ServerId)
+                        .ToDictionary(x => x.StageUniqueId);
+                    var newStageCount = 0;
 
                     foreach (var excel in campaignChapterExcel)
                     {
                         foreach (var stageId in excel.NormalCampaignStageId.Concat(excel.HardCampaignStageId).Concat(excel.NormalExtraStageId).Concat(excel.VeryHardCampaignStageId))
                         {
-                            context.CampaignStageHistories.Add(new()
+                            if (existingStages.TryGetValue(stageId, out var existing))
+                            {
+                                existing.Star1Flag = true;
+                                existing.Star2Flag = true;
+                                existing.Star3Flag = true;
+                                existing.BestStarRecord = 3;
+                                existing.IsClearedEver = true;
+                                if (existing.ClearTurnRecord == 0)
+                                    existing.ClearTurnRecord = 1;
+                                existing.FirstClearRewardReceive ??= account.GameSettings.ServerDateTime();
+                                existing.StarRewardReceive ??= account.GameSettings.ServerDateTime();
+                                continue;
+                            }
+
+                            var row = new CampaignStageHistoryDBServer
                             {
                                 AccountServerId = account.ServerId,
                                 StageUniqueId = stageId,
                                 ChapterUniqueId = excel.Id,
                                 ClearTurnRecord = 1,
+                                TacticClearCountWithRankSRecord = 1,
+                                BestStarRecord = 3,
                                 Star1Flag = true,
                                 Star2Flag = true,
                                 Star3Flag = true,
+                                IsClearedEver = true,
                                 LastPlay = account.GameSettings.ServerDateTime(),
                                 TodayPlayCount = 1,
                                 FirstClearRewardReceive = account.GameSettings.ServerDateTime(),
                                 StarRewardReceive = account.GameSettings.ServerDateTime(),
-                            });
+                            };
+                            context.CampaignStageHistories.Add(row);
+                            existingStages[stageId] = row;
+                            newStageCount++;
                         }
                     }
 
                     await context.SaveChangesAsync();
-                    await connection.SendChatMessage("Unlocked all of stages of campaign!");
+                    await connection.SendChatMessage($"Unlocked all campaign stages ({newStageCount} new, rest updated in place)!");
+                    break;
+
+                case "story":
+                    // Story (scenario) progression is what the client keys campaign/story unlocks on:
+                    // an episode is cleared iff its ModeId is in ScenarioHistoryDBs (Scenario_List /
+                    // login sync), and ScenarioModeExcel.ClearedModeId chains episodes together.
+                    // Stage histories alone leave everything visually locked.
+                    var scenarioModeExcel = connection.ExcelTableService.GetTable<ScenarioModeExcelT>();
+                    var existingScenarioIds = context.ScenarioHistories
+                        .Where(x => x.AccountServerId == account.ServerId)
+                        .Select(x => x.ScenarioUniqueId)
+                        .ToHashSet();
+                    var newScenarioCount = 0;
+
+                    foreach (var mode in scenarioModeExcel)
+                    {
+                        // Event stories are granted through the event-content protocols; forcing them
+                        // here would put ids in the account the client can only resolve mid-event.
+                        if (mode.EventContentId != 0)
+                            continue;
+
+                        if (mode.ModeType != ScenarioModeTypes.Main &&
+                            mode.ModeType != ScenarioModeTypes.Sub &&
+                            mode.ModeType != ScenarioModeTypes.Prologue)
+                            continue;
+
+                        if (!existingScenarioIds.Add(mode.ModeId))
+                            continue;
+
+                        context.ScenarioHistories.Add(new()
+                        {
+                            AccountServerId = account.ServerId,
+                            ScenarioUniqueId = mode.ModeId,
+                            ClearDateTime = account.GameSettings.ServerDateTime(),
+                        });
+                        newScenarioCount++;
+                    }
+
+                    await context.SaveChangesAsync();
+                    await connection.SendChatMessage($"Cleared {newScenarioCount} story episodes (main/sub/prologue)!");
                     break;
 
                 case "weekdungeon":
@@ -175,7 +239,7 @@ namespace Shittim.Commands
         {
             await connection.SendChatMessage("!unlockall - Command to unlock all of its contents");
             await connection.SendChatMessage("Usage: !unlockall [content]");
-            await connection.SendChatMessage("Content: campaign | weekdungeon | schooldungeon | battlepass | mission");
+            await connection.SendChatMessage("Content: campaign | story | weekdungeon | schooldungeon | battlepass | mission");
         }
     }
 }

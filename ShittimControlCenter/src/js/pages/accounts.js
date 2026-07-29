@@ -134,7 +134,7 @@ export default {
         const tools = el('div.row.wrap', { style: { gap: '10px' } });
         tools.appendChild(cmdButton(d.serverId, 'Max all characters', 'star', 'max all', 'gold'));
         tools.appendChild(cmdButton(d.serverId, 'Unlock all characters', 'users', 'giveall'));
-        tools.appendChild(cmdButton(d.serverId, 'Unlock campaign', 'shield', 'unlockall campaign'));
+        tools.appendChild(cmdButton(d.serverId, 'Unlock campaign + story', 'shield', ['unlockall campaign', 'unlockall story']));
         tools.appendChild(cmdButton(d.serverId, 'Unlock battlepass', 'ticket', 'unlockall battlepass'));
         body.appendChild(tools);
 
@@ -155,8 +155,9 @@ export default {
       }
 
       function cmdButton(uid, label, ic, command, variant = 'ghost') {
+        const commands = Array.isArray(command) ? command : [command];
         return button(label, { variant, sm: true, iconName: ic, onClick: async () => {
-          try { const r = await api.command(uid, command); toast(`${label} ✓`, 'good'); notifyRestart(); }
+          try { for (const c of commands) await api.command(uid, c); toast(`${label} ✓`, 'good'); notifyRestart(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
