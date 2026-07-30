@@ -134,14 +134,17 @@ public class MomoTalkHandler : ProtocolHandlerBase
         {
             // No choice made, so the next group comes from the group being read.
             var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
-            if (currentGroupMessages.Count != 0)
+			var mmtChatProgression = currentGroupMessages
+				.Where(x => x.MessageCondition != AcademyMessageConditions.Answer)
+				.ToList();
+			if (mmtChatProgression.Count != 0)
             {
                 // The transition is carried by whichever message points somewhere other than its
                 // own group. If none does, fall back to the first message's NextGroupId.
-                var transitionMessage = currentGroupMessages.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
+                var transitionMessage = mmtChatProgression.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
                 nextGroupId = transitionMessage != null
                     ? transitionMessage.NextGroupId
-                    : currentGroupMessages[0].NextGroupId;
+                    : mmtChatProgression[0].NextGroupId;
             }
         }
 
