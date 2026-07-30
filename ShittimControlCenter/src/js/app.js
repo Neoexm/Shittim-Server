@@ -3,81 +3,49 @@ import { icon } from './icons.js';
 const BRAND_IMG = '../Sprite/Common_Icon_Setting_Account.png';
 import { el, frag, clear, select, button, toast, escapeHtml } from './ui.js';
 import { api, store, reloadAccounts } from './api.js';
-import { pushLog } from './bus.js';
 import { renderProjectGate } from './project-gate.js';
 
-import dashboard from './pages/dashboard.js';
-import server from './pages/server.js';
+import overview from './pages/overview.js';
 import config from './pages/config.js';
 import accounts from './pages/accounts.js';
 import inventory from './pages/inventory.js';
 import mail from './pages/mail.js';
 import events from './pages/events.js';
-import gacha from './pages/gacha.js';
 import rates from './pages/rates.js';
 import updates from './pages/updates.js';
 
-const PAGES = [dashboard, server, config, updates, accounts, inventory, mail, events, gacha, rates];
-const NAV = [
-  { group: 'Server', items: ['dashboard', 'server', 'config', 'updates'] },
-  { group: 'Management', items: ['accounts', 'inventory', 'mail'] },
-  { group: 'Content', items: ['events', 'gacha', 'rates'] },
-];
+const PAGES = [overview, accounts, inventory, mail, events, rates, config, updates];
+const NAV = PAGES.map((p) => p.id);
 const byId = Object.fromEntries(PAGES.map((p) => [p.id, p]));
 
 let currentId = null;
 let cleanup = null;
 
-// --------------------------------------------------------------- theme
-
-function applyTheme(theme, animate = false) {
-  const t = theme === 'light' ? 'light' : 'dark';
-  const html = document.documentElement;
-  if (animate) {
-    html.classList.add('theme-anim');
-    setTimeout(() => html.classList.remove('theme-anim'), 320);
-  }
-  html.dataset.theme = t;
-  const btn = document.getElementById('themeBtn');
-  if (btn) {
-    // show the icon of the mode you'd switch TO
-    btn.innerHTML = icon(t === 'dark' ? 'sun' : 'moon');
-    btn.title = t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-  }
+// process-log ring buffer, shared between the main-process stream and the dock
+const LOG_MAX = 1200;
+const logBuffer = [];
+const logSubs = new Set();
+function pushLog(entry) {
+  logBuffer.push(entry);
+  if (logBuffer.length > LOG_MAX) logBuffer.splice(0, logBuffer.length - LOG_MAX);
+  logSubs.forEach((f) => f(entry));
 }
+function onLog(f) { logSubs.add(f); return () => logSubs.delete(f); }
+function clearLog() { logBuffer.length = 0; logSubs.forEach((f) => f(null)); }
 
-async function initTheme() {
-  let theme = 'dark';
-  try { const s = await window.host.settingsRead(); if (s && s.theme) theme = s.theme; } catch { /* default */ }
-  applyTheme(theme);
-}
-
-function toggleTheme() {
-  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  applyTheme(next, true);
-  try { window.host.settingsWrite({ theme: next }); } catch { /* non-fatal */ }
-}
-
-// --------------------------------------------------------------- shell
-
-// The frameless window has no OS chrome, so every view must carry the custom
-// titlebar (drag region + theme toggle + min/max/close). Shared by the shell
-// and the first-run project gate.
+// The frameless window carries its own titlebar (drag region + min/max/close).
+// Shared by the shell and the first-run project gate.
 function buildTitlebar() {
   const titlebar = frag(`
     <div class="titlebar">
       <div class="brand-mini"><img class="brand-img" src="${BRAND_IMG}" alt=""><span>SHITTIM</span><span class="tb-sub">Control Center</span></div>
       <div class="spacer"></div>
-      <div class="tb-actions">
-        <button class="tb-btn" id="themeBtn" title="Toggle theme">${icon('sun')}</button>
-      </div>
       <div class="win-btns">
         <button class="win-btn" data-w="minimize" title="Minimize">${icon('win_min', 'ico', 1.15)}</button>
         <button class="win-btn" data-w="maximize" title="Maximize">${icon('win_max', 'ico', 1.15)}</button>
         <button class="win-btn close" data-w="close" title="Close">${icon('win_close', 'ico', 1.15)}</button>
       </div>
     </div>`);
-  titlebar.querySelector('#themeBtn').addEventListener('click', toggleTheme);
   titlebar.querySelectorAll('[data-w]').forEach((b) =>
     b.addEventListener('click', () => window.host.windowControl(b.dataset.w)));
   return titlebar;
@@ -87,10 +55,9 @@ function buildShell() {
   const app = document.getElementById('app');
   clear(app);
 
-  // titlebar
   const titlebar = buildTitlebar();
+  const notice = el('div.notice-slot', { id: 'restartSlot' });
 
-  // rail
   const rail = el('div.rail', {});
   rail.appendChild(frag(`
     <div class="rail-brand">
@@ -100,35 +67,24 @@ function buildShell() {
   rail.appendChild(el('div.hazard.rail-hazard', {}));
 
   const nav = el('div.nav', {});
-  let navIdx = 0; // stagger index for the entrance animation
-  for (const grp of NAV) {
-    nav.appendChild(el('div.nav-group', { text: grp.group }));
-    for (const id of grp.items) {
-      const p = byId[id];
-      const item = frag(`<div class="nav-item" data-id="${id}" style="--i:${navIdx++}">${icon(p.icon)}<span>${p.title}</span></div>`);
-      item.addEventListener('click', () => navigate(id));
-      nav.appendChild(item);
-    }
+  for (const id of NAV) {
+    const item = frag(`<div class="nav-item" data-id="${id}"><span>${byId[id].title}</span></div>`);
+    item.addEventListener('click', () => navigate(id));
+    nav.appendChild(item);
   }
   rail.appendChild(nav);
 
-  const railFoot = frag(`
-    <div class="rail-foot">
-      <div class="rail-status down" id="railStatus">
-        <span class="led"></span>
-        <div class="st-text"><b id="railStTitle">Server offline</b><span id="railStSub">Not running</span></div>
-      </div>
-    </div>`);
-  rail.appendChild(railFoot);
-
-  // main
+  // main - a slim target bar (only for account-scoped pages) above the scroller
   const main = el('div.main', {},
-    el('div.page-head', { id: 'pageHead' }),
+    el('div.page-bar', { id: 'pageBar' }),
     el('div.page-scroll', { id: 'pageScroll' }));
 
   app.appendChild(titlebar);
+  app.appendChild(notice);
   app.appendChild(rail);
   app.appendChild(main);
+  app.appendChild(buildDock());
+  app.appendChild(buildStatusBar());
 }
 
 function setActiveNav(id) {
@@ -136,25 +92,18 @@ function setActiveNav(id) {
     n.classList.toggle('active', n.dataset.id === id));
 }
 
-function renderHeader(page) {
-  const head = document.getElementById('pageHead');
-  clear(head);
-  // NOTE: frag() returns only the first element of its template, so the icon
-  // and the text block must be appended as two separate fragments — otherwise
-  // the title/subtitle are silently dropped and the icon floats alone.
-  head.appendChild(frag(`<div class="ph-icon">${icon(page.icon)}</div>`));
-  head.appendChild(frag(`<div class="ph-text"><h2>${page.title}</h2><p>${page.subtitle}</p></div>`));
-  const actions = el('div.ph-actions', { id: 'phActions' });
-  head.appendChild(actions);
-
-  if (page.needsTarget) actions.appendChild(buildTargetPicker());
-  return actions;
+// account picker - shown in the page bar only on pages scoped to one account
+function renderPageBar(page) {
+  const bar = document.getElementById('pageBar');
+  clear(bar);
+  if (page.needsTarget) { bar.style.display = ''; bar.appendChild(buildTargetPicker()); }
+  else bar.style.display = 'none';
 }
 
 function buildTargetPicker() {
   const wrap = el('div.target-pick', {}, el('span.tp-label', { text: 'Account' }));
   const sel = select(
-    store.get().accounts.map((a) => ({ value: a.serverId, label: `${a.nickname} · ${a.serverId}` })),
+    store.get().accounts.map((a) => ({ value: a.serverId, label: `${a.nickname} - ${a.serverId}` })),
     { value: store.get().targetId ?? '' });
   if (!store.get().accounts.length) {
     sel.appendChild(frag('<option value="">No accounts</option>'));
@@ -168,72 +117,200 @@ function buildTargetPicker() {
   return wrap;
 }
 
-// --------------------------------------------------------------- routing
+function refreshTargetPicker() {
+  if (currentId && byId[currentId].needsTarget) renderPageBar(byId[currentId]);
+}
+
+let dockHeight = 200;      // body height in px; persisted
+let dockCollapsed = false; // header-only when true
+let following = true;
+let logFilter = 'all';
+let consoleEl = null;
+let dockToggleBtn = null;
+
+function lineNode(entry) {
+  const cls = entry.line.startsWith('>') ? 'sys' : entry.source;
+  return frag(`<div class="ln ${cls}"><span class="src">${entry.source}</span>${escapeHtml(entry.line)}</div>`);
+}
+
+function repaintLog() {
+  clear(consoleEl);
+  const rows = logBuffer.filter((e) => logFilter === 'all' || e.source === logFilter);
+  if (!rows.length) { consoleEl.appendChild(frag('<div class="ln muted">- no output yet - start the server to see logs -</div>')); return; }
+  // one reflow for the whole buffer instead of one per line
+  const batch = document.createDocumentFragment();
+  for (const e of rows) batch.appendChild(lineNode(e));
+  consoleEl.appendChild(batch);
+  if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+function buildDock() {
+  const dock = el('div.dock' + (dockCollapsed ? '.collapsed' : ''), { id: 'dock' });
+  dock.style.setProperty('--dock-h', dockHeight + 'px');
+
+  consoleEl = el('div.console', {});
+
+  const srcSel = frag(`<select class="select dock-sel">
+    <option value="all">All output</option><option value="server">Server</option><option value="mitm">Proxy</option></select>`);
+  srcSel.value = logFilter;
+  srcSel.addEventListener('change', () => { logFilter = srcSel.value; repaintLog(); });
+
+  const followBtn = button('Follow', { variant: 'ghost', sm: true, onClick: () => {
+    following = !following; followBtn.classList.toggle('btn-primary', following);
+    if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
+  }});
+  if (following) followBtn.classList.add('btn-primary');
+  const clearBtn = button('Clear', { variant: 'ghost', sm: true, onClick: () => { clearLog(); repaintLog(); } });
+
+  dockToggleBtn = frag(`<button class="dock-toggle" title="Collapse console">${dockCollapsed ? '▴' : '▾'}</button>`);
+  dockToggleBtn.addEventListener('click', (e) => { e.stopPropagation(); setDockCollapsed(!dockCollapsed); });
+
+  const head = el('div.dock-head', {},
+    el('span.dock-title', { text: 'Console' }),
+    el('div.spacer', {}), srcSel, followBtn, clearBtn, dockToggleBtn);
+  head.addEventListener('mousedown', startDockDrag);
+  head.addEventListener('dblclick', () => setDockCollapsed(!dockCollapsed));
+
+  dock.appendChild(head);
+  dock.appendChild(el('div.dock-body', {}, consoleEl));
+
+  onLog((entry) => {
+    if (!entry) { repaintLog(); return; }
+    if (logFilter !== 'all' && entry.source !== logFilter) return;
+    consoleEl.appendChild(lineNode(entry));
+    while (consoleEl.childElementCount > 1400) consoleEl.removeChild(consoleEl.firstChild);
+    if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
+  });
+  consoleEl.addEventListener('scroll', () => {
+    const atBottom = consoleEl.scrollTop + consoleEl.clientHeight >= consoleEl.scrollHeight - 30;
+    if (!atBottom && following) { following = false; followBtn.classList.remove('btn-primary'); }
+  });
+  repaintLog();
+  return dock;
+}
+
+function setDockCollapsed(v) {
+  dockCollapsed = v;
+  const dock = document.getElementById('dock');
+  if (dock) dock.classList.toggle('collapsed', v);
+  if (dockToggleBtn) { dockToggleBtn.textContent = v ? '▴' : '▾'; dockToggleBtn.title = v ? 'Show console' : 'Collapse console'; }
+  if (!v && following && consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+  persistDock();
+}
+
+function startDockDrag(e) {
+  if (e.target.closest('button, select') || dockCollapsed) return;
+  e.preventDefault();
+  const dock = document.getElementById('dock');
+  const startY = e.clientY;
+  const startH = dockHeight;
+  document.body.style.cursor = 'row-resize';
+  const onMove = (ev) => {
+    const max = Math.round(window.innerHeight * 0.6);
+    dockHeight = Math.max(64, Math.min(max, startH + (startY - ev.clientY)));
+    dock.style.setProperty('--dock-h', dockHeight + 'px');
+    if (following && consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+  };
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.body.style.cursor = '';
+    persistDock();
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function persistDock() {
+  try { window.host.settingsWrite({ dockHeight, dockCollapsed }); } catch { /* non-fatal */ }
+}
+
+const isUp = (s) => s.online || s.procServer === 'running' || s.procServer === 'starting'
+  || s.procMitm === 'running' || s.procMitm === 'starting';
+
+function statusPill(state) {
+  const map = { running: ['good', 'Running'], starting: ['warn', 'Starting'], stopped: ['', 'Stopped'], failed: ['bad', 'Failed'] };
+  const [cls, label] = map[state] || ['', 'Stopped'];
+  return frag(`<span class="pill ${cls}"><span class="dot"></span>${label}</span>`);
+}
+
+let sbLed = null, sbTitle = null, sbSub = null, sbServer = null, sbProxy = null, sbPower = null;
+
+async function togglePower() {
+  const up = isUp(store.get());
+  sbPower.disabled = true;
+  try {
+    if (up) { await window.host.systemStop(); toast('Stopping server + proxy...', 'warn'); }
+    else { await window.host.systemStart(); toast('Starting server + proxy...', 'good'); }
+  } finally { sbPower.disabled = false; }
+}
+
+function buildStatusBar() {
+  sbLed = el('span.sb-led', {});
+  sbTitle = el('b.sb-title', {});
+  sbSub = el('span.sb-sub', {});
+  sbServer = el('span.sb-state', {}, el('span.sb-tag', { text: 'Server' }));
+  sbProxy = el('span.sb-state', {}, el('span.sb-tag', { text: 'Proxy' }));
+  sbPower = frag(`<button class="sb-power"><span class="ico-slot">${icon('play')}</span><span class="pw-label">Start</span></button>`);
+  sbPower.addEventListener('click', togglePower);
+
+  return el('div.statusbar', {},
+    sbLed, sbTitle, sbSub,
+    el('div.spacer', {}),
+    sbServer, sbProxy,
+    el('span.sb-div', {}),
+    sbPower);
+}
+
+function paintStatusBar() {
+  if (!sbLed) return;
+  const s = store.get();
+
+  let cls, title, sub;
+  if (s.online) {
+    cls = 'up'; title = 'Online';
+    sub = s.status ? `v${s.status.gameVersion} · :${s.status.apiPort} · ${s.status.accountCount} acct` : `Ready · ${s.probeTarget}`;
+  } else if (s.live) {
+    cls = 'starting'; title = 'Starting'; sub = `Listening on ${s.probeTarget}`;
+  } else if (s.procServer === 'starting') {
+    cls = 'starting'; title = 'Starting'; sub = 'Booting server';
+  } else if (s.procServer === 'running') {
+    cls = 'starting'; title = 'Process up'; sub = `No response on ${s.probeTarget}`;
+  } else {
+    cls = 'down'; title = 'Offline'; sub = 'Not running';
+  }
+  sbLed.className = 'sb-led ' + cls;
+  sbTitle.textContent = title;
+  sbSub.textContent = sub;
+
+  const srv = s.online ? 'running' : s.procServer;
+  clear(sbServer); sbServer.append(el('span.sb-tag', { text: 'Server' }), statusPill(srv));
+  clear(sbProxy); sbProxy.append(el('span.sb-tag', { text: 'Proxy' }), statusPill(s.procMitm));
+
+  const up = isUp(s);
+  sbPower.querySelector('.pw-label').textContent = up ? 'Stop' : 'Start';
+  sbPower.querySelector('.ico-slot').innerHTML = icon(up ? 'stop' : 'play');
+  sbPower.classList.toggle('stop', up);
+}
 
 function navigate(id, force = false) {
-  const page = byId[id] || byId.dashboard;
+  const page = byId[id] || byId.overview;
   if (id === currentId && !force) return;
   if (cleanup) { try { cleanup(); } catch {} cleanup = null; }
   currentId = page.id;
   location.hash = `#/${page.id}`;
   setActiveNav(page.id);
-  renderHeader(page);
+  renderPageBar(page);
 
   const scroll = document.getElementById('pageScroll');
   clear(scroll);
-  const root = el('div.page-enter', {});
+  const root = el('div.view', {});
   scroll.appendChild(root);
   scroll.scrollTop = 0;
 
-  Promise.resolve(page.mount(root, { navigate, rerender: () => navigate(page.id, true) }))
+  Promise.resolve(page.mount(root, { rerender: () => navigate(page.id, true) }))
     .then((c) => { cleanup = typeof c === 'function' ? c : null; })
     .catch((e) => { root.appendChild(frag(`<div class="empty"><b>Page failed</b><span>${String(e.message || e)}</span></div>`)); });
-}
-
-// --------------------------------------------------------------- live status
-
-// Cache the last rendered strings so the 2–8s poll loop doesn't touch the DOM
-// (classList + two text nodes) unless something actually changed.
-let railPrev = { cls: '', title: '', sub: '' };
-
-function applyRailStatus() {
-  const s = store.get();
-  const node = document.getElementById('railStatus');
-  if (!node) return;
-
-  let cls, title, sub;
-  if (s.online) {
-    // genuinely ready (db-backed status answered)
-    cls = 'up';
-    title = 'Server online';
-    sub = s.status
-      ? `v${s.status.gameVersion} · :${s.status.apiPort} · ${s.status.accountCount} acct`
-      : `Ready · ${s.probeTarget}`;
-  } else if (s.live) {
-    // web host answers /health but DB-backed status is not ready yet
-    cls = 'starting';
-    title = 'Starting…';
-    sub = `Listening · not ready · ${s.probeTarget}`;
-  } else if (s.procServer === 'starting') {
-    cls = 'starting';
-    title = 'Starting…';
-    sub = 'Booting server';
-  } else if (s.procServer === 'running') {
-    cls = 'starting';
-    title = 'Process up';
-    sub = `No response on ${s.probeTarget}`;
-  } else {
-    cls = 'down';
-    title = 'Server offline';
-    sub = 'Not running';
-  }
-
-  if (cls === railPrev.cls && title === railPrev.title && sub === railPrev.sub) return;
-  railPrev = { cls, title, sub };
-  node.classList.remove('up', 'down', 'starting');
-  node.classList.add(cls);
-  document.getElementById('railStTitle').textContent = title;
-  document.getElementById('railStSub').textContent = sub;
 }
 
 let wasReady = false;
@@ -241,7 +318,6 @@ async function poll() {
   let pStatus = null;
   try { pStatus = await window.host.procStatus(); } catch { /* ignore */ }
   const { live, ready, status } = await api.probe();
-  if (live && !ready && status == null) { /* keep prior status null below */ }
   if (ready) {
     if (!wasReady) { await api.refreshBase(); await reloadAccounts(); refreshTargetPicker(); }
   }
@@ -258,14 +334,14 @@ async function poll() {
 
 // Adaptive scheduler: probe hard while the server is booting (that's when the
 // user is watching), relax once state is stable, and back off when the window
-// is hidden. Replaces a flat 4s setInterval.
+// is hidden.
 let pollTimer = null;
 let pollBusy = false;
 
 function pollDelay() {
   const s = store.get();
-  if (document.hidden) return 15000;                       // minimized — relax
-  if (s.live && !s.online) return 1500;                    // booting — tight loop
+  if (document.hidden) return 15000;                       // minimized - relax
+  if (s.live && !s.online) return 1500;                    // booting - tight loop
   if (s.procServer === 'starting') return 1500;
   if (s.online) return 5000;                               // stable online
   return 7000;                                             // offline idle
@@ -286,18 +362,13 @@ function schedulePoll(immediate = false) {
 // long hidden-state delay.
 document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePoll(true); });
 
-function refreshTargetPicker() {
-  const actions = document.getElementById('phActions');
-  if (actions && currentId && byId[currentId].needsTarget) {
-    clear(actions);
-    actions.appendChild(buildTargetPicker());
-  }
-}
-
-// --------------------------------------------------------------- boot
-
 async function boot() {
-  await initTheme();
+  // dock geometry is remembered between sessions
+  try {
+    const s = await window.host.settingsRead();
+    if (s && Number.isFinite(s.dockHeight)) dockHeight = Math.max(64, s.dockHeight);
+    if (s && typeof s.dockCollapsed === 'boolean') dockCollapsed = s.dockCollapsed;
+  } catch { /* defaults */ }
 
   // First-run gate: with no server project present there is nothing for the
   // shell to drive, so offer to download it from GitHub or locate an existing
@@ -306,19 +377,17 @@ async function boot() {
   try { project = await window.host.projectStatus(); } catch { /* treat as found */ }
   if (project && !project.found) {
     renderProjectGate(document.getElementById('app'), project, { titlebar: buildTitlebar() });
-    applyTheme(document.documentElement.dataset.theme); // sync toggle glyph now #themeBtn exists
     return;
   }
 
   buildShell();
-  applyTheme(document.documentElement.dataset.theme); // sync the toggle button glyph
 
   window.host.onProcState((d) => {
     const prevServer = store.get().procServer;
     if (d.server) store.set({ procServer: d.server });
     if (d.mitm) store.set({ procMitm: d.mitm });
     if (d.serverPid !== undefined) store.set({ serverPid: d.serverPid });
-    // lifecycle flip (start/stop) — re-probe right away so the UI reacts
+    // lifecycle flip (start/stop) - re-probe right away so the UI reacts
     if (d.server && d.server !== prevServer) schedulePoll(true);
   });
   window.host.onProcLog((d) => pushLog(d));
@@ -327,13 +396,14 @@ async function boot() {
   // hours by the main process). Applying stays manual on the Updates page.
   window.host.onServerUpdate((d) => {
     const n = d.behind === 1 ? '1 commit' : `${d.behind} commits`;
-    toast(`Server update available — ${n} behind (${d.remoteShort}: ${d.remoteSubject}). Open the Updates page to install.`, 'good', 'Server update');
+    toast(`Server update available - ${n} behind (${d.remoteShort}: ${d.remoteSubject}). Open the Updates page to install.`, 'good', 'Server update');
   });
 
-  store.subscribe(() => applyRailStatus());
+  store.subscribe(paintStatusBar);
+  paintStatusBar();
 
-  const start = (location.hash || '').replace('#/', '') || 'dashboard';
-  navigate(byId[start] ? start : 'dashboard');
+  const start = (location.hash || '').replace('#/', '') || 'overview';
+  navigate(byId[start] ? start : 'overview');
 
   await api.refreshBase();
   store.set({ probeTarget: api.hostPort() });

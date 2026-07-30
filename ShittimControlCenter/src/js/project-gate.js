@@ -24,7 +24,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
 
   const wrap = el('div', {
     style: {
-      gridColumn: '1 / -1', gridRow: '2', minHeight: '0', overflow: 'auto',
+      gridColumn: '1 / -1', gridRow: '2 / -1', minHeight: '0', overflow: 'auto',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '34px 26px',
     },
   });
@@ -32,7 +32,6 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
   wrap.appendChild(col);
   appRoot.appendChild(wrap);
 
-  // ---- header ---------------------------------------------------------------
   col.appendChild(frag(`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
       <img class="brand-img" src="${BRAND_IMG}" alt="" style="height:46px;width:auto">
@@ -46,13 +45,12 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
     </div>`));
   col.appendChild(frag(`<div class="hazard" style="margin:18px 0"></div>`));
 
-  // ---- download card --------------------------------------------------------
   const targetLabel = el('span.mono', {
     text: targetDir,
     'data-selectable': true,
     style: { fontSize: '12px', color: 'var(--blue-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: '0' },
   });
-  const changeBtn = button('Change…', { variant: 'ghost', sm: true, iconName: 'folder', onClick: async () => {
+  const changeBtn = button('Change...', { variant: 'ghost', sm: true, iconName: 'folder', onClick: async () => {
     if (busy) return;
     const picked = await window.host.pickFolder();
     if (!picked) return;
@@ -63,7 +61,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
   const dlBtn = button('Download latest project', { variant: 'primary', iconName: 'download', onClick: doDownload });
 
   const progressWrap = el('div', { style: { display: 'none', marginTop: '14px' } });
-  const progressBar = el('div', { style: { height: '100%', width: '0%', background: 'linear-gradient(90deg, var(--blue), var(--blue-ink))', borderRadius: '999px', transition: 'width .15s ease' } });
+  const progressBar = el('div', { style: { height: '100%', width: '0%', background: 'var(--blue)', borderRadius: '999px', transition: 'width .15s ease' } });
   const progressTrack = el('div', { style: { height: '8px', background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: '999px', overflow: 'hidden' } }, progressBar);
   const progressText = el('div', { style: { fontSize: '12px', color: 'var(--ink-2)', marginTop: '8px', display: 'flex', justifyContent: 'space-between', gap: '12px' } });
   progressWrap.appendChild(progressTrack);
@@ -71,7 +69,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
 
   const downloadCard = el('div.card', {},
     el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Download latest' }),
-      el('span.sub', { text: 'Neoexm/Shittim-Server · main' }), el('div.spacer', {})),
+      el('span.sub', { text: 'Neoexm/Shittim-Server - main' }), el('div.spacer', {})),
     el('div.card-body', {},
       el('p', {
         html: 'Fetches a zip of the latest commit from GitHub and unpacks it into the folder below.',
@@ -85,8 +83,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
 
   col.appendChild(downloadCard);
 
-  // ---- locate card ----------------------------------------------------------
-  const locateBtn = button('Locate folder…', { variant: 'ghost', iconName: 'folder', onClick: doLocate });
+  const locateBtn = button('Locate folder...', { variant: 'ghost', iconName: 'folder', onClick: doLocate });
   const locateCard = el('div.card', { style: { marginTop: '16px' } },
     el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Use an existing folder' })),
     el('div.card-body', {},
@@ -96,8 +93,6 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
       }),
       locateBtn));
   col.appendChild(locateCard);
-
-  // ---- actions --------------------------------------------------------------
 
   function setBusy(on) {
     busy = on;
@@ -117,17 +112,17 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
   async function doDownload() {
     if (busy) return;
     setBusy(true);
-    showProgress(2, 'Starting…');
+    showProgress(2, 'Starting...');
     unsub = window.host.onProjectProgress((d) => {
       if (d.phase === 'download') {
         const pct = d.total ? (d.recv / d.total) * 100 : 0;
-        showProgress(d.total ? pct : 8, d.total ? `Downloading… ${fmtBytes(d.recv)} / ${fmtBytes(d.total)}` : `Downloading… ${fmtBytes(d.recv)}`);
+        showProgress(d.total ? pct : 8, d.total ? `Downloading... ${fmtBytes(d.recv)} / ${fmtBytes(d.total)}` : `Downloading... ${fmtBytes(d.recv)}`);
       } else if (d.phase === 'resolve') {
-        showProgress(4, 'Resolving latest commit…');
+        showProgress(4, 'Resolving latest commit...');
       } else if (d.phase === 'extract') {
-        showProgress(92, 'Extracting…');
+        showProgress(92, 'Extracting...');
       } else if (d.phase === 'install') {
-        showProgress(97, 'Installing files…');
+        showProgress(97, 'Installing files...');
       } else if (d.phase === 'done') {
         showProgress(100, 'Done');
       } else if (d.phase === 'error') {
@@ -138,7 +133,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
       const res = await window.host.projectDownload({ targetDir });
       if (unsub) { unsub(); unsub = null; }
       if (res && res.ok) {
-        showProgress(100, `Installed ${res.sha || ''} — starting…`);
+        showProgress(100, `Installed ${res.sha || ''} - starting...`);
         toast('Project downloaded', 'good', 'Ready');
         setTimeout(() => location.reload(), 500);
       } else {

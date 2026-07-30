@@ -71,7 +71,7 @@ export const api = {
 
   // Two-stage probe so the UI never lies about being "online":
   //   live  = the web host answers /health (process is up / port bound)
-  //   ready = /api/admin/status answers — that handler hits the DB, so a 200
+  //   ready = /api/admin/status answers - that handler hits the DB, so a 200
   //           means the server is genuinely able to serve, not just listening.
   // Only `ready` should ever render as "Online".
   async probe() {
@@ -87,7 +87,6 @@ export const api = {
     }
   },
 
-  // accounts
   status: () => req('GET', '/api/admin/status'),
   accounts: () => req('GET', '/api/admin/accounts'),
   accountDetail: (id) => req('GET', `/api/admin/account/${id}/detail`),
@@ -97,35 +96,28 @@ export const api = {
   currencies: (id) => req('GET', `/api/admin/account/${id}/currencies`),
   setCurrency: (b) => req('POST', '/api/admin/currency/set', b),
 
-  // inventory
   items: (id) => req('GET', `/api/admin/account/${id}/items`),
   giveItem: (b) => req('POST', '/api/admin/items/give', b),
   removeItem: (b) => req('POST', '/api/admin/items/remove', b),
   characters: (id) => req('GET', `/api/admin/account/${id}/characters`),
 
-  // mail
   mails: (id) => req('GET', `/api/admin/account/${id}/mails`),
   sendMail: (b) => req('POST', '/api/admin/mail/send', b),
   deleteMail: (b) => req('POST', '/api/admin/mail/delete', b),
 
-  // commands
   command: (uid, command) => req('POST', '/api/admin/command', { uid, command }),
 
-  // static
   staticItems: (q) => req('GET', `/api/admin/static/items?limit=400&search=${encodeURIComponent(q || '')}`),
   staticCharacters: (q) => req('GET', `/api/admin/static/characters?limit=600&search=${encodeURIComponent(q || '')}`),
   staticEquipment: (q) => req('GET', `/api/admin/static/equipment?limit=400&search=${encodeURIComponent(q || '')}`),
   staticCurrencies: () => req('GET', '/api/admin/static/currencies'),
   parcelTypes: () => req('GET', '/api/admin/meta/parceltypes'),
 
-  // gacha + events
   gachaConfig: () => req('GET', '/api/admin/gacha/config'),
   setGachaConfig: (b) => req('POST', '/api/admin/gacha/config', b),
   gachaBanners: () => req('GET', '/api/admin/gacha/banners'),
   eventSeasons: () => req('GET', '/api/admin/events/seasons'),
 };
-
-// ---------------------------------------------------------------- store
 
 function makeStore(initial) {
   let state = initial;

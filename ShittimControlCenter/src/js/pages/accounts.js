@@ -15,13 +15,11 @@ function normalizeCurrencies(dict) {
 
 export default {
   id: 'accounts',
-  title: 'Accounts',
-  subtitle: 'Create, edit and administer player accounts',
-  icon: 'users',
+  title: 'Accounts',  icon: 'users',
   needsTarget: false,
 
   mount(root) {
-    return gate(root, {}, { needServer: true }, (root) => {
+    return gate(root, { needServer: true }, (root) => {
       const layout = el('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.25fr)', gap: '18px', alignItems: 'start' } });
       const listCard = el('div.card', { style: { minWidth: '0' } });
       const detailCard = el('div.card', { style: { minWidth: '0' } });
@@ -29,7 +27,7 @@ export default {
       layout.appendChild(detailCard);
       root.appendChild(layout);
 
-      const searchInput = input({ placeholder: 'Filter…', className: 'input btn-sm', style: { height: '32px', width: '130px', minWidth: '0', flex: '0 1 130px' } });
+      const searchInput = input({ placeholder: 'Filter...', className: 'input btn-sm', style: { height: '32px', width: '130px', minWidth: '0', flex: '0 1 130px' } });
       const createBtn = button('New', { variant: 'primary', sm: true, iconName: 'plus', onClick: openCreate });
       const refreshBtn = button('', { variant: 'ghost', sm: true, iconName: 'refresh', onClick: loadList });
 
@@ -68,7 +66,7 @@ export default {
       function showDetailPlaceholder() {
         clear(detailCard);
         detailCard.appendChild(el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Account detail' })));
-        detailCard.appendChild(emptyState('Select an account', 'Pick a sensei from the roster'));
+        detailCard.appendChild(emptyState('Select an account'));
       }
 
       async function loadDetail(id) {
@@ -81,7 +79,6 @@ export default {
       }
 
       function renderDetail(body, d) {
-        // identity fields
         const fNick = input({ value: d.nickname || '' });
         const fComment = input({ value: d.comment || '' });
         const fLevel = input({ value: d.level ?? 1, type: 'number' });
@@ -94,7 +91,6 @@ export default {
           field('Level', fLevel),
           field('Experience', fExp),
           field('VIP level', fVip));
-        body.appendChild(sectionTag('Identity'));
         body.appendChild(idGrid);
         const saveId = button('Save identity', { variant: 'primary', iconName: 'save', onClick: async () => {
           const r = await api.accountUpdate({ serverId: d.serverId, nickname: fNick.value, comment: fComment.value, level: Number(fLevel.value), exp: Number(fExp.value), vipLevel: Number(fVip.value) }).then(() => ({ ok: true })).catch((e) => ({ ok: false, error: e.message }));
@@ -103,9 +99,8 @@ export default {
         }});
         body.appendChild(el('div', { style: { marginTop: '4px' } }, saveId));
 
-        // currencies
         body.appendChild(frag('<div class="hazard" style="margin:20px 0 16px"></div>'));
-        body.appendChild(sectionTag('Currencies'));
+        body.appendChild(el('div', { text: 'Currencies', style: { fontSize: '12px', fontWeight: '600', color: 'var(--ink-2)', margin: '0 0 10px' } }));
         const cur = normalizeCurrencies(d.currencies);
         const curGrid = el('div.grid-2', {});
         const edits = {};
@@ -126,27 +121,21 @@ export default {
         }});
         body.appendChild(el('div.row.wrap', { style: { marginTop: '4px', gap: '10px' } },
           saveCur,
-          button('Max all currencies', { variant: 'gold', iconName: 'bolt', onClick: () => maxCurrencies(d.serverId, edits) })));
+          button('Max all currencies', { variant: 'ghost', onClick: () => maxCurrencies(d.serverId, edits) })));
 
-        // power tools
-        body.appendChild(frag('<div class="hazard gold" style="margin:20px 0 16px"></div>'));
-        body.appendChild(sectionTag('Power tools'));
+        body.appendChild(frag('<div class="hazard" style="margin:20px 0 16px"></div>'));
+        body.appendChild(el('div', { text: 'Actions', style: { fontSize: '12px', fontWeight: '600', color: 'var(--ink-2)', margin: '0 0 10px' } }));
         const tools = el('div.row.wrap', { style: { gap: '10px' } });
-        tools.appendChild(cmdButton(d.serverId, 'Max all characters', 'star', 'max all', 'gold'));
-        tools.appendChild(cmdButton(d.serverId, 'Unlock all characters', 'users', 'giveall'));
-        tools.appendChild(cmdButton(d.serverId, 'Unlock campaign + story', 'shield', ['unlockall campaign', 'unlockall story']));
-        tools.appendChild(cmdButton(d.serverId, 'Unlock battlepass', 'ticket', 'unlockall battlepass'));
+        tools.appendChild(cmdButton(d.serverId, 'Max all characters', 'max all'));
+        tools.appendChild(cmdButton(d.serverId, 'Unlock all characters', 'giveall'));
+        tools.appendChild(cmdButton(d.serverId, 'Unlock campaign + story', ['unlockall campaign', 'unlockall story']));
+        tools.appendChild(cmdButton(d.serverId, 'Unlock battlepass', 'unlockall battlepass'));
         body.appendChild(tools);
 
-        // meta + delete
-        body.appendChild(frag(`<div class="row wrap" style="gap:8px;margin-top:18px">
-          <span class="tag grey">items ${d.itemCount}</span>
-          <span class="tag grey">characters ${d.characterCount}</span>
-          <span class="tag grey">mails ${d.mailCount}</span>
-          <span class="tag grey">state ${escapeHtml(d.state || '')}</span></div>`));
+        body.appendChild(frag(`<div class="muted" style="font-size:12px;margin-top:18px">${d.itemCount} items · ${d.characterCount} characters · ${d.mailCount} mails · ${escapeHtml(d.state || '')}</div>`));
         const del = button('Delete account', { variant: 'danger', iconName: 'trash', onClick: async () => {
           const ok = await confirmDialog({ title: 'Delete account', danger: true, confirmLabel: 'Delete permanently',
-            message: `This permanently removes “${d.nickname}” (#${d.serverId}) and all of its data. This cannot be undone.` });
+            message: `This permanently removes "${d.nickname}" (#${d.serverId}) and all of its data. This cannot be undone.` });
           if (!ok) return;
           try { await api.accountDelete(d.serverId); toast('Account deleted', 'warn'); store.set({ targetId: null }); loadList(); }
           catch (e) { toast(e.message, 'bad'); }
@@ -154,10 +143,10 @@ export default {
         body.appendChild(el('div', { style: { marginTop: '16px' } }, del));
       }
 
-      function cmdButton(uid, label, ic, command, variant = 'ghost') {
+      function cmdButton(uid, label, command) {
         const commands = Array.isArray(command) ? command : [command];
-        return button(label, { variant, sm: true, iconName: ic, onClick: async () => {
-          try { for (const c of commands) await api.command(uid, c); toast(`${label} ✓`, 'good'); notifyRestart(); }
+        return button(label, { variant: 'ghost', sm: true, onClick: async () => {
+          try { for (const c of commands) await api.command(uid, c); toast(label, 'good'); notifyRestart(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
@@ -172,15 +161,14 @@ export default {
         const nick = input({ placeholder: 'Nickname', value: 'Sensei' });
         const create = button('Create account', { variant: 'primary', iconName: 'plus' });
         const cancel = button('Cancel', { variant: 'ghost' });
-        const ref = modal({ title: 'New account', body: el('div', {}, field('Nickname', nick),
-          frag('<p style="font-size:12.5px;color:var(--ink-2);margin:4px 0 0;line-height:1.6">A fully initialised, client-loadable account is created with the default starter parcels and characters.</p>')),
+        const ref = modal({ title: 'New account', body: el('div', {}, field('Nickname', nick)),
           footer: [cancel, create] });
         cancel.addEventListener('click', ref.close);
         create.addEventListener('click', async () => {
           create.disabled = true;
           try {
             const r = await api.accountCreate({ nickname: nick.value.trim() || 'Sensei' });
-            ref.close(); toast(`Created “${nick.value}” (#${r.serverId})`, 'good');
+            ref.close(); toast(`Created "${nick.value}" (#${r.serverId})`, 'good');
             store.set({ targetId: r.serverId });
             await loadList();
           } catch (e) { toast(e.message, 'bad'); create.disabled = false; }
@@ -191,7 +179,3 @@ export default {
     });
   },
 };
-
-function sectionTag(text) {
-  return frag(`<div class="section-tag"><span class="plus"></span>${escapeHtml(text)}</div>`);
-}

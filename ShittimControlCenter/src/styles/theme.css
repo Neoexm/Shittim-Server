@@ -1,154 +1,50 @@
-/* ============================================================================
-   Shittim Control Center — "SCHALE OS" design system
-   A faithful Blue Archive in-game treatment. Light ("SCHALE Day") is the
-   authentic game look: white panels on a sky gradient, parallelogram controls,
-   glossy blue CTAs, gold halo accents, diagonal stripe motifs. Dark ("SCHALE
-   Night") keeps the exact same geometry on a deep blue-navy surface ladder.
-
-   Everything is themed through the custom properties below; components
-   reference tokens only, so flipping the theme is one attribute swap on <html>.
-   Token NAMES are a stable contract — pages reference them inline.
-   ========================================================================== */
-
-/* ----------------------------------------------------------------- fonts
-   Self-hosted (woff2 bundled in ../fonts) — zero network dependency, no CSP
-   violation, no invisible-text flash. M PLUS Rounded carries the BA voice. */
-@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/inter-400.woff2') format('woff2'); }
-@font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/inter-500.woff2') format('woff2'); }
-@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/inter-600.woff2') format('woff2'); }
-@font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url('../fonts/inter-700.woff2') format('woff2'); }
-@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/mplus-500.woff2') format('woff2'); }
-@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 700; font-display: swap; src: url('../fonts/mplus-700.woff2') format('woff2'); }
+/* the wordmark is the only bundled face; everything else rides the OS ui font,
+   which has real weight steps we don't have to ship. */
 @font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 800; font-display: swap; src: url('../fonts/mplus-800.woff2') format('woff2'); }
 
-/* =========================== DARK — SCHALE Night ========================== */
 :root {
-  /* — accent ramp (BA blue) — "-soft/-haze" are low-alpha tints — */
   --blue:        #2eb2f2;
   --blue-deep:   #0d8ed8;
-  --blue-ink:    #6fcbf8;                        /* accent TEXT on dark */
-  --blue-soft:   rgba(46, 178, 242, 0.16);      /* active / hover tint */
-  --blue-haze:   rgba(46, 178, 242, 0.08);      /* faintest tint (row hover) */
+  --blue-ink:    #6fcbf8;
+  --blue-soft:   rgba(46, 178, 242, 0.16);
+  --blue-haze:   rgba(46, 178, 242, 0.08);
 
-  /* — chrome (titlebar / rail) — */
   --navy:        #0e1b2b;
-  --navy-2:      #142438;
-  --navy-3:      #0a1420;                        /* darkest chrome: titlebar */
+  --navy-3:      #0a1420;
   --navy-line:   #21374f;
 
-  /* — BA gold (halo, stars, highlight CTAs) — */
   --gold:        #ffd53e;
-  --gold-deep:   #eeb31a;
-  --gold-ink:    #ffdf6b;                        /* gold TEXT on dark */
-  --gold-soft:   rgba(255, 213, 62, 0.16);
 
-  --ink:         #e6f1fb;                        /* primary text */
-  --ink-2:       #93aac2;                        /* secondary */
-  --ink-3:       #63798f;                        /* muted labels only */
+  --ink:         #e6f1fb;
+  --ink-2:       #93aac2;
+  --ink-3:       #63798f;
 
-  --bg:          #0d1826;                        /* content backdrop */
-  --bg-grid:     rgba(46, 178, 242, 0.045);
-  --surface:     #16273c;                        /* cards (raised) */
-  --surface-2:   #0f1d2e;                        /* sunken wells (inputs) */
-  --line:        #26405c;                        /* hairline */
+  --bg:          #0d1826;
+  --surface:     #16273c;
+  --surface-2:   #0f1d2e;
+  --line:        #26405c;
   --line-2:      #1d3348;
 
-  --good:        #35d18d;  --good-soft: rgba(53, 209, 141, 0.16);
-  --warn:        #ffbe3d;  --warn-soft: rgba(255, 190, 61, 0.16);
-  --bad:         #ff6d84;  --bad-soft:  rgba(255, 109, 132, 0.17);
+  --good:        #35d18d;
+  --warn:        #ffbe3d;
+  --bad:         #ff6d84;
 
-  --led-idle:      #52678a;
-  --led-idle-soft: rgba(82, 103, 138, 0.22);
-  --log-server:    #b8d3ec;
-  --log-mitm:      #cbbcf2;
+  --led-idle:    #52678a;
 
-  /* console is a dark navy terminal in BOTH themes */
-  --console-bg:   #0a1522;
-  --console-line: #1d3348;
+  --font-round: 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --font-body:  'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:  'Cascadia Mono', 'Consolas', monospace;
 
-  /* — type — */
-  --font-round: 'M PLUS Rounded 1c', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
-  --font-body:  'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
-  --font-mono:  'Cascadia Code', 'JetBrains Mono', ui-monospace, 'Consolas', monospace;
-
-  /* — geometry — the BA parallelogram runs through everything — */
-  --r-sm: 8px;
-  --r:    12px;
-  --r-lg: 18px;
+  --r-sm: 4px;
+  --r:    6px;
   --skew: -10deg;
 
-  /* — elevation — */
-  --sh-1: 0 1px 2px rgba(2, 8, 16, 0.40), 0 3px 12px rgba(2, 8, 16, 0.30);
-  --sh-2: 0 6px 22px rgba(2, 8, 16, 0.48), 0 2px 6px rgba(2, 8, 16, 0.36);
-  --sh-3: 0 22px 60px rgba(0, 4, 10, 0.65), 0 8px 20px rgba(0, 4, 10, 0.45);
-  --sh-glow: 0 0 0 3px rgba(46, 178, 242, 0.30), 0 0 18px rgba(46, 178, 242, 0.20);
+  --sh-1: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-  /* — BA button gloss (top shine / bottom shade) — */
-  --gloss-top:    rgba(255, 255, 255, 0.16);
-  --gloss-bottom: rgba(0, 0, 0, 0.22);
-
-  /* — neutral control fills — */
   --ctrl-hover: rgba(255, 255, 255, 0.06);
-  --ctrl-press: rgba(255, 255, 255, 0.03);
   --knob:       #f2f8fe;
   --scroll:     #27405c;
   --scroll-h:   #335172;
-}
-
-/* =========================== LIGHT — SCHALE Day =========================== */
-:root[data-theme="light"] {
-  --blue:        #0798e5;
-  --blue-deep:   #0378bc;
-  --blue-ink:    #0a6fae;
-  --blue-soft:   #dff2fe;
-  --blue-haze:   #eef8ff;
-
-  --navy:        #223a54;
-  --navy-2:      #2c4a6b;
-  --navy-3:      #1a2c40;
-  --navy-line:   #3a5878;
-
-  --gold:        #ffd53e;
-  --gold-deep:   #f2b90d;
-  --gold-ink:    #a97c00;
-  --gold-soft:   #fff3c8;
-
-  --ink:         #2b4257;
-  --ink-2:       #587189;
-  --ink-3:       #869cb0;
-
-  --bg:          #d8ecfa;
-  --bg-grid:     rgba(255, 255, 255, 0.5);
-  --surface:     #ffffff;
-  --surface-2:   #f1f7fc;
-  --line:        #cfe2f0;
-  --line-2:      #e3eef7;
-
-  --good:        #23bd77;  --good-soft: #ddf5ea;
-  --warn:        #f0a20a;  --warn-soft: #fdf0d3;
-  --bad:         #fb5872;  --bad-soft:  #ffe3e9;
-
-  --led-idle:      #90a4bb;
-  --led-idle-soft: rgba(144, 164, 187, 0.28);
-  --log-server:    #a9cdec;
-  --log-mitm:      #c5b5ee;
-
-  --console-bg:   #10233a;
-  --console-line: #24405f;
-
-  --sh-1: 0 1px 2px rgba(23, 62, 99, 0.07), 0 3px 10px rgba(23, 62, 99, 0.07);
-  --sh-2: 0 5px 16px rgba(23, 62, 99, 0.11), 0 1px 3px rgba(23, 62, 99, 0.07);
-  --sh-3: 0 16px 44px rgba(16, 45, 74, 0.22), 0 5px 14px rgba(16, 45, 74, 0.12);
-  --sh-glow: 0 0 0 3px rgba(7, 152, 229, 0.20);
-
-  --gloss-top:    rgba(255, 255, 255, 0.55);
-  --gloss-bottom: rgba(9, 58, 92, 0.14);
-
-  --ctrl-hover: var(--blue-haze);
-  --ctrl-press: rgba(23, 62, 99, 0.05);
-  --knob:       #ffffff;
-  --scroll:     #b9d2e6;
-  --scroll-h:   #9cbeda;
 }
 
 * { box-sizing: border-box; }
@@ -166,19 +62,13 @@ html, body {
   cursor: default;
 }
 
-/* Brief cross-fade only while the theme is switching (set by app.js). */
-html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
-  transition: background-color .28s ease, color .24s ease, border-color .28s ease, box-shadow .28s ease, fill .24s ease, stroke .24s ease !important;
-}
-
-/* Selectable text where a user would actually want it. */
 .mono, code, .console, .d-detail, .pi-id, .bc-id, input, textarea, [data-selectable] { user-select: text; }
 
 ::-webkit-scrollbar { width: 11px; height: 11px; }
 ::-webkit-scrollbar-thumb {
   background: var(--scroll);
   border: 3px solid transparent;
-  border-radius: 99px;
+  border-radius: 6px;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--scroll-h); background-clip: content-box; }
@@ -187,34 +77,14 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *
 h1, h2, h3, h4 { font-family: var(--font-round); margin: 0; color: var(--ink); }
 a { color: var(--blue-ink); text-decoration: none; }
 
-/* Keyboard focus ring (accessibility) — pointer focus stays quiet. */
 :focus { outline: none; }
-:focus-visible {
-  outline: none;
-  box-shadow: var(--sh-glow);
-  border-radius: var(--r-sm);
-}
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; border-radius: var(--r-sm); }
 
-/* Motion is decorative — honour the OS setting. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-/* ----------------------------------------------------------------- motifs */
-
-/* Diagonal caution/deco stripe — the BA section divider. */
-.hazard {
-  height: 7px;
-  background: repeating-linear-gradient(-55deg,
-    var(--blue) 0 9px, transparent 9px 18px);
-  opacity: 0.5;
-  border-radius: 99px;
-}
-.hazard.gold {
-  background: repeating-linear-gradient(-55deg,
-    var(--gold) 0 9px, transparent 9px 18px);
-  opacity: 0.8;
-}
+.hazard { height: 1px; background: var(--line); }
 
 .plus {
   position: relative;
@@ -222,469 +92,320 @@ a { color: var(--blue-ink); text-decoration: none; }
   flex: none;
 }
 .plus::before, .plus::after {
-  content: ''; position: absolute; background: currentColor; border-radius: 2px;
+  content: ''; position: absolute; background: currentColor; border-radius: 1px;
 }
-.plus::before { left: 50%; top: 0; width: 2.5px; height: 100%; transform: translateX(-50%); }
-.plus::after  { top: 50%; left: 0; height: 2.5px; width: 100%; transform: translateY(-50%); }
+.plus::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+.plus::after  { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
 
-/* Small skewed slash — decorative parallelogram chip. */
-.slash {
-  display: inline-block;
-  width: 26px; height: 9px;
-  border-radius: 2px;
-  transform: skewX(var(--skew));
-  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
-}
-
-/* ----------------------------------------------------------------- buttons
-   The BA button: rounded parallelogram-adjacent slab with a glossy top edge
-   and a shaded bottom edge. Primary is the blue CTA, gold is the "special"
-   CTA (navy text on yellow), danger is the pink confirm. */
+/* buttons */
 
 .btn {
   --bg-c: var(--surface);
   --fg-c: var(--ink);
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 18px;
+  height: 30px;
+  padding: 0 14px;
   font-family: var(--font-round);
-  font-weight: 800;
-  font-size: 13.5px;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  font-size: 13px;
   color: var(--fg-c);
   background: var(--bg-c);
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   cursor: pointer;
-  box-shadow: inset 0 1.5px 0 var(--gloss-top), inset 0 -2px 0 var(--gloss-bottom);
-  transition: transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, filter .15s ease, color .15s ease;
+  transition: background-color .1s linear, border-color .1s linear, color .1s linear;
   white-space: nowrap;
-  overflow: hidden;
 }
-.btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--blue);
-  box-shadow: inset 0 1.5px 0 var(--gloss-top), inset 0 -2px 0 var(--gloss-bottom), var(--sh-1);
-}
-.btn:active { transform: translateY(0) scale(0.985); filter: brightness(0.95); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: inset 0 1.5px 0 var(--gloss-top), inset 0 -2px 0 var(--gloss-bottom); }
-.btn .ico { width: 17px; height: 17px; }
+.btn:hover { border-color: var(--blue); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn .ico { width: 16px; height: 16px; }
 
-/* shine sweep on hover for filled CTAs */
-.btn-primary::after, .btn-gold::after, .btn-danger::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 34%;
-  left: -50%;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  transform: skewX(-18deg);
-  opacity: 0;
-  pointer-events: none;
-}
-.btn-primary:hover::after, .btn-gold:hover::after, .btn-danger:hover::after {
-  animation: btn-shine .55s ease;
-}
-@keyframes btn-shine { from { left: -50%; opacity: 1; } to { left: 120%; opacity: 0; } }
+.btn-primary { --bg-c: var(--blue); --fg-c: #fff; border-color: transparent; }
+.btn-primary:hover { --bg-c: var(--blue-deep); border-color: transparent; }
 
-.btn-primary {
-  --bg-c: linear-gradient(180deg, var(--blue) 0%, var(--blue-deep) 100%);
-  --fg-c: #fff;
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.42), inset 0 -2px 0 rgba(0, 40, 70, 0.28), 0 4px 12px rgba(7, 140, 216, 0.30);
-}
-.btn-primary:hover {
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.42), inset 0 -2px 0 rgba(0, 40, 70, 0.28), 0 7px 18px rgba(7, 140, 216, 0.42);
-}
+.btn-danger { --bg-c: var(--bad); --fg-c: #fff; border-color: transparent; }
+.btn-danger:hover { --bg-c: #f4576f; border-color: transparent; }
 
-.btn-gold {
-  --bg-c: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
-  --fg-c: #3d2f04;
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.55), inset 0 -2px 0 rgba(140, 96, 0, 0.30), 0 4px 12px rgba(238, 179, 26, 0.30);
-}
-.btn-gold:hover {
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.55), inset 0 -2px 0 rgba(140, 96, 0, 0.30), 0 7px 18px rgba(238, 179, 26, 0.40);
-}
+.btn-ghost { --bg-c: transparent; border-color: var(--line); }
+.btn-ghost:hover { --bg-c: var(--blue-soft); border-color: var(--blue); --fg-c: var(--blue-ink); }
 
-.btn-danger {
-  --bg-c: linear-gradient(180deg, #ff7d92 0%, var(--bad) 100%);
-  --fg-c: #fff;
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.40), inset 0 -2px 0 rgba(120, 10, 32, 0.25), 0 4px 12px rgba(251, 88, 114, 0.28);
-}
-.btn-danger:hover {
-  border-color: transparent;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.40), inset 0 -2px 0 rgba(120, 10, 32, 0.25), 0 7px 18px rgba(251, 88, 114, 0.38);
-}
-
-.btn-ghost { --bg-c: transparent; border-color: var(--line); box-shadow: none; }
-.btn-ghost:hover { background: var(--blue-soft); border-color: var(--blue); color: var(--blue-ink); box-shadow: none; }
-.btn-sm { height: 32px; padding: 0 12px; font-size: 12.5px; border-radius: 8px; }
+.btn-sm { height: 26px; padding: 0 10px; font-size: 12px; }
 .btn-block { width: 100%; }
 
-/* Signature skewed hero action (start/stop) — the full BA parallelogram. */
+/* the one skewed control - start/stop, the BA parallelogram */
 .btn-skew {
   transform: skewX(var(--skew));
-  border-radius: 6px;
-  padding: 0 30px;
-  height: 48px;
-  font-size: 14.5px;
+  padding: 0 26px;
+  height: 40px;
+  font-size: 14px;
 }
-.btn-skew > * { transform: skewX(calc(-1 * var(--skew))); }
-.btn-skew:hover { transform: skewX(var(--skew)) translateY(-1px); }
-.btn-skew:active { transform: skewX(var(--skew)) scale(0.985); }
-.btn-skew::after { transform: none; }
+.btn-skew > * { display: inline-flex; align-items: center; transform: skewX(calc(-1 * var(--skew))); }
+.btn-primary.btn-skew {
+  background: linear-gradient(180deg, var(--blue), var(--blue-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
 
-/* ----------------------------------------------------------------- cards
-   White BA panel: crisp hairline, soft drop, and a skewed blue title mark. */
+/* cards */
 
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r);
-  box-shadow: var(--sh-1);
 }
 .card-head {
   display: flex;
   align-items: center;
   gap: 8px 10px;
-  flex-wrap: wrap; /* controls drop to a second row instead of crushing */
-  padding: 14px 18px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--line-2);
 }
-/* head controls keep their natural width — a shrunk .btn clips its label */
 .card-head .btn, .card-head .select, .card-head .pill { flex: none; }
 .card-head .tab-mark {
-  width: 6px; height: 20px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--blue), var(--blue-deep));
-  transform: skewX(var(--skew));
-  box-shadow: 0 0 8px rgba(46, 178, 242, 0.35);
+  width: 3px; height: 14px;
+  border-radius: 1px;
+  background: var(--blue);
   flex: none;
 }
-.card-head h3 { font-size: 15.5px; font-weight: 800; letter-spacing: 0.2px; }
-.card-head .sub { font-size: 12px; color: var(--ink-3); font-weight: 600; font-family: var(--font-body); }
+.card-head h3 { font-size: 15px; font-weight: 600; }
+.card-head .sub { font-size: 12px; color: var(--ink-3); font-weight: 400; font-family: var(--font-body); }
 .card-head .spacer, .spacer { flex: 1; }
-.card-body { padding: 18px; }
-.card-body.tight { padding: 14px; }
+.card-body { padding: 12px 14px; }
+.card-body.tight { padding: 12px; }
 
-/* section header within a page */
 .section-tag {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--font-round); font-weight: 800; font-size: 12.5px;
-  color: var(--blue-ink); text-transform: uppercase; letter-spacing: 1.4px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-round); font-weight: 600; font-size: 12px;
+  color: var(--blue-ink);
   margin: 4px 0 12px;
 }
-.section-tag .plus { color: var(--gold-deep); }
+.section-tag .plus { color: var(--gold); }
 
-/* ----------------------------------------------------------------- fields */
+/* fields */
 
-.field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; min-width: 0; }
 .field > label {
   font-family: var(--font-round);
-  font-weight: 700; font-size: 12.5px; color: var(--ink-2);
-  letter-spacing: 0.2px;
+  font-weight: 600; font-size: 12px; color: var(--ink-2);
   display: flex; align-items: center; gap: 6px;
 }
-.field > label .hint { font-weight: 500; color: var(--ink-3); font-family: var(--font-body); }
+.field > label .hint { font-weight: 400; color: var(--ink-3); font-family: var(--font-body); }
 
 .input, .select, textarea.input {
-  height: 40px;
+  height: 30px;
   width: 100%;
-  padding: 0 13px;
+  padding: 0 12px;
   font-family: var(--font-body);
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink);
   background: var(--surface-2);
-  border: 1.5px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: var(--r-sm);
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  transition: border-color .1s linear;
 }
-textarea.input { height: auto; padding: 11px 13px; resize: vertical; line-height: 1.55; min-height: 92px; }
+textarea.input { height: auto; padding: 8px 12px; resize: vertical; line-height: 1.55; min-height: 88px; }
 .input::placeholder, textarea.input::placeholder { color: var(--ink-3); }
 .input:focus, .select:focus, textarea.input:focus {
   outline: none;
   border-color: var(--blue);
-  box-shadow: var(--sh-glow);
   background: var(--surface);
 }
 .select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2393aac2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 13px center;
-  padding-right: 34px;
+  background-position: right 12px center;
+  padding-right: 32px;
   cursor: pointer;
-}
-:root[data-theme="light"] .select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23587189' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
 }
 .select option { background: var(--surface); color: var(--ink); }
 .input-row { display: flex; gap: 10px; }
 .input-row > * { flex: 1; min-width: 0; }
 
-/* toggle switch — BA blue pill */
+/* toggle */
 .toggle {
   position: relative; flex: none;
-  width: 48px; height: 27px;
-  border-radius: 99px;
-  background: var(--led-idle-soft);
-  border: 1.5px solid var(--line);
+  width: 44px; height: 24px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   cursor: pointer;
-  transition: background .18s ease, border-color .18s ease;
+  transition: background-color .1s linear, border-color .1s linear;
 }
 .toggle::after {
-  content: ''; position: absolute; top: 2.5px; left: 3px;
-  width: 19px; height: 19px; border-radius: 50%;
-  background: var(--knob); box-shadow: 0 1px 3px rgba(4, 20, 36, 0.45);
-  transition: left .18s cubic-bezier(.34, 1.4, .6, 1);
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--knob);
 }
-.toggle.on {
-  background: linear-gradient(180deg, var(--blue), var(--blue-deep));
-  border-color: transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.30), 0 0 10px rgba(46, 178, 242, 0.30);
-}
-.toggle.on::after { left: 23px; }
-.toggle-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 0;
-}
+.toggle.on { background: var(--blue); border-color: transparent; }
+.toggle.on::after { left: 22px; }
+.toggle-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
 .toggle-row + .toggle-row { border-top: 1px solid var(--line-2); }
 .toggle-row .tr-text { flex: 1; min-width: 0; }
-.toggle-row .tr-text b { font-family: var(--font-round); font-size: 13.5px; display: block; }
+.toggle-row .tr-text b { font-family: var(--font-round); font-size: 13px; font-weight: 600; display: block; }
 .toggle-row .tr-text span { font-size: 12px; color: var(--ink-3); }
 
-/* ----------------------------------------------------------------- pills / tags */
+/* pills / tags */
 
 .pill {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 25px; padding: 0 11px;
-  border-radius: 99px;
-  font-family: var(--font-round); font-weight: 800; font-size: 11.5px;
-  letter-spacing: 0.3px;
-  background: var(--surface-2); color: var(--ink-2);
-  border: 1px solid var(--line);
+  font-family: var(--font-round); font-weight: 600; font-size: 12px;
+  color: var(--ink-2);
 }
-.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-.pill.good { background: var(--good-soft); color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
-.pill.warn { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
-.pill.bad  { background: var(--bad-soft);  color: var(--bad);  border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
-.pill.blue { background: var(--blue-soft); color: var(--blue-ink); border-color: color-mix(in srgb, var(--blue) 40%, transparent); }
-:root[data-theme="light"] .pill.good { color: #148d57; }
-:root[data-theme="light"] .pill.warn { color: #b07407; }
-:root[data-theme="light"] .pill.bad  { color: #d63753; }
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.pill.good { color: var(--good); }
+.pill.warn { color: var(--warn); }
+.pill.bad  { color: var(--bad); }
+.pill.blue { color: var(--blue-ink); }
 
-/* Skewed chip: the parallelogram is a background layer so the text (often a
-   bare text node) stays upright. */
 .tag {
-  position: relative;
-  display: inline-flex; align-items: center; height: 22px; padding: 0 11px;
-  font-weight: 800; font-size: 11px; font-family: var(--font-round);
+  display: inline-flex; align-items: center;
+  font-weight: 600; font-size: 12px; font-family: var(--font-round);
   color: var(--blue-ink);
 }
-.tag::before {
-  content: ''; position: absolute; inset: 0; z-index: -1;
-  border-radius: 6px;
-  background: var(--blue-soft);
-  transform: skewX(var(--skew));
-}
-.tag.gold { color: var(--gold-ink); }
-.tag.gold::before { background: var(--gold-soft); }
+.tag.gold { color: var(--gold); }
 .tag.grey { color: var(--ink-2); }
-.tag.grey::before { background: var(--surface-2); border: 1px solid var(--line-2); }
 
-.stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; text-shadow: 0 0 6px rgba(255, 213, 62, 0.35); }
+.stars { color: var(--gold); letter-spacing: 1px; font-size: 12px; }
 
-/* ----------------------------------------------------------------- table */
+/* table */
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tbl thead th {
   text-align: left;
-  font-family: var(--font-round); font-weight: 800; font-size: 11px;
-  text-transform: uppercase; letter-spacing: 0.9px; color: var(--ink-3);
-  padding: 10px 14px;
-  border-bottom: 2px solid var(--line);
+  font-family: var(--font-round); font-weight: 600; font-size: 12px;
+  color: var(--ink-3);
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
   position: sticky; top: 0; background: var(--surface); z-index: 1;
 }
-.tbl tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line-2); color: var(--ink); }
-.tbl tbody tr { transition: background .12s ease; cursor: pointer; }
+.tbl tbody td { padding: 3px 14px; border-bottom: 1px solid var(--line-2); color: var(--ink); }
+.tbl tbody tr { transition: background-color .1s linear; cursor: pointer; }
 .tbl tbody tr:hover { background: var(--blue-haze); }
-.tbl tbody tr.sel { background: var(--blue-soft); box-shadow: inset 4px 0 0 var(--blue); }
+.tbl tbody tr.sel { background: var(--blue-soft); box-shadow: inset 3px 0 0 var(--blue); }
 .tbl .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .tbl .muted { color: var(--ink-3); }
 
 .list-scroll { overflow: auto; }
 
-/* ----------------------------------------------------------------- toast */
+/* toast */
 
 #toasts {
-  position: fixed; right: 20px; bottom: 20px; z-index: 9000;
-  display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+  position: fixed; right: 16px; bottom: 16px; z-index: 9000;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
 }
 .toast {
   position: relative;
-  display: flex; align-items: center; gap: 11px;
+  display: flex; align-items: center; gap: 10px;
   min-width: 240px; max-width: 380px;
-  padding: 12px 15px 12px 19px;
+  padding: 10px 14px 10px 16px;
   background: var(--surface);
   color: var(--ink);
   border-radius: var(--r);
-  box-shadow: var(--sh-3);
-  font-size: 13px; font-weight: 500;
+  box-shadow: var(--sh-1);
+  font-size: 13px;
   border: 1px solid var(--line);
   overflow: hidden;
-  animation: toast-in .28s cubic-bezier(.2, .9, .3, 1.2);
+  animation: fade-in .12s linear;
 }
 .toast::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-  background: linear-gradient(180deg, var(--blue), var(--blue-deep));
-  transform: skewX(var(--skew)) translateX(-1px);
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--blue);
 }
-.toast.good::before { background: linear-gradient(180deg, var(--good), var(--good)); }
-.toast.bad::before  { background: linear-gradient(180deg, #ff7d92, var(--bad)); }
-.toast.warn::before { background: linear-gradient(180deg, var(--gold), var(--gold-deep)); }
+.toast.good::before { background: var(--good); }
+.toast.bad::before  { background: var(--bad); }
+.toast.warn::before { background: var(--gold); }
 .toast .ico { width: 18px; height: 18px; flex: none; color: var(--blue-ink); }
 .toast.good .ico { color: var(--good); }
 .toast.bad .ico  { color: var(--bad); }
 .toast.warn .ico { color: var(--warn); }
 .toast b { font-family: var(--font-round); }
-@keyframes toast-in { from { opacity: 0; transform: translateX(24px) scale(.96); } to { opacity: 1; transform: none; } }
 
-/* ---------------------------------------------------- restart-game notice */
+/* restart-game notice - a strip below the titlebar that pushes content down */
 
-/* Sticky reminder that account edits only appear after the game is
-   relaunched. Bottom-centre, under modals (8000) and toasts (9000). */
 .restart-note {
-  position: fixed; left: 50%; bottom: 20px;
-  transform: translateX(-50%);
-  z-index: 7500;
-  display: flex; align-items: center; gap: 12px;
-  max-width: min(560px, calc(100vw - 48px));
-  padding: 12px 14px 12px 19px;
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line));
-  border-radius: var(--r);
-  box-shadow: var(--sh-3);
-  overflow: hidden;
-  animation: note-in .32s cubic-bezier(.2, .9, .3, 1.2);
+  display: flex; align-items: center; gap: 10px;
+  height: 26px; padding: 0 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--gold);
+  color: var(--ink-2); font-size: 12px;
 }
-/* skewed gold notch — same language as the toast edge, in "attention" gold */
-.restart-note::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
-  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
-  transform: skewX(var(--skew)) translateX(-1px);
-}
-.restart-note > .ico { width: 19px; height: 19px; flex: none; color: var(--gold-ink); }
-.restart-note .rn-text { min-width: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
-.restart-note .rn-text b { display: block; font-family: var(--font-round); font-size: 13px; color: var(--ink); }
+.restart-note.flash { animation: fade-in .18s linear; }
+.restart-note > .ico { width: 15px; height: 15px; flex: none; color: var(--gold); }
+.restart-note .rn-text { display: flex; align-items: baseline; gap: 8px; min-width: 0; overflow: hidden; }
+.restart-note .rn-text b { font-family: var(--font-round); font-size: 12px; font-weight: 600; color: var(--ink); flex: none; }
+.restart-note .rn-text span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .restart-note .rn-x {
-  width: 26px; height: 26px; flex: none; border: none; border-radius: 6px;
-  background: var(--surface-2); color: var(--ink-2); cursor: pointer; font-size: 14px;
+  margin-left: auto; width: 20px; height: 20px; flex: none; border: none; border-radius: var(--r-sm);
+  background: transparent; color: var(--ink-3); cursor: pointer; font-size: 12px;
   display: flex; align-items: center; justify-content: center;
-  transition: background .13s ease, color .13s ease, transform .12s ease;
+  transition: background-color .1s linear, color .1s linear;
 }
-.restart-note .rn-x:hover { background: var(--gold-soft); color: var(--gold-ink); transform: scale(1.06); }
-.restart-note.flash { animation: note-in .32s cubic-bezier(.2, .9, .3, 1.2), note-flash .9s ease .1s; }
-@keyframes note-in { from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.97); } to { opacity: 1; transform: translateX(-50%); } }
-@keyframes note-flash {
-  0%, 100% { box-shadow: var(--sh-3); }
-  30% { box-shadow: var(--sh-3), 0 0 0 3px var(--gold-soft), 0 0 22px rgba(238, 179, 26, 0.45); }
-}
-/* on narrow windows the centred note and the right-aligned toasts share
-   horizontal space — lift the note above the toast zone */
-@media (max-width: 1100px) {
-  .restart-note { bottom: 92px; }
-}
+.restart-note .rn-x:hover { background: var(--ctrl-hover); color: var(--gold); }
 
-/* ----------------------------------------------------------------- modal */
+/* modal */
 
 .modal-veil {
   position: fixed; inset: 0; z-index: 8000;
   background: rgba(5, 14, 24, 0.55);
-  backdrop-filter: blur(3px);
   display: flex; align-items: center; justify-content: center;
-  animation: veil-in .18s ease;
+  animation: fade-in .12s linear;
 }
-@keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
 .modal {
   width: min(560px, 92vw);
   max-height: 86vh;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-3);
+  border-radius: var(--r);
+  box-shadow: var(--sh-1);
   overflow: hidden;
   display: flex; flex-direction: column;
-  animation: modal-in .26s cubic-bezier(.2, .9, .3, 1.15);
+  animation: fade-in .12s linear;
 }
 .modal.wide { width: min(820px, 94vw); }
-@keyframes modal-in { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
-
-/* BA popup ribbon: blue banner + diagonal stripe sheen, white title */
 .modal-head {
-  position: relative;
-  display: flex; align-items: center; gap: 11px;
-  padding: 16px 20px;
-  background: linear-gradient(120deg, var(--blue-deep), var(--blue));
-  color: #fff;
-  border-bottom: none;
-  overflow: hidden;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-2);
 }
-.modal-head::before {
-  content: ''; position: absolute; inset: 0;
-  background: repeating-linear-gradient(-55deg, rgba(255, 255, 255, 0.07) 0 12px, transparent 12px 24px);
-  pointer-events: none;
-}
-.modal-head h3 { color: #fff; font-size: 16px; font-weight: 800; position: relative; }
-.modal-head .plus { color: var(--gold); position: relative; }
+.modal-head h3 { font-size: 15px; font-weight: 600; }
 .modal-head .x {
-  position: relative;
-  margin-left: auto; width: 30px; height: 30px; border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.16); border: none; color: #fff; cursor: pointer;
-  font-size: 18px; display: flex; align-items: center; justify-content: center;
-  transition: background .15s ease, transform .12s ease;
+  margin-left: auto; width: 28px; height: 28px; border-radius: var(--r-sm);
+  background: var(--surface-2); border: none; color: var(--ink-2); cursor: pointer;
+  font-size: 17px; display: flex; align-items: center; justify-content: center;
+  transition: background-color .1s linear, color .1s linear;
 }
-.modal-head .x:hover { background: rgba(255, 255, 255, 0.30); transform: scale(1.06); }
-.modal-body { padding: 20px; overflow: auto; }
-.modal-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 15px 20px; border-top: 1px solid var(--line-2); background: var(--surface-2); }
+.modal-head .x:hover { background: var(--surface); color: var(--ink); }
+.modal-body { padding: 16px; overflow: auto; }
+.modal-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--line-2); background: var(--surface-2); }
 
-/* ----------------------------------------------------------------- misc */
+/* misc */
 
 .muted { color: var(--ink-3); }
 .mono  { font-family: var(--font-mono); }
 .empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; padding: 44px 20px; color: var(--ink-3); text-align: center;
+  gap: 12px; padding: 40px 20px; color: var(--ink-3); text-align: center;
 }
-.empty .halo { width: 46px; height: 46px; opacity: 0.65; }
+.empty .halo { width: 44px; height: 44px; opacity: 0.65; }
 .empty b { font-family: var(--font-round); color: var(--ink-2); font-size: 14px; }
 
-/* halo spinner — gold ring with a blue chase */
 .spinner {
   width: 20px; height: 20px; border-radius: 50%;
-  border: 2.5px solid var(--gold-soft);
-  border-top-color: var(--gold);
-  border-right-color: var(--blue);
+  border: 2.5px solid var(--line);
+  border-top-color: var(--blue);
   animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 1240px) { .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 860px)  { .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); } }
-
-.kbd {
-  font-family: var(--font-mono); font-size: 11.5px;
-  background: var(--surface-2); border: 1px solid var(--line);
-  border-radius: 5px; padding: 1px 6px; color: var(--ink-2);
-  box-shadow: inset 0 -1.5px 0 var(--line);
-}
 
 .row { display: flex; align-items: center; gap: 10px; }
 .wrap { flex-wrap: wrap; }

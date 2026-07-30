@@ -1,16 +1,14 @@
 import { el, frag, clear, button, input, field, toast, confirmDialog, openPicker, escapeHtml } from '../ui.js';
 import { api } from '../api.js';
-import { gate } from './_util.js';
+import { gate, loadInto } from './_util.js';
 
 export default {
   id: 'rates',
-  title: 'Gacha Rates',
-  subtitle: 'Override pull probabilities and the guaranteed pickup',
-  icon: 'rates',
+  title: 'Gacha',  icon: 'rates',
   needsTarget: false,
 
   mount(root) {
-    return gate(root, {}, { needServer: true }, async (root) => {
+    return gate(root, { needServer: true }, async (root) => {
       const cfg = await api.gachaConfig();
       let guaranteed = cfg.guaranteed || null;
       let guaranteedName = null;
@@ -19,17 +17,16 @@ export default {
       const fSr = input({ value: cfg.sr || 0, type: 'number', step: '0.1' });
       const fR = input({ value: cfg.r || 0, type: 'number', step: '0.1' });
 
-      // ---- rates card
-      const bar = el('div', { style: { display: 'flex', height: '14px', borderRadius: '99px', overflow: 'hidden', border: '1px solid var(--line)', margin: '4px 0 8px' } });
+      const bar = el('div', { style: { display: 'flex', height: '14px', borderRadius: 'var(--r-sm)', overflow: 'hidden', border: '1px solid var(--line)', margin: '4px 0 8px' } });
       const totalTag = el('span', {});
       function paintBar() {
         const ssr = +fSsr.value || 0, sr = +fSr.value || 0, r = +fR.value || 0;
         const total = ssr + sr + r;
         clear(bar);
         const seg = (pct, color) => { const d = el('div', { style: { width: `${total ? (pct / total) * 100 : 0}%`, background: color } }); return d; };
-        bar.appendChild(seg(ssr, 'linear-gradient(90deg,var(--gold),var(--gold-deep))'));
-        bar.appendChild(seg(sr, 'linear-gradient(90deg,var(--blue-ink),var(--blue))'));
-        bar.appendChild(seg(r, 'linear-gradient(90deg,var(--good),var(--good))'));
+        bar.appendChild(seg(ssr, 'var(--gold)'));
+        bar.appendChild(seg(sr, 'var(--blue)'));
+        bar.appendChild(seg(r, 'var(--good)'));
         clear(totalTag);
         const ok = Math.abs(total - 100) < 0.001;
         totalTag.appendChild(frag(`<span class="pill ${ok ? 'good' : 'warn'}"><span class="dot"></span>Total ${total.toFixed(1)}%</span>`));
@@ -54,12 +51,11 @@ export default {
           el('div.row.wrap', { style: { gap: '10px' } }, normalize,
             frag('<span class="muted" style="font-size:12px;min-width:0;flex:1 1 200px">Leave all at 0 and reset to fall back to the game\'s built-in rates.</span>'))));
 
-      // ---- guaranteed card
       const guaranteedLabel = el('div', {});
       function paintGuaranteed() {
         clear(guaranteedLabel);
-        if (guaranteed) guaranteedLabel.appendChild(frag(`<div class="chip"><div class="chip-ic">${'★'}</div><div class="chip-main"><b>${escapeHtml(guaranteedName || ('Character ' + guaranteed))}</b><span>id ${guaranteed} — every pull yields this student</span></div></div>`));
-        else guaranteedLabel.appendChild(frag('<div class="muted" style="font-size:12.5px">No guaranteed pickup set — pulls use the rates above.</div>'));
+        if (guaranteed) guaranteedLabel.appendChild(frag(`<div class="chip"><div class="chip-ic">${'★'}</div><div class="chip-main"><b>${escapeHtml(guaranteedName || ('Character ' + guaranteed))}</b><span>id ${guaranteed} - every pull yields this student</span></div></div>`));
+        else guaranteedLabel.appendChild(frag('<div class="muted" style="font-size:12.5px">No guaranteed pickup set - pulls use the rates above.</div>'));
       }
       const pickGuaranteed = button('Choose student', { variant: 'ghost', sm: true, iconName: 'users', onClick: () => {
         openPicker({ title: 'Guaranteed student', loader: (q) => api.staticCharacters(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: `★${x.maxStar}` }))),
@@ -68,11 +64,10 @@ export default {
       const clearGuaranteed = button('Clear', { variant: 'ghost', sm: true, iconName: 'x', onClick: () => { guaranteed = null; guaranteedName = null; paintGuaranteed(); } });
 
       const guaranteedCard = el('div.card', {},
-        el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Guaranteed pickup' }), el('span.sub', { text: 'optional — overrides rates' }), el('div.spacer', {}), pickGuaranteed, clearGuaranteed),
+        el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Guaranteed pickup' }), el('span.sub', { text: 'optional - overrides rates' }), el('div.spacer', {}), pickGuaranteed, clearGuaranteed),
         el('div.card-body', {}, guaranteedLabel,
-          frag('<p style="font-size:12px;color:var(--ink-2);margin:12px 0 0;line-height:1.6"><span style="color:var(--warn)">⚠</span> Forcing a character on every pull can confuse the client if the student is not on the active banner. Use for testing.</p>')));
+          frag('<p class="muted" style="font-size:12px;margin:12px 0 0;line-height:1.6">Forcing a character on every pull can confuse the client if the student is not on the active banner.</p>')));
 
-      // ---- save bar
       const saveBtn = button('Save rates', { variant: 'primary', iconName: 'save', onClick: save });
       const resetBtn = button('Reset to defaults', { variant: 'ghost', iconName: 'refresh', onClick: reset });
       const saveBar = el('div.card', { style: { marginTop: '18px' } },
@@ -85,6 +80,30 @@ export default {
       root.appendChild(saveBar);
       paintBar();
       paintGuaranteed();
+
+      // banners are read-only (defined in the Excel data), listed for reference
+      root.appendChild(el('div', { text: 'Banners', style: { fontSize: '14px', fontWeight: '600', color: 'var(--ink)', margin: '22px 0 12px' } }));
+      const bannerGrid = el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px', minWidth: '0' } });
+      root.appendChild(bannerGrid);
+      loadInto(bannerGrid, () => api.gachaBanners(), (grid, banners) => {
+        if (!banners.length) { grid.appendChild(frag('<div class="empty"><b>No banners found</b><span>Excel recruitment data is unavailable</span></div>')); return; }
+        for (const b of banners) {
+          const flags = [];
+          if (b.isNewbie) flags.push('<span class="tag gold">Newbie</span>');
+          if (b.isSelect) flags.push('<span class="tag">Selector</span>');
+          const feat = (b.featured || []).slice(0, 8)
+            .map((f) => `<span class="tag">${escapeHtml(f.name)}</span>`).join(' ') || '<span class="muted" style="font-size:12px">no featured students</span>';
+          grid.appendChild(frag(`<div class="banner-card">
+            <div class="bc-top">
+              <b style="font-family:var(--font-round);font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-selectable>Banner ${escapeHtml(String(b.id))}</b>
+              <span class="bc-id" data-selectable>order ${escapeHtml(String(b.displayOrder))}</span>
+              <div style="flex:1;min-width:8px"></div>${flags.join(' ')}
+            </div>
+            <div class="bc-feat">${feat}</div>
+            <div class="muted" style="font-size:11.5px;color:var(--ink-3);overflow-wrap:anywhere" data-selectable>${b.saleFrom ? `${escapeHtml(b.saleFrom)} to ${escapeHtml(b.saleTo || '')}` : 'no sale window'}</div>
+          </div>`));
+        }
+      });
 
       async function save() {
         const ssr = +fSsr.value || 0, sr = +fSr.value || 0, r = +fR.value || 0;

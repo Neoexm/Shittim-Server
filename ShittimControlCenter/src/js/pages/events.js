@@ -11,18 +11,16 @@ const TYPES = [
 
 export default {
   id: 'events',
-  title: 'Events',
-  subtitle: 'Activate raid and challenge seasons for the selected account',
-  icon: 'events',
+  title: 'Events',  icon: 'events',
   needsTarget: true,
 
   mount(root) {
-    return gate(root, {}, { needServer: true, needTarget: true }, (root) => {
+    return gate(root, { needServer: true, needTarget: true }, (root) => {
       const acc = targetAccount();
       const uid = acc.serverId;
 
       root.appendChild(frag(`<div class="row wrap" style="margin:-2px 0 16px;gap:8px">
-        <span class="pill blue"><span class="dot"></span>Applying to ${escapeHtml(acc.nickname)} · #${uid}</span>
+        <span class="pill blue"><span class="dot"></span>Applying to ${escapeHtml(acc.nickname)} - #${uid}</span>
         <span class="muted" style="font-size:12px;min-width:0">Seasons are server-side; changing one resets the matching content lobby for this account.</span></div>`));
 
       const grid = el('div.grid-2', { style: { alignItems: 'start' } });
@@ -40,7 +38,7 @@ export default {
             body.appendChild(emptyState('No seasons defined', 'This content has no Excel seasons'));
           } else {
             // Window 132px fits the nowrap date lines; 94px fits the Apply
-            // button (box-sizing includes the 28px cell padding) — anything
+            // button (box-sizing includes the 28px cell padding) - anything
             // narrower paints the button over the date column and past the
             // card edge.
             const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th>Season</th><th style="width:132px">Window</th><th style="width:94px"></th></tr></thead><tbody></tbody></table>');
@@ -73,7 +71,7 @@ export default {
 };
 
 function fmt(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   // season excel dates may be ISO or "yyyy-MM-dd HH:mm:ss"
   return shortDate(String(s).replace(' ', 'T'));
 }

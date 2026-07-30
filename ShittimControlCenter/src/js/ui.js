@@ -1,7 +1,5 @@
 import { icon } from './icons.js';
 
-// ------------------------------------------------------------------ DOM helpers
-
 // Hyperscript: el('div.card', { onclick }, child, child...)
 export function el(spec, props = {}, ...children) {
   let tag = 'div', id = null;
@@ -42,8 +40,6 @@ export function frag(html) {
 
 export function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); return node; }
 
-// ------------------------------------------------------------------ buttons
-
 export function button(label, { variant = '', iconName, onClick, sm, block, disabled } = {}) {
   const cls = ['btn', variant && `btn-${variant}`, sm && 'btn-sm', block && 'btn-block'].filter(Boolean).join(' ');
   const b = frag(`<button class="${cls}">${iconName ? icon(iconName) : ''}<span>${label}</span></button>`);
@@ -52,15 +48,13 @@ export function button(label, { variant = '', iconName, onClick, sm, block, disa
   return b;
 }
 
-// ------------------------------------------------------------------ fields
-
 export function field(label, control, hint) {
   return el('div.field', {},
-    el('label', {}, label, hint ? el('span.hint', { text: ` — ${hint}` }) : null),
+    el('label', {}, label, hint ? el('span.hint', { text: ` - ${hint}` }) : null),
     control);
 }
 
-// `style` must go through el() (Object.assign onto node.style) — assigning a
+// `style` must go through el() (Object.assign onto node.style) - assigning a
 // plain object to the read-only element.style property is silently ignored.
 export function input(props = {}) {
   const { style, ...rest } = props;
@@ -98,8 +92,6 @@ export function toggle(on, onChange) {
   return t;
 }
 
-// ------------------------------------------------------------------ toast
-
 export function toast(message, kind = '', title) {
   const host = document.getElementById('toasts');
   const ic = kind === 'good' ? 'check' : kind === 'bad' ? 'x' : kind === 'warn' ? 'info' : 'info';
@@ -113,10 +105,8 @@ export function toast(message, kind = '', title) {
   }, 3400);
 }
 
-// ------------------------------------------------------------------ restart notice
-
-// Reminder that the game client only loads account data at login — shown after
-// any edit that touches a live account (currency, roster, unlocks, …). Sticky
+// Reminder that the game client only loads account data at login - shown after
+// any edit that touches a live account (currency, roster, unlocks, ...). Sticky
 // until dismissed so it survives a batch of edits; repeat calls re-flash the
 // existing banner instead of stacking a new one.
 let restartNoteEl = null;
@@ -129,21 +119,19 @@ export function notifyRestart() {
   }
   const n = frag(`<div class="restart-note flash" role="status">${icon('refresh')}
     <div class="rn-text"><b>Game restart required</b>
-    <span>Blue Archive loads account data at login — the player must restart the game to see this change.</span></div>
+    <span>Blue Archive loads account data at login - the player must restart the game to see this change.</span></div>
     <button class="rn-x" title="Dismiss">✕</button></div>`);
   n.querySelector('.rn-x').addEventListener('click', () => { n.remove(); restartNoteEl = null; });
-  document.body.appendChild(n);
+  (document.getElementById('restartSlot') || document.body).appendChild(n);
   restartNoteEl = n;
 }
-
-// ------------------------------------------------------------------ modal
 
 export function modal({ title, body, footer, wide, onClose }) {
   const overlay = document.getElementById('overlay');
   const veil = el('div.modal-veil', {});
   const m = el('div.modal' + (wide ? '.wide' : ''), {});
 
-  const head = frag(`<div class="modal-head"><span class="plus"></span><h3>${escapeHtml(title || '')}</h3><button class="x">✕</button></div>`);
+  const head = frag(`<div class="modal-head"><h3>${escapeHtml(title || '')}</h3><button class="x">✕</button></div>`);
   const close = () => { veil.remove(); onClose && onClose(); };
   head.querySelector('.x').addEventListener('click', close);
 
@@ -166,7 +154,7 @@ export function modal({ title, body, footer, wide, onClose }) {
   return { close, bodyEl };
 }
 
-// Numeric amount prompt as a modal — window.prompt() throws in Electron.
+// Numeric amount prompt as a modal - window.prompt() throws in Electron.
 export function promptAmount({ title, confirmLabel = 'Confirm', value = 1, onConfirm }) {
   const amt = input({ value, type: 'number' });
   const ok = button(confirmLabel, { variant: 'primary', iconName: 'check' });
@@ -192,12 +180,10 @@ export function confirmDialog({ title = 'Confirm', message, confirmLabel = 'Conf
   });
 }
 
-// ------------------------------------------------------------------ picker
-
 // Generic searchable picker backed by an async loader returning [{id,name,sub}].
 export function openPicker({ title, loader, onPick }) {
   const list = el('div.picker-list', {});
-  const search = input({ placeholder: 'Search by name or ID…', className: 'input picker-search' });
+  const search = input({ placeholder: 'Search by name or ID...', className: 'input picker-search' });
   let timer;
 
   async function load(q) {
@@ -222,15 +208,13 @@ export function openPicker({ title, loader, onPick }) {
   setTimeout(() => search.focus(), 50);
 }
 
-// ------------------------------------------------------------------ format
-
 export function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 export function num(n) { return Number(n ?? 0).toLocaleString('en-US'); }
 export function stars(n) { return '★'.repeat(Math.max(0, Math.min(5, n))) + '☆'.repeat(Math.max(0, 5 - n)); }
 export function shortDate(s) {
-  if (!s) return '—';
+  if (!s) return '-';
   const d = new Date(s);
   if (isNaN(d)) return String(s);
   return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -241,7 +225,6 @@ export function relTime(secs) {
   return h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
 }
 
-// section helpers
 export function card(title, { sub, actions, body, tight } = {}) {
   const head = el('div.card-head', {}, el('span.tab-mark', {}),
     el('h3', { text: title }),
@@ -254,5 +237,5 @@ export function card(title, { sub, actions, body, tight } = {}) {
 }
 
 export function emptyState(text, sub) {
-  return frag(`<div class="empty"><svg class="halo" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="20" rx="15" ry="5.5" stroke="#3db8f5" stroke-width="3"/></svg><b>${escapeHtml(text)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}</div>`);
+  return frag(`<div class="empty"><b>${escapeHtml(text)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}</div>`);
 }

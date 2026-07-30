@@ -2,9 +2,8 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// A deliberately small, audited surface bridged into the renderer. The renderer
-// never touches Node or Electron internals directly — everything it can do is
-// listed here.
+// The renderer never touches Node or Electron internals directly - everything
+// it can do is listed here.
 contextBridge.exposeInMainWorld('host', {
   // path + settings
   paths: () => ipcRenderer.invoke('paths:resolve'),
@@ -40,7 +39,7 @@ contextBridge.exposeInMainWorld('host', {
   projectDownload: (opts) => ipcRenderer.invoke('project:download', opts),
   projectSetPath: (dir) => ipcRenderer.invoke('project:setPath', dir),
 
-  // server self-update (GitHub REST — no git required)
+  // server self-update (GitHub REST - no git required)
   updatesCheck: () => ipcRenderer.invoke('updates:check'),
   updatesApply: () => ipcRenderer.invoke('updates:apply'),
   updatesRebuild: () => ipcRenderer.invoke('updates:rebuild'),

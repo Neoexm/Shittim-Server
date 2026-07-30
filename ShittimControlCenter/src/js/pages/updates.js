@@ -2,15 +2,13 @@ import { el, frag, clear, button, toast, escapeHtml } from '../ui.js';
 import { icon } from '../icons.js';
 
 // Git-free updater. "Check" compares the locally recorded commit (a download
-// marker, or — for a real git checkout — HEAD) against origin/<branch> through
+// marker, or - for a real git checkout - HEAD) against origin/<branch> through
 // the GitHub API and lists the incoming changelog. "Install" fast-forwards a
 // git checkout, or re-downloads the latest source for a plain folder. A rebuild
 // action recompiles the .NET server the update may change.
 export default {
   id: 'updates',
-  title: 'Updates',
-  subtitle: 'Compare against GitHub and pull the latest server',
-  icon: 'download',
+  title: 'Updates',  icon: 'download',
   needsTarget: false,
 
   mount(root) {
@@ -24,7 +22,7 @@ export default {
 
     const versionCard = el('div.card', {},
       el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Version' }),
-        el('span.sub', { text: 'Neoexm/Shittim-Server · main' }), el('div.spacer', {}), checkBtn),
+        el('span.sub', { text: 'Neoexm/Shittim-Server - main' }), el('div.spacer', {}), checkBtn),
       el('div.card-body', {}, headInfo, resultBody));
 
     const rebuildBtn = button('Rebuild server', { variant: 'ghost', iconName: 'bolt', onClick: doRebuild });
@@ -33,7 +31,7 @@ export default {
       el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Maintenance' })),
       el('div.card-body', {},
         el('p', {
-          html: 'The update above pulls the latest <b>server</b> source — rebuild it afterwards so the new code is compiled in (build output streams to the console in <b>Server Control</b>). The <b>Control Center app</b> updates itself separately from GitHub Releases: it checks on launch and prompts you, or check now below.',
+          html: 'The update above pulls the latest server source - rebuild it afterwards so the new code is compiled in (build output streams to the console). The Control Center app updates itself separately from GitHub Releases: it checks on launch and prompts you, or check now below.',
           style: { fontSize: '13px', color: 'var(--ink-2)', margin: '0 0 14px', lineHeight: '1.6' },
         }),
         el('div.row.wrap', { style: { gap: '10px' } }, rebuildBtn, selfBtn)));
@@ -43,10 +41,8 @@ export default {
 
     paintHead(null);
     clear(resultBody);
-    resultBody.appendChild(spinnerRow('Checking origin/main…'));
+    resultBody.appendChild(spinnerRow('Checking origin/main...'));
     doCheck();
-
-    // ----------------------------------------------------------------- render
 
     function sourceTag(info) {
       if (!info || !info.localSource) return null;
@@ -91,14 +87,14 @@ export default {
         <span class="mono" data-selectable style="font-size:11px;color:var(--ink-3);flex:none;width:58px">${escapeHtml(r.remoteShort || '')}</span>
         <div style="min-width:0;flex:1">
           <div style="font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(r.remoteSubject || '')}</div>
-          <div style="font-size:11px;color:var(--ink-3)">origin/${escapeHtml(r.branch || 'main')}${r.remoteWhen ? ` · ${escapeHtml(r.remoteWhen)}` : ''}</div>
+          <div style="font-size:11px;color:var(--ink-3)">origin/${escapeHtml(r.branch || 'main')}${r.remoteWhen ? ` - ${escapeHtml(r.remoteWhen)}` : ''}</div>
         </div>
       </div>`);
     }
 
     function updateNote(r) {
       const text = r.localSource === 'git'
-        ? 'Installed via git — the update is a fast-forward pull and will never overwrite local edits.'
+        ? 'Installed via git - the update is a fast-forward pull and will never overwrite local edits.'
         : 'Updating re-downloads the latest source from GitHub. Your <b>Config</b>, database and build output are left untouched, but any edits to source files will be replaced.';
       return el('p', {
         html: text,
@@ -119,9 +115,9 @@ export default {
       if (r.versionKnown === false || r.compareFailed) {
         const why = r.versionKnown === false
           ? 'This copy has no version marker, so its exact commit is unknown.'
-          : 'This copy sits on a commit GitHub can’t diff against the branch (a local build or diverged history).';
-        resultBody.appendChild(statusRow('warn', 'Can’t compare versions',
-          `${why} Latest on origin/${r.branch} is ${r.remoteShort}${r.remoteWhen ? ` · ${r.remoteWhen}` : ''}.`));
+          : 'This copy sits on a commit GitHub cannot diff against the branch (a local build or diverged history).';
+        resultBody.appendChild(statusRow('warn', 'Cannot compare versions',
+          `${why} Latest on origin/${r.branch} is ${r.remoteShort}${r.remoteWhen ? ` - ${r.remoteWhen}` : ''}.`));
         if (r.remoteSubject) resultBody.appendChild(remoteLine(r));
         resultBody.appendChild(updateNote(r));
         const btn = button('Download latest', { variant: 'primary', iconName: 'download', onClick: () => doInstall(r) });
@@ -137,7 +133,7 @@ export default {
         return;
       }
 
-      // behind — offer install
+      // behind - offer install
       resultBody.appendChild(statusRow('warn', `${r.behind} update${r.behind === 1 ? '' : 's'} available`,
         `origin/${r.branch} is ${r.behind} commit${r.behind === 1 ? '' : 's'} ahead of your copy.`));
       resultBody.appendChild(updateNote(r));
@@ -150,7 +146,7 @@ export default {
             <span class="mono" data-selectable style="font-size:11px;color:var(--ink-3);flex:none;width:58px">${escapeHtml(c.hash || '')}</span>
             <div style="min-width:0;flex:1">
               <div style="font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(c.subject || '')}</div>
-              <div style="font-size:11px;color:var(--ink-3)">${escapeHtml(c.author || '')}${c.when ? ` · ${escapeHtml(c.when)}` : ''}</div>
+              <div style="font-size:11px;color:var(--ink-3)">${escapeHtml(c.author || '')}${c.when ? ` - ${escapeHtml(c.when)}` : ''}</div>
             </div>
           </div>`));
         }
@@ -169,12 +165,10 @@ export default {
       return wrap;
     }
 
-    // ----------------------------------------------------------------- actions
-
     async function doCheck() {
       checkBtn.disabled = true;
       clear(resultBody);
-      resultBody.appendChild(spinnerRow('Checking origin/main…'));
+      resultBody.appendChild(spinnerRow('Checking origin/main...'));
       try {
         last = await window.host.updatesCheck();
         renderResult(last);
@@ -194,17 +188,17 @@ export default {
 
     async function doInstall(r) {
       clear(resultBody);
-      const prog = spinnerRow(r.localSource === 'git' ? 'Pulling origin/main…' : 'Updating from GitHub…');
+      const prog = spinnerRow(r.localSource === 'git' ? 'Pulling origin/main...' : 'Updating from GitHub...');
       resultBody.appendChild(prog);
 
       // For a re-download, surface live progress on the same row.
       if (r.localSource !== 'git') {
         progUnsub = window.host.onProjectProgress((d) => {
-          if (d.phase === 'download') prog._label.textContent = d.total ? `Downloading… ${fmtBytes(d.recv)} / ${fmtBytes(d.total)}` : `Downloading… ${fmtBytes(d.recv)}`;
-          else if (d.phase === 'resolve') prog._label.textContent = 'Resolving latest commit…';
-          else if (d.phase === 'extract') prog._label.textContent = 'Extracting…';
-          else if (d.phase === 'install') prog._label.textContent = 'Installing files…';
-          else if (d.phase === 'done') prog._label.textContent = 'Finishing…';
+          if (d.phase === 'download') prog._label.textContent = d.total ? `Downloading... ${fmtBytes(d.recv)} / ${fmtBytes(d.total)}` : `Downloading... ${fmtBytes(d.recv)}`;
+          else if (d.phase === 'resolve') prog._label.textContent = 'Resolving latest commit...';
+          else if (d.phase === 'extract') prog._label.textContent = 'Extracting...';
+          else if (d.phase === 'install') prog._label.textContent = 'Installing files...';
+          else if (d.phase === 'done') prog._label.textContent = 'Finishing...';
         });
       }
 
@@ -215,12 +209,12 @@ export default {
         if (res.ok) {
           toast(`Updated to ${res.head || 'latest'}`, 'good', 'Update installed');
           resultBody.appendChild(statusRow('good', 'Update installed', `Now at ${res.head || 'latest'}. Rebuild the server below, then restart the control center.`));
-          const rb = button('Rebuild server now', { variant: 'gold', iconName: 'bolt', onClick: doRebuild });
+          const rb = button('Rebuild server now', { variant: 'ghost', iconName: 'bolt', onClick: doRebuild });
           resultBody.appendChild(el('div', { style: { marginTop: '14px' } }, rb));
         } else {
           toast('Update could not be applied', 'bad');
           const detail = res.method === 'git'
-            ? 'Your local edits or a diverged branch blocked the fast-forward pull. Nothing was changed — commit or stash local changes and try again.'
+            ? 'Your local edits or a diverged branch blocked the fast-forward pull. Nothing was changed - commit or stash local changes and try again.'
             : (res.error || 'The download could not be completed. Nothing was changed.');
           resultBody.appendChild(statusRow('bad', res.method === 'git' ? 'Could not fast-forward' : 'Update failed', detail));
           if (res.output) resultBody.appendChild(el('pre.mono', { text: res.output, 'data-selectable': true, style: { marginTop: '12px', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 'var(--r-sm)', fontSize: '11.5px', color: 'var(--ink-2)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '30vh', overflow: 'auto' } }));
@@ -239,14 +233,14 @@ export default {
       selfBtn.disabled = true;
       try {
         const r = await window.host.updatesCheckSelf();
-        if (r.dev) { toast('Running from source — pull the repo and restart to update the app.', 'warn', 'Dev build'); return; }
+        if (r.dev) { toast('Running from source - pull the repo and restart to update the app.', 'warn', 'Dev build'); return; }
         if (!r.ok) { toast(r.error || 'Update check failed.', 'bad', 'App update'); return; }
         if (r.portable) {
-          if (r.available) toast(`Control Center ${r.version} is available — this build can't update in place, use the download page from the prompt.`, 'good', 'Update available');
+          if (r.available) toast(`Control Center ${r.version} is available - this build can't update in place, use the download page from the prompt.`, 'good', 'Update available');
           else toast(`Control Center is up to date (v${r.current}).`, 'good', 'App update');
           return;
         }
-        if (r.available) toast(`Control Center ${r.version} is available — follow the prompt to install.`, 'good', 'Update available');
+        if (r.available) toast(`Control Center ${r.version} is available - follow the prompt to install.`, 'good', 'Update available');
         else toast(`Control Center is up to date (v${r.current}).`, 'good', 'App update');
       } catch (e) {
         toast(String(e.message || e), 'bad', 'App update');
@@ -257,7 +251,7 @@ export default {
 
     async function doRebuild() {
       rebuildBtn.disabled = true;
-      toast('Rebuilding server… (output in Server Control console)', 'good', 'dotnet build');
+      toast('Rebuilding server... (output in the console)', 'good', 'dotnet build');
       try {
         const res = await window.host.updatesRebuild();
         toast(res.ok ? 'Server rebuilt successfully' : (res.error || `Build failed (code ${res.code})`), res.ok ? 'good' : 'bad');

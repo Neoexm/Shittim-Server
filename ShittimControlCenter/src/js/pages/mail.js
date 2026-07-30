@@ -12,13 +12,11 @@ const PARCEL_KINDS = [
 
 export default {
   id: 'mail',
-  title: 'Mail',
-  subtitle: 'Compose reward mail and review the player inbox',
-  icon: 'mail',
+  title: 'Mail',  icon: 'mail',
   needsTarget: true,
 
   mount(root) {
-    return gate(root, {}, { needServer: true, needTarget: true }, (root) => {
+    return gate(root, { needServer: true, needTarget: true }, (root) => {
       const acc = targetAccount();
       const uid = acc.serverId;
       const rewards = [];
@@ -26,9 +24,8 @@ export default {
       const layout = el('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '18px', alignItems: 'start' } });
       root.appendChild(layout);
 
-      // ---- composer
       const fSender = input({ value: 'Plana' });
-      const fComment = textarea({ value: 'A gift from the management team.', placeholder: 'Message body…' });
+      const fComment = textarea({ value: 'A gift from the management team.', placeholder: 'Message body...' });
       const fExpire = input({ value: 30, type: 'number' });
 
       const kindSel = select(PARCEL_KINDS.map((k) => ({ value: k.value, label: k.label })));
@@ -40,13 +37,13 @@ export default {
 
       const composer = el('div.card', { style: { minWidth: '0' } },
         el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Compose' }),
-          el('span.sub', { text: `to ${acc.nickname} · #${uid}`, style: { minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } })),
+          el('span.sub', { text: `to ${acc.nickname} - #${uid}`, style: { minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } })),
         el('div.card-body', {},
           field('Sender', fSender),
           field('Message', fComment),
           field('Expires in (days)', fExpire),
           frag('<div class="hazard" style="margin:6px 0 14px"></div>'),
-          frag('<div class="section-tag"><span class="plus"></span>Attachments</div>'),
+          el('div', { text: 'Attachments', style: { fontSize: '12px', fontWeight: '600', color: 'var(--ink-2)', margin: '0 0 10px' } }),
           el('div.input-row', { style: { marginBottom: '12px' } }, kindSel, addReward),
           chipList,
           el('div', { style: { marginTop: '16px' } }, sendBtn)));
@@ -64,10 +61,10 @@ export default {
       }
       function paintChips() {
         clear(chipList);
-        if (!rewards.length) { chipList.appendChild(frag('<div class="muted" style="font-size:12.5px;padding:6px 2px">No attachments yet — add items, currency, equipment or students.</div>')); return; }
+        if (!rewards.length) { chipList.appendChild(frag('<div class="muted" style="font-size:12.5px;padding:6px 2px">No attachments yet - add items, currency, equipment or students.</div>')); return; }
         rewards.forEach((r, i) => {
           const chip = frag(`<div class="chip"><div class="chip-ic">${icon(r.type === 'Currency' ? 'coin' : r.type === 'Character' ? 'users' : r.type === 'Equipment' ? 'shield' : 'box')}</div>
-            <div class="chip-main"><b>${escapeHtml(r.name)}</b><span data-selectable>${r.type} · id ${r.id} · ×${num(r.amount)}</span></div></div>`);
+            <div class="chip-main"><b>${escapeHtml(r.name)}</b><span data-selectable>${r.type} - id ${r.id} - ×${num(r.amount)}</span></div></div>`);
           const x = frag('<button class="chip-x">✕</button>');
           x.addEventListener('click', () => { rewards.splice(i, 1); paintChips(); });
           chip.appendChild(x);
@@ -88,7 +85,6 @@ export default {
         sendBtn.disabled = false;
       }
 
-      // ---- inbox
       const clearBtn = button('Clear all', { variant: 'ghost', sm: true, iconName: 'trash', onClick: async () => {
         const ok = await confirmDialog({ title: 'Clear inbox', danger: true, confirmLabel: 'Delete all', message: 'Delete every mail for this account?' });
         if (!ok) return;
@@ -114,8 +110,8 @@ export default {
                 <span class="pill ${m.collected ? '' : 'blue'}" style="flex:none"><span class="dot"></span>${m.collected ? 'Collected' : 'Unread'}</span></div>
               <div style="font-size:12.5px;color:var(--ink-2);min-width:0;overflow-wrap:anywhere">${escapeHtml(m.comment || '')}</div>
               <div class="bc-feat">${parcels || '<span class="muted" style="font-size:12px">no attachments</span>'}</div>
-              <div class="muted" style="font-size:11.5px;min-width:0;overflow-wrap:anywhere">sent ${shortDate(m.sendDate)} · expires ${shortDate(m.expireDate)}</div></div>`);
-            // delete sits in the flex row after the status pill — absolutely
+              <div class="muted" style="font-size:11.5px;min-width:0;overflow-wrap:anywhere">sent ${shortDate(m.sendDate)} - expires ${shortDate(m.expireDate)}</div></div>`);
+            // delete sits in the flex row after the status pill - absolutely
             // positioning it overlapped the pill at every window size
             const del = frag(`<button class="chip-x" style="flex:none">✕</button>`);
             del.addEventListener('click', async () => { await api.deleteMail({ accountServerId: uid, mailServerId: m.serverId }); toast('Mail deleted', 'warn'); reloadInbox(); });

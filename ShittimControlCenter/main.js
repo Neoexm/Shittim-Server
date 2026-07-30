@@ -7,7 +7,7 @@ const os = require('os');
 const https = require('https');
 const { spawn, exec, execFile } = require('child_process');
 
-// ---------------------------------------------------------------- path model
+// path model
 //
 // The control center lives at <repoRoot>/ShittimControlCenter. Everything it
 // drives (the server project, the database, the mitm scripts) is resolved
@@ -40,9 +40,7 @@ function resolveRepoRoot() {
     return settings.repoRoot;
   }
   // ShittimControlCenter sits directly inside the repo.
-  const guess = path.resolve(APP_DIR, '..');
-  if (fs.existsSync(path.join(guess, 'Shittim-Server'))) return guess;
-  return guess;
+  return path.resolve(APP_DIR, '..');
 }
 
 function firstExisting(paths) {
@@ -77,7 +75,7 @@ function resolvePaths() {
   };
 }
 
-// --------------------------------------------------------------- config file
+// config file
 
 function readConfig() {
   const { configPath } = resolvePaths();
@@ -102,7 +100,7 @@ function writeConfig(payload) {
   }
 }
 
-// ------------------------------------------------------------ process model
+// process model
 
 const procs = { server: null, mitm: null };
 
@@ -138,7 +136,7 @@ function killTree(child) {
 
 // Resolve the dotnet host to launch. Prefer the per-user SDK our setup installs
 // and launch it by ABSOLUTE PATH so machine-PATH ordering can't shadow it with a
-// runtime-only host — the classic "SDK 'Microsoft.NET.Sdk.Web' could not be
+// runtime-only host - the classic "SDK 'Microsoft.NET.Sdk.Web' could not be
 // found" build failure on an otherwise-working machine. Falls back to whatever
 // 'dotnet' is on PATH when we never installed our own.
 function resolveDotnet() {
@@ -149,7 +147,7 @@ function resolveDotnet() {
 }
 
 // Child env that forces the chosen dotnet: DOTNET_ROOT points at the install and
-// its dir is prepended to PATH so nested 'dotnet' calls (run → build → exec) all
+// its dir is prepended to PATH so nested 'dotnet' calls (run, build, exec) all
 // resolve to the same host instead of a shadowing one earlier on PATH.
 function dotnetEnv(root) {
   const env = { ...process.env };
@@ -262,7 +260,7 @@ function stopMitm() {
   return { ok: true };
 }
 
-// ----------------------------------------------------------- env diagnostics
+// env diagnostics
 
 function execCheck(command, timeout = 6000) {
   return new Promise((resolve) => {
@@ -293,16 +291,16 @@ async function pathDotnetHasWeb(dn) {
 }
 
 // Report on the exact dotnet host the server will launch, including whether its
-// SDK carries the ASP.NET Core Web SDK — a base SDK alone yields the
+// SDK carries the ASP.NET Core Web SDK - a base SDK alone yields the
 // "Sdk.Web could not be found" build failure even though `dotnet --version` works.
 async function checkDotnet() {
   const dn = resolveDotnet();
   const verCmd = process.platform === 'win32' ? `"${dn.cmd}" --version` : `${dn.cmd} --version`;
   const ver = await execCheck(verCmd);
-  if (!ver.ok) return { status: 'missing', detail: '.NET SDK not found — click Install' };
+  if (!ver.ok) return { status: 'missing', detail: '.NET SDK not found - click Install' };
   const where = dn.root ? 'per-user' : 'system';
   const webOk = dn.root ? hasWebSdk(dn.root) : await pathDotnetHasWeb(dn);
-  if (!webOk) return { status: 'warning', detail: `SDK ${ver.detail} (${where}) — ASP.NET Core Web SDK missing; click Install` };
+  if (!webOk) return { status: 'warning', detail: `SDK ${ver.detail} (${where}) - ASP.NET Core Web SDK missing; click Install` };
   return { status: 'ready', detail: `SDK ${ver.detail} (${where})` };
 }
 
@@ -320,16 +318,16 @@ async function runEnvChecks() {
     mitmproxy: { status: mitm.ok ? 'ready' : 'missing', detail: mitm.ok ? mitm.detail : 'mitmproxy not found in PATH' },
     certificate: { status: fs.existsSync(certPath) ? 'ready' : 'warning', detail: fs.existsSync(certPath) ? certPath : 'CA certificate not generated yet' },
     database: { status: fs.existsSync(p.dbPath) ? 'ready' : 'warning', detail: fs.existsSync(p.dbPath) ? p.dbPath : 'created on first server run' },
-    server: { status: p.exePath ? 'ready' : (fs.existsSync(p.csproj) ? 'warning' : 'missing'), detail: p.exePath ? p.exePath : (fs.existsSync(p.csproj) ? 'source only — will build on launch' : 'server project not found') },
+    server: { status: p.exePath ? 'ready' : (fs.existsSync(p.csproj) ? 'warning' : 'missing'), detail: p.exePath ? p.exePath : (fs.existsSync(p.csproj) ? 'source only - will build on launch' : 'server project not found') },
     redirect: { status: fs.existsSync(p.redirectScript) ? 'ready' : 'missing', detail: fs.existsSync(p.redirectScript) ? p.redirectScript : 'redirect_server.py missing' },
   };
 }
 
-// ------------------------------------------------------------------- updates
+// updates
 //
 // The repo is a git checkout of origin/main. "Check" fetches and reports how far
 // behind we are plus the incoming changelog; "Apply" does a fast-forward-only
-// pull (which NEVER overwrites uncommitted local edits — it refuses if it
+// pull (which NEVER overwrites uncommitted local edits - it refuses if it
 // would), and "Rebuild" recompiles the .NET server that the pull may have
 // changed.
 
@@ -365,7 +363,7 @@ async function githubApi(pathPart) {
     headers: { Accept: 'application/vnd.github+json' },
   });
   if (res.statusCode === 403 || res.statusCode === 429) {
-    throw new Error('GitHub API rate limit reached — try again in a little while.');
+    throw new Error('GitHub API rate limit reached - try again in a little while.');
   }
   if (res.statusCode === 404) throw new Error('Not found on GitHub (branch or repo missing).');
   if (res.statusCode < 200 || res.statusCode >= 300) throw new Error(`GitHub API responded ${res.statusCode}`);
@@ -399,10 +397,10 @@ function downloadFile(url, destPath, onProgress, redirects = 6) {
 
 function psQuote(s) { return `'${String(s).replace(/'/g, "''")}'`; }
 
-// Extract a .zip into destDir — no third-party dependency is bundled. Windows
+// Extract a .zip into destDir - no third-party dependency is bundled. Windows
 // prefers the in-box tar.exe (bsdtar, present since Win10 1803): it handles
 // long paths and exits non-zero when ANY entry fails. The Expand-Archive
-// fallback runs under $ErrorActionPreference='Stop' for the same reason — by
+// fallback runs under $ErrorActionPreference='Stop' for the same reason - by
 // default it reports per-file failures as non-terminating errors and still
 // exits 0, which hands the caller a silently PARTIAL tree.
 function extractZip(zipPath, destDir) {
@@ -516,7 +514,7 @@ function setProjectPath(dir) {
 
 // Download the latest commit of the repo as a zip and unpack it into targetDir.
 // Used both for first-time setup (fresh, empty target) and for updates (merge
-// over an existing copy — source files are overwritten, while build output, the
+// over an existing copy - source files are overwritten, while build output, the
 // database and Config/ live outside the archive and are left untouched).
 async function downloadProject({ targetDir, branch } = {}) {
   branch = branch || GH.branch;
@@ -524,7 +522,7 @@ async function downloadProject({ targetDir, branch } = {}) {
   const send = (phase, extra) => broadcast('project:progress', { phase, ...extra });
   let tmpRoot = null;
   try {
-    send('resolve', { message: 'Resolving latest commit…' });
+    send('resolve', { message: 'Resolving latest commit...' });
     const commit = await githubApi(`/commits/${encodeURIComponent(branch)}`);
     const sha = commit.sha;
     const subject = (commit.commit.message || '').split('\n')[0];
@@ -533,10 +531,10 @@ async function downloadProject({ targetDir, branch } = {}) {
     tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-proj-'));
     const zipPath = path.join(tmpRoot, 'project.zip');
     const url = `https://codeload.github.com/${GH.owner}/${GH.repo}/zip/${sha}`;
-    send('download', { message: 'Downloading project…', recv: 0, total: 0 });
-    await downloadFile(url, zipPath, (recv, total) => send('download', { message: 'Downloading project…', recv, total }));
+    send('download', { message: 'Downloading project...', recv: 0, total: 0 });
+    await downloadFile(url, zipPath, (recv, total) => send('download', { message: 'Downloading project...', recv, total }));
 
-    send('extract', { message: 'Extracting…' });
+    send('extract', { message: 'Extracting...' });
     const exDir = path.join(tmpRoot, 'x');
     await extractZip(zipPath, exDir);
     const top = fs.readdirSync(exDir)
@@ -544,21 +542,21 @@ async function downloadProject({ targetDir, branch } = {}) {
       .find((q) => { try { return fs.statSync(q).isDirectory(); } catch { return false; } });
     if (!top) throw new Error('downloaded archive was empty');
 
-    // Refuse to merge anything that doesn't look like a complete checkout —
+    // Refuse to merge anything that doesn't look like a complete checkout -
     // nothing in the install has been touched up to this point.
     for (const probe of ['Shittim-Server/Shittim-Server.csproj', 'Schale/Schale.csproj']) {
       if (!fs.existsSync(path.join(top, probe))) {
-        throw new Error(`downloaded archive is incomplete (missing ${probe}) — nothing was changed`);
+        throw new Error(`downloaded archive is incomplete (missing ${probe}) - nothing was changed`);
       }
     }
 
-    send('install', { message: 'Installing files…' });
+    send('install', { message: 'Installing files...' });
     fs.mkdirSync(targetDir, { recursive: true });
     const merged = mergeTree(top, targetDir);
     if (merged.failures.length) {
       const shown = merged.failures.slice(0, 5).map((f) => `${f.path} (${f.error})`).join(', ');
       const more = merged.failures.length > 5 ? ` and ${merged.failures.length - 5} more` : '';
-      throw new Error(`PARTIAL UPDATE — ${merged.failures.length} file(s) could not be replaced: ${shown}${more}. ` +
+      throw new Error(`PARTIAL UPDATE - ${merged.failures.length} file(s) could not be replaced: ${shown}${more}. ` +
         'Close the server and anything else using the folder, then run the update again. ' +
         'Do not rebuild until an update completes cleanly.');
     }
@@ -682,11 +680,11 @@ async function applyUpdate() {
   return { ok: res.ok, method: 'download', head: res.sha, error: res.error };
 }
 
-// ------------------------------------------- automatic server-update watching
+// automatic server-update watching
 //
 // Check-and-notify only: runs once shortly after launch and every few hours
 // while the app stays open, toasting the renderer when the server source is
-// behind origin. Applying + rebuilding stays a user action on the Updates page —
+// behind origin. Applying + rebuilding stays a user action on the Updates page -
 // the server may be live mid-session, and an apply can need files closed.
 
 const SERVER_UPDATE_CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
@@ -695,7 +693,7 @@ let lastNotifiedServerSha = null;
 async function watchServerUpdates() {
   try {
     const r = await checkUpdates();
-    if (!r || !r.ok || !r.versionKnown) return;        // no project or offline — stay quiet
+    if (!r || !r.ok || !r.versionKnown) return;        // no project or offline - stay quiet
     if (!(r.behind > 0)) return;                        // up to date; compareFailed (local dev builds) also lands here
     if (r.remoteSha === lastNotifiedServerSha) return;  // already announced this tip this session
     lastNotifiedServerSha = r.remoteSha;
@@ -705,15 +703,15 @@ async function watchServerUpdates() {
       remoteSubject: r.remoteSubject,
       remoteWhen: r.remoteWhen,
     });
-    broadcast('proc:log', { source: 'server', line: `> server update available: ${r.behind} commit(s) behind — ${r.remoteShort} "${r.remoteSubject}" (apply it from the Updates page)` });
-  } catch { /* offline or rate-limited — the next cycle retries */ }
+    broadcast('proc:log', { source: 'server', line: `> server update available: ${r.behind} commit(s) behind - ${r.remoteShort} "${r.remoteSubject}" (apply it from the Updates page)` });
+  } catch { /* offline or rate-limited - the next cycle retries */ }
 }
 
 function rebuildServer() {
   const p = resolvePaths();
   if (!fs.existsSync(p.csproj)) return Promise.resolve({ ok: false, error: 'Server project not found' });
   return new Promise((resolve) => {
-    broadcast('proc:log', { source: 'server', line: '> dotnet build -c Debug (rebuilding after update)…' });
+    broadcast('proc:log', { source: 'server', line: '> dotnet build -c Debug (rebuilding after update)...' });
     broadcast('proc:state', { rebuild: 'building' });
     const dn = resolveDotnet();
     let child;
@@ -725,7 +723,7 @@ function rebuildServer() {
   });
 }
 
-// ----------------------------------------------------------- toolchain setup
+// toolchain setup
 //
 // One-click acquisition of the three host prerequisites the readiness card
 // reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert. The
@@ -739,7 +737,7 @@ const DOTNET_DIR = () => path.join(process.env.LOCALAPPDATA || os.homedir(), 'Mi
 const CERT_PATH = () => path.join(os.homedir(), '.mitmproxy', 'mitmproxy-ca-cert.cer');
 
 // mitmproxy ships an official, per-version Windows installer (Inno Setup, admin-
-// only — its manifest is requireAdministrator). We pin a known-good version,
+// only - its manifest is requireAdministrator). We pin a known-good version,
 // install it into Program Files silently+elevated, then add it to PATH ourselves
 // because the installer does not modify PATH.
 const MITM_VERSION = '12.2.3';
@@ -757,7 +755,7 @@ function setupLog(step, line) { broadcast('setup:progress', { step, line }); }
 function setupPhase(step, status, extra) { broadcast('setup:progress', { step, status, ...(extra || {}) }); }
 
 // Run a PowerShell snippet, streaming each output line to onLine. Resolves with
-// the exit code — never rejects, so callers branch on `ok`.
+// the exit code - never rejects, so callers branch on `ok`.
 function runPwsh(script, onLine) {
   return new Promise((resolve) => {
     let child;
@@ -804,9 +802,9 @@ async function addToUserPath(dir, step) {
 async function installDotnet() {
   const step = 'dotnet';
   if (process.platform !== 'win32') {
-    return { ok: false, error: 'Automated .NET install is wired up for Windows only — install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
+    return { ok: false, error: 'Automated .NET install is wired up for Windows only - install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
   }
-  setupPhase(step, 'running', { message: 'Downloading & installing the .NET 10 SDK (~250 MB) — this can take a few minutes' });
+  setupPhase(step, 'running', { message: 'Downloading & installing the .NET 10 SDK (~250 MB) - this can take a few minutes' });
   let tmp = null;
   let beat = null;
   try {
@@ -816,13 +814,13 @@ async function installDotnet() {
     await downloadFile('https://dot.net/v1/dotnet-install.ps1', scriptPath);
     const dir = DOTNET_DIR();
     setupLog(step, `> dotnet-install.ps1 -Channel 10.0 -InstallDir "${dir}"`);
-    setupLog(step, '> the SDK download is large and runs quietly — give it a few minutes, it is not stuck');
+    setupLog(step, '> the SDK download is large and runs quietly - give it a few minutes, it is not stuck');
     // dotnet-install.ps1 emits almost nothing during the big transfer, so keep a
     // heartbeat going to prove the step is still alive in the log/UI.
     const t0 = Date.now();
     beat = setInterval(() => {
       const s = Math.round((Date.now() - t0) / 1000);
-      setupPhase(step, 'running', { message: `Installing the .NET 10 SDK… (${s}s elapsed — downloading in the background)` });
+      setupPhase(step, 'running', { message: `Installing the .NET 10 SDK... (${s}s elapsed - downloading in the background)` });
     }, 3000);
     // -NoPath: the script's session-only PATH edit is useless to us; we persist
     // it ourselves below. The install is a no-op if the SDK is already present.
@@ -831,11 +829,11 @@ async function installDotnet() {
     clearInterval(beat); beat = null;
     if (!r.ok) { setupPhase(step, 'failed', { message: 'dotnet-install.ps1 failed' }); return { ok: false, error: 'dotnet-install.ps1 failed', out: r.out }; }
     // A base SDK without the ASP.NET Core Web SDK still builds far enough to fail
-    // with "SDK 'Microsoft.NET.Sdk.Web' could not be found" — catch that here
+    // with "SDK 'Microsoft.NET.Sdk.Web' could not be found" - catch that here
     // rather than letting the first server launch surface it.
     if (!hasWebSdk(dir)) {
-      setupPhase(step, 'failed', { message: 'Install finished but the ASP.NET Core Web SDK is missing — re-run install.' });
-      return { ok: false, error: `Microsoft.NET.Sdk.Web not found under ${path.join(dir, 'sdk')} — the SDK install looks incomplete.` };
+      setupPhase(step, 'failed', { message: 'Install finished but the ASP.NET Core Web SDK is missing - re-run install.' });
+      return { ok: false, error: `Microsoft.NET.Sdk.Web not found under ${path.join(dir, 'sdk')} - the SDK install looks incomplete.` };
     }
     await addToUserPath(dir, step);
     setupLog(step, `> verified ASP.NET Core Web SDK is present in ${dir}`);
@@ -876,9 +874,9 @@ function findMitmBinDir(root, depth = 2) {
 async function installMitmproxy() {
   const step = 'mitmproxy';
   if (process.platform !== 'win32') {
-    return { ok: false, error: 'Automated mitmproxy install is wired up for Windows only — install it from https://mitmproxy.org/.' };
+    return { ok: false, error: 'Automated mitmproxy install is wired up for Windows only - install it from https://mitmproxy.org/.' };
   }
-  setupPhase(step, 'running', { message: `Downloading mitmproxy ${MITM_VERSION}…` });
+  setupPhase(step, 'running', { message: `Downloading mitmproxy ${MITM_VERSION}...` });
   let tmp = null;
   try {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-mitm-'));
@@ -888,11 +886,11 @@ async function installMitmproxy() {
     await downloadFile(url, installer, (recv, total) => broadcast('setup:progress', { step, recv, total }));
 
     const dir = MITM_INSTALL_DIR();
-    setupPhase(step, 'running', { message: 'Installing mitmproxy (approve the elevation prompt)…' });
+    setupPhase(step, 'running', { message: 'Installing mitmproxy (approve the elevation prompt)...' });
     setupLog(step, `> running installer silently into ${dir} (requires elevation)`);
     // Inno Setup silent switches; -Verb RunAs raises the one UAC prompt the
     // requireAdministrator manifest forces. ArgumentList as a single string is
-    // passed verbatim so /DIR="…with spaces…" reaches Inno intact.
+    // passed verbatim so /DIR="...with spaces..." reaches Inno intact.
     const innoArgs = `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR="${dir}"`;
     const ps = `$p = Start-Process -FilePath ${psQuote(installer)} -ArgumentList ${psQuote(innoArgs)} -Verb RunAs -PassThru -Wait; exit $p.ExitCode`;
     const r = await runPwsh(ps, (l) => setupLog(step, l));
@@ -941,15 +939,15 @@ async function installCertificate() {
   if (process.platform !== 'win32') {
     return { ok: false, error: 'Automated certificate trust is wired up for Windows only.' };
   }
-  setupPhase(step, 'running', { message: 'Preparing CA certificate…' });
+  setupPhase(step, 'running', { message: 'Preparing CA certificate...' });
   try {
     const certPath = CERT_PATH();
     if (!fs.existsSync(certPath)) {
-      setupLog(step, '> generating mitmproxy CA (first run)…');
+      setupLog(step, '> generating mitmproxy CA (first run)...');
       await generateMitmCert(step);
     }
-    if (!fs.existsSync(certPath)) throw new Error('mitmproxy CA certificate was not generated — install mitmproxy first.');
-    setupLog(step, '> trusting CA in machine root store (certutil — approve the elevation prompt)…');
+    if (!fs.existsSync(certPath)) throw new Error('mitmproxy CA certificate was not generated - install mitmproxy first.');
+    setupLog(step, '> trusting CA in machine root store (certutil - approve the elevation prompt)...');
     // Machine root store is what the Steam client validates against, so it needs
     // admin. Start-Process -Verb RunAs raises the single UAC prompt.
     const ps = `$p = Start-Process -FilePath 'certutil.exe' -ArgumentList @('-addstore','-f','Root', ${psQuote(certPath)}) -Verb RunAs -PassThru -Wait; exit $p.ExitCode`;
@@ -979,14 +977,14 @@ async function runSetup(which) {
   return { ok, results };
 }
 
-// ----------------------------------------------------------------- log export
+// log export
 //
 // Bundle the server logs plus a short diagnostic snapshot into a single .zip the
 // user can attach when reporting an issue. The classic "stuck on Unpacking game
 // resources" hang, for instance, shows up plainly in the server log (a failed
 // gateway-key handshake, or a client metadata file that was never found). Uses
-// PowerShell's Compress-Archive on Windows — mirroring extractZip's
-// Expand-Archive — so no zip dependency is bundled.
+// PowerShell's Compress-Archive on Windows - mirroring extractZip's
+// Expand-Archive - so no zip dependency is bundled.
 
 function logsDir() {
   // ConfigLogger writes to <exeBaseDir>/logs/log.txt (+ log-prev.txt).
@@ -1013,7 +1011,7 @@ function compressArchive(items, destZip) {
 }
 
 // A plain-text snapshot of versions, resolved paths, process state and the
-// environment readiness checks — the context that makes a log bundle actionable.
+// environment readiness checks - the context that makes a log bundle actionable.
 async function buildDiagnosticInfo() {
   const p = resolvePaths();
   let env = null;
@@ -1065,17 +1063,17 @@ async function exportLogs() {
     staging = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-logs-'));
     let count = 0;
 
-    // server logs — carry the gateway/metadata patch outcome + handshake errors
+    // server logs - carry the gateway/metadata patch outcome + handshake errors
     const ld = logsDir();
     for (const name of ['log.txt', 'log-prev.txt']) {
       const src = path.join(ld, name);
       try { if (fs.existsSync(src)) { fs.copyFileSync(src, path.join(staging, name)); count++; } } catch { /* skip */ }
     }
 
-    // server config — toggles + client paths (no private key material by default)
+    // server config - toggles + client paths (no private key material by default)
     try { if (fs.existsSync(p.configPath)) { fs.copyFileSync(p.configPath, path.join(staging, 'Config.json')); count++; } } catch { /* skip */ }
 
-    // diagnostic snapshot — always present so the bundle is never empty
+    // diagnostic snapshot - always present so the bundle is never empty
     try { fs.writeFileSync(path.join(staging, 'controlcenter-info.txt'), await buildDiagnosticInfo()); count++; } catch { /* skip */ }
 
     const entries = fs.readdirSync(staging).map((n) => path.join(staging, n));
@@ -1092,19 +1090,19 @@ async function exportLogs() {
   }
 }
 
-// --------------------------------------------------- control-center self-update
+// control-center self-update
 //
 // The Control Center is a packaged Electron app, so its own exe/files can only be
-// replaced by a newer packaged build — the source pull on the Updates page only
+// replaced by a newer packaged build - the source pull on the Updates page only
 // updates the .NET server's source. electron-updater pulls new Control Center
 // builds from this repo's GitHub Releases (configured by the `publish` block in
 // package.json), prompts before downloading, and installs on quit. Releases must
 // carry the latest.yml + blockmap + installer assets that `npm run publish`
 // uploads (set a GH_TOKEN env var first).
 //
-// Two wrinkles this section absorbs:
+// Wrinkles:
 //  - This repo's releases mix SERVER builds and Control Center builds, and
-//    electron-updater's GitHub provider only ever inspects the newest release —
+//    electron-updater's GitHub provider only ever inspects the newest release -
 //    a server release on top would 404 the feed. resolveSelfUpdateFeed() finds
 //    the newest release that actually carries latest.yml and points the generic
 //    provider at it; the embedded feed stays as a fallback.
@@ -1239,7 +1237,7 @@ function setupAutoUpdate(win) {
     autoUpdater.on('error', (err) => {
       let line = `> auto-update error: ${(err && err.message) || err}`;
       if (/404/.test(line) && /latest\.yml|update.*metadata|feed/i.test(line)) {
-        line += ' (the newest GitHub release carries no updater metadata — publish with `npm run publish` so latest.yml is attached)';
+        line += ' (the newest GitHub release carries no updater metadata - publish with `npm run publish` so latest.yml is attached)';
       }
       broadcast('proc:log', { source: 'server', line });
     });
@@ -1272,7 +1270,7 @@ async function checkSelfUpdate() {
   }
 }
 
-// ------------------------------------------------------------------- window
+// window
 
 function appIcon() {
   const candidates = [
@@ -1309,7 +1307,7 @@ function createWindow() {
   return win;
 }
 
-// --------------------------------------------------------------------- ipc
+// ipc
 
 ipcMain.handle('paths:resolve', () => resolvePaths());
 ipcMain.handle('settings:read', () => loadSettings());
@@ -1323,7 +1321,7 @@ ipcMain.handle('server:stop', () => stopServer());
 ipcMain.handle('mitm:start', () => startMitm());
 ipcMain.handle('mitm:stop', () => stopMitm());
 
-// combined power control — one action drives both the server and the proxy
+// combined power control - one action drives both the server and the proxy
 ipcMain.handle('system:start', () => {
   const server = startServer();
   const mitm = startMitm();
@@ -1381,7 +1379,7 @@ ipcMain.on('window:control', (e, action) => {
   else if (action === 'close') win.close();
 });
 
-// ------------------------------------------------------------------- bootstrap
+// bootstrap
 
 app.whenReady().then(() => {
   createWindow();
@@ -1389,7 +1387,7 @@ app.whenReady().then(() => {
   // and prompt to install. Installed builds go through electron-updater;
   // portable/feedless builds get a manual-download notice. Dev runs skip this,
   // and offline errors stay quiet (manual checks still surface them).
-  checkSelfUpdate().catch(() => { /* offline or no releases yet — stay quiet */ });
+  checkSelfUpdate().catch(() => { /* offline or no releases yet - stay quiet */ });
   // Server-source update check: once after the renderer has had time to come up
   // (so the toast lands), then periodically while the app stays open.
   setTimeout(watchServerUpdates, 8000);

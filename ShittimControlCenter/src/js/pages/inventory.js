@@ -5,35 +5,31 @@ import { gate, loadInto } from './_util.js';
 
 export default {
   id: 'inventory',
-  title: 'Inventory',
-  subtitle: 'Grant items and manage the character roster',
-  icon: 'inventory',
+  title: 'Inventory',  icon: 'inventory',
   needsTarget: true,
 
   mount(root) {
-    return gate(root, {}, { needServer: true, needTarget: true }, (root) => {
+    return gate(root, { needServer: true, needTarget: true }, (root) => {
       const acc = targetAccount();
       const uid = acc.serverId;
 
-      // quick bulk actions
       const bulk = el('div.card', { style: { marginBottom: '18px' } },
         el('div.card-head', { style: { flexWrap: 'wrap', rowGap: '4px' } }, el('span.tab-mark', {}), el('h3', { text: 'Bulk grants' }),
           el('span.sub', { style: { minWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-            `for ${acc.nickname} · `,
+            `for ${acc.nickname} - `,
             el('span.mono', { text: `#${uid}`, 'data-selectable': '' }))),
         el('div.card-body', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap', minWidth: '0' } },
-          cmdBtn(uid, 'All items', 'box', 'inventory add items', 'ghost', () => itemsCard && reloadItems()),
+          cmdBtn(uid, 'All items', 'box', 'inventory add items', 'ghost', () => reloadItems()),
           cmdBtn(uid, 'All equipment', 'shield', 'giveallequip', 'ghost'),
           cmdBtn(uid, 'All characters', 'users', 'giveall', 'ghost', () => reloadChars()),
-          cmdBtn(uid, 'Max characters', 'star', 'max all', 'gold', () => reloadChars()),
+          cmdBtn(uid, 'Max characters', 'star', 'max all', 'ghost', () => reloadChars()),
           dangerCmd(uid, 'Clear inventory', 'trash', 'clearinventory', () => reloadItems())));
       root.appendChild(bulk);
 
       const grid = el('div.grid-2', { style: { alignItems: 'start' } });
       root.appendChild(grid);
 
-      // ---- items
-      const itemSearch = input({ placeholder: 'Filter…', className: 'input btn-sm', style: { height: '32px', width: '120px', minWidth: '0', flex: '0 1 120px' } });
+      const itemSearch = input({ placeholder: 'Filter...', className: 'input btn-sm', style: { height: '32px', width: '120px', minWidth: '0', flex: '0 1 120px' } });
       const giveItemBtn = button('Give item', { variant: 'primary', sm: true, iconName: 'plus', onClick: giveItem });
       const itemsCard = el('div.card', {},
         el('div.card-head', { style: { flexWrap: 'wrap', rowGap: '8px' } }, el('span.tab-mark', {}), el('h3', { text: 'Items' }),
@@ -48,8 +44,8 @@ export default {
         const q = itemSearch.value.trim().toLowerCase();
         const rows = itemRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(itemsBody);
-        if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with “Give item”')); return; }
-        // 64px = 36px trash button + the 28px of cell padding (border-box) —
+        if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with "Give item"')); return; }
+        // 64px = 36px trash button + the 28px of cell padding (border-box) -
         // narrower and the button overflows the fixed column, dragging a
         // horizontal scrollbar into the list
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:64px"></th></tr></thead><tbody></tbody></table>');
@@ -74,8 +70,7 @@ export default {
           } }) });
       }
 
-      // ---- characters
-      const charSearch = input({ placeholder: 'Filter…', className: 'input btn-sm', style: { height: '32px', width: '120px', minWidth: '0', flex: '0 1 120px' } });
+      const charSearch = input({ placeholder: 'Filter...', className: 'input btn-sm', style: { height: '32px', width: '120px', minWidth: '0', flex: '0 1 120px' } });
       const addCharBtn = button('Add character', { variant: 'primary', sm: true, iconName: 'plus', onClick: addChar });
       const charsCard = el('div.card', {},
         el('div.card-head', { style: { flexWrap: 'wrap', rowGap: '8px' } }, el('span.tab-mark', {}), el('h3', { text: 'Characters' }),
@@ -115,7 +110,7 @@ export default {
             const lvl = input({ value: 'max', placeholder: 'max / basic / ue30 / ue50' });
             const add = button('Add', { variant: 'primary', iconName: 'plus' });
             const cancel = button('Cancel', { variant: 'ghost' });
-            const ref = modal({ title: `Add ${it.name}`, body: el('div', {}, field('Preset', lvl, 'barebone · basic · ue30 · ue50 · max')), footer: [cancel, add] });
+            const ref = modal({ title: `Add ${it.name}`, body: el('div', {}, field('Preset', lvl, 'barebone - basic - ue30 - ue50 - max')), footer: [cancel, add] });
             cancel.addEventListener('click', ref.close);
             add.addEventListener('click', async () => {
               const opt = (lvl.value.trim() || 'max').toLowerCase();
@@ -130,7 +125,7 @@ export default {
 
       function cmdBtn(uid, label, ic, command, variant, after) {
         return button(label, { variant, sm: true, iconName: ic, onClick: async () => {
-          try { await api.command(uid, command); toast(`${label} ✓`, 'good'); notifyRestart(); after && after(); }
+          try { await api.command(uid, command); toast(label, 'good'); notifyRestart(); after && after(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }
@@ -138,7 +133,7 @@ export default {
         return button(label, { variant: 'danger', sm: true, iconName: ic, onClick: async () => {
           const ok = await confirmDialog({ title: label, danger: true, confirmLabel: label, message: 'This wipes inventory items and unbound equipment for this account.' });
           if (!ok) return;
-          try { await api.command(uid, command); toast(`${label} ✓`, 'warn'); notifyRestart(); after && after(); }
+          try { await api.command(uid, command); toast(label, 'warn'); notifyRestart(); after && after(); }
           catch (e) { toast(e.message, 'bad'); }
         }});
       }

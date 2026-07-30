@@ -94,12 +94,10 @@ const GROUPS = [
 
 export default {
   id: 'config',
-  title: 'Configuration',
-  subtitle: 'Edit the server configuration file (Config.json)',
-  icon: 'config',
+  title: 'Configuration',  icon: 'config',
   needsTarget: false,
 
-  async mount(root) {
+  async mount(root, { rerender }) {
     const cfg = await window.host.configRead();
     if (!cfg.ok) {
       root.appendChild(frag(`<div class="empty"><b>No configuration found</b><span><span class="mono" data-selectable style="word-break:break-all">${cfg.path}</span><br>It is generated the first time the server runs.</span></div>`));
@@ -114,13 +112,12 @@ export default {
     const sc = data.ServerConfiguration = data.ServerConfiguration || {};
     const pl = sc.PacketLogging = sc.PacketLogging || {};
 
-    // ---- top action bar
     const restartHint = store.get().online
       ? frag('<span class="pill warn"><span class="dot"></span>Restart server to apply</span>')
       : frag('<span class="pill"><span class="dot"></span>Server offline</span>');
 
     const saveBtn = button('Save configuration', { variant: 'primary', iconName: 'save', onClick: save });
-    const reloadBtn = button('Reload', { variant: 'ghost', iconName: 'refresh', onClick: () => ctxReload() });
+    const reloadBtn = button('Reload', { variant: 'ghost', iconName: 'refresh', onClick: rerender });
     const rawBtn = button('Edit raw JSON', { variant: 'ghost', iconName: 'edit', onClick: editRaw });
     const openBtn = button('Open file', { variant: 'ghost', iconName: 'external', onClick: () => window.host.openPath(cfg.path) });
     const resetBtn = button('Reset to defaults', { variant: 'ghost', iconName: 'refresh', onClick: resetDefaults });
@@ -131,7 +128,6 @@ export default {
     root.appendChild(bar);
     root.appendChild(frag(`<div class="row wrap" style="margin:-4px 0 16px;min-width:0"><span class="mono" data-selectable style="font-size:11.5px;color:var(--ink-2);min-width:0;word-break:break-all;line-height:1.5">${cfg.path}</span></div>`));
 
-    // ---- grouped editor
     const grid = el('div.grid-2', { style: { alignItems: 'start' } });
 
     for (const g of GROUPS) {
@@ -153,18 +149,16 @@ export default {
     }
     root.appendChild(grid);
 
-    // ---- advanced (cipher) collapsible card
     const advBody = el('div', {});
     advBody.appendChild(field('Excel DB SQLCipher key', bindInput(sc, 'ExcelDbSqlCipherKey')));
     advBody.appendChild(field('Excel DB SQLCipher license', bindInput(sc, 'ExcelDbSqlCipherLicense')));
     root.appendChild(el('div.card', { style: { marginTop: '18px' } },
-      el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Advanced — Excel decryption' }),
+      el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Advanced - Excel decryption' }),
         el('span.sub', { text: 'change only if your data dump differs' })),
       el('div.card-body', {}, advBody)));
 
-    // ---- handlers
     function bindInput(obj, key) {
-      const i = input({ value: obj[key] ?? '', placeholder: '—' });
+      const i = input({ value: obj[key] ?? '', placeholder: '-' });
       i.addEventListener('input', () => { obj[key] = i.value; });
       return i;
     }
@@ -180,7 +174,7 @@ export default {
       const row = el('div.input-row', { style: { minWidth: '0' } });
       const i = input({ value: obj[f.path] ?? '', placeholder: 'path (optional override)' });
       i.addEventListener('input', () => { obj[f.path] = i.value; });
-      const browse = button('…', { variant: 'ghost', onClick: async () => {
+      const browse = button('...', { variant: 'ghost', onClick: async () => {
         const picked = await window.host.pickFile();
         if (picked) { i.value = picked; obj[f.path] = picked; }
       }});
@@ -194,15 +188,13 @@ export default {
       const r = await window.host.configWrite(data);
       toast(r.ok ? 'Configuration saved' : (r.error || 'Save failed'), r.ok ? 'good' : 'bad', r.ok ? 'Saved' : 'Error');
     }
-    function ctxReload() { location.hash = '#/config'; document.querySelector('.nav-item[data-id="config"]').click(); }
-
     async function resetDefaults() {
       const ok = await confirmDialog({ title: 'Reset to defaults', confirmLabel: 'Reset & save',
         message: 'Restore every setting on this page to its default value and save it to Config.json? GameVersion, gateway keys and the database are left untouched. If the server is running, restart it to apply.' });
       if (!ok) return;
       Object.assign(sc, DEFAULT_SERVER_CONFIG, { PacketLogging: { ...DEFAULT_SERVER_CONFIG.PacketLogging } });
       const r = await window.host.configWrite(data);
-      if (r.ok) { toast('Configuration reset to defaults', 'good', 'Defaults restored'); ctxReload(); }
+      if (r.ok) { toast('Configuration reset to defaults', 'good', 'Defaults restored'); rerender(); }
       else toast(r.error || 'Reset failed', 'bad');
     }
 
@@ -216,7 +208,7 @@ export default {
         try {
           const parsed = JSON.parse(ta.value);
           const r = await window.host.configWrite(parsed);
-          if (r.ok) { ref.close(); toast('Configuration saved', 'good'); ctxReload(); }
+          if (r.ok) { ref.close(); toast('Configuration saved', 'good'); rerender(); }
           else toast(r.error, 'bad');
         } catch (e) { toast('Invalid JSON: ' + e.message, 'bad'); }
       });
