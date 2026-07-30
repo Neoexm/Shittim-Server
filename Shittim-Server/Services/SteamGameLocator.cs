@@ -3,17 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace Shittim_Server.Services
 {
-    // Locates the Steam install of the client (app 3557620, common folder "BlueArchive")
-    // wherever it lives. Checking only F:\ and Program Files (x86) misses anyone with Steam
-    // or their game library on another drive, and with no install path the patch services
-    // never write the gateway public key into global-metadata.dat, leaving the client stuck
-    // at "Unpacking game resources" on a 50001 handshake that cannot complete.
+    // Locates the Steam install of the client (app 3557620, common folder "BlueArchive") wherever it lives.
+    // Checking only F:\ and Program Files (x86) misses anyone with Steam or their game library on another drive,
+    // and with no install path the patch services never write the gateway public key into global-metadata.dat, leaving the client stuck at "Unpacking game resources" on a 50001 handshake that cannot complete.
     //
-    // Cheapest first: SHITTIM_STEAM_PATH, the two Program Files locations, <drive>:\Steam and
-    // <drive>:\Program Files (x86)\Steam on each fixed drive, then the HKCU/HKLM Valve\Steam
-    // value (spawns reg.exe, so only if nothing else matched). Each install found gets its
-    // steamapps\libraryfolders.vdf parsed for extra libraries - the common "games on D:" case -
-    // and a final fixed-drive scan catches bare SteamLibrary folders no vdf mentions.
+    // Cheapest first: SHITTIM_STEAM_PATH, the two Program Files locations, <drive>:\Steam and <drive>:\Program Files (x86)\Steam on each fixed drive, then the HKCU/HKLM Valve\Steam value (spawns reg.exe, so only if nothing else matched).
+    // Each install found gets its steamapps\libraryfolders.vdf parsed for extra libraries - the common "games on D:" case - and a final fixed-drive scan catches bare SteamLibrary folders no vdf mentions.
     public static class SteamGameLocator
     {
         private const string GameFolderName = "BlueArchive";
@@ -130,8 +125,7 @@ namespace Shittim_Server.Services
                 yield return fromRegistry;
         }
 
-        // Parse steamapps\libraryfolders.vdf (and the legacy config\ location) for
-        // every library "path". Handles the modern keyed format
+        // Parse steamapps\libraryfolders.vdf (and the legacy config\ location) for every library "path". Handles the modern keyed format
         //   "0" { "path" "D:\\SteamLibrary" ... }
         // and the pre-2021 flat format
         //   "1" "D:\\SteamLibrary"

@@ -26,9 +26,7 @@ namespace Shittim.CLI
     {
         public static async Task Main(bool update, bool console, long? id)
         {
-            // Prevent console freezes: disables QuickEdit mode on Windows
-            // and replaces Console.Out with a non-blocking async writer so
-            // that pipe buffer saturation can never block request threads.
+            // Prevent console freezes: disables QuickEdit mode on Windows and replaces Console.Out with a non-blocking async writer so that pipe buffer saturation can never block request threads.
             ConsoleHelper.Harden();
 
             var config = ConfigLogger.LogConfiguration();
@@ -48,7 +46,6 @@ namespace Shittim.CLI
                 if (Shittim_Server.Core.Diagnostics.GatewayWireLog.Enabled)
                     Log.Information("Gateway wire dump is Enabled (logs/wire-{Date:yyyy-MM-dd}.txt)", DateTime.Now);
 
-                // Initialize Version State
                 using var loggerFactory = LoggerFactory.Create(builder => builder.AddSerilog());
                 var resolverLogger = loggerFactory.CreateLogger<BlueArchiveVersionResolver>();
                 using var httpClient = new HttpClient();
@@ -74,8 +71,7 @@ namespace Shittim.CLI
                 Console.WriteLine("\n[Resource Manager] Checking Excel tables...");
                 await ResourceService.LoadResources(Config.Instance.ServerConfiguration.UseCustomExcel);
 
-                // Fail fast with a clear message if the ExcelDB SQLCipher key cannot decrypt the
-                // ExcelDB.db for this client version (the key rotates between some game updates).
+                // Fail fast with a clear message if the ExcelDB SQLCipher key cannot decrypt the ExcelDB.db for this client version (the key rotates between some game updates).
                 ExcelTableService.ValidateExcelDbKey();
 
                 var builder = WebApplication.CreateBuilder(Environment.GetCommandLineArgs());
@@ -189,11 +185,8 @@ namespace Shittim.CLI
                     if (context.Database.GetPendingMigrations().Any())
                         context.Database.Migrate();
 
-                    // EnsureCreated only builds the schema for a brand-new database and does nothing
-                    // to one that already exists, and the project has no migrations. SchemaReconciler
-                    // derives both tables and columns from the EF model, so adding a property is
-                    // enough - hand-written CREATE TABLE IF NOT EXISTS blocks would cover new tables
-                    // but silently miss new columns.
+                    // EnsureCreated only builds the schema for a brand-new database and does nothing to one that already exists, and the project has no migrations.
+                    // SchemaReconciler derives both tables and columns from the EF model, so adding a property is enough - hand-written CREATE TABLE IF NOT EXISTS blocks would cover new tables but silently miss new columns.
                     var schemaChanges = await SchemaReconciler.ReconcileAsync(context);
                     foreach (var change in schemaChanges)
                         Console.WriteLine($"Schema: {change}");

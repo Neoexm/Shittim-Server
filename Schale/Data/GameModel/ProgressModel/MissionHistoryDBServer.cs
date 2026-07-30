@@ -2,9 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Schale.Data.GameModel
 {
-    // Persisted mission claim history. Official's account-wide Mission_List returns every claimed
-    // mission id in MissionHistoryUniqueIds (a freshly claimed id appears in the next call), so the
-    // claims made through Mission_Reward / Mission_MultipleReward must outlive the response.
+    // Persisted mission claim history. Official's account-wide Mission_List returns every claimed mission id in MissionHistoryUniqueIds (a freshly claimed id appears in the next call),
+    // so the claims made through Mission_Reward / Mission_MultipleReward must outlive the response.
     public class MissionHistoryDBServer
     {
         [Key]

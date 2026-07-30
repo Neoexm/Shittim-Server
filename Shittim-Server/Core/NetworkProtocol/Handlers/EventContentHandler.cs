@@ -44,8 +44,7 @@ public class EventContentHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // The event shop rides the regular shop pipeline: ShopExcel has no EventContentId,
-        // selection is purely by the EventContent_* category types the client asks for.
+        // The event shop rides the regular shop pipeline: ShopExcel has no EventContentId, selection is purely by the EventContent_* category types the client asks for.
         var shopExcels = _excelService.GetTable<ShopExcelT>();
         response.ShopInfos = await _shopManager.GetShopList(db, account, shopExcels, request.CategoryList?.ToList() ?? []);
         response.ShopEligmaHistoryDBs = [];
@@ -210,9 +209,7 @@ public class EventContentHandler : ProtocolHandlerBase
             EventContentId = request.EventContentId,
             PurchaseCount = 0,
             Round = 1,
-            // Must be stable per account+event: the client lays the box out from this seed, and a
-            // fresh random seed on every open both reshuffles the box and (with the empty dict
-            // below) made the UI read the whole box as already drained.
+            // Must be stable per account+event: the client lays the box out from this seed, and a fresh random seed on every open both reshuffles the box and (with the empty dict below) made the UI read the whole box as already drained.
             Seed = account.ServerId * 1_000_003 + request.EventContentId
         };
 

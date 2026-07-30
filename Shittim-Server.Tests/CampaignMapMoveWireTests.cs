@@ -101,8 +101,7 @@ public class CampaignMapMoveWireTests
     {
         var mover = MoveResponse()["SaveDataDB"]!["EchelonInfos"]!["1"]!;
 
-        // Official answers echelon 1's move to {-1,2,-1} with it still at {-2,2,0}; y=0 is dropped by
-        // DefaultValueHandling.Ignore, which is why z is read rather than asserted absent.
+        // Official answers echelon 1's move to {-1,2,-1} with it still at {-2,2,0}; y=0 is dropped by DefaultValueHandling.Ignore, which is why z is read rather than asserted absent.
         Assert.Equal(-2, (int)mover["Location"]!["x"]!);
         Assert.Equal(2, (int)mover["Location"]!["y"]!);
         Assert.Equal(1, (long)mover["MovementOrder"]!);
@@ -122,8 +121,7 @@ public class CampaignMapMoveWireTests
     [Fact]
     public void RewindingIsWireOnlyAndDoesNotUndoTheSavedMove()
     {
-        // The mapped wire copy shares HexaUnit references with the tracked entity, so a rewind that
-        // wrote through them would roll the move back out of the database.
+        // The mapped wire copy shares HexaUnit references with the tracked entity, so a rewind that wrote through them would roll the move back out of the database.
         var save = AfterEchelonOneMoves();
         var moved = save.EchelonInfos![1];
 
@@ -137,8 +135,7 @@ public class CampaignMapMoveWireTests
     [Fact]
     public void AnExhaustedEchelonDropsActionCountFromTheWire()
     {
-        // ActionCount 0 is the client's "this unit has already moved this turn". It travels as an
-        // absent key, which is how official reports a spent echelon.
+        // ActionCount 0 is the client's "this unit has already moved this turn". It travels as an absent key, which is how official reports a spent echelon.
         var json = Wire(new CampaignMapMoveResponse
         {
             EchelonEntityId = 1,

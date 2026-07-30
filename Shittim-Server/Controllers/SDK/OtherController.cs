@@ -39,8 +39,7 @@ namespace Shittim_Server.Controllers.SDK
 
         [HttpGet("toy-push/live/sdk/push/policy")]
         [HttpPost("toy-push/live/sdk/push/policy")]
-        // No [FromBody] parameter: the client queries this with a bodyless GET, and a required
-        // body binding made every one of those 400.
+        // No [FromBody] parameter: the client queries this with a bodyless GET, and a required body binding made every one of those 400.
         public IResult ToyPushPolicy([FromQuery] int? svcID, [FromQuery] string? npToken)
         {
             if (svcID.HasValue)

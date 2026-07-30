@@ -3,9 +3,8 @@ using BlueArchiveAPI.Configuration;
 namespace Shittim_Server.Services
 {
     /// <summary>
-    /// Replaces the real grap64.dll (Nexon Game Shield / NGS) with a lightweight stub on server start,
-    /// then restores the original on stop. The stub provides fake NGSX exports so the game loads
-    /// without initiating real NGS kernel-level connections that would bypass mitmproxy interception.
+    /// Replaces the real grap64.dll (Nexon Game Shield / NGS) with a lightweight stub on server start, then restores the original on stop.
+    /// The stub provides fake NGSX exports so the game loads without initiating real NGS kernel-level connections that would bypass mitmproxy interception.
     /// </summary>
     public class ClientGrap64ManagementService : IHostedService
     {
@@ -163,7 +162,7 @@ namespace Shittim_Server.Services
                     return candidate;
             }
 
-            // The game can be in any Steam library, not just F:\ or Program Files.
+            // Any Steam library can hold the install.
             var located = SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "grap64.dll"));
             if (!string.IsNullOrWhiteSpace(located) && (File.Exists(located) || File.Exists(located + ".bak")))
                 return located;

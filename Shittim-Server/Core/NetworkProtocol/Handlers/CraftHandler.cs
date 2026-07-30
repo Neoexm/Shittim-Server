@@ -15,19 +15,12 @@ using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers
 {
-    /// <summary>
-    /// Crafting chamber, modelled on the complete flow in the detailed official capture: UpdateNodeLevel
-    /// (consume materials + gold; the node gains a level, a random seed and five leaf choices for the
-    /// next tier) -> SelectNode (commit one leaf) -> repeat per tier -> BeginProcess (resolve per-tier
-    /// results and a StartTime/EndTime window) -> CompleteProcess (time-skip tickets, item 2, one per
-    /// started 2.5h) -> Reward (parcels, slot clears). Wire shapes follow the capture throughout; where
-    /// official's internal rules are not observable - leaf-choice weighting, the meaning of ResultId,
-    /// exact craft duration - the approximation is noted inline.
-    /// </summary>
+    // Crafting chamber, modelled on the complete flow in the detailed official capture: UpdateNodeLevel (consume materials + gold; the node gains a level, a random seed and five leaf choices for the next tier) -> SelectNode (commit one leaf) -> repeat per tier -> BeginProcess (resolve per-tier results and a StartTime/EndTime window)
+    // -> CompleteProcess (time-skip tickets, item 2, one per started 2.5h) -> Reward (parcels, slot clears). Wire shapes follow the capture throughout;
+    // official's internal rules for leaf-choice weighting, the meaning of ResultId and the exact craft duration are not observable in it.
     public class CraftHandler : ProtocolHandlerBase
     {
-        // The captured 3-tier craft ran 7h30m and its CompleteProcess burned 3 tickets, so
-        // 2.5h per selected tier with 1 ticket per started 2.5h reproduces both observations.
+        // The captured 3-tier craft ran 7h30m and its CompleteProcess burned 3 tickets, so 2.5h per selected tier with 1 ticket per started 2.5h reproduces both observations.
         private static readonly TimeSpan TierDuration = TimeSpan.FromHours(2.5);
         private const long TimeSkipTicketItemId = 2;
 
@@ -67,8 +60,8 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 .Where(x => x.AccountServerId == account.ServerId)
                 .ToList();
 
-            // Official omits both keys when there is nothing to list (the first captured sample
-            // is bare Protocol + ServerTimeTicks) and never sends ShiftingCraftInfos at all.
+            // Official omits both keys when there is nothing to list (the first captured sample is bare Protocol + ServerTimeTicks) and never sends
+            // ShiftingCraftInfos at all.
             response.CraftInfos = craftInfos.Count > 0 ? _mapper.Map<List<CraftInfoDB>>(craftInfos) : null;
             response.ShiftingCraftInfos = null;
 
@@ -91,7 +84,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 {
                     AccountServerId = account.ServerId,
                     SlotSequence = request.SlotId,
-                    // Crafts that have not begun processing carry the MaxValue sentinels officially.
+                    // Not-yet-processing crafts carry the MaxValue sentinels officially.
                     StartTime = DateTime.MaxValue,
                     EndTime = DateTime.MaxValue,
                     CraftSlotOpenDate = now,
@@ -112,8 +105,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 currency.UpdateTimeDict[CurrencyTypes.Gold] = now;
             }
 
-            // The node being leveled: the freshly selected (still seedless) node if there is one,
-            // otherwise the base node, created on the very first call.
+            // The node being leveled: the freshly selected (still seedless) node if there is one, otherwise the base node, created on the very first call.
             var node = slot.Nodes.LastOrDefault(x => x.NodeRandomSeed == 0);
             if (node == null && slot.Nodes.Count == 0)
             {
@@ -154,8 +146,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             if (request.LeafNodeIndex < 0 || request.LeafNodeIndex >= current.LeafNodeIds!.Count)
                 throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Leaf index {request.LeafNodeIndex} out of range");
 
-            // Committing a leaf appends the next tier's node, bare until it gets leveled.
-            // Official's SelectedNodeDB is exactly {NodeTier, NodeId, LeafNodeIds: []}.
+            // Committing a leaf appends the next tier's node, bare until it gets leveled. Official's SelectedNodeDB is exactly {NodeTier, NodeId, LeafNodeIds: []}.
             var selected = new CraftNodeDB
             {
                 NodeTier = current.NodeTier + 1,
@@ -195,14 +186,11 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             foreach (var node in selectedNodes)
             {
                 node.NodeQuality = nodeExcels.FirstOrDefault(x => x.ID == node.NodeId)?.NodeQuality ?? 1;
-                // Official's final-tier node carries no LeafNodeIds key; the intermediate tiers
-                // keep the five choices they showed.
+                // Official's final-tier node carries no LeafNodeIds key; the intermediate tiers keep the five choices they showed.
                 if (node.LeafNodeIds is { Count: 0 })
                     node.LeafNodeIds = null;
 
-                // Node -> reward: the node's gacha groups weighted by ProbWeight, then one roll
-                // inside the chosen group. ResultId is set to the chosen group id - its exact
-                // official semantics are not derivable from the capture, only its presence.
+                // Node -> reward: the node's gacha groups weighted by ProbWeight, then one roll inside the chosen group. ResultId is set to the chosen group id - its exact official semantics are not derivable from the capture, only its presence.
                 var groups = nodeGroups.Where(x => x.NodeId == node.NodeId).ToList();
                 if (groups.Count == 0)
                     continue;
@@ -260,9 +248,8 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             var slot = GetSlot(db, account.ServerId, request.SlotId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Craft slot {request.SlotId} has no craft");
 
-            // Finishing early costs time-skip tickets (item 2), one per started 2.5h. Whatever
-            // the account can pay is taken; a short ticket stack still completes the craft rather
-            // than stranding it (official behaviour for that case is unobserved).
+            // Finishing early costs time-skip tickets (item 2), one per started 2.5h.
+            // Whatever the account can pay is taken; a short ticket stack still completes the craft rather than stranding it (official behaviour for that case is unobserved).
             if (slot.EndTime > now)
             {
                 var remaining = slot.EndTime - now;
@@ -311,7 +298,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcels);
             response.ParcelResultDB = parcelResolver.ParcelResult;
 
-            // The claimed slot clears: official's post-reward Craft_List no longer carries it.
+            // The claimed slot clears: official's post-reward Craft_List omits it.
             db.CraftInfos.Remove(slot);
             await db.SaveChangesAsync();
 
@@ -326,8 +313,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
         private static CraftInfoDBServer? GetSlot(SchaleDataContext db, long accountServerId, long slotId) =>
             db.CraftInfos.FirstOrDefault(x => x.AccountServerId == accountServerId && x.SlotSequence == slotId);
 
-        // Five distinct choices from the next tier's node pool, like every captured node offers.
-        // Official's choice weighting is unknown; uniform across the tier's nodes.
+        // Five distinct choices from the next tier's node pool, like every captured node offers. Official's choice weighting is unknown; uniform across the tier's nodes.
         private List<long> RollLeafNodes(CraftNodeTier currentTier)
         {
             var nextTier = (long)currentTier + 1;

@@ -8,11 +8,8 @@ using BlueArchiveAPI.Configuration;
 namespace Shittim_Server.Controllers;
 
 /// <summary>
-/// Access gate for <c>/api/admin</c>: a correct <c>X-Admin-Key</c> is accepted from any address,
-/// loopback is accepted without one (the Control Center hardcodes <c>http://127.0.0.1</c>), and
-/// everything else is refused. <c>app.UseAuthorization()</c> alone does nothing here - no scheme
-/// is registered and no action carries <c>[Authorize]</c> - so without this the mail, currency,
-/// console-command and account-delete endpoints answer anything that can reach the port.
+/// Access gate for <c>/api/admin</c>: a correct <c>X-Admin-Key</c> is accepted from any address, loopback is accepted without one (the Control Center hardcodes <c>http://127.0.0.1</c>), and everything else is refused.
+/// <c>app.UseAuthorization()</c> alone does nothing here - no scheme is registered and no action carries <c>[Authorize]</c> - so without this the mail, currency, console-command and account-delete endpoints answer anything that can reach the port.
 /// Loopback acceptance leans on the CORS policy staying narrow; widening it needs this revisited.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
@@ -60,8 +57,7 @@ public sealed class AdminAuthAttribute : Attribute, IAuthorizationFilter
         if (string.IsNullOrEmpty(presented))
             return false;
 
-        // Compared without an early-exit on the first differing byte so the timing of a rejection
-        // doesn't reveal how much of the key was correct.
+        // Compared without an early-exit on the first differing byte so the timing of a rejection doesn't reveal how much of the key was correct.
         return CryptographicOperations.FixedTimeEquals(
             Encoding.UTF8.GetBytes(presented),
             Encoding.UTF8.GetBytes(configured));
@@ -72,8 +68,7 @@ public sealed class AdminAuthAttribute : Attribute, IAuthorizationFilter
         if (address == null)
             return false;
 
-        // A v4 client arriving on a dual-stack socket shows up as ::ffff:127.0.0.1, which
-        // IPAddress.IsLoopback does not recognise on its own.
+        // A v4 client arriving on a dual-stack socket shows up as ::ffff:127.0.0.1, which IPAddress.IsLoopback does not recognise on its own.
         if (address.IsIPv4MappedToIPv6)
             address = address.MapToIPv4();
 

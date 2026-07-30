@@ -18,8 +18,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
 public class ClanHandler : ProtocolHandlerBase
 {
-    // Official's clan attendance mail carries localisation keys rather than rendered text; the
-    // client resolves both. Verified against the delivered mail in the non-truncated capture.
+    // official's clan attendance mail carries localisation keys rather than rendered text, and the client resolves both. taken from the delivered mail in the non-truncated capture.
     private const string ClanAttendanceMailSender = "UI_MAILBOX_POST_SENDER_ARONA";
     private const string ClanAttendanceMailComment = "UI_MAILBOX_CLAN_ATTENDANCE_REWARD_MESSAGE_NORMAL";
 
@@ -60,15 +59,12 @@ public class ClanHandler : ProtocolHandlerBase
             Password = _configuration["Irc:Password"] ?? ""
         };
 
-        // The president's represent-character field carries the character's UNIQUE id (16013 in
-        // the recovered official lobby), not a CharacterDB ServerId.
+        // the president's represent-character field carries the character's UNIQUE id (16013 in the recovered official lobby), not a CharacterDB ServerId.
         var aronaCharacter = aronaAccount != null
             ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
             : null;
 
-        // Shape per the recovered official Clan_Lobby (clan 4775): channel name is
-        // "channel_<ClanDBId>", and no ClanPresidentRepresentCharacterCostumeId / ClanJoinOption
-        // keys go out (both stay at their defaults there).
+        // shape per the recovered official Clan_Lobby (clan 4775): channel name is "channel_<ClanDBId>", and no ClanPresidentRepresentCharacterCostumeId / ClanJoinOption keys go out (both stay at their defaults there).
         response.AccountClanDB = new ClanDB
         {
             ClanDBId = 777,
@@ -83,7 +79,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
 
-        // Official's OWN member entry carries no AttachmentDB - only the other members' entries do.
+        // official's own member entry carries no AttachmentDB; other members' do.
         response.AccountClanMemberDB = new ClanMemberDB
         {
             AccountId = account.ServerId,
@@ -99,7 +95,7 @@ public class ClanHandler : ProtocolHandlerBase
         };
 
         var aronaAttachment = aronaAccount != null ? db.GetAccountAttachments(aronaAccount.ServerId).FirstOrDefault() : null;
-        // Every OTHER member in the recovered official lobby carries a CafeComfortValue.
+        // every other member in the recovered official lobby carries a CafeComfortValue.
         var aronaCafeComfort = aronaAccount != null
             ? db.Cafes.FirstOrDefault(x => x.AccountServerId == aronaAccount.ServerId)?.ProductionDB?.ComfortValue ?? 0
             : 0;
@@ -127,16 +123,13 @@ public class ClanHandler : ProtocolHandlerBase
             response.AccountClanMemberDB
         };
 
-        // Official's lobby ticks the clan-login daily (mission 1603 completes on the recovered
-        // Clan_Lobby).
+        // mission 1603 (clan-login daily) completes on the recovered Clan_Lobby.
         var updatedMissions = _missionService.UpdateMissionProgress(
             db, account, MissionCompleteConditionType.Reset_ClanLogin);
         if (updatedMissions.Count > 0)
             response.MissionProgressDBs = updatedMissions;
 
-        // The delivering response itself carries NewMailArrived: recovering the official Clan_Lobby
-        // from the non-truncated capture (its clan notice's raw control chars broke strict JSON, it
-        // was never actually cut) shows ServerNotification=4 - mailbox empty at entry, so no bit 8.
+        // the delivering response itself carries NewMailArrived: the official Clan_Lobby recovered from the non-truncated capture (its clan notice's raw control chars broke strict JSON, it was never actually cut) shows ServerNotification=4, mailbox empty at entry, so no bit 8.
         if (await GrantClanAttendanceReward(db, account))
             response.ServerNotification |= ServerNotificationFlag.NewMailArrived;
 
@@ -151,21 +144,15 @@ public class ClanHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // ClanCheckResponse declares no fields, so the notification flag is the entire payload.
-        // Clan_Check is the only protocol in either official capture that ever sets 2048, and the
-        // gateway ORs its own mailbox bits on top - that is how official produces 2056 (2048|8).
+        // ClanCheckResponse declares no fields, so the notification flag is the entire payload. Clan_Check is the only protocol in either official capture that ever sets 2048, and the gateway ORs its own mailbox bits on top - that is how official produces 2056 (2048|8).
         if (!HasClaimedClanAttendance(db, account))
             response.ServerNotification = ServerNotificationFlag.CanReceiveClanAttendanceReward;
 
         return response;
     }
 
-    // Official claims the day's clan attendance reward on Clan_Lobby rather than on a protocol of
-    // its own. In the non-truncated capture Clan_Check reports 2048 over an empty mailbox, the
-    // client then calls Clan_Lobby, and from the next response onwards ServerNotification is 8
-    // with Mail_Check reporting one common mail - the reward is delivered as mail and 2048 has
-    // cleared by the following Clan_Check. The other capture never calls Clan_Lobby and keeps 2048
-    // across all three of its checks, which is the same rule seen from the other side.
+    // official claims the day's clan attendance reward on Clan_Lobby rather than on a protocol of its own. in the non-truncated capture Clan_Check reports 2048 over an empty mailbox, the client then calls Clan_Lobby, and from the next response onwards ServerNotification is 8 with Mail_Check reporting one common mail - the reward is delivered as mail and 2048 has cleared by the following Clan_Check.
+    // the other capture never calls Clan_Lobby and keeps 2048 across all three of its checks, the same rule seen from the other side.
     private async Task<bool> GrantClanAttendanceReward(SchaleDataContext db, AccountDBServer account)
     {
         if (HasClaimedClanAttendance(db, account))
@@ -179,10 +166,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         var now = account.GameSettings.ServerDateTime();
 
-        // Deliberately NO MailNotificationService.MarkNewMail: unlike attendance-reward mail, clan
-        // mail raises NewMailArrived only on the delivering Clan_Lobby response (the caller sets
-        // it) and leaves nothing pending - in the non-truncated capture the Mail_Check after this
-        // very delivery reports 8, where off1's Mail_Check after Attendance_Reward reports 12.
+        // no MailNotificationService.MarkNewMail here: unlike attendance-reward mail, clan mail raises NewMailArrived only on the delivering Clan_Lobby response (the caller sets it) and leaves nothing pending - in the non-truncated capture the Mail_Check after this very delivery reports 8, where off1's Mail_Check after Attendance_Reward reports 12.
         db.Mails.Add(new MailDBServer
         {
             AccountServerId = account.ServerId,
@@ -193,8 +177,7 @@ public class ClanHandler : ProtocolHandlerBase
             LocalizedSender = Enum.GetValues<Language>().ToDictionary(x => x, _ => ClanAttendanceMailSender),
             LocalizedComment = Enum.GetValues<Language>().ToDictionary(x => x, _ => ClanAttendanceMailComment),
             SendDate = now,
-            // Official's mail expired exactly 7 days after it was sent (2026-07-27T04:19:59 ->
-            // 2026-08-03T04:19:59), to the second.
+            // official's mail expired exactly 7 days after it was sent, to the second (2026-07-27T04:19:59 -> 2026-08-03T04:19:59).
             ExpireDate = now.AddDays(7),
             ParcelInfos =
             [
@@ -202,15 +185,12 @@ public class ClanHandler : ProtocolHandlerBase
                 {
                     Key = new ParcelKeyPair { Type = reward.RewardParcelType, Id = reward.RewardParcelId },
                     Amount = reward.RewardParcelAmount,
-                    // Official's mail carries both at rawValue 10000 (= 1x). Left at the struct
-                    // default they are 0, which the serializer drops as a default AND which makes
-                    // the client's own MultipliedAmount (Amount * Multiplier) render the reward
-                    // as zero ActionPoint.
+                    // official's mail carries both at rawValue 10000 (= 1x). left at the struct default they are 0, which the serializer drops as a default and which makes the client's own MultipliedAmount (Amount * Multiplier) render the reward as zero ActionPoint.
                     Multiplier = BasisPoint.One,
                     Probability = BasisPoint.One
                 }
             ],
-            // Official omits RemainParcelInfos on this mail rather than sending [].
+            // official omits RemainParcelInfos on this mail rather than sending [].
             RemainParcelInfos = null
         });
 
@@ -218,9 +198,7 @@ public class ClanHandler : ProtocolHandlerBase
         return true;
     }
 
-    // One clan attendance reward per game day. There is no per-account claim column and the project
-    // has no EF migrations, so the delivered mail is the record: mail rows are only ever expired,
-    // never deleted, so a ClanAttendance mail sent since today's reset means today's reward is out.
+    // one clan attendance reward per game day. there is no per-account claim column and the project has no EF migrations, so the delivered mail is the record: mail rows are only ever expired, never deleted, so a ClanAttendance mail sent since today's reset means today's reward is out.
     private static bool HasClaimedClanAttendance(SchaleDataContext db, AccountDBServer account)
     {
         var resetTime = DailyResetTime(account.GameSettings.ServerDateTime());
@@ -229,8 +207,7 @@ public class ClanHandler : ProtocolHandlerBase
             .Any(x => x.Type == MailType.ClanAttendance && x.SendDate >= resetTime);
     }
 
-    // The game day rolls over at 04:00 - where every EventContentSeason row in the shipped ExcelDB
-    // puts its phase boundaries, and just before the 04:19:59 send time of official's own mail.
+    // the game day rolls over at 04:00 - where every EventContentSeason row in the shipped ExcelDB puts its phase boundaries, and just before the 04:19:59 send time of official's own mail.
     private static DateTime DailyResetTime(DateTime now)
     {
         var todaysReset = now.Date.AddHours(4);
@@ -260,8 +237,7 @@ public class ClanHandler : ProtocolHandlerBase
     {
         await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // "Which of my characters am I lending out" - legitimately empty on a solo server,
-        // but the list itself must be present or the client faults on it.
+        // "which of my characters am I lending out" - legitimately empty on a solo server, but the list itself must be present or the client faults on it.
         response.ClanAssistSlotDBs = [];
 
         return response;

@@ -36,20 +36,14 @@ public class MissionService
             .Where(m => m.Category == MissionCategory.Daily ||
                        m.Category == MissionCategory.Weekly ||
                        m.Category == MissionCategory.Achievement ||
-                       // Challenge is the per-stage "clear it in N turns" mission. Official sends these
-                       // in MissionProgressDBs like any other (30150 on the campaign clear), and
-                       // Mission_List serves them from the same storage, so there is no reason to
-                       // exclude them - every Reset_CompleteCampaignStageMinimumTurn row is Challenge,
-                       // so excluding the category excluded the whole condition type.
+                       // Challenge is the per-stage "clear it in N turns" mission. Official sends these in MissionProgressDBs like any other (30150 on the campaign clear), and Mission_List serves them from the same storage. Every Reset_CompleteCampaignStageMinimumTurn row is Challenge.
                        m.Category == MissionCategory.Challenge)
             .Select(m => new { m.Id, m.CompleteConditionParameter, m.CompleteConditionCount, IsBattlePass = false })
             .ToList();
 
-        // BattlePass missions share the MissionProgresses storage (BattlePass_MissionList serves
-        // them from it), but they must never reach the returned list: handlers attach it to
-        // client responses as MissionProgressDBs, and the client's mission screen cannot resolve
-        // a BattlePassMissionExcel id (2000001+) against MissionExcel - unresolvable ids break
-        // the screen. Progress is still persisted for both kinds below.
+        // BattlePass missions share the MissionProgresses storage (BattlePass_MissionList serves them from it), but they must never reach the returned list: handlers attach it to client responses as MissionProgressDBs,
+        // and the client's mission screen cannot resolve a BattlePassMissionExcel id (2000001+) against MissionExcel - unresolvable ids break the screen.
+        // Progress is still persisted for both kinds below.
         var relevantBpMissions = battlePassMissionExcels
             .Where(m => m.CompleteConditionType == conditionType)
             .Select(m => new { m.Id, m.CompleteConditionParameter, m.CompleteConditionCount, IsBattlePass = true })
@@ -61,17 +55,15 @@ public class MissionService
 
         foreach (var mission in relevantMissions)
         {
-            // A mission that names its subject only moves for that subject. Letting a caller with no
-            // parameter tick every parameterised row of the condition type means one campaign clear
-            // satisfies all 259 "clear stage X" missions at once.
+            // A mission that names its subject only moves for that subject.
+            // Letting a caller with no parameter tick every parameterised row of the condition type means one campaign clear satisfies all 259 "clear stage X" missions at once.
             var declared = mission.CompleteConditionParameter;
             var hasDeclared = declared is { Count: > 0 };
             if (hasDeclared && (!parameter.HasValue || !declared!.Contains(parameter.Value)))
                 continue;
 
-            // Official keys ProgressParameters by the parameter the mission matched on, not by 0:
-            // its campaign clear reports {"1161101": 1} for the stage-specific mission and {"0": 16}
-            // for the ones with no parameter. The client reads the count out by that key.
+            // Official keys ProgressParameters by the parameter the mission matched on, not by 0: its campaign clear reports {"1161101": 1} for the stage-specific mission and {"0": 16} for the ones with no parameter.
+            // The client reads the count out by that key.
             var key = hasDeclared ? parameter!.Value : 0L;
 
             var existingMission = context.MissionProgresses
@@ -99,9 +91,7 @@ public class MissionService
 
             if (lowerIsBetter)
             {
-                // Here `amount` is a result to beat, not a tally: the turn count the stage was cleared
-                // in. Keeping the best run is what makes the mission completable at all - accumulating
-                // would walk the number away from the target on every replay.
+                // Here `amount` is a result to beat, not a tally: the turn count the stage was cleared in. Keeping the best run is what makes the mission completable at all - accumulating would walk the number away from the target on every replay.
                 existingMission.ProgressParameters[key] = current == 0 ? amount : Math.Min(current, amount);
                 existingMission.Complete = existingMission.ProgressParameters[key] <= mission.CompleteConditionCount;
             }
@@ -118,12 +108,8 @@ public class MissionService
         return updatedMissions;
     }
 
-    /// <summary>
-    /// Conditions whose progress is a personal best rather than a running total - the target is a
-    /// ceiling to get under, so a smaller number is further along. Official's capture shows the
-    /// per-stage turn mission sitting at {"1161101": 5} against a count of 4 and NOT complete,
-    /// which only makes sense read this way.
-    /// </summary>
+    // Conditions whose progress is a personal best rather than a running total - the target is a ceiling to get under, so a smaller number is further along.
+    // Official's capture shows the per-stage turn mission sitting at {"1161101": 5} against a count of 4 and NOT complete.
     private static bool IsLowerBetter(MissionCompleteConditionType conditionType)
         => conditionType is MissionCompleteConditionType.Reset_CompleteCampaignStageMinimumTurn
             or MissionCompleteConditionType.Reset_EventCompleteCampaignStageMinimumTurn;

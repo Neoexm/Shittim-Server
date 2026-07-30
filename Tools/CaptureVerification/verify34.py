@@ -115,8 +115,6 @@ def clan_mails(acct: int):
         "order by ServerId", (acct,)).fetchall()
 
 
-# probes
-
 FAILURES = []
 
 
@@ -168,8 +166,7 @@ ours = wire[0] if wire else {}
 print("\n  Mail_List wire shape of the delivered mail:")
 print("   ", json.dumps(ours, ensure_ascii=False))
 
-# Field-by-field against official's own clan attendance mail, ignoring the per-account/per-day
-# values (ids, account, and the two timestamps) but keeping their FORMAT under comparison.
+# Field-by-field against official's own clan attendance mail, ignoring the per-account/per-day values (ids, account, and the two timestamps) but keeping their FORMAT under comparison.
 OFFICIAL = {
     "ServerId": 70493846, "AccountServerId": 3218642, "Type": 11, "UniqueId": -1,
     "Sender": "UI_MAILBOX_POST_SENDER_ARONA",

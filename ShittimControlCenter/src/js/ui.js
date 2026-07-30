@@ -54,8 +54,7 @@ export function field(label, control, hint) {
     control);
 }
 
-// `style` must go through el() (Object.assign onto node.style) - assigning a
-// plain object to the read-only element.style property is silently ignored.
+// `style` must go through el() (Object.assign onto node.style) - assigning a plain object to the read-only element.style property is silently ignored.
 export function input(props = {}) {
   const { style, ...rest } = props;
   const i = el('input.input', { style });
@@ -105,10 +104,8 @@ export function toast(message, kind = '', title) {
   }, 3400);
 }
 
-// Reminder that the game client only loads account data at login - shown after
-// any edit that touches a live account (currency, roster, unlocks, ...). Sticky
-// until dismissed so it survives a batch of edits; repeat calls re-flash the
-// existing banner instead of stacking a new one.
+// Reminder that the game client only loads account data at login - shown after any edit that touches a live account (currency, roster, unlocks, ...).
+// Sticky until dismissed so it survives a batch of edits; repeat calls re-flash the existing banner instead of stacking a new one.
 let restartNoteEl = null;
 export function notifyRestart() {
   if (restartNoteEl && restartNoteEl.isConnected) {

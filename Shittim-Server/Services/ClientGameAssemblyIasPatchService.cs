@@ -352,8 +352,7 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(configuredPath))
                 return ResolvePath(configuredPath);
 
-            // Locate the game across any Steam library on the machine, not just F:\
-            // or Program Files.
+            // Any Steam library can hold the install.
             var located = SteamGameLocator.FindGameFile("GameAssembly.dll");
             if (!string.IsNullOrWhiteSpace(located))
                 return located;

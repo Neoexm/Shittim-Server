@@ -3,18 +3,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Schale.Data
 {
-    /// <summary>
-    /// Brings an existing SQLite database up to date with the EF model without migrations.
-    /// <c>EnsureCreated()</c> builds the full schema for a brand-new database and then does nothing
-    /// for one that already exists, so a new entity needs a hand-written
-    /// <c>CREATE TABLE IF NOT EXISTS</c> and a new column on an existing entity has no escape hatch
-    /// at all - it goes missing and every read of it fails at runtime.
-    ///
-    /// This walks the model instead: missing tables come from EF's own generated script, missing
-    /// columns from <c>ALTER TABLE ... ADD COLUMN</c>. Idempotent, so it runs on every startup.
-    /// Type changes, drops and renames are out of scope - SQLite cannot do them in place and they
-    /// need a considered data migration.
-    /// </summary>
+    // Brings an existing SQLite database up to date with the EF model without migrations. EnsureCreated() builds the whole schema for a brand-new database and then does nothing for one that already exists.
+    // So a new entity needs a hand-written CREATE TABLE IF NOT EXISTS, and a new column on an existing entity has no escape hatch at all - it goes missing and every read of it fails at runtime.
+    // Walks the model instead: missing tables come from EF's own generated script, missing columns from ALTER TABLE ... ADD COLUMN. Idempotent, so it runs on every startup.
+    // Type changes, drops and renames are out of scope - SQLite cannot do them in place and they need a considered data migration.
     public static class SchemaReconciler
     {
         public static async Task<IReadOnlyList<string>> ReconcileAsync(SchaleDataContext context)
@@ -35,8 +27,7 @@ namespace Schale.Data
 
                 if (!existingTables.Contains(table))
                 {
-                    // A table EnsureCreated never got the chance to build. EF's create script covers
-                    // the whole model, so filter it down to just this table's statement.
+                    // A table EnsureCreated never got the chance to build. EF's create script covers the whole model, so filter it down to just this table's statement.
                     foreach (var statement in CreateStatementsFor(context, table))
                     {
                         await context.Database.ExecuteSqlRawAsync(statement);
@@ -50,12 +41,9 @@ namespace Schale.Data
                 var existingColumns = await QueryNamesAsync(context,
                     $"SELECT name FROM pragma_table_info('{table.Replace("'", "''")}')");
 
-                // Column names have to be resolved against this specific table, not taken from the
-                // property's default name. Owned entities (OwnsOne) are separate entity types that
-                // share the owner's table via table splitting, and their columns carry the navigation
-                // as a prefix - WorldBossDB.HP is stored as "WorldBossDB_HP". The parameterless
-                // GetColumnName() returns the unprefixed default, which reads as a missing column and
-                // would have had the reconciler try to ALTER TABLE ADD a column that already exists.
+                // Column names have to be resolved against this specific table, not taken from the property's default name.
+                // Owned entities (OwnsOne) are separate entity types that share the owner's table via table splitting, and their columns carry the navigation as a prefix - WorldBossDB.HP is stored as "WorldBossDB_HP".
+                // The parameterless GetColumnName() returns the unprefixed default, which reads as a missing column and ends in an ALTER TABLE ADD for a column that is already there.
                 var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
 
                 foreach (var property in entity.GetProperties())
@@ -64,8 +52,7 @@ namespace Schale.Data
                     if (string.IsNullOrEmpty(column) || existingColumns.Contains(column))
                         continue;
 
-                    // SQLite refuses a NOT NULL column without a default on a table that may
-                    // already hold rows, so required columns get a zero-value default.
+                    // SQLite refuses a NOT NULL column without a default on a table that may already hold rows, so required columns get a zero-value default.
                     var nullability = property.IsNullable
                         ? "NULL"
                         : $"NOT NULL DEFAULT {ZeroLiteralFor(property)}";
@@ -90,8 +77,7 @@ namespace Schale.Data
                 if (trimmed.Length == 0)
                     continue;
 
-                // Match `CREATE TABLE "Foo" (` / `CREATE TABLE Foo (` for this table only, and skip
-                // the index statements that follow it (they are recreated below by name match).
+                // Match `CREATE TABLE "Foo" (` / `CREATE TABLE Foo (` for this table only, and skip the index statements that follow it (they are recreated below by name match).
                 if (trimmed.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase)
                     && NamesTable(trimmed, table))
                 {

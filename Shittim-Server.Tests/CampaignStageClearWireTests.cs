@@ -29,7 +29,7 @@ public class CampaignStageClearWireTests
         },
     ];
 
-    /// <summary>Official's chapter-11 clear: history stamped, both reward sets paid out.</summary>
+    // Official's chapter-11 clear: history stamped, both reward sets paid out.
     private static StrategyClearRewardInfo ClearReward() => new()
     {
         FirstClearReward = Reward(ParcelType.Equipment, 101005, 1),
@@ -49,7 +49,7 @@ public class CampaignStageClearWireTests
         },
     };
 
-    /// <summary>The save as the manager leaves it on the clearing tactic: map empty, run closed.</summary>
+    // The save as the manager leaves it on the clearing tactic: map empty, run closed.
     private static CampaignMainStageSaveDB ClearedSave() => new()
     {
         StageUniqueId = 1161101,
@@ -93,7 +93,7 @@ public class CampaignStageClearWireTests
     {
         var entry = (JObject)Wire(ClearResponse())["SaveDataDB"]!["DisplayInfos"]![0]!;
 
-        // Official's entry is {"Type": 1, "Parameter": 1, "StageRewardInfo": {...}} and nothing else.
+        // Official's DisplayInfos entry is {"Type": 1, "Parameter": 1, "StageRewardInfo": {...}} and nothing else.
         Assert.Equal(
             new[] { "Type", "Parameter", "StageRewardInfo" },
             entry.Properties().Select(p => p.Name));
@@ -105,8 +105,7 @@ public class CampaignStageClearWireTests
     {
         var info = (JObject)Wire(ClearResponse())["SaveDataDB"]!["DisplayInfos"]![0]!["StageRewardInfo"]!;
 
-        // ClearReward/ExpReward/TotalReward/EventContentReward are declared on the type but never
-        // sent; leaving them null is what keeps them off the wire.
+        // ClearReward/ExpReward/TotalReward/EventContentReward are declared on the type but never sent; leaving them null is what keeps them off the wire.
         Assert.Equal(
             new[]
             {
@@ -135,8 +134,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void TheRewardsTheStageAdvertisesActuallyRideOnTheResponse()
     {
-        // Empty lists here are what a stage paying nothing for its first clear or three stars looks
-        // like on the wire, and the clear screen renders straight off these two fields.
+        // Empty lists here are what a stage paying nothing for its first clear or three stars looks like on the wire, and the clear screen renders straight off these two fields.
         var json = Wire(ClearResponse());
 
         Assert.Equal(101005, (long)json["FirstClearReward"]![0]!["Key"]!["Id"]!);
@@ -147,8 +145,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void AnEmptiedMapDropsEnemyInfosLikeOfficial()
     {
-        // EnemyInfos rides on every response from map entry onwards and empties exactly once, on the
-        // clear. Official drops the key rather than sending {}.
+        // EnemyInfos rides on every response from map entry onwards and empties exactly once, on the clear. Official drops the key rather than sending {}.
         var save = Wire(ClearResponse())["SaveDataDB"]!;
 
         Assert.Null(save["EnemyInfos"]);
@@ -172,8 +169,8 @@ public class CampaignStageClearWireTests
     [Fact]
     public void AWonBattleThatDoesNotFireTheEndBattleEventEndsNothing()
     {
-        // Three of official's four tactic results are wins that do not clear the stage, and none of
-        // them carries DisplayInfos. Attaching EndBattle to those would end the mission early.
+        // Three of official's four tactic results are wins that do not clear the stage, and none of them carries DisplayInfos.
+        // Attaching EndBattle to those would end the mission early.
         var save = ClearedSave();
         save.EnemyInfos = new Dictionary<long, HexaUnit> { [10032] = new() { EntityId = 10032 } };
 
@@ -190,9 +187,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void TheClearingResponseCarriesTheFiredEventInTheActivationHistory()
     {
-        // Official's history goes {"0":[0],"1":[0],"3":[0]} on the last EndTurn (capture line 517) to
-        // {"0":[0],"1":[0],"3":[0],"2":[0]} on the clearing TacticResult (line 529) - event 2 being
-        // EndBattle_Win. Appending it is what stops a replayed 6008 firing the clear twice.
+        // Official's history goes {"0":[0],"1":[0],"3":[0]} on the last EndTurn (capture line 517) to {"0":[0],"1":[0],"3":[0],"2":[0]} on the clearing TacticResult (line 529) - event 2 being EndBattle_Win. Appending it is what stops a replayed 6008 firing the clear twice.
         var save = ClearedSave();
         save.ActivatedHexaEventsAndConditions = new Dictionary<long, List<long>>
         {
@@ -218,9 +213,8 @@ public class CampaignStageClearWireTests
     [Fact]
     public void AClearWithEnemiesStillOnTheMapStillReportsThem()
     {
-        // The clear is the map's boss-death event, so a stage can and usually does end with mobs
-        // alive - on 321 of 321 dumped maps the boss is a strict subset of the roster. EnemyInfos and
-        // the EndBattle entry are independent: reporting survivors must not suppress the clear.
+        // The clear is the map's boss-death event, so a stage can and usually does end with mobs alive - on 321 of 321 dumped maps the boss is a strict subset of the roster. EnemyInfos and the EndBattle entry are independent:
+        // reporting survivors must not suppress the clear.
         var save = ClearedSave();
         save.EnemyInfos = new Dictionary<long, HexaUnit> { [10027] = new() { EntityId = 10027 } };
 
@@ -239,8 +233,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void ParameterComesFromTheMapsEndBattleTypeRatherThanAConstant()
     {
-        // No official sample of a Lose exists - none of the 321 dumps carries one - so this pins the
-        // plumbing, not the capture: whatever HexaCommandEndBattle.EndBattleType says reaches the wire.
+        // No official sample of a Lose exists - none of the 321 dumps carries one - so this pins the plumbing, not the capture: whatever HexaCommandEndBattle.EndBattleType says reaches the wire.
         var json = Wire(new CampaignTacticResultResponse
         {
             SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(
@@ -253,8 +246,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void ANoneEndBattleTypeStillReportsAWin()
     {
-        // None serializes as 0, which DefaultValueHandling.Ignore drops entirely - and an absent
-        // Parameter reads as a loss, so a victory would show the retreat screen. Coerce instead.
+        // None serializes as 0, which DefaultValueHandling.Ignore drops entirely - and an absent Parameter reads as a loss, so a victory would show the retreat screen. Coerce instead.
         var json = Wire(new CampaignTacticResultResponse
         {
             SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(

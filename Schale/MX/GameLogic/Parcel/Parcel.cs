@@ -195,10 +195,8 @@ namespace Schale.MX.GameLogic.Parcel
     }
 
 
-    // Official ParcelResultDB only carries the collections the reward actually touched: across
-    // every captured Mail_Receive / Mission_MultipleReward it holds no more than
-    // AccountCurrencyDB + ItemDBs + DisplaySequence + ParcelForMission, with the other ~20
-    // collections absent rather than [] / {}.
+    // Official ParcelResultDB only carries the collections the reward actually touched:
+    // across every captured Mail_Receive / Mission_MultipleReward it holds no more than AccountCurrencyDB + ItemDBs + DisplaySequence + ParcelForMission, with the other ~20 collections absent rather than [] / {}.
     [OmitWhenEmpty]
     public class ParcelResultDB
     {
@@ -206,9 +204,8 @@ namespace Schale.MX.GameLogic.Parcel
         public List<ParcelInfo> AcquiredItems { get; set; } = new();
         public AccountCurrencyDB AccountCurrencyDB { get; set; } = new();
 
-        // Not initialized: [OmitWhenEmpty] only drops empty collections, so an eagerly created
-        // AccountDB would serialize as {} - a key no official ParcelResultDB carries. It stays
-        // null unless the reward actually changed the account row (see ParcelResolver).
+        // Not initialized: [OmitWhenEmpty] only drops empty collections, so an eagerly created AccountDB would serialize as {} - a key no official ParcelResultDB carries.
+        // It stays null unless the reward actually changed the account row (see ParcelResolver).
         public AccountDB? AccountDB { get; set; }
         public long AdditionalAccountExp { get; set; }
         public long BaseAccountExp { get; set; }

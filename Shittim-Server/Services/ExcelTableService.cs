@@ -11,15 +11,9 @@ namespace BlueArchiveAPI.Services
     {
         private readonly ConcurrentDictionary<Type, object> caches = [];
 
-        // TableEncryptionService.UseEncryption is a global static selecting XOR-decryption of every
-        // string and numeric field, read per field deep inside the generated UnPackTo methods rather
-        // than once up front. The two branches below set it to opposite values and
-        // ConcurrentDictionary.GetOrAdd does not serialize factories across keys, so two first-time
-        // loads of different tables can flip the flag out from under each other's in-flight unpack and
-        // produce garbled rows that the row-level catch swallows. Both branches are live - .bytes files
-        // and ExcelDB.db coexist in Resources/Dumped. Threading the flag through as a parameter means
-        // regenerating several hundred FlatData files, so loads are serialized instead; this contends
-        // only on the first load of each table, every later call hits the lock-free TryGetValue above.
+        // TableEncryptionService.UseEncryption is a global static selecting XOR-decryption of every string and numeric field, read per field deep inside the generated UnPackTo methods rather than once up front.
+        // The two branches below set it to opposite values and ConcurrentDictionary.GetOrAdd does not serialize factories across keys, so two first-time loads of different tables can flip the flag out from under each other's in-flight unpack and produce garbled rows that the row-level catch swallows. Both branches are live - .bytes files and ExcelDB.db coexist in Resources/Dumped.
+        // Threading the flag through as a parameter means regenerating several hundred FlatData files, so loads are serialized instead; this contends only on the first load of each table, every later call hits the lock-free TryGetValue above.
         private static readonly object loadLock = new();
 
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
@@ -111,10 +105,7 @@ namespace BlueArchiveAPI.Services
                                 }
                                 catch (Exception rowEx)
                                 {
-                                    // A row whose bytes don't line up with the current FlatBuffer schema used
-                                    // to discard the ENTIRE table (the catch below), silently turning every
-                                    // lookup against it into "not found". Skip just the bad row so the rest of
-                                    // the table stays usable.
+                                    // Skip just the bad row - a row whose bytes don't line up with the current FlatBuffer schema otherwise reaches the catch below and discards the ENTIRE table, silently turning every lookup against it into "not found".
                                     if (skippedRows++ == 0)
                                         Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName} has rows that do not match the current schema ({rowEx.GetBaseException().Message}); skipping them");
                                 }
@@ -135,11 +126,8 @@ namespace BlueArchiveAPI.Services
                 }
                 catch (Exception ex)
                 {
-                    // A dumped table whose bytes don't match the current Schale FlatBuffer schema
-                    // (e.g. RaidStageExcel.GroundDevName offset mismatch) would otherwise throw out of
-                    // the handler and become Error 500 -> client shows "Server failed to process
-                    // request. Returning to the title screen." Degrade to an empty table instead so the
-                    // request still completes.
+                    // A dumped table whose bytes don't match the current Schale FlatBuffer schema (e.g. RaidStageExcel.GroundDevName offset mismatch) would otherwise throw out of the handler and become Error 500 -> client shows "Server failed to process request. Returning to the title screen."
+                    // Degrade to an empty table instead so the request still completes.
                     Console.WriteLine($"[ExcelTableService] WARNING: failed to load {type.Name} table ({ex.GetBaseException().Message}); degrading to empty table");
                     return new List<T>();
                 }
@@ -149,12 +137,8 @@ namespace BlueArchiveAPI.Services
             return unpacked;
         }
 
-        // Validates that the configured ExcelDB SQLCipher key can actually decrypt the ExcelDB.db that
-        // was downloaded for the current client version. The ExcelDB key rotates between some game
-        // updates; when it does, every DB-backed table silently degrades to empty and the failure only
-        // surfaces as broken client screens much later. Running this once at startup turns that into a
-        // single, actionable error naming the key as the cause. No-ops when ExcelDB.db is absent (a
-        // .bytes-only / custom-Excel setup) or is stored as a plain, unencrypted SQLite file.
+        // The ExcelDB key rotates between some game updates; when it does, every DB-backed table silently degrades to empty and the failure only surfaces as broken client screens much later.
+        // No-ops when ExcelDB.db is absent (a .bytes-only / custom-Excel setup) or is stored as a plain, unencrypted SQLite file.
         public static void ValidateExcelDbKey()
         {
             var excelDbPath = Path.Combine(DumpedDir, "ExcelDB.db");
@@ -174,7 +158,7 @@ namespace BlueArchiveAPI.Services
             {
                 using var connection = OpenExcelDbConnection(excelDbPath);
                 using var command = connection.CreateCommand();
-                // Reads and decrypts page 1; a wrong key fails here with SQLITE_NOTADB (26).
+                // wrong key fails here, on the first page decrypt: SQLITE_NOTADB (26).
                 command.CommandText = "SELECT COUNT(*) FROM sqlite_master;";
                 var tableCount = command.ExecuteScalar();
                 Console.WriteLine($"[ExcelTableService] ExcelDB SQLCipher key validated ({tableCount} schema entries).");
@@ -188,9 +172,7 @@ namespace BlueArchiveAPI.Services
             }
         }
 
-        // internal so the layout-drift audit in the test project can read the shipped ExcelDB rows
-        // through the same key handling the server uses, rather than duplicating the SQLCipher pragma
-        // logic. See ExcelLayoutDriftTests.
+        // internal so the layout-drift audit in the test project can read the shipped ExcelDB rows through the same key handling the server uses, rather than duplicating the SQLCipher pragma logic. See ExcelLayoutDriftTests.
         internal static SqliteConnection OpenExcelDbConnection(string dbPath)
         {
             SqliteProvider.EnsureInitialized();
@@ -224,11 +206,7 @@ namespace BlueArchiveAPI.Services
             return !header.SequenceEqual("SQLite format 3\0"u8);
         }
 
-        // The ExcelDB SQLCipher key lives in exactly one place: ServerConfiguration.ExcelDbSqlCipherKey
-        // (overridable per-machine via the SHITTIM_EXCELDB_SQLCIPHER_KEY environment variable). The
-        // same value is handed to the client in QueuingHandler.GetSqlCipherKeyBytes, so both the server
-        // and the client decrypt the CDN's ExcelDB.db with an identical key. There is intentionally no
-        // hard-coded fallback here - a missing key is a configuration error, not something to paper over.
+        // The ExcelDB SQLCipher key lives in exactly one place: ServerConfiguration.ExcelDbSqlCipherKey (overridable per-machine via the SHITTIM_EXCELDB_SQLCIPHER_KEY environment variable). The same value is handed to the client in QueuingHandler.GetSqlCipherKeyBytes, so both the server and the client decrypt the CDN's ExcelDB.db with an identical key.
         private static string GetExcelDbSqlCipherKey()
         {
             var key = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_KEY");

@@ -18,11 +18,7 @@ public class CampaignTacticResultTests
         DeadFrame = deadFrame,
     };
 
-    /// <summary>
-    /// A Special who was never called in. This is how real clients report an unused support slot -
-    /// taken from the official 6008 request, not its response. A fixture that gets this wrong lets
-    /// the "0 HP means downed" reading survive a green test run.
-    /// </summary>
+    // A Special who was never called in - how real clients report an unused support slot, taken from the official 6008 request rather than its response.
     private static HeroSummary OffFieldSpecial(long serverId, int entityId) =>
         Hero(serverId, entityId, hpRateAfter: 0, deadFrame: -1, hpRateBefore: 0);
 
@@ -33,7 +29,7 @@ public class CampaignTacticResultTests
         return collection;
     }
 
-    /// <summary>Official 6008 #2: four strikers and two supporters, all alive, none dying.</summary>
+    // Official 6008 #2: four strikers and two supporters, all alive, none dying.
     private static BattleSummary WonBattle(int endFrame = 1872) => new()
     {
         StageId = 1161101,
@@ -56,7 +52,7 @@ public class CampaignTacticResultTests
         {
             TeamId = 2,
             Heroes = Collection(Hero(0, 16777221, 0, deadFrame: 212)),
-            // The enemy group has no supporters - reading HpInfos from here lost the player's own.
+            // The enemy group has no supporters, so HpInfos cannot be read from here.
             Supporters = Collection(),
         },
     };
@@ -70,16 +66,14 @@ public class CampaignTacticResultTests
     [Fact]
     public void CleanQuickWinScoresThreeLikeOfficial()
     {
-        // All four official results were wins inside the par time with nobody downed, and every one
-        // of them came back as 3.
+        // All four official results were wins inside the par time with nobody downed, and every one of them came back as 3.
         Assert.Equal(3, ConcentrateCampaignManager.CalcTacticRank(WonBattle()));
     }
 
     [Fact]
     public void WinOverParTimeLosesARank()
     {
-        // 120s par. Frames resolve to whole seconds, so 3600 (exactly 120s) still makes par and it
-        // takes another full second to drop a rank.
+        // 120s par. Frames resolve to whole seconds, so 3600 (exactly 120s) still makes par and it takes another full second to drop a rank.
         Assert.Equal(3, ConcentrateCampaignManager.CalcTacticRank(WonBattle(endFrame: 3600)));
         Assert.Equal(2, ConcentrateCampaignManager.CalcTacticRank(WonBattle(endFrame: 3630)));
     }
@@ -143,9 +137,7 @@ public class CampaignTacticResultTests
     [Fact]
     public void SpecialsWhoNeverTookTheFieldAreNotCasualties()
     {
-        // both Specials come back at 0/0 with DeadFrame -1. reading that as death files the whole
-        // support slot under DyingInfos; official answers this request with DyingInfos {} and both
-        // of them in HpInfos at 10000.
+        // both Specials come back at 0/0 with DeadFrame -1. reading that as death files the whole support slot under DyingInfos; official answers this request with DyingInfos {} and both of them in HpInfos at 10000.
         var group01 = WonBattle().Group01Summary!;
 
         var (hpInfos, dyingInfos) = ConcentrateCampaignManager.ChangeHpInfos(group01.Heroes, group01.Supporters);
@@ -158,8 +150,7 @@ public class CampaignTacticResultTests
     [Fact]
     public void AnUntouchedStudentKeepsWhatTheLedgerAlreadyHeld()
     {
-        // HpInfos spans the mission, not the battle. Official's echelon 1 still reads 9647 for one
-        // student three tactic results after the only battle it fought.
+        // HpInfos spans the mission, not the battle. Official's echelon 1 still reads 9647 for one student three tactic results after the only battle it fought.
         var group01 = WonBattle().Group01Summary!;
         var existing = new Dictionary<long, long> { [249736115] = 9647 };
 
@@ -187,8 +178,7 @@ public class CampaignTacticResultTests
     [Fact]
     public void AStudentDownedEarlierDoesNotStandBackUpInTheNextBattle()
     {
-        // A downed student still rides along in later summaries as an untouched slot. Taking that at
-        // face value would quietly revive them at full HP.
+        // A downed student still rides along in later summaries as an untouched slot. Taking that at face value would quietly revive them at full HP.
         var group01 = WonBattle().Group01Summary!;
         var alreadyDown = new Dictionary<long, long> { [249736115] = 0 };
 

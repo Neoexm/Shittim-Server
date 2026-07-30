@@ -1,11 +1,8 @@
 import { el, frag, clear, button, toast, escapeHtml } from '../ui.js';
 import { icon } from '../icons.js';
 
-// Git-free updater. "Check" compares the locally recorded commit (a download
-// marker, or - for a real git checkout - HEAD) against origin/<branch> through
-// the GitHub API and lists the incoming changelog. "Install" fast-forwards a
-// git checkout, or re-downloads the latest source for a plain folder. A rebuild
-// action recompiles the .NET server the update may change.
+// Git-free updater. "Check" compares the locally recorded commit (a download marker, or - for a real git checkout - HEAD) against origin/<branch> through the GitHub API and lists the incoming changelog.
+// "Install" fast-forwards a git checkout, or re-downloads the latest source for a plain folder. A rebuild action recompiles the .NET server the update may change.
 export default {
   id: 'updates',
   title: 'Updates',  icon: 'download',
@@ -110,8 +107,7 @@ export default {
       }
       paintHead(r);
 
-      // Can't quantify the gap (no marker, or a commit GitHub can't diff). Offer
-      // a clean re-download of the latest source.
+      // Can't quantify the gap (no marker, or a commit GitHub can't diff). Offer a clean re-download of the latest source.
       if (r.versionKnown === false || r.compareFailed) {
         const why = r.versionKnown === false
           ? 'This copy has no version marker, so its exact commit is unknown.'
@@ -133,12 +129,10 @@ export default {
         return;
       }
 
-      // behind - offer install
       resultBody.appendChild(statusRow('warn', `${r.behind} update${r.behind === 1 ? '' : 's'} available`,
         `origin/${r.branch} is ${r.behind} commit${r.behind === 1 ? '' : 's'} ahead of your copy.`));
       resultBody.appendChild(updateNote(r));
 
-      // changelog
       if (r.commits && r.commits.length) {
         const list = el('div', { style: { marginTop: '14px', border: '1px solid var(--line)', borderRadius: 'var(--r-sm)', overflow: 'hidden', maxHeight: '40vh', overflowY: 'auto' } });
         for (const c of r.commits) {

@@ -94,10 +94,8 @@ public class MomoTalkHandler : ProtocolHandlerBase
             // Not saved here - the SaveChanges at the end of the handler bundles it.
         }
 
-        // Logic to determine the NEXT message group
         long nextGroupId = 0;
         
-        // If a specific choice was made
         if (request.ChosenMessageId.GetValueOrDefault() > 0)
         {
             var chosenMessage = _academyMessengers.FirstOrDefault(x => x.Id == request.ChosenMessageId.Value);
@@ -136,8 +134,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
             var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
             if (currentGroupMessages.Count != 0)
             {
-                // The transition is carried by whichever message points somewhere other than its
-                // own group. If none does, fall back to the first message's NextGroupId.
+                // The transition is carried by whichever message points somewhere other than its own group. If none does, fall back to the first message's NextGroupId.
                 var transitionMessage = currentGroupMessages.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
                 nextGroupId = transitionMessage != null
                     ? transitionMessage.NextGroupId
@@ -145,8 +142,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
             }
         }
 
-        // A FavorRankUp-gated group only opens once the student's relationship rank reaches the
-        // condition value; advancing past it regardless hands every story out at rank 1.
+        // A FavorRankUp-gated group only opens once the student's relationship rank reaches the condition value; advancing past it regardless hands every story out at rank 1.
         if (nextGroupId > 0)
         {
             var nextGroupEntry = _academyMessengers

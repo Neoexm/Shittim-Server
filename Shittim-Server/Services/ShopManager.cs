@@ -301,8 +301,7 @@ public class ShopManager
                     SoldOut = product.PurchaseCountLimit > 0 && purchased >= product.PurchaseCountLimit,
                     PurchaseCountLimit = product.PurchaseCountLimit,
                     ProductType = ShopProductType.General
-                    // No Price: across 876 products in the official Shop_List captures the key
-                    // appears exactly once, and that one response came from our own local server.
+                    // No Price: across 876 products in the official Shop_List captures the key appears exactly once, and that one response came from our own local server.
                 });
             }
 
@@ -320,11 +319,9 @@ public class ShopManager
     }
 
     /// <summary>
-    /// Loads (or creates) the account's purchase counter for a shop, rolls it over if its reset
-    /// window has passed, and rejects the purchase when it would exceed the shop's
-    /// PurchaseCountLimit. Returns the tracked row so the caller can increment it after the
-    /// consume/reward succeeds. The row is added to the context but not saved - the caller's
-    /// SaveChangesAsync commits the counter together with the parcels it paid for.
+    /// Loads (or creates) the account's purchase counter for a shop, rolls it over if its reset window has passed, and rejects the purchase when it would exceed the shop's PurchaseCountLimit.
+    /// Returns the tracked row so the caller can increment it after the consume/reward succeeds.
+    /// The row is added to the context but not saved - the caller's SaveChangesAsync commits the counter together with the parcels it paid for.
     /// </summary>
     public static async Task<ShopPurchaseHistoryDBServer> EnsurePurchasable(
         SchaleDataContext context,
@@ -366,8 +363,7 @@ public class ShopManager
     }
 
     /// <summary>
-    /// Start of the reset window a purchase falls into. The game day rolls over at 04:00, so a
-    /// purchase at 02:00 belongs to the previous calendar day's window. Weeks start Monday.
+    /// Start of the reset window a purchase falls into. The game day rolls over at 04:00, so a purchase at 02:00 belongs to the previous calendar day's window. Weeks start Monday.
     /// </summary>
     internal static DateTime PeriodStart(PurchaseCountResetType resetType, DateTime now)
     {

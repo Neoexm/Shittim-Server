@@ -98,8 +98,7 @@ namespace Schale.MX.NetworkProtocol
         public string? EncryptedUID { get; set; }
         public AccountRestrictionsDB? AccountRestrictionsDB { get; set; }
         public IEnumerable<IssueAlertInfoDB>? IssueAlertInfos { get; set; }
-        // Official Account_Auth never carries accountBanByNexonDBs, DailyRecordDBs or a false
-        // IsArenaAnonymous (both captured sessions omit them); the client tolerates the omission.
+        // Official Account_Auth never carries accountBanByNexonDBs, DailyRecordDBs or a false IsArenaAnonymous (both captured sessions omit them); the client tolerates the omission.
         public IEnumerable<AccountBanByNexonDB>? accountBanByNexonDBs { get; set; }
         public IEnumerable<object>? DailyRecordDBs { get; set; }
         public bool IsArenaAnonymous { get; set; }
@@ -425,9 +424,7 @@ namespace Schale.MX.NetworkProtocol
         public string? SignedKey { get; set; }
         public string? EncryptedIV { get; set; }
         public string? SignedIV { get; set; }
-        // No `new SessionKey` shadow here: it would hide BasePacket.SessionKey, leaving
-        // BasePacket.AccountId (derived from it) at 0 so the top-level AccountId official sends
-        // alongside the session key got dropped as a default value.
+        // No `new SessionKey` shadow here: it would hide BasePacket.SessionKey, leaving BasePacket.AccountId (derived from it) at 0, so the top-level AccountId official sends alongside the session key drops out as a default value.
     }
 
     public class AccountDetachNexonRequest : RequestPacket
@@ -703,8 +700,7 @@ namespace Schale.MX.NetworkProtocol
     public class ErrorPacket : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Error; }
-        // Log-only: official error packets are exactly Protocol/ErrorCode/ServerTimeTicks (seen on
-        // the captured ShopCannotPurchaseActionPointLimitOver rejection) - no reason text on the wire.
+        // Log-only: official error packets are exactly Protocol/ErrorCode/ServerTimeTicks (seen on the captured ShopCannotPurchaseActionPointLimitOver rejection) - no reason text on the wire.
         [Newtonsoft.Json.JsonIgnore]
         public string? Reason { get; set; }
         public WebAPIErrorCode ErrorCode { get; set; }
@@ -4147,8 +4143,7 @@ namespace Schale.MX.NetworkProtocol
     public class MailListResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Mail_List; }
-        // Official omits MailDBs entirely once the mailbox is empty (the response after
-        // Mail_Receive is just Protocol + ServerTimeTicks), rather than sending [].
+        // Official omits MailDBs entirely once the mailbox is empty (the response after Mail_Receive is just Protocol + ServerTimeTicks), rather than sending [].
         [OmitWhenEmpty]
         public List<MailDB>? MailDBs { get; set; }
         public long Count { get; set; }
@@ -4180,10 +4175,8 @@ namespace Schale.MX.NetworkProtocol
         public List<BattlePassInfoDB>? BattlePassInfoDBs { get; set; }
     }
 
-    // Semi-permanent mailbox = the second mail tab (recurring/subscription rewards: monthly
-    // products, battle pass, etc.). The client queries it right after clearing the normal box,
-    // so an unregistered protocol here aborts login/lobby with "server failed to process request".
-    // Shapes mirror the client il2cpp defs (MailListSemiPermanent / MailReceiveSemiPermanent).
+    // Semi-permanent mailbox = the second mail tab (recurring/subscription rewards: monthly products, battle pass, etc.).
+    // The client queries it right after clearing the normal box, so an unregistered protocol here aborts login/lobby with "server failed to process request". Shapes mirror the client il2cpp defs (MailListSemiPermanent / MailReceiveSemiPermanent).
     public class MailListSemiPermanentRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Mail_ListSemiPermanent; }
@@ -4924,16 +4917,14 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Mission_List; }
         public List<long>? MissionHistoryUniqueIds { get; set; }
-        // Official sends ProgressDBs only when the queried scope actually has progress rows; the
-        // event-filtered calls in both captures omit the key instead of sending [].
+        // Official sends ProgressDBs only when the queried scope actually has progress rows; the event-filtered calls in both captures omit the key instead of sending [].
         [OmitWhenEmpty]
         public List<MissionProgressDB>? ProgressDBs { get; set; }
         public object? DailySuddenMissionInfo { get; set; }
         public List<long>? ClearedOrignalMissionIds { get; set; }
     }
 
-    // Wire shape of the client's MissionInfo as the official server serializes it for
-    // MissionListResponse.DailySuddenMissionInfo (field set + order match live captures).
+    // Wire shape of the client's MissionInfo as the official server serializes it for MissionListResponse.DailySuddenMissionInfo (field set + order match live captures).
     public class DailySuddenMissionInfo
     {
         public long Id { get; set; }
@@ -5073,8 +5064,7 @@ namespace Schale.MX.NetworkProtocol
         public List<MultiFloorRaidDB>? MultiFloorRaidDBs { get; set; }
     }
 
-    // Official Account_LoginSync carries this child alongside MultiFloorRaidSyncResponse;
-    // on the wire it is just {"Protocol":49004} (all other members at defaults).
+    // Official Account_LoginSync carries this child alongside MultiFloorRaidSyncResponse; on the wire it is just {"Protocol":49004} (all other members at defaults).
     public class MultiFloorRaidLoginResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MultiFloorRaid_Login; }

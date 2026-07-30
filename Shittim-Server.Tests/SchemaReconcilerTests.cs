@@ -4,12 +4,7 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// The server has no EF migrations and relies on <c>EnsureCreated()</c>, which builds the schema for a
-/// brand-new database and never touches an existing one again. These hold <see cref="SchemaReconciler"/>
-/// to the contract that covers the gap: close both the missing-table and missing-column cases from the
-/// EF model alone, and stay safe to run on every startup.
-/// </summary>
+// The server has no EF migrations and relies on EnsureCreated(), which builds the schema for a brand-new database and never touches an existing one again. SchemaReconciler closes both the missing-table and the missing-column case from the EF model alone, and has to stay safe to run on every startup.
 public class SchemaReconcilerTests : IDisposable
 {
     private readonly string _path =
@@ -18,8 +13,7 @@ public class SchemaReconcilerTests : IDisposable
     [Fact]
     public async Task AddsATableMissingFromAnExistingDatabase()
     {
-        // Stand up a database, then drop a table to stand in for "this entity did not exist when the
-        // player's database was created".
+        // Stand up a database, then drop a table to stand in for "this entity did not exist when the player's database was created".
         using (var seed = NewContext())
         {
             seed.Database.EnsureCreated();
@@ -33,7 +27,6 @@ public class SchemaReconcilerTests : IDisposable
         Assert.Contains("created table ShopPurchaseHistories", applied);
         Assert.Contains("ShopPurchaseHistories", await TableNames(db));
 
-        // And the recreated table is actually usable, not just present.
         db.ShopPurchaseHistories.Add(new Schale.Data.GameModel.ShopPurchaseHistoryDBServer
         {
             AccountServerId = 1,
@@ -48,9 +41,7 @@ public class SchemaReconcilerTests : IDisposable
     [Fact]
     public async Task AddsAColumnMissingFromAnExistingTable()
     {
-        // The case CREATE TABLE IF NOT EXISTS blocks cannot cover: the table exists, but a
-        // property was added to the entity afterwards. SQLite cannot drop a column, so the table is
-        // rebuilt without it to simulate the older schema.
+        // The case CREATE TABLE IF NOT EXISTS blocks cannot cover: the table exists, but a property was added to the entity afterwards. SQLite cannot drop a column, so the table is rebuilt without it to simulate the older schema.
         using (var seed = NewContext())
         {
             seed.Database.EnsureCreated();
@@ -74,8 +65,7 @@ public class SchemaReconcilerTests : IDisposable
         Assert.Contains("added column ShopPurchaseHistories.PeriodStart", applied);
         Assert.Contains("PeriodStart", await ColumnNames(db, "ShopPurchaseHistories"));
 
-        // The pre-existing row survives and reads back through EF, which is the whole point: a
-        // required column added to a populated table needs a default or SQLite refuses it.
+        // A required column added to a populated table needs a default or SQLite refuses.
         var row = db.ShopPurchaseHistories.Single();
         Assert.Equal(7, row.PurchaseCount);
         Assert.Equal(1, row.AccountServerId);
@@ -84,7 +74,6 @@ public class SchemaReconcilerTests : IDisposable
     [Fact]
     public async Task IsANoOpOnAnUpToDateDatabase()
     {
-        // Runs on every startup, so a database matching the model must produce no statements at all.
         using var db = NewContext();
         db.Database.EnsureCreated();
 
@@ -103,7 +92,6 @@ public class SchemaReconcilerTests : IDisposable
         using var db = NewContext();
         Assert.NotEmpty(await SchemaReconciler.ReconcileAsync(db));
 
-        // A second pass has nothing left to do; if it re-issued the CREATE it would throw.
         Assert.Empty(await SchemaReconciler.ReconcileAsync(db));
     }
 

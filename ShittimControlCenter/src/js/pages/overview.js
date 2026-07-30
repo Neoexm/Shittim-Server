@@ -64,8 +64,7 @@ export default {
     const right = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '18px', minWidth: '0' } }, shortcutsCard, diagnostics);
     root.appendChild(el('div.grid-2', { style: { gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', alignItems: 'start' } }, readiness, right));
 
-    // A small "Install" / "Fix" button for an installable prerequisite, shown
-    // only when that check isn't already satisfied.
+    // A small "Install" / "Fix" button for an installable prerequisite, shown only when that check isn't already satisfied.
     function fixBtn(step, info) {
       if (busy) return null;
       const ready = (info?.status || 'missing') === 'ready';
@@ -93,9 +92,8 @@ export default {
       }
     }
 
-    // A live progress panel shown in place of the readiness list while an install
-    // runs. The .NET SDK download (~250 MB) is silent for minutes, so a spinner
-    // plus an always-ticking elapsed counter is what stops it reading as "hung".
+    // A live progress panel shown in place of the readiness list while an install runs.
+    // The .NET SDK download (~250 MB) is silent for minutes, so a spinner plus an always-ticking elapsed counter is what stops it reading as "hung".
     function setupPanel() {
       const titleEl = el('div', { style: { fontWeight: '700', fontSize: '13.5px' } });
       const subEl = el('div', { style: { fontSize: '12px', color: 'var(--ink-3)', marginTop: '3px' } });
@@ -108,10 +106,8 @@ export default {
 
     function fmtMB(n) { return `${(n / (1024 * 1024)).toFixed(0)} MB`; }
 
-    // Drive setupInstall for one step or 'all', rendering live progress in the
-    // card and re-checking the environment when it finishes. mitmproxy/.NET
-    // install per-user (silent); trusting the CA raises one Windows elevation
-    // prompt.
+    // Drive setupInstall for one step or 'all', rendering live progress in the card and re-checking the environment when it finishes.
+    // mitmproxy/.NET install per-user (silent); trusting the CA raises one Windows elevation prompt.
     async function runSetup(which) {
       if (busy) return;
       busy = true;
@@ -131,8 +127,7 @@ export default {
         panel.subEl.textContent = `${msg} - ${elapsed()} elapsed`;
       };
       render();
-      // tick every second so the elapsed time always moves, even while a step is
-      // mid-download and emitting nothing
+      // tick every second so the elapsed time always moves, even while a step is mid-download and emitting nothing
       const timer = setInterval(render, 1000);
 
       const unsub = window.host.onSetupProgress((d) => {

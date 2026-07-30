@@ -48,7 +48,7 @@ def send(packet: dict) -> dict:
 
 
 def login():
-    """Replay captured requests until a usable session; also grab the Account_Auth response."""
+    """Replay captured requests in order until one yields a SessionKey; also grab the Account_Auth response."""
     text = open(CAP, encoding="utf-8", errors="replace").read()
     parts = re.split(r"={5,}\s*(REQUEST|RESPONSE)\s*={5,}", text)
     reqs = [parts[i + 1].strip() for i in range(1, len(parts), 2) if parts[i] == "REQUEST"]

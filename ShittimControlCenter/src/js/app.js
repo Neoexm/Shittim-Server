@@ -33,8 +33,7 @@ function pushLog(entry) {
 function onLog(f) { logSubs.add(f); return () => logSubs.delete(f); }
 function clearLog() { logBuffer.length = 0; logSubs.forEach((f) => f(null)); }
 
-// The frameless window carries its own titlebar (drag region + min/max/close).
-// Shared by the shell and the first-run project gate.
+// The frameless window carries its own titlebar (drag region + min/max/close). Shared by the shell and the first-run project gate.
 function buildTitlebar() {
   const titlebar = frag(`
     <div class="titlebar">
@@ -332,9 +331,7 @@ async function poll() {
   });
 }
 
-// Adaptive scheduler: probe hard while the server is booting (that's when the
-// user is watching), relax once state is stable, and back off when the window
-// is hidden.
+// Adaptive scheduler: probe hard while the server is booting (that's when the user is watching), relax once state is stable, and back off when the window is hidden.
 let pollTimer = null;
 let pollBusy = false;
 
@@ -358,8 +355,7 @@ function schedulePoll(immediate = false) {
   }, immediate ? 0 : pollDelay());
 }
 
-// When the window comes back, refresh immediately instead of waiting out a
-// long hidden-state delay.
+// When the window comes back, refresh immediately instead of waiting out a long hidden-state delay.
 document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePoll(true); });
 
 async function boot() {
@@ -370,9 +366,8 @@ async function boot() {
     if (s && typeof s.dockCollapsed === 'boolean') dockCollapsed = s.dockCollapsed;
   } catch { /* defaults */ }
 
-  // First-run gate: with no server project present there is nothing for the
-  // shell to drive, so offer to download it from GitHub or locate an existing
-  // copy. The gate reloads the app once a project is set.
+  // First-run gate: with no server project present there is nothing for the shell to drive, so offer to download it from GitHub or locate an existing copy.
+  // The gate reloads the app once a project is set.
   let project = null;
   try { project = await window.host.projectStatus(); } catch { /* treat as found */ }
   if (project && !project.found) {
@@ -392,8 +387,7 @@ async function boot() {
   });
   window.host.onProcLog((d) => pushLog(d));
 
-  // Passive "server update available" notice (checked at launch + every few
-  // hours by the main process). Applying stays manual on the Updates page.
+  // Passive "server update available" notice (checked at launch + every few hours by the main process). Applying stays manual on the Updates page.
   window.host.onServerUpdate((d) => {
     const n = d.behind === 1 ? '1 commit' : `${d.behind} commits`;
     toast(`Server update available - ${n} behind (${d.remoteShort}: ${d.remoteSubject}). Open the Updates page to install.`, 'good', 'Server update');

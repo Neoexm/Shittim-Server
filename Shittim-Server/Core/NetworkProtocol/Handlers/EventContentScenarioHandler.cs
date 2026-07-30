@@ -53,8 +53,7 @@ public class EventContentScenarioHandler : ProtocolHandlerBase
             await db.SaveChangesAsync();
         }
 
-        // Only this event's rows: leaking the account's whole scenario history (main story rows
-        // with no EventContentId) into the per-event view wedged the client after event stories.
+        // Only this event's rows: leaking the account's whole scenario history (main story rows with no EventContentId) into the per-event view wedged the client after event stories.
         response.ScenarioGroupHistoryDBs = db.GetAccountScenarioGroupHistories(account.ServerId)
             .Where(x => x.EventContentId == request.EventContentId)
             .ToMapList(_mapper);

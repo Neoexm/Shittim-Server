@@ -10,8 +10,7 @@ namespace Schale.Data.GameModel
         public ArenaDataInfo? ArenaDataInfo { get; set; }
         public MultiFloorRaidDataInfo? MultiFloorRaidDataInfo { get; set; }
 
-        // EventContentId -> claimed EventContentStageTotalRewardExcel row ids. Lives in the
-        // ContentInfo JSON column so no schema change is needed.
+        // EventContentId -> claimed EventContentStageTotalRewardExcel row ids. Lives in the ContentInfo JSON column so no schema change is needed.
         public Dictionary<long, List<long>> ReceivedEventStageTotalRewards { get; set; } = [];
     }
 

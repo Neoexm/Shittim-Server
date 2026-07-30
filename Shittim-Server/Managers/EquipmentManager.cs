@@ -91,9 +91,8 @@ namespace Shittim_Server.Managers
 
             context.Equipments.Update(targetEquipment);
 
-            // Feeding costs gold, 1 per exp point: the captured official level-up burned exactly
-            // 69,304 gold alongside its fodder, and every official response carries the updated
-            // AccountCurrencyDB. Clamped so a poor account cannot go negative.
+            // Feeding costs gold, 1 per exp point: the captured official level-up burned exactly 69,304 gold alongside its fodder, and every official response carries the updated AccountCurrencyDB.
+            // Clamped so a poor account cannot go negative.
             var currency = context.GetAccountCurrencies(account.ServerId).FirstOrDefault();
             if (currency != null && consumeResultData.AccumulatedExp > 0)
             {
@@ -125,9 +124,7 @@ namespace Shittim_Server.Managers
 
             var parcelResolver = await parcelHandler.BuildParcel(context, account, parcelResults, isConsume: true);
 
-            // Official's tier-up carries ConsumeResultDB alongside ParcelResultDB - without it the
-            // client keeps showing the spent ingredients until the next full list. The resolver's
-            // post-consume stacks are exactly the "remaining counts" official reports.
+            // Official's tier-up carries ConsumeResultDB alongside ParcelResultDB - without it the client keeps showing the spent ingredients until the next full list. The resolver's post-consume stacks are exactly the "remaining counts" official reports.
             var consumeResult = new ConsumeResultDB
             {
                 UsedEquipmentServerIdAndRemainingCounts = (parcelResolver.ParcelResult.EquipmentDBs ?? [])

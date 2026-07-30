@@ -36,8 +36,7 @@ public class HexLocationWireTests
     [Fact]
     public void WireOmitsZeros()
     {
-        // Official 10016: "Location":{"x":-2,"y":2} - the z=0 component is dropped by the same
-        // default-value handling as every other zero field.
+        // Official 10016: "Location":{"x":-2,"y":2} - the z=0 component is dropped by the same default-value handling as every other zero field.
         var unit = new HexaUnit { EntityId = 10016, Id = 101101, Location = new HexLocation2D { x = -2, y = 2, z = 0 } };
 
         var json = JObject.Parse(JsonConvert.SerializeObject(unit, GatewayController.OfficialPacketJsonSettings));
@@ -47,12 +46,9 @@ public class HexLocationWireTests
     }
 
     /// <summary>
-    /// Rotate is the one member that must NOT follow the omit-zero rule. The client feeds it to
-    /// Newtonsoft's VectorConverter, whose PopulateVector3 reads x/y/z with Extensions.Value&lt;float&gt;()
-    /// and throws ArgumentNullException on a missing component - killing the whole
-    /// CampaignEnterMainStageResponse deserialization inside SessionTask.Deserialize, which has no
-    /// try/catch. The observed symptom was "Mission Start" leaving the client silent on the stage
-    /// select screen. Official sends {"x":0.0,"y":240.0,"z":0.0}.
+    /// Rotate is the one member that must NOT follow the omit-zero rule.
+    /// The client feeds it to Newtonsoft's VectorConverter, whose PopulateVector3 reads x/y/z with Extensions.Value&lt;float&gt;() and throws ArgumentNullException on a missing component - killing the whole CampaignEnterMainStageResponse deserialization inside SessionTask.Deserialize, which has no try/catch.
+    /// Official sends {"x":0.0,"y":240.0,"z":0.0}.
     /// </summary>
     [Fact]
     public void RotateSendsAllThree()

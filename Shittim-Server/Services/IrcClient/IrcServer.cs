@@ -164,7 +164,6 @@ namespace Shittim.Services.IrcClient
 
             Log.Debug($"User {connection.AccountServerId} joined {channel}");
 
-            // custom welcome
             await connection.SendChatMessage("Welcome, Sensei.");
             await connection.SendChatMessage("Type !help for more information.");
             await connection.SendEmote(2);

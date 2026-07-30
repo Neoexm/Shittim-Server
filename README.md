@@ -28,8 +28,6 @@ Official Discord - https://discord.gg/GANwPn9xX6
 
 3. Launch Blue Archive from Steam. It connects to Shittim Server instead of Nexon, and you can log in.
 
-The rest of this document explains each step in detail.
-
 ## One-time setup
 
 ### Install the mitmproxy root certificate (Windows, via mitm.it)

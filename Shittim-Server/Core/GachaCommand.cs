@@ -29,8 +29,7 @@ namespace Shittim_Server.Core
             try
             {
                 var configPath = Path.GetFullPath(ConfigPath);
-                // Re-reads every 5s while gacha is in use, so these are Debug rather than console
-                // spam. An absent config is the normal case (no rate overrides), not a failure.
+                // Re-reads every 5s while gacha is in use, so these are Debug rather than console spam. An absent config is the normal case (no rate overrides), not a failure.
                 Log.Debug("[GachaCommand] Loading config from: {ConfigPath}", configPath);
 
                 if (!File.Exists(configPath))

@@ -112,14 +112,10 @@ public class AccountHandler : ProtocolHandlerBase
 
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // The client evaluates content locks (cafe, clan, crafting, schedule, ...) client-side
-        // from OpenConditionExcel's ScenarioModeId prerequisites against the account's scenario
-        // history. Seed every referenced mode as cleared so all content is unlocked by default -
-        // this also repairs accounts created before this seeding existed.
+        // The client evaluates content locks (cafe, clan, crafting, schedule, ...) client-side from OpenConditionExcel's ScenarioModeId prerequisites against the account's scenario history. Seed every referenced mode as cleared so all content is unlocked by default, which also repairs accounts whose rows predate the seeding.
         await EnsureOpenConditionScenariosCleared(db, account);
 
-        // The client always sends Version: 0 here; the official server answers with its own
-        // current data-build number (446690 against the captured 1.90.443855 client).
+        // The client always sends Version: 0 here; the official server answers with its own current data-build number (446690 against the captured 1.90.443855 client).
         response.CurrentVersion = Config.Instance.ServerConfiguration.AuthCurrentVersion;
         response.MinimumVersion = 0;
         response.IsDevelopment = false;
@@ -127,9 +123,7 @@ public class AccountHandler : ProtocolHandlerBase
         response.UpdateRequired = false;
         response.TTSCdnUri = "https://ba.dn.nexoncdn.co.kr/tts/version2/";
         response.IssueAlertInfos = [];
-        // Official's Auth carries the full definitions of books with an unclaimed day today, and
-        // [] once everything is claimed (off1 04:12 pre-claim: 2 books; off2/off3 later the same
-        // game day: []). Histories are always the account's complete record.
+        // Official's Auth carries the full definitions of books with an unclaimed day today, and [] once everything is claimed (off1 04:12 pre-claim: 2 books; off2/off3 later the same game day: []). Histories are always the account's complete record.
         response.AttendanceBookRewards = _attendanceService.BuildClaimableBooks(db, account);
         response.AttendanceHistoryDBs = _attendanceService.BuildHistories(db, account);
         response.RepurchasableMonthlyProductCountDBs = [];
@@ -139,20 +133,17 @@ public class AccountHandler : ProtocolHandlerBase
         response.BiweeklyProductMail = [];
         response.WeeklyProductParcel = [];
         response.WeeklyProductMail = [];
-        // Official EncryptedUID is an opaque 26-char base32 string (support UID), never empty.
+        // the support UID: an opaque 26-char base32 string, never empty on official.
         response.EncryptedUID = BuildEncryptedUid(account.PublisherAccountId ?? account.ServerId);
         response.AccountRestrictionsDB = new();
-        // Official Account_Auth always carries OptionDB, and it is always {} (no option has ever
-        // been observed inside it).
+        // Official Account_Auth always carries OptionDB, and it is always {} (no option has ever been observed inside it).
         response.OptionDB = new();
-        // accountBanByNexonDBs / DailyRecordDBs stay null: official Account_Auth omits them.
+        // accountBanByNexonDBs / DailyRecordDBs stay null: official omits them.
         response.StaticOpenConditions = BuildOfficialStaticOpenConditions();
 
         response.AccountDB = _mapper.Map<AccountDB>(account);
-        // Official omits the envelope MissionProgressDBs unless the login created/changed progress
-        // (first-login-of-day packs); an empty [] is never sent. Battle-pass and event-content rows
-        // share the MissionProgresses table but never appear here on official - an id the client
-        // cannot resolve against MissionExcel/GuideMissionExcel poisons its mission model.
+        // Official omits the envelope MissionProgressDBs unless the login created/changed progress (first-login-of-day packs); an empty [] is never sent.
+        // Battle-pass and event-content rows share the MissionProgresses table but never appear here on official - an id the client cannot resolve against MissionExcel/GuideMissionExcel poisons its mission model.
         var missionProgresses = MissionHandler.FilterMissionScreenProgresses(
                 db.GetAccountMissionProgresses(account.ServerId).ToList(), _excelService)
             .ToMapList(_mapper);
@@ -161,9 +152,7 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
-    // The official StaticOpenConditions dictionary (Account_Auth / Account_LoginSync) contains
-    // exactly these keys, in this order - notably no Favor/Prologue/Guild/WorldRaid, and it
-    // includes zero-valued entries (verified against live captures of client 1.90).
+    // The official StaticOpenConditions dictionary (Account_Auth / Account_LoginSync) contains exactly these keys, in this order - notably no Favor/Prologue/Guild/WorldRaid, and it includes zero-valued entries (verified against live captures of client 1.90).
     private static readonly OpenConditionContent[] OfficialStaticOpenConditionKeys =
     {
         OpenConditionContent.Shop, OpenConditionContent.Gacha, OpenConditionContent.LobbyIllust,
@@ -223,8 +212,7 @@ public class AccountHandler : ProtocolHandlerBase
             await db.SaveChangesAsync();
     }
 
-    // Deterministic 26-char base32 (A-Z2-7) support UID, mirroring the official format
-    // (e.g. "2YIXKGSNBP435QRHVUZD3VYUHE"). Opaque to the client.
+    // Deterministic 26-char base32 (A-Z2-7) support UID, mirroring the official format (e.g. "2YIXKGSNBP435QRHVUZD3VYUHE"). Opaque to the client.
     private static string BuildEncryptedUid(long publisherAccountId)
     {
         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -332,8 +320,7 @@ public class AccountHandler : ProtocolHandlerBase
             CostumeDBs = db.GetAccountCostumes(account.ServerId).ToMapList(_mapper)
         };
 
-        // Official Account_LoginSync has NO ItemListResponse child (the client fetches Item_List
-        // separately right after login), so it stays null here.
+        // Official Account_LoginSync has NO ItemListResponse child (the client fetches Item_List separately right after login), so it stays null here.
 
         response.EquipmentItemListResponse = new EquipmentItemListResponse
         {
@@ -442,8 +429,7 @@ public class AccountHandler : ProtocolHandlerBase
 
             foreach (var bp in battlePasses)
             {
-                // A battle pass is sold through a ProductExcel row carrying a ProductBattlePass (28)
-                // parcel; the parcel id at that slot is the BattlePassId.
+                // A battle pass is sold through a ProductExcel row carrying a ProductBattlePass (28) parcel; the parcel id at that slot is the BattlePassId.
                 var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
 
                 ProductExcelT product = battlePassProducts.FirstOrDefault(x => {
@@ -503,8 +489,7 @@ public class AccountHandler : ProtocolHandlerBase
                 : account.GameSettings.ServerDateTimeTicks()
         };
 
-        // Official LoginSync also carries a MultiFloorRaidLoginResponse child (on the wire it is
-        // just {"Protocol":49004}) and a PickupFirstGetHistoryDBs list ([] when empty).
+        // Official LoginSync also carries a MultiFloorRaidLoginResponse child (on the wire it is just {"Protocol":49004}) and a PickupFirstGetHistoryDBs list ([] when empty).
         response.MultiFloorRaidLoginResponse = new MultiFloorRaidLoginResponse();
         response.PickupFirstGetHistoryDBs = [];
 
@@ -512,13 +497,12 @@ public class AccountHandler : ProtocolHandlerBase
         _logger.LogInformation("All queries took {Ms}ms total", sw.ElapsedMilliseconds);
 
         response.FriendCount = 0;
-        // Official friend codes are 8 uppercase letters (e.g. "ALAQJBVL"); derive a stable one.
+        // Official friend codes are 8 uppercase letters, e.g. "ALAQJBVL".
         response.FriendCode = BuildFriendCode(account.ServerId);
 
         response.StaticOpenConditions = BuildOfficialStaticOpenConditions();
 
-        // Official LoginSync children carry only their own payload + Protocol - no per-child
-        // ServerTimeTicks/SessionKey/notification fields. Zero the tick so the serializer drops it.
+        // Official LoginSync children carry only their own payload + Protocol - no per-child ServerTimeTicks/SessionKey/notification fields. Zero the tick so the serializer drops it.
         foreach (var property in typeof(AccountLoginSyncResponse).GetProperties())
         {
             if (typeof(ResponsePacket).IsAssignableFrom(property.PropertyType)
@@ -529,7 +513,7 @@ public class AccountHandler : ProtocolHandlerBase
             }
         }
 
-        // Exception: the MultiFloorRaid time-travel feature deliberately pins a custom tick.
+        // Exception: the MultiFloorRaid time-travel feature pins a custom tick.
         if (account.GameSettings.EnableMultiFloorRaid && response.MultiFloorRaidSyncResponse != null)
             response.MultiFloorRaidSyncResponse.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 
@@ -623,8 +607,7 @@ public class AccountHandler : ProtocolHandlerBase
             .Where(r => r.Level <= account.Level && !claimedIds.Contains(r.Id))
             .ToList();
 
-        // Grant the excel parcels BEFORE marking the ids consumed; the reverse order marks them
-        // claimed while granting nothing, permanently losing the rewards for the account.
+        // Grant the excel parcels BEFORE marking the ids consumed; the reverse order marks them claimed while granting nothing, permanently losing the rewards for the account.
         var parcels = availableRewards
             .Select(r => new ParcelResult(r.RewardParcelType, r.RewardParcelId, r.RewardParcelAmount))
             .Where(p => p.Amount > 0)

@@ -68,8 +68,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official reports AlreadyPicked: true once the account has committed its beforehand
-        // pick; that state must survive the session, hence the history row.
+        // Official reports AlreadyPicked: true once the account has committed its beforehand pick; that state must survive the session, hence the history row.
         var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
         response.AlreadyPicked = history?.Picked ?? false;
 
@@ -86,8 +85,7 @@ public class ShopHandler : ProtocolHandlerBase
 
         var gachaResults = new List<long> { 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000 };
 
-        // Remember the roll so Save/Pick/Get agree across sessions. (No official capture covers
-        // Run/Save/Pick payloads; only Get's AlreadyPicked is verified.)
+        // Remember the roll so Save/Pick/Get agree across sessions. (No official capture covers Run/Save/Pick payloads; only Get's AlreadyPicked is verified.)
         var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
         if (history == null)
         {
@@ -135,8 +133,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // The pick is the committing step: from here on Shop_BeforehandGachaGet must report
-        // AlreadyPicked (official sends true on an account that picked long ago).
+        // The pick is the committing step: from here on Shop_BeforehandGachaGet must report AlreadyPicked (official sends true on an account that picked long ago).
         var history = db.BeforehandGachaHistories.FirstOrDefault(x => x.AccountServerId == account.ServerId);
         if (history == null)
         {
@@ -184,7 +181,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         
-        // Gacha1 carries no Cost; ConsumeCurrency resolves it from the shop row when null.
+        // Gacha1 sends no Cost; ConsumeCurrency resolves it from the shop row when null.
         var req3 = new ShopBuyGacha3Request
         { 
             ShopUniqueId = request.ShopUniqueId, 
@@ -217,7 +214,7 @@ public class ShopHandler : ProtocolHandlerBase
         { 
             ShopUniqueId = request.ShopUniqueId, 
             GoodsId = request.GoodsId,
-            Cost = null // Cost null is now safe
+            Cost = null
         };
 
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
@@ -229,7 +226,6 @@ public class ShopHandler : ProtocolHandlerBase
         response.AcquiredItems = itemDbList.ToMapList(_mapper);
         response.UpdateTime = account.GameSettings.ServerDateTime();
 
-        // Update history (same as Gacha3)
         var recruitHistory = db.GetAccountRecruitHistory(account.ServerId)
             .FirstOrDefault(x => x.UniqueId == request.ShopUniqueId);
         
@@ -362,7 +358,6 @@ public class ShopHandler : ProtocolHandlerBase
         response.AcquiredItems = itemDbList.ToMapList(_mapper);
         response.UpdateTime = account.GameSettings.ServerDateTime();
 
-        // Update history
         var recruitHistory = db.GetAccountRecruitHistory(account.ServerId)
             .FirstOrDefault(x => x.UniqueId == request.ShopUniqueId);
 
@@ -491,11 +486,8 @@ public class ShopHandler : ProtocolHandlerBase
         return response;
     }
 
-    // PurchaseCount arrives from the client and multiplies both the consume and the reward. A
-    // non-positive count inverts the consume into a grant (a -30-gem cost is credited, not
-    // debited), and a huge one overflows the int64 multiply back into negative territory, so the
-    // bound has to be two-sided. The ceiling is far above any real shop's PurchaseCountLimit;
-    // per-shop limits are enforced separately in ShopManager.EnsurePurchasable.
+    // PurchaseCount arrives from the client and multiplies both the consume and the reward. A non-positive count inverts the consume into a grant (a -30-gem cost is credited, not debited), and a huge one overflows the int64 multiply back into negative territory, so the bound has to be two-sided.
+    // The ceiling is far above any real shop's PurchaseCountLimit; per-shop limits are enforced separately in ShopManager.EnsurePurchasable.
     internal const long MaxPurchaseCountPerRequest = 10_000;
 
     internal static void ValidatePurchaseCount(long purchaseCount)
@@ -640,8 +632,7 @@ public class ShopHandler : ProtocolHandlerBase
 
         ValidatePurchaseCount(request.PurchaseCount);
 
-        // Failures are Error packets, never empty successes - official rejects with a bare
-        // {Protocol:-1, ErrorCode, ServerTimeTicks} envelope (captured on the AP-cap rejection).
+        // Failures are Error packets, never empty successes - official rejects with a bare {Protocol:-1, ErrorCode, ServerTimeTicks} envelope (captured on the AP-cap rejection).
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
         if (shopExcel == null || shopExcel.GoodsId == null || shopExcel.GoodsId.Count == 0)
             throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
@@ -672,10 +663,7 @@ public class ShopHandler : ProtocolHandlerBase
             ? goodsExcel.ParcelAmount[0]
             : 0;
 
-        // Shop_BuyAP grants ActionPoint by definition - the goods rows for shop 21 all carry
-        // Currency/5/120 now that the GoodsExcel model has its recovered 22-slot layout; the
-        // captured official buy matches (x3: +360 AP, -90 gems). The 120 fallback only covers a
-        // future data change that stops naming ActionPoint plausibly.
+        // Shop_BuyAP grants ActionPoint by definition - the goods rows for shop 21 all carry Currency/5/120 now that the GoodsExcel model has its recovered 22-slot layout; the captured official buy matches (x3: +360 AP, -90 gems). The 120 fallback only covers a future data change that stops naming ActionPoint plausibly.
         const CurrencyTypes rewardCurrency = CurrencyTypes.ActionPoint;
         var rewardAmount = (rewardParcelType == ParcelType.Currency
             && rewardParcelId == (long)CurrencyTypes.ActionPoint
@@ -683,8 +671,7 @@ public class ShopHandler : ProtocolHandlerBase
                 ? rewardPerCount
                 : 120) * request.PurchaseCount;
         
-        // The AP shop is capped at 20 purchases per game day (PurchaseCountLimit in the excel,
-        // confirmed on the wire); tracked per reset window so the counter rolls over at 04:00.
+        // The AP shop is capped at 20 purchases per game day (PurchaseCountLimit in the excel, confirmed on the wire); tracked per reset window so the counter rolls over at 04:00.
         var purchaseHistory = await ShopManager.EnsurePurchasable(
             db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
 
@@ -694,15 +681,12 @@ public class ShopHandler : ProtocolHandlerBase
 
         if (accountCurrency.CurrencyDict[costCurrency] < costAmount)
         {
-            // Official's error code for an unaffordable purchase is unobserved; this is the
-            // closest shop code. The envelope shape is what matters and matches.
+            // Official's error code for an unaffordable purchase is unobserved; this is the closest shop code.
             throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
                 $"Not enough {costCurrency} ({accountCurrency.CurrencyDict[costCurrency]} < {costAmount})");
         }
 
-        // AP is capped at 999. Official refuses a purchase that would overflow the cap with
-        // error 10006: the captured session bought at 170 AP (+360 -> 530, allowed) and was
-        // rejected at 970 AP (+120 would pass 999).
+        // AP is capped at 999. Official refuses a purchase that would overflow the cap with error 10006: the captured session bought at 170 AP (+360 -> 530, allowed) and was rejected at 970 AP (+120 would pass 999).
         const long ActionPointCap = 999;
         if (rewardCurrency == CurrencyTypes.ActionPoint
             && accountCurrency.CurrencyDict[CurrencyTypes.ActionPoint] + rewardAmount > ActionPointCap)
@@ -722,7 +706,7 @@ public class ShopHandler : ProtocolHandlerBase
         await db.SaveChangesAsync();
 
         var currencyDb = accountCurrency.ToMap(_mapper);
-        // Official's DisplaySequence parcel: {Key: {Type: 2, Id: 5}, Amount: <AP granted>, 1x, 1x}.
+        // DisplaySequence parcel: {Key: {Type: 2, Id: 5}, Amount: <AP granted>, 1x, 1x}.
         var apParcel = new ParcelInfo
         {
             Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = (long)CurrencyTypes.ActionPoint },
@@ -733,19 +717,15 @@ public class ShopHandler : ProtocolHandlerBase
 
         response.AccountCurrencyDB = currencyDb;
         response.ConsumeResultDB = new ConsumeResultDB();
-        // Official's successful purchase carries the granted parcel in ParcelResultDB
-        // (AccountCurrencyDB + DisplaySequence + ParcelForMission), not an empty object.
+        // Official's successful purchase carries the granted parcel in ParcelResultDB (AccountCurrencyDB + DisplaySequence + ParcelForMission), not an empty object.
         response.ParcelResultDB = new ParcelResultDB
         {
             AccountCurrencyDB = currencyDb,
             DisplaySequence = [apParcel],
             ParcelForMission = [apParcel]
         };
-        // Official's product carries ProductType and the purchase count - and no Price key. The
-        // count is the running total for the reset window: the captured official Shop_List omitted
-        // it (0) immediately before a 3-unit buy whose response reported 3, so cumulative and
-        // per-request coincide in that sample; cumulative is the reading that can enforce the
-        // limit of 20, so that is what is tracked and reported.
+        // Official's product carries ProductType and the purchase count - and no Price key. The count is the running total for the reset window: the captured official Shop_List omitted it (0) immediately before a 3-unit buy whose response reported 3, so cumulative and per-request coincide in that sample.
+        // Cumulative is the reading that can enforce the limit of 20, so that is what is tracked and reported.
         response.ShopProductDB = new ShopProductDB
         {
             ShopExcelId = request.ShopUniqueId,

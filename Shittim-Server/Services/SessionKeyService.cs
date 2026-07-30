@@ -27,10 +27,8 @@ namespace BlueArchiveAPI.Services
             Protocol.ProofToken_RequestQuestion
         };
 
-        // Sessions are persisted write-through to a sidecar file so restarts are seamless. Held in
-        // RAM only, a restart silently invalidates the client's MxToken and the next request dies
-        // with a generic error the client surfaces as "Abnormal client" / "A request that cannot
-        // be processed".
+        // Sessions are persisted write-through to a sidecar file so restarts are seamless.
+        // Held in RAM only, a restart silently invalidates the client's MxToken and the next request dies with a generic error the client surfaces as "Abnormal client" / "A request that cannot be processed".
         private static readonly string PersistPath =
             Path.Combine(AppContext.BaseDirectory, "Config", "sessions.json");
         private readonly object _persistLock = new();

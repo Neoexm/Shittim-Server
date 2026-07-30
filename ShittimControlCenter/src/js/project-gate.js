@@ -9,10 +9,8 @@ function fmtBytes(n) {
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 }
 
-// First-run / recovery screen shown when no server project is present. Offers
-// two routes: download a fresh copy of the repo from GitHub, or point at an
-// existing folder. On success the whole app reloads so every module re-resolves
-// its paths against the newly-set project.
+// First-run / recovery screen shown when no server project is present. Offers two routes: download a fresh copy of the repo from GitHub, or point at an existing folder.
+// On success the whole app reloads so every module re-resolves its paths against the newly-set project.
 export function renderProjectGate(appRoot, status, { titlebar }) {
   clear(appRoot);
   appRoot.appendChild(titlebar);

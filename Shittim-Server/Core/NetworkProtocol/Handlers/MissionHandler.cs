@@ -61,15 +61,9 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official's MissionHistoryUniqueIds carries claimed-mission ids only - never campaign
-        // stage data. In the 2026-07-28 capture pair the account-wide list is every claim once,
-        // plus a second copy of exactly the claims whose id is NOT in MissionExcel (its 78
-        // guide-mission claims, ids 1000200-1000375 in GuideMissionExcel's range), and the
-        // event-scoped list is exactly that non-MissionExcel subset. An id the client cannot
-        // resolve against an excel kills the mission screen outright - it renders from this
-        // login-cached response without any further request, so nothing loads and no error
-        // reaches the wire. CampaignStageHistory.StoryUniqueId is 0 on every row written here,
-        // which is why campaign history must not be folded in.
+        // Official's MissionHistoryUniqueIds carries claimed-mission ids only - never campaign stage data. In the 2026-07-28 capture pair the account-wide list is every claim once, plus a second copy of exactly the claims whose id is NOT in MissionExcel (its 78 guide-mission claims, ids 1000200-1000375 in GuideMissionExcel's range), and the event-scoped list is exactly that non-MissionExcel subset.
+        // An id the client cannot resolve against an excel kills the mission screen outright - it renders from this login-cached response without any further request, so nothing loads and no error reaches the wire.
+        // CampaignStageHistory.StoryUniqueId is 0 on every row written here, so campaign history must not be folded in.
         var claims = db.GetAccountMissionHistories(account.ServerId)
             .Select(x => x.MissionUniqueId)
             .Distinct()
@@ -85,32 +79,26 @@ public class MissionHandler : ProtocolHandlerBase
 
         if (request.EventContentId == null)
         {
-            // Official's account-wide ProgressDBs holds mission + guide-mission rows only.
-            // Battle-pass rows (shared MissionProgresses storage, served by BattlePass_MissionList)
-            // and event rows never appear here.
+            // Official's account-wide ProgressDBs holds mission + guide-mission rows only. Battle-pass rows (shared MissionProgresses storage, served by BattlePass_MissionList) and event rows never appear here.
             var missionProgresses = db.GetAccountMissionProgresses(account.ServerId).ToList();
             response.ProgressDBs = _mapper.Map<List<MissionProgressDB>>(
                 FilterToMissionScreenIds(missionProgresses));
         }
         else
         {
-            // Official omits ProgressDBs entirely on event-scoped calls (nulls are dropped by the
-            // serializer); event-mission progress reaches the client through other protocols.
+            // Official omits ProgressDBs entirely on event-scoped calls (nulls are dropped by the serializer); event-mission progress reaches the client through other protocols.
             response.ProgressDBs = null;
         }
 
-        // Official Mission_List always carries today's sudden-mission definition (never {}).
+        // Mission_List always carries today's sudden-mission definition, never {}.
         response.DailySuddenMissionInfo = BuildDailySuddenMissionInfo(account);
         response.ClearedOrignalMissionIds = BuildClearedOriginalMissionIds(db, account, request.EventContentId);
 
         return response;
     }
 
-    // Official's account-wide list is every resolvable claim once plus a second copy of the
-    // non-MissionExcel claims, and the event-scoped list is only that non-MissionExcel subset
-    // (verified against the 2026-07-28 capture: 953 = 875 distinct claims + the 78 guide claims
-    // repeated; the event call returns exactly those 78). Ids no excel can resolve are dropped
-    // outright instead of copying official's trust in its own data.
+    // Official's account-wide list is every resolvable claim once plus a second copy of the non-MissionExcel claims, and the event-scoped list is only that non-MissionExcel subset (verified against the 2026-07-28 capture: 953 = 875 distinct claims + the 78 guide claims repeated; the event call returns exactly those 78).
+    // Ids no excel can resolve are dropped outright.
     internal static List<long> BuildMissionHistoryIds(
         IEnumerable<long> claims,
         HashSet<long> missionExcelIds,
@@ -130,11 +118,8 @@ public class MissionHandler : ProtocolHandlerBase
             : outsideMissionExcel.Concat(resolvable).ToList();
     }
 
-    // The ids the client's mission screen can resolve: MissionExcel plus GuideMissionExcel.
-    // MissionProgresses also stores battle-pass rows (BattlePassMissionExcel ids 2000001+) and
-    // event-content rows (856xxx...), and an unresolvable id in a mission-screen payload breaks
-    // the screen. When both tables degrade to empty (dump/schema failure) the filter passes
-    // everything through rather than blanking the screen.
+    // The ids the client's mission screen can resolve: MissionExcel plus GuideMissionExcel. MissionProgresses also stores battle-pass rows (BattlePassMissionExcel ids 2000001+) and event-content rows (856xxx...), and an unresolvable id in a mission-screen payload breaks the screen.
+    // When both tables degrade to empty (dump/schema failure) the filter passes everything through rather than blanking the screen.
     internal static List<MissionProgressDBServer> FilterMissionScreenProgresses(
         List<MissionProgressDBServer> progresses, ExcelTableService excelService)
     {
@@ -156,12 +141,8 @@ public class MissionHandler : ProtocolHandlerBase
     private List<MissionProgressDBServer> FilterToMissionScreenIds(List<MissionProgressDBServer> progresses)
         => FilterMissionScreenProgresses(progresses, _excelService);
 
-    // Official sends ClearedOrignalMissionIds only when the queried event is a rerun (a "return"
-    // event), so the client can mark the missions the account already cleared during the original
-    // run; for every other scope the key is omitted rather than sent as []. Both captures agree:
-    // EventContentId null -> absent, 856 (a normal event) -> absent, 10842 -> present and empty.
-    // 10842 is a rerun of 842 and that account, despite 950 cleared missions, had never played
-    // 842, so empty is the correct content and not an omission.
+    // Official sends ClearedOrignalMissionIds only when the queried event is a rerun (a "return" event), so the client can mark the missions the account already cleared during the original run; for every other scope the key is omitted rather than sent as []. Both captures agree: EventContentId null -> absent, 856 (a normal event) -> absent, 10842 -> present and empty.
+    // 10842 is a rerun of 842 and that account, despite 950 cleared missions, had never played 842, so empty is the correct content and not an omission.
     private List<long>? BuildClearedOriginalMissionIds(
         SchaleDataContext db,
         AccountDBServer account,
@@ -190,9 +171,8 @@ public class MissionHandler : ProtocolHandlerBase
             .ToList();
     }
 
-    // Official Mission_List always includes a fully-populated DailySuddenMissionInfo (the
-    // MissionExcel row of the day's DailySudden mission projected to the client MissionInfo
-    // shape). Pick deterministically per day among the currently-active DailySudden rows.
+    // Official Mission_List always includes a fully-populated DailySuddenMissionInfo (the MissionExcel row of the day's DailySudden mission projected to the client MissionInfo shape).
+    // Pick deterministically per day among the currently-active DailySudden rows.
     private object BuildDailySuddenMissionInfo(AccountDBServer account)
     {
         var now = account.GameSettings.ServerDateTime();
@@ -259,8 +239,7 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official always sends both collections; they are empty for an account that has not
-        // started a guide-mission season yet.
+        // Official always sends both collections; they are empty for an account that has not started a guide-mission season yet.
         response.GuideMissionSeasonDBs = [];
         response.MissionProgressDBs = [];
 
@@ -275,7 +254,6 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Find the mission progress
         var missionProgress = await db.MissionProgresses
             .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == request.MissionUniqueId);
 
@@ -285,26 +263,20 @@ public class MissionHandler : ProtocolHandlerBase
                 $"Mission {request.MissionUniqueId} has no progress row for this account");
         }
 
-        // The client only offers the claim button once the mission is complete, so a request for an
-        // incomplete one is either a desync or a crafted packet. Without this guard the reward is
-        // handed out and the progress row consumed for a mission the player never finished.
+        // The client only offers the claim button once the mission is complete, so a request for an incomplete one is either a desync or a crafted packet. Without this guard the reward is handed out and the progress row consumed for a mission the player never finished.
         if (!missionProgress.Complete)
         {
             throw new WebAPIException(WebAPIErrorCode.MissionCannotComplete,
                 $"Mission {request.MissionUniqueId} is not complete");
         }
 
-        // Validated before anything is mutated: letting an unknown id fall through with a null excel
-        // would still delete the progress row and write a history entry while skipping the reward,
-        // leaving the mission permanently unclaimable.
+        // An unknown id falling through with a null excel would still delete the progress row and write a history entry while skipping the reward, leaving the mission permanently unclaimable.
         var missionExcel = _excelService.GetTable<MissionExcelT>().FirstOrDefault(x => x.Id == request.MissionUniqueId)
             ?? throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound,
                 $"Mission excel {request.MissionUniqueId} not found");
 
-        // Prepare response lists
         response.MissionProgressDBs = new List<MissionProgressDB>();
 
-        // Use ParcelHandler to process rewards
         var parcelResultList = ParcelResult.ConvertParcelResult(
             missionExcel.MissionRewardParcelType,
             missionExcel.MissionRewardParcelId,
@@ -319,7 +291,7 @@ public class MissionHandler : ProtocolHandlerBase
 
         var completeTime = account.GameSettings.ServerDateTime();
 
-        // Persist the claim: official's account-wide Mission_List returns it forever after.
+        // official's account-wide Mission_List returns the claim forever after
         db.MissionHistories.Add(new MissionHistoryDBServer
         {
             AccountServerId = account.ServerId,
@@ -327,8 +299,7 @@ public class MissionHandler : ProtocolHandlerBase
             CompleteTime = completeTime
         });
 
-        // Official's wire history carries only these two members - ServerId/AccountServerId are
-        // omitted (the local-session contrast in the detailed capture exposed ours leaking both).
+        // Official's wire history carries only these two members - the detailed capture shows ServerId and AccountServerId omitted.
         response.AddedHistoryDB = new MissionHistoryDB
         {
             MissionUniqueId = missionProgress.MissionUniqueId,
@@ -337,7 +308,6 @@ public class MissionHandler : ProtocolHandlerBase
 
         await db.SaveChangesAsync();
 
-        // Check if this was a Daily mission and update "Complete X Daily Missions" count
         if (missionExcel.Category == MissionCategory.Daily)
         {
             var updatedMetaMissions = _missionService.UpdateMissionProgress(
@@ -347,7 +317,7 @@ public class MissionHandler : ProtocolHandlerBase
                 1
             );
             
-            // Add any updated meta-missions to the response so the client sees the progress bar move
+            // so the client sees the meta-mission progress bar move
             response.MissionProgressDBs = updatedMetaMissions;
             await db.SaveChangesAsync();
         }
@@ -375,8 +345,7 @@ public class MissionHandler : ProtocolHandlerBase
             .Where(x => x.AccountServerId == account.ServerId && x.Complete)
             .ToList();
 
-        // MissionCategory.All is the client's "claim everything" tab value; no excel row ever
-        // carries it, so it must bypass the category filter rather than match against it.
+        // MissionCategory.All is the client's "claim everything" tab value; no excel row ever carries it, so it must bypass the category filter rather than match against it.
         var targetProgresses = progresses
             .Where(p => missionExcelById.TryGetValue(p.MissionUniqueId, out var missionExcel)
                 && (request.MissionCategory == MissionCategory.All
@@ -411,8 +380,7 @@ public class MissionHandler : ProtocolHandlerBase
 
             var completeTime = account.GameSettings.ServerDateTime();
 
-            // Persist the claim for the account-wide MissionHistoryUniqueIds; the wire copy
-            // carries only the two members official emits.
+            // Persist the claim for the account-wide MissionHistoryUniqueIds; the wire copy carries only the two members official emits.
             db.MissionHistories.Add(new MissionHistoryDBServer
             {
                 AccountServerId = account.ServerId,
@@ -437,8 +405,7 @@ public class MissionHandler : ProtocolHandlerBase
 
         response.AddedHistoryDBs = addedHistory;
 
-        // Count only the rows that actually were Daily missions (with the All tab, the batch
-        // can span every category).
+        // Count only the rows that actually were Daily missions (with the All tab, the batch can span every category).
         var claimedDailyCount = targetProgresses.Count(p =>
             missionExcelById.TryGetValue(p.MissionUniqueId, out var excel)
             && excel.Category == MissionCategory.Daily);

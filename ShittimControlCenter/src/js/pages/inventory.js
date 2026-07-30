@@ -45,9 +45,7 @@ export default {
         const rows = itemRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(itemsBody);
         if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with "Give item"')); return; }
-        // 64px = 36px trash button + the 28px of cell padding (border-box) -
-        // narrower and the button overflows the fixed column, dragging a
-        // horizontal scrollbar into the list
+        // 64px = 36px trash button + the 28px of cell padding (border-box) - narrower and the button overflows the fixed column, dragging a horizontal scrollbar into the list
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:64px"></th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const r of rows) {

@@ -172,9 +172,8 @@ namespace Shittim_Server.Services
             return (historyDb, parcelResolver.ParcelResult, eventMissionProgressDBDict);
         }
 
-        // Advances EVERY event mission whose condition parameters contain the cleared stage (not
-        // just the post-event extension-time variant), and marks them Complete when the condition
-        // count is met - without Complete the client never unlocks the next quest in the chain.
+        // Advances EVERY event mission whose condition parameters contain the cleared stage (not just the post-event extension-time variant), and marks them Complete when the condition count is met.
+        // Without Complete the client never unlocks the next quest in the chain.
         private async Task<Dictionary<long, List<MissionProgressDB>>> ProgressEventMissions(
             SchaleDataContext context,
             AccountDBServer account,

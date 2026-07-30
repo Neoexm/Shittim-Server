@@ -22,29 +22,15 @@ namespace Shittim_Server.Services;
 
 public class ConcentrateCampaignManager
 {
-    /// <summary>
-    /// Par time for a tactic, in milliseconds - ConstCommonExcel.TacticRankClearTime on the client.
-    /// Beating it is worth one rank. Our ConstCommonExcel model carries no fields, so the value is
-    /// pinned here alongside the identical threshold CalcAllEnemiesDefeatedInTime uses.
-    /// </summary>
+    // ConstCommonExcel.TacticRankClearTime on the client, and our ConstCommonExcel model carries no fields, so the par time is pinned here; 120s is also the threshold CalcAllEnemiesDefeatedInTime uses
     private const long TacticRankClearTimeMsec = 120 * 1000;
 
-    /// <summary>
-    /// Undamaged, on the 0..10000 scale HpInfos is denominated in - these are rates, not absolute HP.
-    /// </summary>
+    // HpInfos is a rate on 0..10000, not absolute hp
     private const long FullHpRate = 10000L;
 
-    /// <summary>
-    /// The rank CalcTacticRank gives a flawless, in-par win - an S. The third star on a campaign
-    /// stage is scored against how many tactics finished at this rank, not against the battle result.
-    /// </summary>
     private const long TacticRankS = 3L;
 
-    /// <summary>
-    /// The parcel id official stamps on the account-exp entry in ParcelForMission. AccountExp has no
-    /// meaningful id of its own - the sub-stage paths pass 0 - but the wire capture says 1, and the
-    /// id is what the client keys the entry by.
-    /// </summary>
+    // AccountExp has no meaningful id of its own (the sub-stage paths pass 0) but the capture says 1, and the id is what the client keys the ParcelForMission entry by
     private const long AccountExpParcelId = 1L;
 
     private readonly ExcelTableService _excelService;
@@ -78,15 +64,8 @@ public class ConcentrateCampaignManager
             .FirstOrDefaultAsync();
     }
 
-    /// <summary>
-    /// The run ContentSave_Get should answer with, if there is one. The request carries no stage id -
-    /// the client is asking "am I in the middle of something?", so the newest still-open save across
-    /// every stage is the answer.
-    ///
-    /// A save sitting at BeforeStart does not count: Campaign_EnterMainStage creates the row but the
-    /// player is still on echelon select until Campaign_ConfirmMainStage moves it to PlayerPhase, and
-    /// there is no battle to resume into before that.
-    /// </summary>
+    // ContentSave_Get carries no stage id - the client is only asking whether it is mid-run at all - so the newest still-open save across every stage is the answer.
+    // BeforeStart does not count: Campaign_EnterMainStage creates the row while the player is still on echelon select, and there is no battle to resume into until Campaign_ConfirmMainStage moves it to PlayerPhase.
     public async Task<CampaignMainStageSaveDBServer?> GetOpenConcentrateCampaign(
         SchaleDataContext context,
         AccountDBServer account)
@@ -99,11 +78,7 @@ public class ConcentrateCampaignManager
             .FirstOrDefaultAsync();
     }
 
-    /// <summary>
-    /// Retires the account's open runs so ContentSave_Get stops offering them. Pass a stage id to
-    /// close only that stage's run (the client names one on ContentSave_Discard), or nothing to close
-    /// them all. Returns how many rows were closed.
-    /// </summary>
+    // retires open runs so ContentSave_Get stops offering them; a stage id closes just that run (ContentSave_Discard names one), null closes all of them
     public async Task<int> CloseConcentrateCampaigns(
         SchaleDataContext context,
         AccountDBServer account,
@@ -133,12 +108,10 @@ public class ConcentrateCampaignManager
     {
         var hexaData = await _hexaMapService.LoadState(stageUniqueId);
 
-        // Entering a stage abandons whatever the player was in before it - only one campaign run can
-        // be open at a time, and the new one is the answer ContentSave_Get owes from here on.
+        // entering a stage abandons whatever the player was in before it - only one campaign run can be open at a time, and the new one is what ContentSave_Get owes from here on
         await CloseConcentrateCampaigns(context, account);
 
-        // Official's save carries the stage's enter cost (e.g. 10 AP) as a parcel list; it drives
-        // the fee display and the retreat refund.
+        // official's save carries the stage's enter cost (e.g. 10 AP) as a parcel list; it drives the fee display and the retreat refund
         var stageExcel = _excelService.GetTable<CampaignStageExcelT>()
             .FirstOrDefault(x => x.Id == stageUniqueId);
         List<ParcelInfo> entranceFee = stageExcel is null
@@ -146,8 +119,7 @@ public class ConcentrateCampaignManager
             : ParcelInfo.CreateParcelInfo(
                 stageExcel.StageEnterCostType, stageExcel.StageEnterCostId, stageExcel.StageEnterCostAmount);
 
-        // The DB row keeps every collection non-null (the columns are NOT NULL); the wire copy is
-        // trimmed to official's key set by ShapeForWire at the handler.
+        // DB row keeps every collection non-null (NOT NULL columns); ShapeForWire trims the wire copy down to official's key set at the handler
         var stageSave = new CampaignMainStageSaveDBServer
         {
             ContentType = Schale.FlatData.ContentType.CampaignMainStage,
@@ -177,12 +149,8 @@ public class ConcentrateCampaignManager
         return stageSave;
     }
 
-    // Official serializes these six save collections only once they have content: EchelonInfos
-    // first appears at DeployEchelon, DeployedEchelonInfos at ConfirmMainStage, DisplayInfos at
-    // MapMove, and WithdrawInfos/StrategyObjectRewards/StrategyObjectHistory never in the captured
-    // flow. Sending them non-null-but-empty at map entry mislabels a fresh run as an in-progress
-    // one. The DB entity keeps them non-null (NOT NULL columns), so the trimming happens on the
-    // mapped wire copy - apply this to every SaveDataDB a campaign response carries.
+    // Official serializes these six save collections only once they have content: EchelonInfos first appears at DeployEchelon, DeployedEchelonInfos at ConfirmMainStage, DisplayInfos at MapMove, and WithdrawInfos/StrategyObjectRewards/StrategyObjectHistory never in the captured flow. Sending them non-null-but-empty at map entry mislabels a fresh run as an in-progress one.
+    // The DB entity keeps them non-null, so the trimming has to happen on the mapped wire copy that every campaign response carries.
     internal static CampaignMainStageSaveDB ShapeForWire(CampaignMainStageSaveDB save)
     {
         if (save.EchelonInfos is { Count: 0 }) save.EchelonInfos = null;
@@ -191,18 +159,13 @@ public class ConcentrateCampaignManager
         if (save.StrategyObjectHistory is { Count: 0 }) save.StrategyObjectHistory = null;
         if (save.DisplayInfos is { Count: 0 }) save.DisplayInfos = null;
         if (save.DeployedEchelonInfos is { Count: 0 }) save.DeployedEchelonInfos = null;
-        // EnemyInfos is the odd one out: it is populated from map entry onwards and only empties when
-        // the last enemy dies. Official drops the key entirely on that clearing TacticResult.
+        // EnemyInfos is the odd one out: populated from map entry onwards, empty only once the last enemy dies, and official drops the key entirely on that clearing TacticResult
         if (save.EnemyInfos is { Count: 0 }) save.EnemyInfos = null;
         return save;
     }
 
-    // Official's fresh-save 6001 already carries {"0":[0]}: every event whose conditions include
-    // HexaConditionStartCampaign is marked as fired ({EventId: [ConditionIds]}) because the save's
-    // EnemyInfos/StrategyObjects already contain the entities those events' spawn commands create.
-    // Sending {} instead makes the client re-evaluate the start event against the pre-populated map
-    // while constructing the strategy scene, and the map never opens (the 6001 callback never
-    // completes - no Echelon_List follows, and the client replays 6001 on reconnect).
+    // Official's fresh-save 6001 already carries {"0":[0]}: every event whose conditions include HexaConditionStartCampaign is marked fired ({EventId: [ConditionIds]}) because the save's EnemyInfos/StrategyObjects already contain the entities those events' spawn commands create.
+    // Sending {} instead has the client re-evaluate the start event against the pre-populated map while it constructs the strategy scene, and the map never opens: the 6001 callback never completes, no Echelon_List follows, and the client replays 6001 on reconnect.
     internal static Dictionary<long, List<long>> BuildStartEventActivations(HexaTileMap hexaData)
     {
         var activations = new Dictionary<long, List<long>>();
@@ -331,8 +294,7 @@ public class ConcentrateCampaignManager
             }
         }
 
-        // The start-event activations are seeded at save creation now; Confirm must not clobber
-        // whatever has accumulated since (MapMove/ArriveTile events append here on official).
+        // start-event activations are seeded at save creation, so Confirm must not clobber what has accumulated since (MapMove/ArriveTile events append here on official)
         stageSaveData.ActivatedHexaEventsAndConditions ??= new Dictionary<long, List<long>> { { 0, new List<long> { 0 } } };
 
         context.CampaignMainStageSaves.Update(stageSaveData);
@@ -341,16 +303,8 @@ public class ConcentrateCampaignManager
         return stageSaveData;
     }
 
-    /// <summary>
-    /// Walks an echelon to the tile the player picked. Returns the save plus a snapshot of the moving
-    /// echelon as it stood BEFORE the step - see <see cref="RewindMovedEchelonForWire"/> for why the
-    /// response has to show the old position even though the new one is what gets persisted.
-    ///
-    /// A move is three pieces of state and all three have to be written: the unit's Location, its
-    /// slot in the global MovementOrder queue, and the ActionCount that stops it moving twice in a
-    /// turn. A DisplayInfos entry alone is just the animation - the client plays the walk, then the
-    /// next response re-asserts EchelonInfos with the original tile and the unit snaps back.
-    /// </summary>
+    // Returns the save plus a snapshot of the moving echelon as it stood BEFORE the step; RewindMovedEchelonForWire has the reason the response shows the old position while the new one is what gets persisted.
+    // A move is three pieces of state and all three have to be written: the unit's Location, its slot in the global MovementOrder queue, and the ActionCount that stops it moving twice in a turn. A DisplayInfos entry alone is only the animation - the client plays the walk, the next response re-asserts EchelonInfos with the original tile, and the unit snaps back.
     public async Task<(CampaignMainStageSaveDBServer Save, HexaUnit? PreMove)> MoveTarget(
         SchaleDataContext context,
         AccountDBServer account,
@@ -373,8 +327,7 @@ public class ConcentrateCampaignManager
                 ActionCount = echelon.ActionCount,
             };
 
-            // A fresh HexLocation2D rather than a write through the existing one: the snapshot above
-            // holds that reference, and the mapped wire copy shares it too.
+            // fresh HexLocation2D rather than a write through the existing one - the snapshot above holds that reference, and the mapped wire copy shares it too
             echelon.Location = new HexLocation2D
             {
                 x = moveReq.DestPosition.x,
@@ -385,9 +338,7 @@ public class ConcentrateCampaignManager
             echelon.ActionCount = Math.Max(0, echelon.ActionCount - 1);
         }
 
-        // Replaced, not appended. DisplayInfos is the "play this now" list, and official's MapMove
-        // carries exactly the current step; appending makes every response replay the whole run's
-        // movement history, growing by one entry per move.
+        // Replaced, not appended: DisplayInfos is the "play this now" list and official's MapMove carries exactly the current step, so appending makes every response replay the whole run's movement history, one extra entry per move.
         stageSaveData.DisplayInfos = new List<HexaDisplayInfo>
         {
             HexaMapService.AddHexaDisplayInfo(moveReq.EchelonEntityId, moveReq.DestPosition),
@@ -399,11 +350,7 @@ public class ConcentrateCampaignManager
         return (stageSaveData, preMove);
     }
 
-    /// <summary>
-    /// The next slot in the movement queue. MovementOrder is one counter shared by the whole force,
-    /// not a per-echelon step count: deploy hands out 1 and 2, then every move takes the next value in
-    /// turn, so a two-echelon run reads 3, 4, 5, 6... A tactic does not consume a slot.
-    /// </summary>
+    // MovementOrder is one counter shared by the whole force, not a per-echelon step count: deploy hands out 1 and 2, then every move takes the next value in turn, so a two-echelon run reads 3, 4, 5, 6. A tactic does not consume a slot.
     private static int NextMovementOrder(CampaignMainStageSaveDBServer save)
     {
         var highest = save.EchelonInfos is { Count: > 0 }
@@ -413,17 +360,9 @@ public class ConcentrateCampaignManager
         return highest + 1;
     }
 
-    /// <summary>
-    /// Puts the moving echelon back to its pre-step position, order and action count *in the wire copy
-    /// only*. Official's MapMove response reports the mover exactly as it stood before the request:
-    /// the DisplayInfos entry is what walks it to the new tile, and EchelonInfos catches up in the
-    /// following response. Sending the destination in both would have the client sync the unit onto
-    /// the tile and then animate it walking from there to itself.
-    ///
-    /// The mapped copy shares its HexaUnit references with the tracked entity, so the rewind swaps in
-    /// a fresh unit through a fresh dictionary rather than writing through the shared one - otherwise
-    /// this would quietly undo the move that was just saved.
-    /// </summary>
+    // Puts the mover back to its pre-step position, order and action count in the wire copy only.
+    // Official's MapMove reports the mover exactly as it stood before the request: the DisplayInfos entry walks it to the new tile and EchelonInfos catches up in the following response, so sending the destination in both would have the client sync the unit onto the tile and then animate it walking from there to itself.
+    // The mapped copy shares its HexaUnit references with the tracked entity, so the rewind swaps in a fresh unit through a fresh dictionary rather than writing through the shared one, which would quietly undo the move that was just saved.
     internal static CampaignMainStageSaveDB RewindMovedEchelonForWire(
         CampaignMainStageSaveDB save,
         long entityId,
@@ -460,12 +399,7 @@ public class ConcentrateCampaignManager
         return save;
     }
 
-    /// <summary>
-    /// Remembers which enemy the player just engaged. The response itself is empty - official's
-    /// Campaign_EnterTactic reply carries nothing beyond the protocol header - but the request's
-    /// EnemyIndex is the only place the engaged unit is ever named, and Campaign_TacticResult needs
-    /// it to take that unit off the map.
-    /// </summary>
+    // The response is empty (official's Campaign_EnterTactic reply carries nothing beyond the protocol header) but the request's EnemyIndex is the only place the engaged unit is ever named, and Campaign_TacticResult needs it to take that unit off the map.
     public async Task<CampaignMainStageSaveDBServer> EnterTactic(
         SchaleDataContext context,
         AccountDBServer account,
@@ -532,12 +466,8 @@ public class ConcentrateCampaignManager
         }
         else
         {
-            // Clear the engaged enemy off the hex map. The unit is identified by the EnemyIndex the
-            // client sent with Campaign_EnterTactic, not by anything in the battle summary: the
-            // summary's Group02 heroes carry character ids (7020201, ...) while EnemyInfos is keyed
-            // by hex entity id and holds campaign-unit ids (111110201, ...). Matching Id against
-            // CharacterId can never be true, so nothing gets removed, EnemyClearCount stays at zero
-            // and the stage cannot be completed.
+            // The engaged unit is named by the EnemyIndex the client sent with Campaign_EnterTactic, never by anything in the battle summary: the summary's Group02 heroes carry character ids (7020201, ...) while EnemyInfos is keyed by hex entity id and holds campaign-unit ids (111110201, ...).
+            // Matching Id against CharacterId can never be true, so nothing gets removed, EnemyClearCount stays at zero and the stage cannot be completed.
             if (stageSaveData.EnemyInfos != null &&
                 stageSaveData.EnemyInfos.Remove(stageSaveData.EngagedEnemyEntityId))
             {
@@ -546,26 +476,19 @@ public class ConcentrateCampaignManager
 
             stageSaveData.EngagedEnemyEntityId = 0;
 
-            // The third star is scored against how many tactics finished at S, so the counter has
-            // to track every battle - it feeds the star, so it can't be gated on the star.
+            // the third star is scored against how many tactics finished at S, so the counter tracks every battle; it feeds the star and cannot be gated on it
             if (tacticRank >= TacticRankS)
                 stageSaveData.TacticRankSCount++;
 
-            // The stage clear is the map's own EndBattle event, fired by a HexaConditionUnitDead
-            // naming one designated boss - not "the map is empty". On strategymap_1011104 the boss is
-            // 10013 while 10017 and 10018 are still standing when official ends the mission, and on
-            // the reported failure (stage 1111102) it is 10044 out of 10040-10044. Requiring an empty
-            // map made the player mop up units official never asks for, and on the maps where a
-            // TileHide deletes an enemy for you it could never be satisfied at all.
+            // The stage clear is the map's own EndBattle event, fired by a HexaConditionUnitDead naming one designated boss, not "the map is empty": on strategymap_1011104 the boss is 10013 while 10017 and 10018 are still standing when official ends the mission, and on stage 1111102 it is 10044 out of 10040-10044.
+            // Requiring an empty map makes the player mop up units official never asks for, and on maps where a TileHide deletes an enemy for you it can never be satisfied at all.
             var hexaData = await _hexaMapService.LoadState(stageSaveData.StageUniqueId);
             var endBattle = HexaMapService.FindSatisfiedEndBattle(
                 hexaData, stageSaveData.EnemyInfos, stageSaveData.ActivatedHexaEventsAndConditions);
 
             if (endBattle is { } fired)
             {
-                // Official appends the fired event to the activation history in the very packet that
-                // clears the stage: {"0":[0],"1":[0],"3":[0]} becomes {...,"2":[0]}. It is also what
-                // keeps a replayed 6008 from firing the clear a second time.
+                // Official appends the fired event to the activation history in the very packet that clears the stage - {"0":[0],"1":[0],"3":[0]} becomes {...,"2":[0]} - and it is also what keeps a replayed 6008 from firing the clear twice.
                 stageSaveData.ActivatedHexaEventsAndConditions ??= new Dictionary<long, List<long>>();
                 stageSaveData.ActivatedHexaEventsAndConditions[fired.Event.EventId] = fired.ConditionIds;
 
@@ -574,21 +497,18 @@ public class ConcentrateCampaignManager
             }
             else if (stageSaveData.EnemyInfos is { Count: 0 })
             {
-                // Fallback for a stage whose strategymap dump is missing: LoadState logs a warning and
-                // hands back an empty map with no Events, and without this the run could never end.
-                // It can only ever fire later than the event rule, never earlier.
+                // Fallback for a stage whose strategymap dump is missing: LoadState warns and hands back an empty map with no Events, so without this the run could never end. It can only fire later than the event rule, never earlier.
                 isStageClear = true;
             }
 
-            // Ending the run stops the save being something ContentSave_Get can offer to resume.
+            // ending the run stops ContentSave_Get offering the save as resumable
             if (isStageClear)
                 stageSaveData.IsOpen = false;
         }
 
         if (isStageClear)
         {
-            // The star conditions are stage properties, not battle ones: one for finishing at all,
-            // one for finishing inside the par turn count, one for how many tactics ranked S.
+            // star conditions are stage properties, not battle ones: one for finishing at all, one for finishing inside the par turn count, one for how many tactics ranked S
             historyDb.Star1Flag = true;
             historyDb.Star2Flag = stageExcel != null && stageSaveData.CurrentTurn <= stageExcel.StarConditionTurnCount;
             historyDb.Star3Flag = stageExcel != null && stageSaveData.TacticRankSCount >= stageExcel.StarConditionTacticRankSCount;
@@ -602,8 +522,7 @@ public class ConcentrateCampaignManager
                 x.AccountServerId == req.AccountId &&
                 x.StageUniqueId == req.Summary.StageId);
 
-        // Read before the merge: the star-total achievement counts stars newly lit by this run, and
-        // after MergeExistHistoryWithNew the old flags and the new ones are the same object.
+        // read before the merge - the star-total achievement counts only stars newly lit by this run, and after MergeExistHistoryWithNew the old flags and the new ones are the same object
         var starsBefore = existHistory != null ? StarCount(existHistory) : 0;
 
         if (existHistory != null)
@@ -616,13 +535,10 @@ public class ConcentrateCampaignManager
             context.CampaignStageHistories.Add(historyDb);
         }
 
-        // DisplayInfos is per-response, never an accumulation. The stage-clear entry is attached to
-        // the wire copy by AttachStageClearForWire rather than persisted here - it carries the whole
-        // reward payload and has no business living in the save row.
+        // DisplayInfos is per-response, never an accumulation; the stage-clear entry carries the whole reward payload, so AttachStageClearForWire hangs it on the wire copy instead of persisting it in the save row.
         stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
 
-        // Both rewards are once-per-account. The gates read the merged history, so a replayed stage
-        // still ends but advertises nothing, which is what official does on a re-clear.
+        // Both rewards are once-per-account, and the gates read the merged history, so a replayed stage still ends but advertises nothing - official does the same on a re-clear.
         var grantFirstClear = isStageClear && historyDb.FirstClearRewardReceive == null;
         var grantThreeStar = isStageClear
             && historyDb.Star1Flag && historyDb.Star2Flag && historyDb.Star3Flag
@@ -642,8 +558,7 @@ public class ConcentrateCampaignManager
         if (clearReward != null)
             clearReward.CampaignStageHistoryDB = historyMap;
 
-        // Missions tick off the tactic, not off the stage: official sends MissionProgressDBs on every
-        // Campaign_TacticResult, including the three that did not finish the stage.
+        // missions tick off the tactic, not the stage: official sends MissionProgressDBs on every Campaign_TacticResult, including the three that did not finish the stage
         var missionProgresses = await TickTacticMissions(
             context, account, stageSaveData, tacticWon, isStageClear,
             StarCount(historyDb) - starsBefore);
@@ -651,17 +566,8 @@ public class ConcentrateCampaignManager
         return (stageSaveData, historyMap, tacticRank, clearReward, endBattleType, parcelResult, missionProgresses);
     }
 
-    /// <summary>
-    /// Everything one Campaign_TacticResult pays out, and the payload the client shows on the
-    /// mission-complete screen when that tactic also finished the stage.
-    ///
-    /// Two economies meet here. Every won tactic - stage cleared or not - pays the stage's
-    /// TacticRewardExp to each character that fought it; on official that is the entire content of
-    /// a non-clearing tactic's ParcelResultDB, six CharacterExp parcels and the CharacterDBs they
-    /// levelled. A tactic that also clears the stage additionally pays the once-per-account
-    /// first-clear and three-star rows, the rolled per-run drop table, and the stage's AP cost
-    /// converted to account exp.
-    /// </summary>
+    // Every won tactic, stage cleared or not, pays the stage's TacticRewardExp to each character that fought it; on official that is the entire content of a non-clearing tactic's ParcelResultDB, six CharacterExp parcels and the CharacterDBs they levelled.
+    // A tactic that also clears the stage pays the once-per-account first-clear and three-star rows on top, plus the rolled per-run drop table and the stage's AP cost converted to account exp. The clear payload is what the client shows on the mission-complete screen.
     private async Task<(ParcelResultDB ParcelResult, StrategyClearRewardInfo? ClearReward)> BuildTacticReward(
         SchaleDataContext context,
         AccountDBServer account,
@@ -693,23 +599,14 @@ public class ConcentrateCampaignManager
 
                 drops = RolledDrops(rewards);
 
-                // Clearing converts the AP the stage cost into account exp, one for one - official's
-                // clear of this 10-AP stage reports BaseAccountExp 10. The parcel id is 1, not the 0
-                // the older sub-stage paths pass.
+                // clearing converts the AP the stage cost into account exp one for one - official's clear of this 10-AP stage reports BaseAccountExp 10
                 exp.Add(new ParcelResult(
                     ParcelType.AccountExp, AccountExpParcelId, stageExcel.StageEnterCostAmount));
             }
         }
 
-        // One BuildParcel call, deliberately: it opens its own transaction so a second call cannot
-        // nest inside it, and every call builds a fresh resolver whose DisplaySequence/ParcelForMission
-        // assignment would throw away the first call's.
-        //
-        // The order is official's reward order - first-clear rows, drops, character exp, account exp,
-        // three-star rows. Two cosmetic differences remain and neither changes what is granted:
-        // ParcelHandler.Aggregate sums same-key parcels, so a drop of an equipment the first-clear row
-        // also awards arrives as one summed entry where official lists two; and currency drops stay in
-        // drop order rather than being flushed to the end of the list.
+        // One BuildParcel call, deliberately: it opens its own transaction so a second call cannot nest inside it, and every call builds a fresh resolver whose DisplaySequence/ParcelForMission assignment would throw away the first call's. Order is official's: first-clear rows, drops, character exp, account exp, three-star rows.
+        // Two cosmetic differences remain and neither changes what is granted - ParcelHandler.Aggregate sums same-key parcels, so a drop of an equipment the first-clear row also awards arrives as one summed entry where official lists two, and currency drops stay in drop order rather than being flushed to the end of the list.
         var granted = firstClear.Concat(drops).Concat(exp).Concat(threeStar).ToList();
         var resolver = await _parcelHandler.BuildParcel(context, account, granted);
 
@@ -720,8 +617,7 @@ public class ConcentrateCampaignManager
         {
             FirstClearReward = ToParcelInfos(firstClear),
             ThreeStarReward = ToParcelInfos(threeStar),
-            // Official sends these two on every clear, empty when there is nothing in them. The four
-            // [JsonIgnore]'d lists on this type are left null so they drop off the wire.
+            // official sends these two on every clear, empty when there is nothing in them; the four [JsonIgnore]'d lists on this type stay null so they drop off the wire
             StrategyObjectRewards = new Dictionary<long, List<ParcelInfo>>(),
             EventContentBonusReward = new List<ParcelInfo>(),
             ParcelResultDB = resolver.ParcelResult,
@@ -735,12 +631,7 @@ public class ConcentrateCampaignManager
             .Select(x => new ParcelResult(x.StageRewardParcelType, x.StageRewardId, x.StageRewardAmount))
             .ToList();
 
-    /// <summary>
-    /// Rolls the stage's per-run drop table. Only the Default-tagged rows take part: the FirstClear
-    /// and ThreeStar rows sit in the same table and carry probabilities of their own, so rolling the
-    /// whole group - which the sub-stage and sweep paths still do - pays the once-per-account rewards
-    /// again on every single clear.
-    /// </summary>
+    // Only Default-tagged rows take part. FirstClear and ThreeStar rows sit in the same table with probabilities of their own, so rolling the whole group - which the sub-stage and sweep paths still do - pays the once-per-account rewards again on every single clear.
     public static List<ParcelResult> RolledDrops(IEnumerable<CampaignStageRewardExcelT> rewards)
         => rewards
             .Where(x => x.RewardTag == RewardTag.Default)
@@ -748,11 +639,7 @@ public class ConcentrateCampaignManager
             .Select(x => new ParcelResult(x.StageRewardParcelType, x.StageRewardId, x.StageRewardAmount))
             .ToList();
 
-    /// <summary>
-    /// The characters that fought this tactic, in the order the summary lists them: strikers first,
-    /// then specials. A borrowed assist is skipped - its exp belongs to the friend who lent it, and
-    /// there is no character row on this account for UpdateCharacterExp to find anyway.
-    /// </summary>
+    // summary order: strikers first, then specials. A borrowed assist is skipped because its exp belongs to the friend who lent it, and there is no character row on this account for UpdateCharacterExp to find anyway.
     public static IEnumerable<long> DeployedCharacterIds(BattleSummary summary, long accountServerId)
     {
         var group = summary?.Group01Summary;
@@ -772,12 +659,7 @@ public class ConcentrateCampaignManager
     private static long StarCount(CampaignStageHistoryDBServer history)
         => (history.Star1Flag ? 1 : 0) + (history.Star2Flag ? 1 : 0) + (history.Star3Flag ? 1 : 0);
 
-    /// <summary>
-    /// Advances the mission counters a tactic moves. Official attaches MissionProgressDBs to all four
-    /// Campaign_TacticResult responses in the capture - the three mid-stage tactics tick the per-battle
-    /// counters and the fourth ticks those plus the per-stage ones - and we attached them to none, so
-    /// a daily like "clear 3 tactics" never moved while a campaign was being played.
-    /// </summary>
+    // Official attaches MissionProgressDBs to all four Campaign_TacticResult responses in the capture: the three mid-stage tactics tick the per-battle counters, the fourth ticks those plus the per-stage ones. Dailies like "clear 3 tactics" ride on this.
     private async Task<List<MissionProgressDB>> TickTacticMissions(
         SchaleDataContext context,
         AccountDBServer account,
@@ -802,8 +684,7 @@ public class ConcentrateCampaignManager
             Tick(MissionCompleteConditionType.Reset_ClearSpecificCampaignStageCount,
                 parameter: stageSaveData.StageUniqueId);
 
-            // The turn mission is a personal best, so the amount is the turn count this run finished
-            // in rather than an increment - see MissionService.IsLowerBetter.
+            // personal best, not an increment: the amount is the turn count this run finished in (MissionService.IsLowerBetter)
             Tick(MissionCompleteConditionType.Reset_CompleteCampaignStageMinimumTurn,
                 stageSaveData.CurrentTurn, stageSaveData.StageUniqueId);
 
@@ -811,11 +692,10 @@ public class ConcentrateCampaignManager
                 Tick(MissionCompleteConditionType.Achieve_TotalGetClearStarCount, starsGained);
         }
 
-        // UpdateMissionProgress only stages its changes - every other caller saves for it.
+        // UpdateMissionProgress only stages its changes, every caller saves for it
         await context.SaveChangesAsync();
 
-        // One condition can match a mission more than once across the calls above; the client keys the
-        // list by MissionUniqueId, so send each row once.
+        // one condition can match a mission more than once across the calls above, and the client keys the list by MissionUniqueId, so each row goes out once
         return progresses
             .GroupBy(x => x.MissionUniqueId)
             .Select(g => g.Last())
@@ -831,16 +711,8 @@ public class ConcentrateCampaignManager
             Probability = BasisPoint.One
         }).ToList();
 
-    /// <summary>
-    /// Ends the mission. Firing the map's EndBattle event is the stage clear - there is no protocol
-    /// for it and the client sends no further campaign request, so the one and only signal is an
-    /// EndBattle entry on the clearing Campaign_TacticResult. Without it the client sat on the map
-    /// with the boss dead and End Turn as the only thing left to press.
-    ///
-    /// Official's entry carries exactly Type, Parameter and StageRewardInfo; EntityId, UniqueId and
-    /// Location stay at their defaults and are dropped by DefaultValueHandling.Ignore. This runs on
-    /// the mapped wire copy, after ShapeForWire has nulled the empty DisplayInfos.
-    /// </summary>
+    // Firing the map's EndBattle event is the stage clear, and there is no protocol for it - the client sends no further campaign request, so the one and only signal is an EndBattle entry on the clearing Campaign_TacticResult. Without it the client sits on the map with the boss dead and End Turn as the only thing left to press.
+    // Official's entry carries exactly Type, Parameter and StageRewardInfo; EntityId, UniqueId and Location stay at their defaults and DefaultValueHandling.Ignore drops them. Runs on the mapped wire copy, after ShapeForWire has nulled the empty DisplayInfos.
     internal static CampaignMainStageSaveDB AttachStageClearForWire(
         CampaignMainStageSaveDB save,
         StrategyClearRewardInfo? clearReward,
@@ -854,9 +726,7 @@ public class ConcentrateCampaignManager
             new()
             {
                 Type = HexaDisplayType.EndBattle,
-                // Parameter is what the client reads as IsWin. None would serialize as 0, which
-                // DefaultValueHandling.Ignore drops entirely, and a missing Parameter reads as a
-                // loss - a victory would show the retreat screen. No dump carries None, so coerce.
+                // Parameter is what the client reads as IsWin, and None would serialize as 0, which DefaultValueHandling.Ignore drops entirely - a missing Parameter reads as a loss and a victory would show the retreat screen. No dump carries None, so coerce it.
                 Parameter = (long)(endBattleType == CampaignEndBattle.None
                     ? CampaignEndBattle.Win
                     : endBattleType),
@@ -892,8 +762,7 @@ public class ConcentrateCampaignManager
                 kvp.Value.SkillCardHand = hand;
             }
 
-            // No MovementOrder bump here: the counter belongs to the movement queue, and official's
-            // tactic results leave every echelon's order untouched. Fighting is not a move.
+            // no MovementOrder bump: the counter belongs to the movement queue and official's tactic results leave every echelon's order untouched
 
             kvp.Value.Rotate = null;
             kvp.Value.BuffInfos = null;
@@ -903,21 +772,9 @@ public class ConcentrateCampaignManager
         return existHexaUnitData;
     }
 
-    /// <summary>
-    /// Folds a battle's outcome into an echelon's HpInfos and DyingInfos.
-    ///
-    /// Both are a ledger for the whole mission, not a per-battle readout: official's HpInfos is a
-    /// constant six-member dictionary whose values move as the squad takes damage, and an echelon that
-    /// fought once keeps its damaged entries for every response afterwards. So this merges into what
-    /// the echelon already carries rather than rebuilding from the summary.
-    ///
-    /// Liveness comes from <c>DeadFrame</c>, the only field that actually reports it. Keying off
-    /// <c>HPRateAfter == 0</c> instead is wrong twice over: a Special who never took the field reports
-    /// <c>HPRateBefore == HPRateAfter == 0</c> with <c>DeadFrame == -1</c>, so the whole support slot
-    /// gets filed as downed - official sends those two students back at 10000 with DyingInfos empty.
-    /// Off-field slots keep whatever the ledger already had for them, which is what makes an
-    /// untouched student read as healthy instead of dead.
-    /// </summary>
+    // HpInfos and DyingInfos are a ledger for the whole mission, not a per-battle readout: official's HpInfos is a constant six-member dictionary whose values move as the squad takes damage, and an echelon that fought once keeps its damaged entries for every response afterwards, so this merges into what the echelon already carries instead of rebuilding from the summary.
+    // Liveness comes from DeadFrame, the only field that actually reports it. Keying off HPRateAfter == 0 is wrong twice over: a Special who never took the field reports HPRateBefore == HPRateAfter == 0 with DeadFrame == -1, so the whole support slot gets filed as downed where official sends those two students back at 10000 with DyingInfos empty.
+    // Off-field slots keep whatever the ledger already had, which is what makes an untouched student read as healthy.
     internal static (Dictionary<long, long> HpInfos, Dictionary<long, long> DyingInfos) ChangeHpInfos(
         HeroSummaryCollection? mainHeroSummary,
         HeroSummaryCollection? supportHeroSummary,
@@ -947,13 +804,11 @@ public class ConcentrateCampaignManager
                     continue;
                 }
 
-                // Already down from an earlier battle. They still ride along in the summary as an
-                // untouched slot, and taking that at face value would stand them back up.
+                // already down from an earlier battle - they still ride along in the summary as an untouched slot, and taking that at face value would stand them back up
                 if (dyingInfos.ContainsKey(hero.ServerId))
                     continue;
 
-                // Never took the field - a Special who was not called in, or a slot the battle did not
-                // reach. Nothing happened to them, so the ledger keeps its existing value.
+                // never took the field (a Special who was not called in, or a slot the battle did not reach), so the ledger keeps its existing value
                 if (hero.HPRateBefore == 0 && hero.HPRateAfter == 0)
                 {
                     if (!hpInfos.ContainsKey(hero.ServerId))
@@ -971,21 +826,8 @@ public class ConcentrateCampaignManager
         return (hpInfos, dyingInfos);
     }
 
-    /// <summary>
-    /// Mirrors the client's MX.GameLogic.Service.CampaignService.CalcTacticRank(bool, TimeSpan, int, int):
-    ///
-    ///     rank = win ? (clearMs &lt;= TacticRankClearTime ? 2 : 1) : 0;
-    ///     return aliveCount == heroCount ? rank + 1 : rank;
-    ///
-    /// so a win runs 1..3 and a defeat 0..1. This drives more than the star display: on the
-    /// battle-skip path CampaignTask.HandleCampaignTacticResultResponseMessage has no local battle to
-    /// read and tests this field &gt; 0 for the win/lose flag, so a default 0 reports a skipped victory
-    /// as a defeat. Official sends 3 for a clean, quick win.
-    ///
-    /// The par time is ConstCommonExcel.TacticRankClearTime, absent from this excel model; 120s matches
-    /// the threshold CalcAllEnemiesDefeatedInTime uses and fits the capture, where battles up to 85s
-    /// all scored 3.
-    /// </summary>
+    // Mirrors the client's MX.GameLogic.Service.CampaignService.CalcTacticRank(bool, TimeSpan, int, int): a win scores 2 inside the par time and 1 outside it, a defeat 0, then +1 if nobody died. So a win runs 1..3 and a defeat 0..1.
+    // Not only the star display - on the battle-skip path CampaignTask.HandleCampaignTacticResultResponseMessage has no local battle to read and tests this field > 0 for the win/lose flag, so a default 0 reports a skipped victory as a defeat. Official sends 3 for a clean, quick win, and every battle up to 85s in the capture scored 3.
     internal static long CalcTacticRank(BattleSummary summary)
     {
         var heroes = summary.Group01Summary?.Heroes;
@@ -1012,9 +854,7 @@ public class ConcentrateCampaignManager
         if (stageSaveData == null)
             throw new InvalidOperationException($"Campaign stage save not found for stage {req.StageUniqueId}");
 
-        // Whatever the last move queued up has already been played by the client. Leaving it in place
-        // would replay it on the turn change, and again on every response until something else
-        // overwrote it.
+        // whatever the last move queued up has already been played by the client; leaving it in place replays it on the turn change, and again on every response until something else overwrites it
         stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
 
         if (stageSaveData.CampaignState == CampaignState.PlayerPhase)
@@ -1029,9 +869,7 @@ public class ConcentrateCampaignManager
             {
                 foreach (var echelon in stageSaveData.EchelonInfos.Values)
                 {
-                    // Restored to full, not incremented: a new player phase gives every echelon its
-                    // allowance back. Adding one would bank the unspent action of an echelon that
-                    // stood still and let it move twice next turn.
+                    // restored to full, not incremented - a new player phase hands every echelon its allowance back, where adding one would bank the unspent action of an echelon that stood still and let it move twice next turn
                     echelon.ActionCount = echelon.ActionCountMax;
                 }
             }
@@ -1050,9 +888,7 @@ public class ConcentrateCampaignManager
         return !summary.IsAbort && summary.EndType == BattleEndType.Clear;
     }
 
-    // Star conditions come from CampaignStageExcel and are scored once, on the tactic that empties
-    // the map - see TacticResult. Scoring them off a battle summary answers the same three questions
-    // for a single tactic rather than the stage, and pins ClearTurnRecord at 1.
+    // star conditions come from CampaignStageExcel and are scored once, on the tactic that empties the map (TacticResult); scoring them off a battle summary answers the same three questions for one tactic rather than the stage and pins ClearTurnRecord at 1
 
     private void MergeExistHistoryWithNew(
         SchaleDataContext context,
@@ -1065,9 +901,7 @@ public class ConcentrateCampaignManager
         existHistoryDb.Star3Flag = existHistoryDb.Star3Flag || newHistoryDb.Star3Flag;
         existHistoryDb.IsClearedEver = existHistoryDb.IsClearedEver || newHistoryDb.IsClearedEver;
 
-        // Both are best-ever records, and only a run that actually cleared reports one - a defeat
-        // leaves them at 0 and must not overwrite what an earlier clear achieved. Fewer turns is
-        // better; more S-rank tactics is better.
+        // Both are best-ever records and only a run that actually cleared reports one: a defeat leaves them at 0 and must not overwrite what an earlier clear achieved. Fewer turns is better, more S-rank tactics is better.
         if (newHistoryDb.ClearTurnRecord > 0 &&
             (existHistoryDb.ClearTurnRecord == 0 || newHistoryDb.ClearTurnRecord < existHistoryDb.ClearTurnRecord))
         {
@@ -1120,18 +954,12 @@ public class ConcentrateCampaignManager
             BGMId = stageExcel.BGMId,
             TacticRewardExp = stageExcel.TacticRewardExp,
             FixedEchelonId = stageExcel.FixedEchelonId,
-            // EchelonExtensionType is a CampaignStageInfo field with no CampaignStageExcel column in
-            // this data version, so it stays at Base and DefaultValueHandling drops it off the wire -
-            // which is what official does too.
+            // EchelonExtensionType has no CampaignStageExcel column in this data version, so it stays at Base and DefaultValueHandling drops it off the wire, same as official
             StarConditionTurnCount = stageExcel.StarConditionTurnCount,
             StarConditionSTacticRackCount = stageExcel.StarConditionTacticRankSCount,
             IsDeprecated = stageExcel.Deprecated
         };
     }
 
-    // Start events need no execution of their own: CreateConcentrateCampaign seeds the map with
-    // everything a HexaConditionStartCampaign event would spawn, and BuildStartEventActivations
-    // records them as already fired. The seam for the rest of the hexa event machine is
-    // HexaMapService.FindSatisfiedEndBattle, which TacticResult calls to detect the stage clear -
-    // grow that when TileHide, UnitDie and the ArriveTile conditions become worth running.
+    // Start events need no execution of their own: CreateConcentrateCampaign seeds the map with everything a HexaConditionStartCampaign event would spawn and BuildStartEventActivations records them as already fired. The rest of the hexa event machine hangs off HexaMapService.FindSatisfiedEndBattle, which TacticResult calls to detect the stage clear.
 }

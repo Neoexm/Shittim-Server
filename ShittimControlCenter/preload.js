@@ -2,19 +2,15 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// The renderer never touches Node or Electron internals directly - everything
-// it can do is listed here.
+// The renderer never touches Node or Electron internals directly - everything it can do is listed here.
 contextBridge.exposeInMainWorld('host', {
-  // path + settings
   paths: () => ipcRenderer.invoke('paths:resolve'),
   settingsRead: () => ipcRenderer.invoke('settings:read'),
   settingsWrite: (patch) => ipcRenderer.invoke('settings:write', patch),
 
-  // server config file
   configRead: () => ipcRenderer.invoke('config:read'),
   configWrite: (payload) => ipcRenderer.invoke('config:write', payload),
 
-  // process lifecycle
   serverStart: () => ipcRenderer.invoke('server:start'),
   serverStop: () => ipcRenderer.invoke('server:stop'),
   mitmStart: () => ipcRenderer.invoke('mitm:start'),
@@ -23,7 +19,6 @@ contextBridge.exposeInMainWorld('host', {
   systemStop: () => ipcRenderer.invoke('system:stop'),
   procStatus: () => ipcRenderer.invoke('proc:status'),
 
-  // diagnostics
   envCheck: () => ipcRenderer.invoke('env:check'),
 
   // one-click toolchain setup (.NET SDK, mitmproxy, CA certificate)
@@ -34,7 +29,6 @@ contextBridge.exposeInMainWorld('host', {
     return () => ipcRenderer.removeListener('setup:progress', fn);
   },
 
-  // project location + first-run acquisition
   projectStatus: () => ipcRenderer.invoke('project:status'),
   projectDownload: (opts) => ipcRenderer.invoke('project:download', opts),
   projectSetPath: (dir) => ipcRenderer.invoke('project:setPath', dir),
@@ -58,7 +52,6 @@ contextBridge.exposeInMainWorld('host', {
     return () => ipcRenderer.removeListener('update:server', fn);
   },
 
-  // dialogs + shell
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),
   pickFile: (filters) => ipcRenderer.invoke('dialog:pickFile', filters),
   openPath: (p) => ipcRenderer.invoke('shell:openPath', p),
@@ -68,15 +61,12 @@ contextBridge.exposeInMainWorld('host', {
   // bundle server logs + diagnostics into a .zip (returns { ok, path, name, count })
   exportLogs: () => ipcRenderer.invoke('logs:export'),
 
-  // window chrome
   windowControl: (action) => ipcRenderer.send('window:control', action),
 
-  // event streams
   onProcLog: (cb) => ipcRenderer.on('proc:log', (_e, d) => cb(d)),
   onProcState: (cb) => ipcRenderer.on('proc:state', (_e, d) => cb(d)),
   onWindowState: (cb) => ipcRenderer.on('window:state', (_e, d) => cb(d)),
-  // download/extract progress for project acquisition + updates; returns an
-  // unsubscribe so callers can detach the listener when their view goes away.
+  // download/extract progress for project acquisition + updates; returns an unsubscribe so callers can detach the listener when their view goes away.
   onProjectProgress: (cb) => {
     const fn = (_e, d) => cb(d);
     ipcRenderer.on('project:progress', fn);

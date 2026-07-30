@@ -7,14 +7,11 @@ using Schale.FlatData;
 
 namespace Shittim_Server.Services
 {
-    // The "View All Recruitments" list is built client-side from the client's encrypted ExcelDB.db;
-    // the server never serves it. Active recruitment rows with an empty GachaBannerPath draw as a
-    // blank but still selectable banner, and the empty slot pushes the real ones into a gap.
+    // The "View All Recruitments" list is built client-side from the client's encrypted ExcelDB.db; the server never serves it.
+    // Active recruitment rows with an empty GachaBannerPath draw as a blank but still selectable banner, and the empty slot pushes the real ones into a gap.
     //
-    // So this patches the source: at startup it opens ExcelDB.db (SQLCipher, same key
-    // ExcelTableService uses) and fills each empty GachaBannerPath with the art of the most closely
-    // related banner - longest shared Id prefix, meaning the same event family. Same approach as
-    // ClientMetadataPatchService patching global-metadata.dat in the install tree.
+    // So this patches the source: at startup it opens ExcelDB.db (SQLCipher, same key ExcelTableService uses) and fills each empty GachaBannerPath with the art of the most closely related banner - longest shared Id prefix, meaning the same event family.
+    // Same idea as ClientMetadataPatchService and global-metadata.dat.
     public class ClientExcelBannerPatchService : IHostedService
     {
         private const string SchemaTable = "ShopRecruitDBSchema";
@@ -55,8 +52,7 @@ namespace Shittim_Server.Services
         private void PatchBanners(string dbPath)
         {
             SqliteProvider.EnsureInitialized();
-            // ExcelDB flatbuffer strings are stored plaintext (the SQLCipher layer is the only
-            // encryption); read and write them as-is so non-modified fields round-trip byte-equal.
+            // ExcelDB flatbuffer strings are stored plaintext (the SQLCipher layer is the only encryption); read and write them as-is so non-modified fields round-trip byte-equal.
             TableEncryptionService.UseEncryption = false;
 
             using var conn = new SqliteConnection(new SqliteConnectionStringBuilder
@@ -89,8 +85,7 @@ namespace Shittim_Server.Services
             }
 
             var now = DateTime.Now;
-            // Only touch banners that can still be displayed (no end date / future / unparseable),
-            // so we don't rewrite hundreds of expired historical rows.
+            // Only touch banners that can still be displayed (no end date / future / unparseable), so we don't rewrite hundreds of expired historical rows.
             var targets = rows
                 .Where(r => string.IsNullOrEmpty(r.Art))
                 .Where(r => !IsExpired(r.SalePeriodTo, now))
@@ -131,8 +126,7 @@ namespace Shittim_Server.Services
             logger.LogInformation("Patched {Count} empty recruitment banner art path(s) in client ExcelDB", patched);
         }
 
-        // Reuse the art of the banner whose Id shares the longest leading-digit run -> same
-        // event/family, so the blank slot shows that event's real banner image.
+        // Reuse the art of the banner whose Id shares the longest leading-digit run -> same event/family, so the blank slot shows that event's real banner image.
         private static string PickRelatedArt(long emptyId, List<BannerRow> withArt)
         {
             var key = emptyId.ToString();

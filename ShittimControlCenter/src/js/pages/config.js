@@ -2,9 +2,7 @@ import { el, frag, clear, button, input, toggle, field, toast, modal, textarea, 
 import { store } from '../api.js';
 
 // Defaults mirror Shittim-Server/Configuration/ConfigType/ServerConfig.cs.
-// Reset overwrites only these editable ServerConfiguration fields, preserving
-// GameVersion, gateway keys, ClientPluginDirectory and the Irc/DataFetcher
-// sibling sections in Config.json.
+// Reset overwrites only these editable ServerConfiguration fields, preserving GameVersion, gateway keys, ClientPluginDirectory and the Irc/DataFetcher sibling sections in Config.json.
 const DEFAULT_SERVER_CONFIG = {
   HostPort: '5000',
   GatewayPort: '5100',

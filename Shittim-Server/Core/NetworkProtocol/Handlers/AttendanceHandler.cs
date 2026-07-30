@@ -22,11 +22,9 @@ public class AttendanceHandler : ProtocolHandlerBase
         _attendanceService = attendanceService;
     }
 
-    // Official's claim (both captured exchanges): the request names the book and day in
-    // DayByBookUniqueId {"<bookId>": day}; the response repeats just the claimed book's
-    // definition + that book's updated history, carries NO ParcelResultDB (the reward goes out
-    // as mail), and reads ServerNotification 12 - the mailbox baseline plus NewMailArrived from
-    // the delivery itself.
+    // Official's claim (both captured exchanges): the request names the book and day in DayByBookUniqueId {"<bookId>": day};
+    // the response repeats just the claimed book's definition + that book's updated history, carries NO ParcelResultDB (the reward goes out as mail),
+    // and reads ServerNotification 12 - the mailbox baseline plus NewMailArrived from the delivery itself.
     [ProtocolHandler(Protocol.Attendance_Reward)]
     public async Task<AttendanceRewardResponse> Reward(
         SchaleDataContext db,

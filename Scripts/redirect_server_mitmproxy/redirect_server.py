@@ -6,9 +6,8 @@ import datetime
 from pathlib import Path
 from mitmproxy import http, ctx
 
-# Logs every request the game makes, regardless of host or disposition. Serilog
-# only sees what reaches the loopback server, so this is the only way to observe
-# requests that go out to real Nexon hosts over the WireGuard tunnel.
+# Logs every request the game makes, regardless of host or disposition.
+# Serilog only sees what reaches the loopback server, so this is the only way to observe requests that go out to real Nexon hosts over the WireGuard tunnel.
 RLOG_PATH = Path(
     os.environ.get("SHITTIM_REDIRECT_LOG")
     or Path(__file__).resolve().parents[2] / "redirect_requests.log"
@@ -83,8 +82,7 @@ REWRITE_HOST_LIST = [
 
     # Other
     'psm-log.ngs.nexon.com',
-    # Nexon config service (na_time_sync / na_grclist_query) - gamescale/Inface SDK
-    # init gates on this; must be served, not killed.
+    # Nexon config service (na_time_sync / na_grclist_query) - gamescale/Inface SDK init gates on this; must be served, not killed.
     'config.na.nexon.com',
     # GTable (all env variants)
     'gtable.inface.nexon.com',
@@ -94,10 +92,9 @@ REWRITE_HOST_LIST = [
 
 KILL_HOST_LIST = [
     'sdk-push.mp.nexon.com'
-    # config.na.nexon.com: do NOT kill - the gamescale/Inface SDK gates its init on
-    # na_time_sync (config.na). Killing it leaves the SDK uninitialized so the Bolt
-    # sign-in base URL is never set and /signInWithTicket.nx never fires. Redirect it
-    # to our server (REWRITE_HOST_LIST) and serve the config endpoints instead.
+    # config.na.nexon.com: do NOT kill - the gamescale/Inface SDK gates its init on na_time_sync (config.na).
+    # Killing it leaves the SDK uninitialized so the Bolt sign-in base URL is never set and /signInWithTicket.nx never fires.
+    # Redirect it to our server (REWRITE_HOST_LIST) and serve the config endpoints instead.
 ]
 
 PING_HOST_REDIRECT = [
@@ -155,9 +152,8 @@ def request(flow: http.HTTPFlow) -> None:
             {"Content-Type": "application/json", "CE": "G"}
         )
         return
-    # gamescale platform config (pcc/gid/<id>.json). The game requests it over HTTP and the
-    # real host answers 301 -> HTTPS, which the game's gamescale client does NOT follow, so it
-    # never gets this config and the gamescale SDK init can stall the login. Serve it directly.
+    # gamescale platform config (pcc/gid/<id>.json). The game requests it over HTTP and the real host answers 301 -> HTTPS, which the game's gamescale client does NOT follow, so it never gets this config and the gamescale SDK init can stall the login.
+    # Serve it directly.
     if host == 'platform.gamescale.nexon.com' and '/pcc/gid/' in flow.request.path:
         pcc = ('{"toy_service_id":2079,"arena_product_id":59754,"game_client_id":null,'
                '"portal_game_code":"1000158","krpc_game_code":74280,"jppc_game_code":null,'
@@ -193,9 +189,8 @@ def request(flow: http.HTTPFlow) -> None:
         rlog("  -> KILL sdk-api/user-meta/last-login")
         flow.kill()
         return
-    # Redirect any connection on port 5100 (game gateway) to our local gateway,
-    # regardless of the destination host. This catches the case where the server config
-    # has an empty GatewayUrl and the game uses its hardcoded Nexon gateway fallback.
+    # Redirect any connection on port 5100 (game gateway) to our local gateway, regardless of the destination host.
+    # This catches the case where the server config has an empty GatewayUrl and the game uses its hardcoded Nexon gateway fallback.
     if flow.request.port == GATEWAY_PORT or (flow.request.pretty_host and ':5100' in flow.request.pretty_host):
         print(f"[Gateway Rewrite] {flow.request.method} {host}:{flow.request.port}{flow.request.path} -> {SERVER_HOST}:{GATEWAY_PORT}")
         rlog(f"  -> GATEWAY-REWRITE {host} -> {SERVER_HOST}:{GATEWAY_PORT}")

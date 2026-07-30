@@ -57,10 +57,8 @@ public static class MathService
 
         long bonusExpTotal = 0;
 
-        // NewbieExpRatio is the total payout in basis points, not the bonus on top of it: 15000 is
-        // "150% of the base exp altogether", so the bonus is the 50% above par. Official's clear of
-        // a 10-AP stage reports Base 10 with Additional 5; treating the whole ratio as the bonus
-        // would pay 15.
+        // NewbieExpRatio is the total payout in basis points, not the bonus on top of it: 15000 is "150% of the base exp altogether", so the bonus is the 50% above par.
+        // Official's clear of a 10-AP stage reports Base 10 with Additional 5; treating the whole ratio as the bonus would pay 15.
         if (level <= currentLevelData.CloseInterval && currentLevelData.NewbieExpRatio > BasisPointScale)
         {
             bonusExpTotal = addedExp * (currentLevelData.NewbieExpRatio - BasisPointScale) / BasisPointScale;
