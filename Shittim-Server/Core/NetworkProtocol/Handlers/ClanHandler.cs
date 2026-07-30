@@ -83,7 +83,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
 
-        // Official's OWN member entry carries no AttachmentDB — only the other members' entries do.
+        // Official's OWN member entry carries no AttachmentDB - only the other members' entries do.
         response.AccountClanMemberDB = new ClanMemberDB
         {
             AccountId = account.ServerId,
@@ -136,7 +136,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         // The delivering response itself carries NewMailArrived: recovering the official Clan_Lobby
         // from the non-truncated capture (its clan notice's raw control chars broke strict JSON, it
-        // was never actually cut) shows ServerNotification=4 — mailbox empty at entry, so no bit 8.
+        // was never actually cut) shows ServerNotification=4 - mailbox empty at entry, so no bit 8.
         if (await GrantClanAttendanceReward(db, account))
             response.ServerNotification |= ServerNotificationFlag.NewMailArrived;
 
@@ -153,7 +153,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         // ClanCheckResponse declares no fields, so the notification flag is the entire payload.
         // Clan_Check is the only protocol in either official capture that ever sets 2048, and the
-        // gateway ORs its own mailbox bits on top — that is how official produces 2056 (2048|8).
+        // gateway ORs its own mailbox bits on top - that is how official produces 2056 (2048|8).
         if (!HasClaimedClanAttendance(db, account))
             response.ServerNotification = ServerNotificationFlag.CanReceiveClanAttendanceReward;
 
@@ -163,7 +163,7 @@ public class ClanHandler : ProtocolHandlerBase
     // Official claims the day's clan attendance reward on Clan_Lobby rather than on a protocol of
     // its own. In the non-truncated capture Clan_Check reports 2048 over an empty mailbox, the
     // client then calls Clan_Lobby, and from the next response onwards ServerNotification is 8
-    // with Mail_Check reporting one common mail — the reward is delivered as mail and 2048 has
+    // with Mail_Check reporting one common mail - the reward is delivered as mail and 2048 has
     // cleared by the following Clan_Check. The other capture never calls Clan_Lobby and keeps 2048
     // across all three of its checks, which is the same rule seen from the other side.
     private async Task<bool> GrantClanAttendanceReward(SchaleDataContext db, AccountDBServer account)
@@ -181,7 +181,7 @@ public class ClanHandler : ProtocolHandlerBase
 
         // Deliberately NO MailNotificationService.MarkNewMail: unlike attendance-reward mail, clan
         // mail raises NewMailArrived only on the delivering Clan_Lobby response (the caller sets
-        // it) and leaves nothing pending — in the non-truncated capture the Mail_Check after this
+        // it) and leaves nothing pending - in the non-truncated capture the Mail_Check after this
         // very delivery reports 8, where off1's Mail_Check after Attendance_Reward reports 12.
         db.Mails.Add(new MailDBServer
         {
@@ -229,7 +229,7 @@ public class ClanHandler : ProtocolHandlerBase
             .Any(x => x.Type == MailType.ClanAttendance && x.SendDate >= resetTime);
     }
 
-    // The game day rolls over at 04:00 — where every EventContentSeason row in the shipped ExcelDB
+    // The game day rolls over at 04:00 - where every EventContentSeason row in the shipped ExcelDB
     // puts its phase boundaries, and just before the 04:19:59 send time of official's own mail.
     private static DateTime DailyResetTime(DateTime now)
     {
@@ -260,7 +260,7 @@ public class ClanHandler : ProtocolHandlerBase
     {
         await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // "Which of my characters am I lending out" — legitimately empty on a solo server,
+        // "Which of my characters am I lending out" - legitimately empty on a solo server,
         // but the list itself must be present or the client faults on it.
         response.ClanAssistSlotDBs = [];
 

@@ -42,7 +42,7 @@ public class BillingHandler : ProtocolHandlerBase
         response.GachaTicketItemIdList = [];
         response.ProductMonthlyIdInMailList = [];
         // Official's standalone response carries this (as [] when empty) and has no IsTeenage key
-        // — that's a request-side field.
+        // - that's a request-side field.
         response.DailyRecordIdInMailList = [];
         
         // Populate BattlePassProductList

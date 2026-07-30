@@ -11,38 +11,19 @@ using Xunit.Abstractions;
 namespace Shittim_Server.Tests;
 
 /// <summary>
-/// Guards the generated FlatBuffer models in Schale.FlatData against the excel data the client actually
-/// ships.
+/// Guards the generated FlatBuffer models in Schale.FlatData against the excel data the client ships.
+/// They are reverse-engineered per client build rather than compiled from an authoritative .fbs, and a
+/// reader stops at the last field it knows about without complaining, so drift is silent.
 ///
-/// Those models are reverse-engineered per client build rather than compiled from an authoritative .fbs,
-/// so they drift. FlatBuffers is deliberately tolerant of that — a reader stops at the last field it knows
-/// about — which is right for a network protocol and dangerous here: there is no exception, no warning, and
-/// the row still looks plausible.
+/// Trailing fields past the model's last slot are harmless - a vtable is an explicit index-to-offset map,
+/// so earlier slots still decode. A field missing from the middle is not: every later slot shifts by one
+/// and reads its neighbour, which is how GoodsExcel's absent sixth product-id long turned 120 ActionPoint
+/// into "Currency 0x1_00000002 x5". A slot count cannot tell those apart, so the real check is
+/// <see cref="NoShippedRowFailsVerification"/>, running each table's generated <c>Verify</c> over every
+/// shipped row; <see cref="ModelWidthsHaveNotDriftedFurther"/> ratchets the counts on top.
 ///
-/// Two distinct failures hide behind "the model is narrower than the data", and they need different
-/// treatment:
-///
-/// <list type="bullet">
-/// <item><b>Fields appended after the model's last slot.</b> Harmless. A vtable is an explicit
-/// index-to-offset map, so slots 0..N-1 still decode correctly; the new trailing fields are simply not
-/// read. This is the normal state of affairs after a content patch.</item>
-/// <item><b>A field missing from the middle of the model.</b> Corrupting. Every later field's slot index
-/// shifts by one, so the model reads each one out of its neighbour. This is what the GoodsExcel bug was:
-/// a sixth platform product-id long was absent, so the AP shop's reward triple decoded off the consume
-/// vectors and 120 ActionPoint became "Currency 0x1_00000002 x5".</item>
-/// </list>
-///
-/// A slot count alone cannot tell those apart — both show up as a shortfall. So the primary check here is
-/// not the count but <see cref="NoShippedRowFailsVerification"/>, which runs each table's generated
-/// <c>Verify</c> over every shipped row. Verify walks the vtable the writer emitted and checks, per field
-/// the model believes in, that the offset is in bounds, correctly aligned, and the right width — so a
-/// slot-index shift shows up as a hard failure instead of a plausible-looking value.
-/// <see cref="ModelWidthsHaveNotDriftedFurther"/> then ratchets the counts on top, to notice a client build
-/// adding fields the models do not cover yet.
-///
-/// The dumps are not in the repository (~300 MB, downloaded into the server's build output), so the sweeps
-/// skip when they are absent and <see cref="GoodsExcelModelMatchesItsShippedRows"/> carries the hermetic
-/// coverage.
+/// The dumps are not in the repository (~300 MB, fetched into the build output), so those sweeps skip
+/// when absent and <see cref="GoodsExcelModelMatchesItsShippedRows"/> carries the hermetic coverage.
 /// </summary>
 public class ExcelLayoutDriftTests
 {
@@ -50,7 +31,7 @@ public class ExcelLayoutDriftTests
     /// Tables whose models are known to stop short of the shipped data, all of them confirmed benign by
     /// <see cref="NoShippedRowFailsVerification"/>: the extra slots are appended past the model's last
     /// field, so nothing the model does read is misaligned. Listing them turns an unactionable wall of 32
-    /// findings into a ratchet — a table drifting for the first time fails, these do not.
+    /// findings into a ratchet - a table drifting for the first time fails, these do not.
     ///
     /// Regenerating any of these from the current client's schema is what removes it from the list; it
     /// would let the server read content it currently ignores, which is a feature, not a defect.
@@ -72,28 +53,19 @@ public class ExcelLayoutDriftTests
     ];
 
     /// <summary>
-    /// Tables whose models genuinely misread the shipped data, recorded with the row counts at the time of
-    /// measurement so the list ratchets in three directions: a new table breaking fails, one of these
-    /// verifying fewer rows than before fails, and one that starts reading every row has to be removed.
+    /// Tables whose models misread the shipped data, with the row counts at measurement time so the list
+    /// ratchets three ways: a new table breaking fails, one of these verifying fewer rows fails, and one
+    /// that starts reading every row has to be removed. Unlike <see cref="KnownNarrowModels"/> these are
+    /// misaligned rather than short - a slot index has moved, so later fields decode out of their neighbour.
     ///
-    /// This is a different admission from <see cref="KnownNarrowModels"/>. Narrow means the model stops
-    /// short and reads what it does cover correctly. These are misaligned — a field's slot index has moved,
-    /// so every field after it decodes out of its neighbour.
+    /// Measurement recovers where a field sits but not its name or contents. The reward tables were fixable
+    /// because the omitted column had a recognisable signature - a <c>*ParcelUniqueName</c> string vector
+    /// between the id and amount vectors - and none of these do, so naming their fields needs the client's
+    /// global-metadata. A guess yields a model that verifies while still decoding the wrong column.
     ///
-    /// Measurement alone can recover WHERE a field sits but not what it is called or what it holds, and the
-    /// two are not separable here: the reward tables were fixable because the omitted column was a
-    /// <c>*ParcelUniqueName</c> string vector between the id and amount vectors — a dev-only spreadsheet
-    /// column, confirmed by the whole table verifying once it was dropped. None of the tables below has
-    /// that signature; their field lists show real client-side drift. Naming those needs the client's
-    /// global-metadata, and guessing produces a model that verifies while still decoding the wrong column,
-    /// which is worse than a recorded failure.
-    ///
-    /// What makes it tolerable to leave them: <see cref="TablesTheServerReadsLoadEveryShippedRow"/> is the
-    /// check that matters for behaviour, and it holds unconditionally with no baseline. Only
-    /// CharacterStatExcel is read by a handler at all, and it is latent — every field the server touches
-    /// (CharacterId, and the 1/100 attack, HP, defense and heal pairs) sits at slots 0-10, ahead of the
-    /// first shifted slot, and the misaligned tail is referenced only inside the generated file. The rest
-    /// would matter the moment a handler started reading one, which is exactly what that test catches.
+    /// Leaving them is safe because <see cref="TablesTheServerReadsLoadEveryShippedRow"/> holds
+    /// unconditionally: of these only CharacterStatExcel is read by a handler, and every field the server
+    /// touches sits at slots 0-10, ahead of the first shifted slot.
     /// </summary>
     private static readonly (string Name, int FailedRows, int Rows)[] KnownBrokenModels =
     [
@@ -122,7 +94,7 @@ public class ExcelLayoutDriftTests
 
     public ExcelLayoutDriftTests(ITestOutputHelper output) => this.output = output;
 
-    // ---------------------------------------------------------------------------------- the checks
+    // the checks
 
     /// <summary>
     /// The check that speaks to behaviour rather than layout: every table a handler reads has to come back
@@ -130,11 +102,11 @@ public class ExcelLayoutDriftTests
     ///
     /// The service catches per-row unpack failures and skips the offending row, which is the right call for
     /// a content patch adding a table the server does not care about, but it means a misaligned model
-    /// degrades silently — a string field whose slot has shifted reads a uoffset that lands outside the
+    /// degrades silently - a string field whose slot has shifted reads a uoffset that lands outside the
     /// buffer, UnPack throws, and the row vanishes. RaidStageExcel was doing exactly that for all 157 of
     /// its rows, so <c>FirstOrDefault</c> in the raid battle path returned null on every submission.
     ///
-    /// Deliberately no baseline: a table the server reads and cannot fully load is a live defect.
+    /// No baseline here: a table the server reads and cannot fully load is a live defect.
     /// </summary>
     [Fact]
     public void TablesTheServerReadsLoadEveryShippedRow()
@@ -165,7 +137,7 @@ public class ExcelLayoutDriftTests
         }
 
         Assert.True(shortfalls.Count == 0,
-            "Handlers read these tables, and ExcelTableService cannot unpack every shipped row — the rows " +
+            "Handlers read these tables, and ExcelTableService cannot unpack every shipped row - the rows " +
             "it drops are invisible to every lookup, so a miss reads as 'no such content' rather than an " +
             "error. This means a field's slot index has moved in the generated model:" +
             Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", shortfalls));
@@ -209,15 +181,14 @@ public class ExcelLayoutDriftTests
 
         Assert.True(appeared.Count == 0,
             "Generated models cannot read the data they are pointed at. A verification failure means a " +
-            "field's slot index has moved, so every field after it decodes out of its neighbour — the " +
+            "field's slot index has moved, so every field after it decodes out of its neighbour - the " +
             "GoodsExcel failure mode, which produces wrong values on the wire rather than an error. " +
             "Regenerate these from the current client's schema:" +
             Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", appeared));
 
-        // Passing rows rather than failing ones, because a content patch adds rows: a table already failing
-        // wholesale would trip a raw failure-count comparison every time the client shipped more content,
-        // which trains people to bump the number. Rows that used to verify and no longer do is the real
-        // regression, and it is invariant to the table growing.
+        // count passing rows, not failing ones - a content patch adds rows, so a raw failure count
+        // trips on every client update. rows that verified at baseline and no longer do is the
+        // signal, and it survives the table growing.
         var worse = broken
             .Where(t => baseline.TryGetValue(t.Name, out var was)
                         && t.Rows - t.FailedRows < was.Rows - was.FailedRows)
@@ -226,7 +197,7 @@ public class ExcelLayoutDriftTests
             .ToList();
 
         Assert.True(worse.Count == 0,
-            "These models were already misaligned, and fewer rows verify than the baseline records — the " +
+            "These models were already misaligned, and fewer rows verify than the baseline records - the " +
             "drift has grown rather than held still:" +
             Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", worse));
 
@@ -254,13 +225,13 @@ public class ExcelLayoutDriftTests
         Assert.True(appeared.Count == 0,
             "These models no longer cover every field in the shipped data, which usually means a client " +
             "build added fields. Verification still passing means nothing is being misread today, so this " +
-            "is a regeneration prompt rather than a live defect — regenerate them, or add them to " +
+            "is a regeneration prompt rather than a live defect - regenerate them, or add them to " +
             "KnownNarrowModels if the new fields are genuinely not wanted:" +
             Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", appeared.Select(Describe)));
 
         Assert.True(resolved.Count == 0,
-            "These models now cover the shipped data and should be removed from KnownNarrowModels, so the " +
-            "list keeps meaning something: " + string.Join(", ", resolved));
+            "These models now cover the shipped data and should come out of KnownNarrowModels - a stale " +
+            "entry hides real drift: " + string.Join(", ", resolved));
     }
 
     private static string Describe(string name)
@@ -273,7 +244,7 @@ public class ExcelLayoutDriftTests
         "No Resources/Dumped found, so nothing was compared. The excel dumps live in the server's build " +
         "output rather than the repo; run the server once to download them, then re-run this test.");
 
-    // ------------------------------------------------------------------------------------- the audit
+    // the audit
 
     private readonly record struct TableAudit(
         string Name, string Source, int ModelSlots, int DataSlots, int Rows, int FailedRows);
@@ -430,8 +401,6 @@ public class ExcelLayoutDriftTests
         }
     }
 
-    // ------------------------------------------------------------------------------------- fixtures
-
     /// <summary>
     /// Every generated object-API class (<c>FooT</c>) paired with its reader struct (<c>Foo</c>). Nested
     /// tables come back too; they are filtered out by having neither a .bytes file nor a DBSchema table.
@@ -462,7 +431,7 @@ public class ExcelLayoutDriftTests
             .SetMaxDepth(int.MaxValue);
 
         // Excel buffers carry no file identifier and are not size-prefixed. The identifier has to be
-        // null rather than empty — Verifier length-checks anything non-null against the 4-byte format.
+        // null rather than empty - Verifier length-checks anything non-null against the 4-byte format.
         return verifier.VerifyBuffer(null!, false, verify);
     }
 
@@ -510,8 +479,8 @@ public class ExcelLayoutDriftTests
 
 /// <summary>
 /// Just enough of the FlatBuffers binary format to measure a table's width without a schema. Reading a row
-/// through its generated model cannot measure drift — a short model is precisely the case that succeeds
-/// quietly — so this looks at the vtable the writer emitted instead.
+/// through its generated model cannot measure drift - a short model is precisely the case that succeeds
+/// quietly - so this looks at the vtable the writer emitted instead.
 /// </summary>
 internal static class FlatBufferLayout
 {
@@ -551,7 +520,7 @@ internal static class FlatBufferLayout
             yield return Follow(buffer, vector + 4 + i * 4);
     }
 
-    // A table stores a soffset_t to its vtable, and the vtable sits behind it — hence subtraction.
+    // A table stores a soffset_t to its vtable, and the vtable sits behind it - hence subtraction.
     private static int VTable(byte[] buffer, int table) =>
         table - BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(table));
 }

@@ -12,10 +12,10 @@ using Xunit;
 namespace Shittim_Server.Tests;
 
 /// <summary>
-/// Pins the packet-serialization rules derived from live captures of the official server
+/// Packet-serialization rules taken off live captures of the official server
 /// (captures/NetworkLog_official.txt and "NetworkLog non truncated official.txt", client
-/// 1.90.443855). Every assertion here corresponds to a shape observed on the wire; the client
-/// rejects the session outright ("A request that cannot be processed") when these drift.
+/// 1.90.443855). Every assertion here matches a shape seen on the wire. When these drift the client
+/// drops the session with "A request that cannot be processed".
 /// </summary>
 public class OfficialWireContractTests
 {
@@ -25,7 +25,7 @@ public class OfficialWireContractTests
     private static string Raw(object packet) =>
         JsonConvert.SerializeObject(packet, GatewayController.OfficialPacketJsonSettings);
 
-    // ---- default/null handling -------------------------------------------------------------
+    // default/null handling
 
     [Fact]
     public void ZeroAndFalseMembersAreOmitted()
@@ -56,8 +56,8 @@ public class OfficialWireContractTests
     [Fact]
     public void AccountIdIsDerivedFromSessionKeyAndNotShadowed()
     {
-        // A `new SessionKey` shadow on a response used to hide BasePacket.SessionKey, leaving
-        // AccountId at 0 so it was dropped as a default.
+        // A `new SessionKey` shadow on a response hides BasePacket.SessionKey, which leaves
+        // AccountId at 0 and gets it dropped as a default.
         var json = Serialize(new AccountCheckNexonResponse
         {
             SessionKey = new SessionKey { AccountServerId = 3218642, MxToken = "token" },
@@ -67,7 +67,7 @@ public class OfficialWireContractTests
         Assert.Equal(3218642L, (long)json["SessionKey"]!["AccountServerId"]!);
     }
 
-    // ---- DateTime formatting ---------------------------------------------------------------
+    // DateTime formatting
 
     [Fact]
     public void DateTimesUseSecondPrecisionWithoutOffset()
@@ -125,7 +125,7 @@ public class OfficialWireContractTests
         Assert.Equal(0, response.ServerTimeTicks % TimeSpan.TicksPerSecond);
     }
 
-    // ---- empty collections: assigned vs unassigned -----------------------------------------
+    // empty collections: assigned vs unassigned
 
     [Fact]
     public void EmptyCollectionsOfficialAssignsAreStillEmitted()
@@ -204,7 +204,7 @@ public class OfficialWireContractTests
         Assert.Empty((JArray)json["ClearedOrignalMissionIds"]!);
     }
 
-    // ---- ServerNotification flags ------------------------------------------------------------
+    // ServerNotification flags
 
     [Fact]
     public void ClanCheckCarriesNothingButTheNotificationFlag()
@@ -226,7 +226,7 @@ public class OfficialWireContractTests
     {
         // Official's Clan_Check reads 2056 when mail is also waiting. The gateway ORs the handler's
         // own bits into the mailbox baseline rather than overwriting either, so this is the value
-        // that must come out — and it only does if the two enum members keep their numbering.
+        // that must come out - and it only does if the two enum members keep their numbering.
         var json = Serialize(new ClanCheckResponse
         {
             ServerNotification = ServerNotificationFlag.CanReceiveClanAttendanceReward
@@ -255,7 +255,7 @@ public class OfficialWireContractTests
     public void ErrorPacketsCarryOnlyCodeAndTicks()
     {
         // Official's captured AP-cap rejection is exactly {"Protocol":-1,"ErrorCode":10006,
-        // "ServerTimeTicks":...} — no reason text ever goes to the client.
+        // "ServerTimeTicks":...} - no reason text ever goes to the client.
         var raw = Raw(new ErrorPacket
         {
             Reason = "internal diagnostics that must never reach the wire",
@@ -270,7 +270,7 @@ public class OfficialWireContractTests
             json.Properties().Select(p => p.Name).Order());
     }
 
-    // ---- attendance ------------------------------------------------------------------------
+    // attendance
 
     [Fact]
     public void AttendanceMailMatchesTheCapturedShape()
@@ -312,21 +312,20 @@ public class OfficialWireContractTests
     [Fact]
     public void AttendanceBooksCarryTheirTargetGroup()
     {
-        // Official emits TargetGroup on every book (1 basic, 3 event); the field had to be added
-        // to the model, so pin that it reaches the wire.
+        // Official emits TargetGroup on every book (1 basic, 3 event); pin that it reaches the wire.
         var json = Serialize(new AttendanceBookReward { UniqueId = 90027, TargetGroup = 3 });
 
         Assert.Equal(3L, (long)json["TargetGroup"]!);
     }
 
-    // ---- mission claim history -------------------------------------------------------------
+    // mission claim history
 
     [Fact]
     public void MissionClaimHistoryCarriesOnlyIdAndTime()
     {
-        // Official's AddedHistoryDB(s) hold exactly MissionUniqueId + CompleteTime; the ServerId /
-        // AccountServerId our server once leaked are internal (caught by the local-session
-        // contrast inside the detailed capture).
+        // official's AddedHistoryDB(s) hold exactly MissionUniqueId + CompleteTime. ServerId and
+        // AccountServerId are internal and stay off the wire (the local-session contrast in the
+        // detailed capture shows the difference).
         var json = Serialize(new MissionHistoryDB
         {
             MissionUniqueId = 1513,
@@ -337,12 +336,12 @@ public class OfficialWireContractTests
             json.Properties().Select(p => p.Name).Order());
     }
 
-    // ---- crafting --------------------------------------------------------------------------
+    // crafting
 
     [Fact]
     public void CraftBaseNodeOmitsTierAndId()
     {
-        // The captured base node is {NodeLevel, NodeRandomSeed, LeafNodeIds} — tier 0 and id 0
+        // The captured base node is {NodeLevel, NodeRandomSeed, LeafNodeIds} - tier 0 and id 0
         // stay off the wire as defaults.
         var json = Serialize(new CraftNodeDB
         {
@@ -358,7 +357,7 @@ public class OfficialWireContractTests
     [Fact]
     public void FreshlySelectedCraftNodeKeepsItsEmptyLeafList()
     {
-        // Official's SelectedNodeDB is {NodeTier, NodeId, LeafNodeIds: []} — the empty list is
+        // Official's SelectedNodeDB is {NodeTier, NodeId, LeafNodeIds: []} - the empty list is
         // emitted, unlike most empty collections on this wire.
         var raw = Raw(new CraftNodeDB
         {
@@ -371,7 +370,7 @@ public class OfficialWireContractTests
         Assert.Contains("\"NodeTier\":1", raw);
     }
 
-    // ---- clan attendance mail --------------------------------------------------------------
+    // clan attendance mail
 
     [Fact]
     public void ClanAttendanceMailMatchesTheCapturedShape()
@@ -441,9 +440,9 @@ public class OfficialWireContractTests
     [Fact]
     public void ParcelResultOmitsAccountDBUntilTheAccountRowActuallyChanges()
     {
-        // No captured ParcelResultDB carries AccountDB. It must therefore stay null rather than
-        // being eagerly constructed: OmitWhenEmpty only drops ICollection { Count: 0 }, so an
-        // initialized POCO would survive as the bare object "{}" — which is what leaked before.
+        // no captured ParcelResultDB carries AccountDB, so it stays null rather than being eagerly
+        // constructed. OmitWhenEmpty only drops ICollection { Count: 0 }, so an initialized POCO
+        // survives as the bare object "{}".
         var parcel = (JObject)Serialize(new ParcelResultDB
         {
             AccountCurrencyDB = new AccountCurrencyDB(),
@@ -485,7 +484,7 @@ public class OfficialWireContractTests
         Assert.False(json.ContainsKey("ZoneScheduleGroupRecords"));
     }
 
-    // ---- field names and server-internal members -------------------------------------------
+    // field names and server-internal members
 
     [Fact]
     public void ScenarioGroupHistoryUsesOfficialWireName()
@@ -523,12 +522,12 @@ public class OfficialWireContractTests
             Assert.False(echelon.ContainsKey(internalMember));
     }
 
-    // ---- numeric formatting ----------------------------------------------------------------
+    // numeric formatting
 
     [Fact]
     public void WholeFloatsKeepNewtonsoftFormatting()
     {
-        // Official sends 270.0, not 270 — no FloatConverter on the packet settings.
+        // Official sends 270.0, not 270 - no FloatConverter on the packet settings.
         var json = Raw(new { Value = 270.0f });
         Assert.Contains("270.0", json);
     }

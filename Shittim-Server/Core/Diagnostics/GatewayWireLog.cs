@@ -4,19 +4,16 @@ using Newtonsoft.Json;
 namespace Shittim_Server.Core.Diagnostics
 {
     /// <summary>
-    /// Appends every gateway exchange to <c>logs/wire-{date}.txt</c> in the same textual format as
-    /// the reference captures under <c>/captures</c>, so a play session can be diffed line-for-line
-    /// against the official server's traffic instead of being reconstructed from Serilog lines.
+    /// Appends every gateway exchange to <c>logs/wire-{date}.txt</c> in the same textual format as the
+    /// reference captures under <c>/captures</c>, so a play session diffs line-for-line against official
+    /// traffic. The client renders most protocol-level faults as one of two opaque modal popups with no
+    /// protocol name attached, and the server log only records that the request returned 200, so having
+    /// the exact response bytes beside official's is the one reliable way to tell a content mismatch
+    /// from a transport one.
     ///
-    /// This exists because the client renders most protocol-level faults as one of two opaque modal
-    /// popups with no protocol name attached, and the server log only records that the request
-    /// returned 200. Having the exact response bytes next to official's is the only reliable way to
-    /// tell a content mismatch from a transport one.
-    ///
-    /// Each exchange is preceded by a <c>#</c> metadata line carrying the wall clock, the protocol,
-    /// and the response transport (whether the packet field went out AES-encrypted, and the key
-    /// length the client supplied in the request header) — the capture files have no equivalent, so
-    /// it is a comment rather than part of the diffable body.
+    /// Each exchange gets a leading <c>#</c> line with the wall clock, protocol and response transport
+    /// (whether the packet went out AES-encrypted, and the key length the client sent). The capture
+    /// files have no equivalent, so it is a comment rather than part of the diffable body.
     /// </summary>
     public static class GatewayWireLog
     {

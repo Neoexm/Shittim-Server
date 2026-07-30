@@ -2,7 +2,7 @@
 
 Official model (from the reference captures):
   - a mid-session mail delivery makes the NEXT Mail_Check report 12 (HasUnreadMail|NewMailArrived),
-    and only that one — the second Mail_Check is back to 8 while the mail is still unread;
+    and only that one - the second Mail_Check is back to 8 while the mail is still unread;
   - unrelated protocols between delivery and Mail_Check stay at 8 (the bit is not baseline);
   - clan attendance mail raises the bit ONLY on the delivering Clan_Lobby response (official's
     recovered Clan_Lobby carries ServerNotification=4) and leaves nothing pending for Mail_Check.
@@ -81,8 +81,7 @@ def reset_boundary(now: datetime.datetime) -> datetime.datetime:
 
 def clean(acct: int):
     c = db()
-    # EF Core stores SQLite DateTimes as TEXT with a space separator and compares as strings; an
-    # ISO 'T' here would sort above every same-day time and silently match nothing.
+    # EF stores DateTimes as TEXT with a space separator; strftime matches that, ISO 'T' doesn't.
     boundary = reset_boundary(datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
     n = c.execute("delete from Mails where AccountServerId=? and Type=11 and SendDate>=?",
                   (acct, boundary)).rowcount

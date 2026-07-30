@@ -6,13 +6,9 @@ namespace Shittim_Server.Tests;
 
 /// <summary>
 /// The server has no EF migrations and relies on <c>EnsureCreated()</c>, which builds the schema for a
-/// brand-new database and then never touches an existing one again. Every entity added after a
-/// player's database was created therefore needed a hand-written <c>CREATE TABLE IF NOT EXISTS</c> in
-/// GameServer, and a new *column* on an existing entity had no escape hatch at all — it simply went
-/// missing and every query touching it failed at runtime.
-///
-/// These tests hold <see cref="SchemaReconciler"/> to the contract that replaced those blocks: it must
-/// close both gaps from the model alone, and be safe to run on every startup.
+/// brand-new database and never touches an existing one again. These hold <see cref="SchemaReconciler"/>
+/// to the contract that covers the gap: close both the missing-table and missing-column cases from the
+/// EF model alone, and stay safe to run on every startup.
 /// </summary>
 public class SchemaReconcilerTests : IDisposable
 {
@@ -52,7 +48,7 @@ public class SchemaReconcilerTests : IDisposable
     [Fact]
     public async Task AddsAColumnMissingFromAnExistingTable()
     {
-        // The case the old hand-written CREATE TABLE blocks could not cover: the table exists, but a
+        // The case CREATE TABLE IF NOT EXISTS blocks cannot cover: the table exists, but a
         // property was added to the entity afterwards. SQLite cannot drop a column, so the table is
         // rebuilt without it to simulate the older schema.
         using (var seed = NewContext())
@@ -110,8 +106,6 @@ public class SchemaReconcilerTests : IDisposable
         // A second pass has nothing left to do; if it re-issued the CREATE it would throw.
         Assert.Empty(await SchemaReconciler.ReconcileAsync(db));
     }
-
-    // ------------------------------------------------------------------------------ fixtures
 
     private SchaleDataContext NewContext() => new(
         new DbContextOptionsBuilder<SchaleDataContext>().UseSqlite($"Data Source={_path}").Options);

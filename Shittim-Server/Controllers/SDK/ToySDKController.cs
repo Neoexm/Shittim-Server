@@ -150,7 +150,7 @@ namespace Shittim_Server.Controllers.SDK
         public IResult SignInWithTicket()
         {
             // Field set derived from NPA.InfaceSDK.NXPToySignInWithTicketResponse.FillJsonBody
-            // (0x18943DDD0) — the SDK's own serializer, i.e. the authoritative shape of this response.
+            // (0x18943DDD0) - the SDK's own serializer, i.e. the authoritative shape of this response.
             // The deserializer matches JSON keys to these field names. The post-sign-in managed path
             // (NXPAccountLinkBase._LoginWithTicket_b__0 @0x1893D6850) reads guid, umKey, sessionToken
             // and termsAgree, builds the NXPUpdatedUser (SetSessionToken) and calls AgreeTermsWithTicket
@@ -201,7 +201,7 @@ namespace Shittim_Server.Controllers.SDK
             return Results.Json(res);
         }
 
-        // The AES "npsn" the toy SDK uses for NPSN-crypt Bolt traffic is NOT the npSN field —
+        // The AES "npsn" the toy SDK uses for NPSN-crypt Bolt traffic is NOT the npSN field -
         // NXPAuthRequestCredential..ctor(NXPToySession) (GameAssembly 0x18937EC20) sets
         //   _Npsn = long.Parse(session.guid)
         // i.e. it is the account GUID parsed as a long. session.guid comes from the guid we
@@ -210,21 +210,16 @@ namespace Shittim_Server.Controllers.SDK
         // and the SDK decrypted getPolicyList into garbage -> JSON parse 10001.
         private const long DefaultNpsn = 20790000041274554L;
 
-        // getPolicyList/getUserInfo/getTermsList/logoutSVC are MANAGED toy Bolt requests
-        // (NXPToyBoltRequestManager over BestHTTP -> visible via mitm). Decompiling
-        // NXPToyNetworkUtil.MakeSuccessResult (GameAssembly 0x1893839A0) proved the SDK
-        // DECRYPTS the response body before JSON-parsing it:
-        //   raw = response.RawBytes; hex = BytesToHexString(raw);
-        //   text = NXPCrypto.Decrypt(req.DecryptType, hex, AuthRequestCredential.Npsn);
-        //   JSON.Parse(text)   // on failure -> errorCode 10001, tag
-        //                      // "gs_error_network_response_json_parsing"
-        // NXPToyGetPolicyListRequest sets EncryptType/DecryptType = Npsn (the
-        // 0x200000002 backing field), so the cipher is AES-128-ECB keyed by the NPSN-derived
-        // key (NXCrypto.GenerateNpsnAes128Key), NOT the shared PreGatewayAes key that
-        // getCountry/getPromotion use (those are pre-login COMMON-crypt calls). Returning plain
-        // JSON (or shared-key ciphertext) made the SDK decrypt garbage -> JSON.Parse threw ->
-        // "Request failed (10001)" at TAP TO START, blocking the game-server handoff (no
-        // Queuing_GetTicket). Emit raw NPSN-encrypted bytes; the SDK hex-encodes them itself.
+        // getPolicyList/getUserInfo/getTermsList/logoutSVC are managed toy Bolt requests
+        // (NXPToyBoltRequestManager over BestHTTP, so visible via mitm). NXPToyNetworkUtil
+        // .MakeSuccessResult (GameAssembly 0x1893839A0) decrypts the body before parsing it:
+        //   text = NXPCrypto.Decrypt(req.DecryptType, BytesToHexString(response.RawBytes), Npsn)
+        //   JSON.Parse(text)   // on failure: errorCode 10001, gs_error_network_response_json_parsing
+        // NXPToyGetPolicyListRequest sets EncryptType/DecryptType = Npsn (0x200000002), so the cipher
+        // is AES-128-ECB under NXCrypto.GenerateNpsnAes128Key - not the shared PreGatewayAes key that
+        // the pre-login getCountry/getPromotion calls use. Plain JSON or shared-key ciphertext decrypts
+        // to garbage, JSON.Parse throws, and "Request failed (10001)" at TAP TO START blocks the
+        // game-server handoff. Emit raw NPSN-encrypted bytes; the SDK hex-encodes them itself.
         [HttpPost("getPolicyList.nx")]
         [HttpPost("getUserInfo.nx")]
         [HttpPost("getTermsList.nx")]

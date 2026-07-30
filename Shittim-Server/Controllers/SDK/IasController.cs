@@ -39,19 +39,10 @@ namespace Shittim_Server.Controllers.SDK
             if (!string.IsNullOrWhiteSpace(payload))
                 logger.LogDebug("[IAS LoginLink] {Payload}", payload);
 
-            // ROOT-CAUSE FIX for the intermittent "Abnormal client. Returning to the title
-            // screen." hang. A genuine new login carries a fresh link_platform_token. The three
-            // static session dictionaries below otherwise accrue one entry per login and are NEVER
-            // cleared. The inface (V8/Node) SDK persists its web_token in Cookies across game
-            // launches and re-sends it; FindSession then re-matches that STALE never-evicted
-            // session (verified: a replayed web_token returns the same stale session) and reuses
-            // its dead ticket. That desyncs the inface IAS primary-link auth, whose success
-            // callback never fires, so the managed login coroutine waits, times out, and shows the
-            // abnormal-client popup. (Confirmed by cdb: the stall is the inface IAS auth thread,
-            // before NGS; and a server restart -- which clears these dicts -- was the only
-            // recovery.) Resetting on each fresh login makes every login start clean, like a
-            // restart, so the stale state can never accumulate. Single-account offline server, so
-            // dropping prior sessions here is safe.
+            // Fresh login clears the static session dicts first. They otherwise gain an entry per
+            // login and are never evicted, so the inface SDK's persisted web_token re-matches a
+            // stale session and reuses its dead ticket, which stalls the primary-link auth. Safe
+            // to drop prior sessions on this single-account offline server.
             if (!string.IsNullOrWhiteSpace(ReadString(payload, "link_platform_token")))
             {
                 if (SessionsByWebToken.Count > 0)
@@ -603,12 +594,11 @@ namespace Shittim_Server.Controllers.SDK
 
             logger.LogInformation("[IAS Public] {Method} {Env} {Path}", Request.Method, env, path);
 
-            // Detailed request dump: we need to know EXACTLY what the bare "GET /ims/public"
-            // call is (get_primary_link vs an IMS service/config GET) to serve the right body.
-            // Logs full path+query and all request headers (incl. Authorization / x-ias-* /
-            // web_token) so the next natural re-fetch reveals the operation unambiguously.
-            // Debug + guarded: the header join is pure diagnostic cost, and the headers carry
-            // credentials that have no business in the default log.
+            // A bare "GET /ims/public" is ambiguous - get_primary_link and the IMS service/config
+            // GETs look identical on the route alone, and they need different bodies. Full
+            // path+query plus the request headers (Authorization / x-ias-* / web_token) identify
+            // the operation. Debug and guarded: the header join is pure diagnostic cost, and the
+            // headers carry credentials that have no business in the default log.
             if (logger.IsEnabled(LogLevel.Debug))
             {
                 var headerDump = string.Join(" | ", Request.Headers
@@ -632,7 +622,7 @@ namespace Shittim_Server.Controllers.SDK
             // endpoint+/xxxxxx/v1 segment is dropped and the request collapses to a bare
             // POST /ias/live/public carrying only the x-ias-ticket header + body {"locale":...}.
             // So the path-based check below never matches; dispatch by the header instead.
-            // (GET /ims/public also carries x-ias-ticket — that's get_primary_link, handled by
+            // (GET /ims/public also carries x-ias-ticket - that's get_primary_link, handled by
             // the isIms branch; verify/game-token uses x-ias-game-token, excluded here.)
             var iasTicketHeader = Request.Headers["x-ias-ticket"].FirstOrDefault();
             var iasGameTokenHeader = Request.Headers["x-ias-game-token"].FirstOrDefault();
@@ -719,7 +709,7 @@ namespace Shittim_Server.Controllers.SDK
             // accepts HTTP status in {200,400,500} then deserializes the body via
             // sub_180029270; the deserializer REQUIRES the primary-link string fields
             // (primary_platform_type / primary_platform_user_id / primary_platform_guid,
-            // plus trace_id / token / token_type / guid — note the dedicated "<field> is
+            // plus trace_id / token / token_type / guid - note the dedicated "<field> is
             // empty" strings clustered with the parser). The thin LoginLink shape lacks all
             // of these, so the deserializer throws and the handler emits
             // if.error.auth.ims.get_primary_link.response.parse_exception(10001), which
@@ -1024,20 +1014,15 @@ namespace Shittim_Server.Controllers.SDK
             };
         }
 
-        // markPrimary controls whether the emitted link(s) carry isPrimary=true.
-        // The native GameAssembly FetchPrimaryLinkResult.get_HasPrimaryLink
-        // (0x189460AE0) iterates links and returns true iff some link has the
-        // isPrimary bool ([link+0x10]) != 0. NXPToyAuthenticationManager.
-        // ResolvePrimaryPlatformInternal (0x1893FB3C0) branches on that result
-        // (with overridePrimaryPlatform=false): HasPrimaryLink==true takes the
-        // "already linked, proceed" path which issues get_primary_link and then
-        // STALLS before Queuing_GetTicket; HasPrimaryLink==false takes the
-        // SetPrimaryLink path (POST /v1/link/account/platform/primary) whose
-        // success spawns the worker that advances managed to Queuing_GetTicket.
-        // So the POST PrimaryLinkFetch response MUST report the login-platform
-        // link as NON-primary (markPrimary=false). The get_primary_link and
-        // UpdatePrimaryLink responses keep markPrimary=true (the primary is, by
-        // then, established / being established).
+        // markPrimary controls whether the emitted links carry isPrimary=true.
+        // FetchPrimaryLinkResult.get_HasPrimaryLink (0x189460AE0) returns true iff some link has
+        // isPrimary ([link+0x10]) != 0, and NXPToyAuthenticationManager.ResolvePrimaryPlatformInternal
+        // (0x1893FB3C0) branches on it with overridePrimaryPlatform=false: true takes the "already
+        // linked, proceed" path, which issues get_primary_link and stalls before Queuing_GetTicket;
+        // false takes SetPrimaryLink (POST /v1/link/account/platform/primary), whose success spawns
+        // the worker that advances managed to Queuing_GetTicket. So the POST PrimaryLinkFetch response
+        // must report the login-platform link as non-primary; get_primary_link and UpdatePrimaryLink
+        // keep markPrimary=true, the primary being established by then.
         private static object BuildPrimaryLinkResponse(IasSession session, bool markPrimary = true)
         {
             var primary = BuildPrimaryLinkDetails(session.Identity);
@@ -1058,8 +1043,7 @@ namespace Shittim_Server.Controllers.SDK
                 // if.error.auth.account_link.fetch_primary.invalid_arg, and returns WITHOUT
                 // calling sub_1800979A0 (the SetPrimaryLink continuation). That missing
                 // continuation is exactly why the managed layer never advances to
-                // Queuing_GetTicket. trace_id/token/token_type were previously omitted.
-                // NOTE: token is a FLAT top-level STRING here, NOT a nested object.
+                // Queuing_GetTicket. token is a FLAT top-level string here, not a nested object.
                 trace_id = $"shittim-trace:{Guid.NewGuid():N}",
                 token = session.WebToken,
                 token_type = "Bearer",
@@ -1074,7 +1058,7 @@ namespace Shittim_Server.Controllers.SDK
                 // (sub_180043C20, called at 0x18005fe63). If "ticket" is absent the inserted
                 // null fails the value_t::string (==3) check and throws an UNHANDLED
                 // type_error 302 "type must be string, but is null", which fast-fails the
-                // process (C0000409, FAST_FAIL_FATAL_APP_EXIT) with no WER dump — the "clean
+                // process (C0000409, FAST_FAIL_FATAL_APP_EXIT) with no WER dump - the "clean
                 // exit right after PrimaryLinkFetch" symptom. The lambda also reads web_token
                 // (its success gate), local_session_user_id, and local_session_type as strings,
                 // so emit all four here. These are extra keys the UpdatePrimaryLink parser
@@ -1122,10 +1106,10 @@ namespace Shittim_Server.Controllers.SDK
                 ? DefaultSteamGuid
                 : BuildAccountGuid(platformUserId);
 
-            // Single self-consistent PRIMARY link for the login platform. Previously this
-            // emitted the login platform as a NON-primary link plus a primary ARENA link,
-            // which contradicted the STEAM login (and the get_primary_link response, see
-            // BuildPrimaryLinkDetails) and drove the client into the primary-mismatch hang.
+            // One self-consistent PRIMARY link for the platform being logged in with. Emitting it
+            // as non-primary alongside a primary ARENA link contradicts both the STEAM login and
+            // the get_primary_link response (see BuildPrimaryLinkDetails), and the client hangs on
+            // the mismatch.
             return
             [
                 BuildLink(true, platformType, platformUserId, guid, "1752526340000", "2026-06-04T17:31:01Z")
@@ -1147,15 +1131,12 @@ namespace Shittim_Server.Controllers.SDK
 
             if (!markPrimary)
             {
-                // FetchPrimaryLink path: report the login-platform link but with
-                // isPrimary=FALSE so the client's get_HasPrimaryLink returns false
-                // and ResolvePrimaryPlatformInternal takes the SetPrimaryLink branch
-                // (POST /v1/link/account/platform/primary) rather than the
-                // "already-primary, proceed" branch that stalls before
-                // Queuing_GetTicket. The link is still present (non-empty list) so
-                // the SetPrimaryLink branch has the login platform as its candidate.
-                // This is NOT the old ARENA-as-primary mismatch (no other platform is
-                // marked primary) — it is the legitimate "primary not yet set" state.
+                // FetchPrimaryLink: report the login-platform link with isPrimary=FALSE so
+                // get_HasPrimaryLink returns false and ResolvePrimaryPlatformInternal takes
+                // the SetPrimaryLink branch (POST /v1/link/account/platform/primary) instead
+                // of the "already-primary, proceed" branch, which stalls before
+                // Queuing_GetTicket. The list stays non-empty so that branch still has the
+                // login platform as its candidate.
                 return
                 [
                     BuildPrimaryLink(false, platformType, platformUserId, guid, "2026-06-04T17:31:01Z")

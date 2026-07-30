@@ -5,14 +5,11 @@ using Xunit;
 namespace Shittim_Server.Tests;
 
 /// <summary>
-/// Pins Mission_List's wire content to what official actually sends (2026-07-28 capture pair).
-///
-/// The mission screen renders from the login-cached Mission_List with no further request, so a
-/// single unresolvable id in MissionHistoryUniqueIds or ProgressDBs breaks it with nothing on the
-/// wire to show for it. Two leaks did exactly that: CampaignStageHistory.StoryUniqueId (0 on every
-/// row we write, projected straight into the history list — the "missions not loading" report),
-/// and battle-pass rows (BattlePassMissionExcel ids 2000001+, stored in the shared
-/// MissionProgresses table) riding along in ProgressDBs / Account_Auth.MissionProgressDBs.
+/// Mission_List against the 2026-07-28 capture pair. The mission screen renders from the
+/// login-cached response and never asks again, so a single unresolvable id in MissionHistoryUniqueIds
+/// or ProgressDBs blanks it with nothing on the wire to explain why. The two ids that get in there
+/// are CampaignStageHistory.StoryUniqueId (0 on every row we write) and battle-pass rows, which share
+/// the MissionProgresses table - BattlePassMissionExcel ids 2000001+.
 /// </summary>
 public class MissionListWireTests
 {
@@ -48,9 +45,9 @@ public class MissionListWireTests
     [InlineData(true)]
     public void UnresolvableClaimIdsNeverReachTheWire(bool eventScoped)
     {
-        // The regression: unlockall wrote CampaignStageHistories with StoryUniqueId=0 and the old
-        // handler projected that column into the history list, so every response carried a literal
-        // 0 the client cannot resolve. Any id no excel knows must be dropped, not forwarded.
+        // unlockall writes CampaignStageHistories with StoryUniqueId=0, so projecting that column
+        // straight into the history list puts a literal 0 on the wire that the client cannot
+        // resolve. any id no excel knows gets dropped rather than forwarded.
         var claims = new List<long> { 0, 1513, 999999999 };
 
         var ids = MissionHandler.BuildMissionHistoryIds(claims, MissionIds, GuideOrEventIds, eventScoped);

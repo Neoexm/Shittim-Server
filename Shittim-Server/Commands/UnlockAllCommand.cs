@@ -170,11 +170,7 @@ namespace Shittim.Commands
 
                 case "battlepass":
                     var battlePassExcel = connection.ExcelTableService.GetTable<BattlePassInfoExcelT>();
-                    // Assuming current season is 1 or finding the active one
-                    // For now, we unlock all available battle passes in excel or just the active ones if logic permits
-                    // The request typically sends BattlePassId, here we might want to unlock all or a specific one?
-                    // Let's unlock all defined seasons/ids
-                    
+                    // Every season in the excel, not just the active one.
                     foreach (var season in battlePassExcel)
                     {
                         var bp = await context.BattlePasses.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == season.Id);
@@ -189,9 +185,9 @@ namespace Shittim.Commands
                             context.BattlePasses.Add(bp);
                         }
 
-                        bp.PassLevel = 50; // Max level usually
+                        bp.PassLevel = 50;
                         bp.PassExp = 0;
-                        bp.PurchaseGroupId = 1; // Assuming 1 is the paid track ID or similar
+                        bp.PurchaseGroupId = 1;
                         bp.ReceiveRewardLevel = 50;
                         bp.ReceivePurchaseRewardLevel = 50;
                     }

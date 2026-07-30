@@ -45,10 +45,10 @@ namespace Schale.MX.NetworkProtocol
 
     public abstract class ResponsePacket : BasePacket
     {
-        // Official ServerTimeTicks are whole-second precision (…0000000); mirror that.
+        // Official ServerTimeTicks are whole-second precision (...0000000); mirror that.
         public long ServerTimeTicks { get; set; } = TruncateToSeconds(DateTimeOffset.Now.Ticks);
         // Official emits this whenever non-zero (e.g. 8 = HasUnreadMail on every response while
-        // unclaimed mail exists); zero is dropped by the gateway's DefaultValueHandling.Ignore.
+        // unclaimed mail exists); None falls out of serialization like any other default.
         public ServerNotificationFlag ServerNotification { get; set; } = ServerNotificationFlag.None;
 
         public static long TruncateToSeconds(long ticks) => ticks - (ticks % TimeSpan.TicksPerSecond);

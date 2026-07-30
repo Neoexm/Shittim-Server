@@ -2,15 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Shittim_Server.Controllers.SDK
 {
-    // Handles config.na.nexon.com/v2/configurations/<key> (redirected to us by mitm).
-    // The gamescale/Inface SDK gates its initialization on na_time_sync succeeding; if
-    // it never gets a successful response (we previously KILLed config.na), the SDK does
-    // not finish init and the Bolt sign-in base URL is never set, so /signInWithTicket.nx
-    // is never sent and login stalls on "Now Loading".
+    // config.na.nexon.com/v2/configurations/<key>, redirected here by mitm. The gamescale/Inface
+    // SDK gates its initialization on na_time_sync succeeding; kill or 404 this and init never
+    // finishes, the Bolt sign-in base URL is never set, /signInWithTicket.nx is never sent, and
+    // login stalls on "Now Loading".
     //
-    // NOTE: response shapes here are a first, best-effort attempt (the exact Nexon config
-    // format was not recoverable offline). They are logged and will be refined from the
-    // observed client behaviour during testing.
+    // The exact Nexon config format was not recoverable offline, so these shapes are inferred from
+    // what the client does with them. Requests are logged to catch a key that needs a real body.
     [ApiController]
     [Route("/v2/configurations")]
     public class ConfigNaController : ControllerBase

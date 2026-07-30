@@ -3,15 +3,10 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Semantics of the in-memory NewMailArrived state (see MailNotificationService for the captured
-/// evidence): a per-account set, reported exactly once by Mail_Check. The service is static, so
-/// every test uses its own account ids to stay independent under xunit's parallel runner.
-/// </summary>
 public class NewMailArrivedTests
 {
     [Fact]
-    public void PendingMailIsReportedExactlyOnce()
+    public void ReportedOnce()
     {
         MailNotificationService.MarkNewMail(910001);
 
@@ -20,13 +15,13 @@ public class NewMailArrivedTests
     }
 
     [Fact]
-    public void NothingPendingMeansNothingReported()
+    public void NothingPendingNothingReported()
     {
         Assert.False(MailNotificationService.Consume(910002));
     }
 
     [Fact]
-    public void AccountsDoNotShareTheFlag()
+    public void FlagIsPerAccount()
     {
         MailNotificationService.MarkNewMail(910003);
 
@@ -35,10 +30,10 @@ public class NewMailArrivedTests
     }
 
     [Fact]
-    public void TwoDeliveriesStillConsumeAsOne()
+    public void TwoDeliveriesOneReport()
     {
         // A set, not a counter: official's capture mails rewards twice before the client checks,
-        // and the single Mail_Check consumes everything — 12 once, then straight back to 8.
+        // and the single Mail_Check consumes everything - 12 once, then straight back to 8.
         MailNotificationService.MarkNewMail(910005);
         MailNotificationService.MarkNewMail(910005);
 

@@ -8,27 +8,13 @@ using BlueArchiveAPI.Configuration;
 namespace Shittim_Server.Controllers;
 
 /// <summary>
-/// Access gate for the <c>/api/admin</c> surface.
+/// Access gate for <c>/api/admin</c>: a correct <c>X-Admin-Key</c> is accepted from any address,
+/// loopback is accepted without one (the Control Center hardcodes <c>http://127.0.0.1</c>), and
+/// everything else is refused. <c>app.UseAuthorization()</c> alone does nothing here - no scheme
+/// is registered and no action carries <c>[Authorize]</c> - so without this the mail, currency,
+/// console-command and account-delete endpoints answer anything that can reach the port.
+/// Loopback acceptance leans on the CORS policy staying narrow; widening it needs this revisited.
 /// </summary>
-/// <remarks>
-/// These endpoints send mail, set currency to arbitrary values, run console commands and delete
-/// accounts, and every one of them was reachable unauthenticated by anything that could open a
-/// socket to the API port. <c>app.UseAuthorization()</c> was already in the pipeline but did nothing:
-/// no authentication scheme is registered and no action carries <c>[Authorize]</c>.
-///
-/// The rule is:
-/// <list type="bullet">
-/// <item>a correct <c>X-Admin-Key</c> header is accepted from any address, so remote administration
-/// works once a key is configured;</item>
-/// <item>otherwise loopback is accepted, which is how the Shittim Control Center talks to the server
-/// (it hardcodes <c>http://127.0.0.1</c>), so the default setup keeps working with no configuration;</item>
-/// <item>everything else is refused.</item>
-/// </list>
-/// Binding to a LAN or public interface therefore no longer exposes the admin API by default. Note
-/// that loopback acceptance leans on CORS staying restrictive — the policy in GameServer allows only
-/// <c>localhost:3000</c> and <c>tauri.localhost</c>, which is what stops a random web page from
-/// preflighting a JSON request at the local port. Widening that policy would need this revisited.
-/// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public sealed class AdminAuthAttribute : Attribute, IAuthorizationFilter
 {

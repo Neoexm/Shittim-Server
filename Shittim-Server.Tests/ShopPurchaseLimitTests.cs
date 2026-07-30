@@ -9,25 +9,16 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Covers the two shop defects that let a client mint currency and buy limited stock forever.
-///
-/// PurchaseCount arrives straight from the client and multiplies both the consume and the reward, so
-/// a negative value turned a 30-gem cost into a 30-gem credit, and a value near long.MaxValue
-/// overflowed the int64 multiply back into negative territory and did the same thing. Separately,
-/// ShopExcel's PurchaseCountLimit was never enforced because nothing counted purchases — the AP
-/// shop's cap of 20/day was advisory, and Shop_List always reported a purchase count of zero.
-/// </summary>
 public class ShopPurchaseLimitTests
 {
-    // ------------------------------------------------------------------ the request-level guard
+    // the request-level guard
 
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-30)]
     [InlineData(long.MinValue)]
-    public void NonPositivePurchaseCountIsRejected(long count)
+    public void PurchaseCount_NonPositive_Rejected(long count)
     {
         // A non-positive count is what inverted the consume into a grant.
         var ex = Assert.Throws<WebAPIException>(() => ShopHandler.ValidatePurchaseCount(count));
@@ -38,7 +29,7 @@ public class ShopPurchaseLimitTests
     [InlineData(long.MaxValue)]
     [InlineData(long.MaxValue / 2)]
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest + 1)]
-    public void AbsurdPurchaseCountIsRejected(long count)
+    public void PurchaseCount_Absurd_Rejected(long count)
     {
         // The bound has to be two-sided: `> 0` alone still allows a count large enough that
         // cost * count overflows to a negative number, which re-opens the same hole.
@@ -51,15 +42,15 @@ public class ShopPurchaseLimitTests
     [InlineData(3)]
     [InlineData(20)]
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest)]
-    public void RealisticPurchaseCountIsAccepted(long count)
+    public void PurchaseCount_Realistic_Accepted(long count)
     {
         ShopHandler.ValidatePurchaseCount(count);
     }
 
-    // ------------------------------------------------------------------------- reset windows
+    // reset windows
 
     [Fact]
-    public void ShopsThatNeverResetShareOneWindow()
+    public void Window_NoReset_IsOneWindow()
     {
         Assert.Equal(
             DateTime.MinValue,
@@ -72,7 +63,7 @@ public class ShopPurchaseLimitTests
     [InlineData("2026-07-26T04:00:00", "2026-07-26")]
     [InlineData("2026-07-26T00:00:00", "2026-07-25")]
     [InlineData("2026-07-26T23:59:59", "2026-07-26")]
-    public void DailyWindowRollsAtFourAm(string now, string expected)
+    public void Window_Daily_RollsAtFourAm(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
@@ -87,7 +78,7 @@ public class ShopPurchaseLimitTests
     // 04:00 Monday is the first moment of the new week; 03:00 Monday still belongs to the old one.
     [InlineData("2026-07-27T04:00:00", "2026-07-27")]
     [InlineData("2026-07-27T03:00:00", "2026-07-20")]
-    public void WeeklyWindowStartsMonday(string now, string expected)
+    public void Window_Weekly_StartsMonday(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
@@ -99,17 +90,17 @@ public class ShopPurchaseLimitTests
     // 03:00 on the 1st is still the previous month's last game day.
     [InlineData("2026-08-01T03:00:00", "2026-07-01")]
     [InlineData("2026-08-01T04:00:00", "2026-08-01")]
-    public void MonthlyWindowStartsOnTheFirst(string now, string expected)
+    public void Window_Monthly_StartsOnTheFirst(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
             ShopManager.PeriodStart(PurchaseCountResetType.Month, DateTime.Parse(now)));
     }
 
-    // -------------------------------------------------------------------- limit enforcement
+    // limit enforcement
 
     [Fact]
-    public async Task PurchasesAccumulateAndTheLimitIsEnforced()
+    public async Task Limit_Accumulates_AndIsEnforced()
     {
         using var db = NewContext();
         var account = NewAccount(db);
@@ -143,7 +134,7 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task CounterResetsWhenTheWindowRollsOver()
+    public async Task Counter_WindowRolls_Resets()
     {
         using var db = NewContext();
         var account = NewAccount(db);
@@ -168,12 +159,12 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task ShopWithNoLimitIsUncapped()
+    public async Task Limit_Unset_Uncapped()
     {
         using var db = NewContext();
         var account = NewAccount(db);
 
-        // PurchaseCountLimit of 0 means "no limit" — most shop products are like this, and they must
+        // PurchaseCountLimit of 0 means "no limit" - most shop products are like this, and they must
         // not start failing now that a counter exists.
         var shop = ApShop(limit: 0);
 
@@ -186,7 +177,7 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task CountersAreTrackedPerShopAndPerAccount()
+    public async Task Counter_TrackedPerShopAndAccount()
     {
         using var db = NewContext();
         var first = NewAccount(db, serverId: 1);
@@ -205,8 +196,6 @@ public class ShopPurchaseLimitTests
         var otherAccount = await ShopManager.EnsurePurchasable(db, second, shopA.Id, shopA, 20);
         Assert.Equal(0, otherAccount.PurchaseCount);
     }
-
-    // ------------------------------------------------------------------------------ fixtures
 
     private static SchaleDataContext NewContext()
     {

@@ -17,6 +17,7 @@ using Shittim.Services;
 using Shittim_Server.Controllers.Api;
 using Shittim_Server.Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Shittim_Server.Tests;
 
@@ -24,19 +25,15 @@ namespace Shittim_Server.Tests;
 /// Pins what a Campaign_TacticResult (6008) actually pays out and reports, against the official
 /// capture of a full chapter-11 mission (captures/NetworkLog official.txt, four tactic results).
 ///
-/// Two whole halves of that response were missing. Official's ParcelResultDB is never empty: a tactic
-/// that does not clear the stage still pays the stage's TacticRewardExp to every character that
-/// fought it (line 397 — six CharacterExp parcels and nothing else), and the clearing tactic adds the
-/// rolled drop table, the AP-to-account-exp conversion and the once-per-account reward rows (line 529
-/// — fifteen ParcelForMission entries and BaseAccountExp 10 / AdditionalAccountExp 5). We sent a
-/// hand-built shell of two dozen empty collections instead, so a campaign run granted nothing but the
-/// first-clear and three-star rows. Official also carries MissionProgressDBs on all four responses;
-/// we carried them on none, so a daily like "clear 10 stages" never moved while a campaign was played.
+/// ParcelResultDB is never empty on official. A tactic that does not clear the stage still pays the
+/// stage's TacticRewardExp to every character that fought it (line 397 - six CharacterExp parcels and
+/// nothing else), and the clearing tactic adds the rolled drop table, the AP-to-account-exp conversion
+/// and the once-per-account rows (line 529 - fifteen ParcelForMission entries and BaseAccountExp 10 /
+/// AdditionalAccountExp 5). MissionProgressDBs rides on all four responses; drop it and a daily like
+/// "clear 10 stages" never moves while a campaign is being played.
 /// </summary>
-public class CampaignTacticEconomyTests
+public class CampaignTacticEconomyTests(ITestOutputHelper output)
 {
-    // ------------------------------------------------------------------- the reward strip (GAP 1)
-
     [Fact]
     public void DisplaySequenceIsParcelForMissionWithoutTheExpEntries()
     {
@@ -64,7 +61,7 @@ public class CampaignTacticEconomyTests
     public void ANonClearingTacticStillReportsTheExpItPaid()
     {
         // Capture line 397: the ParcelResultDB on a mid-stage tactic has exactly two keys, CharacterDBs
-        // and ParcelForMission. OmitWhenEmpty is what strips the rest — official never sends an empty
+        // and ParcelForMission. OmitWhenEmpty is what strips the rest - official never sends an empty
         // collection inside a ParcelResultDB, and it sends no DisplaySequence here at all because
         // every entry was exp.
         var parcels = new List<ParcelInfo>
@@ -95,7 +92,7 @@ public class CampaignTacticEconomyTests
     [Fact]
     public void EveryDeployedStudentEarnsTacticExpAndBorrowedAssistsEarnNone()
     {
-        // Official pays TacticRewardExp to six students per tactic — four strikers and two Specials —
+        // Official pays TacticRewardExp to six students per tactic - four strikers and two Specials -
         // even the ones who never took the field. A borrowed assist is not one of ours to level.
         var summary = WonBattle();
         summary.Group01Summary!.Supporters![1].OwnerAccountId = 999;
@@ -109,7 +106,7 @@ public class CampaignTacticEconomyTests
     public void OnlyTheDefaultTaggedRowsAreRolledAsDrops()
     {
         // FirstClear and ThreeStar rows live in the same reward group and carry probabilities of their
-        // own. Rolling the whole group — which the sub-stage and sweep paths still do — re-grants the
+        // own. Rolling the whole group - which the sub-stage and sweep paths still do - re-grants the
         // once-per-account rewards on every clear. Probabilities are pinned at 10000 here so the roll
         // is decided by the tag, not by the RNG.
         var rewards = new List<CampaignStageRewardExcelT>
@@ -132,7 +129,7 @@ public class CampaignTacticEconomyTests
             RewardRow(RewardTag.Default, ParcelType.Equipment, 101005, prob: 0),
         };
 
-        // Probability 0 in this data means "no roll declared, always grant" — GenerateProbability
+        // Probability 0 in this data means "no roll declared, always grant" - GenerateProbability
         // treats it as certain, and the stage's guaranteed gold drop relies on that.
         Assert.Single(ConcentrateCampaignManager.RolledDrops(rewards));
     }
@@ -141,8 +138,8 @@ public class CampaignTacticEconomyTests
     public void NewbieBonusIsTheSurplusOverParNotTheWholeRatio()
     {
         // NewbieExpRatio 15000 means "pay 150% altogether", so the bonus is the 50% above par.
-        // Reading the whole ratio as bonus paid 150% extra: official's clear of this 10-AP stage
-        // reports BaseAccountExp 10 with AdditionalAccountExp 5, and we reported 15.
+        // official's clear of this 10-AP stage reports BaseAccountExp 10, AdditionalAccountExp 5.
+        // reading the whole ratio as bonus gives 15.
         var levels = new List<AccountLevelExcelT>
         {
             new() { Level = 1, Exp = 5556, NewbieExpRatio = 15000, CloseInterval = 70, APAutoChargeMax = 0 },
@@ -168,14 +165,14 @@ public class CampaignTacticEconomyTests
         Assert.Equal(0, bonusExp);
     }
 
-    // ------------------------------------------------------------------ mission progress (GAP 2)
+    // mission progress
 
     [Fact]
     public void AStageSpecificMissionIsKeyedByTheStageItNamed()
     {
-        // Official's clear reports mission 20150 as {"1161101": 1}, Complete — keyed by the parameter
+        // Official's clear reports mission 20150 as {"1161101": 1}, Complete - keyed by the parameter
         // it matched on, not by 0. The client reads the count out by that key.
-        if (Excel is null) return;
+        if (Excel is null) { SkipNote(); return; }
 
         using var db = NewContext();
         var account = NewAccount(db);
@@ -193,9 +190,9 @@ public class CampaignTacticEconomyTests
     [Fact]
     public void ClearingOneStageDoesNotSatisfyEveryOtherStagesMission()
     {
-        // The regression this replaces: with no parameter passed, every parameterised row of the
-        // condition type ticked — one campaign clear moved all 259 "clear stage X" missions.
-        if (Excel is null) return;
+        // with no parameter passed, every parameterised row of the condition type ticks and one
+        // campaign clear moves all 259 "clear stage X" missions.
+        if (Excel is null) { SkipNote(); return; }
 
         using var db = NewContext();
         var account = NewAccount(db);
@@ -214,10 +211,10 @@ public class CampaignTacticEconomyTests
     [Fact]
     public void TheTurnMissionKeepsTheBestRunRatherThanASum()
     {
-        // Mission 30150 is "clear 1161101 in 4 turns or fewer". Official's five-turn clear reports it
-        // as {"1161101": 5} and *not* complete, which is only readable as a personal best against a
-        // ceiling. Accumulating would walk the number away from the target on every replay.
-        if (Excel is null) return;
+        // mission 30150 is "clear 1161101 in 4 turns or fewer". official's five-turn clear reports
+        // {"1161101": 5} and not complete, so the number is a personal best against a ceiling.
+        // accumulating would walk it away from the target on every replay.
+        if (Excel is null) { SkipNote(); return; }
 
         using var db = NewContext();
         var account = NewAccount(db);
@@ -243,9 +240,9 @@ public class CampaignTacticEconomyTests
     public void ChallengeMissionsAreServedLikeEveryOtherCategory()
     {
         // Every Reset_CompleteCampaignStageMinimumTurn row is Category.Challenge, so excluding the
-        // category excluded the whole condition type — and official sends 30150 in MissionProgressDBs
+        // category excluded the whole condition type - and official sends 30150 in MissionProgressDBs
         // like any other mission.
-        if (Excel is null) return;
+        if (Excel is null) { SkipNote(); return; }
 
         var challenge = Excel.GetTable<MissionExcelT>().First(x => x.Id == 30150);
         Assert.Equal(MissionCategory.Challenge, challenge.Category);
@@ -263,7 +260,7 @@ public class CampaignTacticEconomyTests
     {
         // The other half of official's clear: 1503/1504/110014 are all Achieve_ClearCampaignStageCount
         // with no parameter, and every one of them reports under {"0": n}.
-        if (Excel is null) return;
+        if (Excel is null) { SkipNote(); return; }
 
         using var db = NewContext();
         var account = NewAccount(db);
@@ -282,10 +279,9 @@ public class CampaignTacticEconomyTests
     [Fact]
     public void TacticRewardExpIsTheThreeOfficialPaysPerStudentPerTactic()
     {
-        // The realigned tail of CampaignStageExcel. Read against the old layout this field came back
-        // as 652835029140 — it was overlapping a string offset — which would have granted a student
-        // every level in the game off one tactic.
-        if (Excel is null) return;
+        // tail of CampaignStageExcel, where a misaligned read overlaps a string offset and yields
+        // something like 652835029140 - enough exp to cap a student off one tactic.
+        if (Excel is null) { SkipNote(); return; }
 
         var stages = Excel.GetTable<CampaignStageExcelT>();
 
@@ -293,7 +289,7 @@ public class CampaignTacticEconomyTests
         Assert.Equal([3L], stages.Select(x => x.TacticRewardExp).Distinct().ToList());
     }
 
-    // ------------------------------------------------------------------------------ fixtures
+    // helpers
 
     private static ParcelInfo Parcel(ParcelType type, long id, long amount) => new()
     {
@@ -376,6 +372,10 @@ public class CampaignTacticEconomyTests
     /// checkout without the dumps skips the tests that need them rather than failing.
     /// </summary>
     private static readonly ExcelTableService? Excel = LocateDumps();
+
+    private void SkipNote() => output.WriteLine(
+        "No Resources/Dumped found, so the excel-backed assertions did not run. Build and start " +
+        "the server once to populate it, then re-run.");
 
     private static ExcelTableService? LocateDumps()
     {

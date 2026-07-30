@@ -207,7 +207,7 @@ namespace Schale.MX.GameLogic.Parcel
         public AccountCurrencyDB AccountCurrencyDB { get; set; } = new();
 
         // Not initialized: [OmitWhenEmpty] only drops empty collections, so an eagerly created
-        // AccountDB would serialize as {} — a key no official ParcelResultDB carries. It stays
+        // AccountDB would serialize as {} - a key no official ParcelResultDB carries. It stays
         // null unless the reward actually changed the account row (see ParcelResolver).
         public AccountDB? AccountDB { get; set; }
         public long AdditionalAccountExp { get; set; }

@@ -61,15 +61,15 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official's MissionHistoryUniqueIds carries claimed-mission ids only — never campaign
+        // Official's MissionHistoryUniqueIds carries claimed-mission ids only - never campaign
         // stage data. In the 2026-07-28 capture pair the account-wide list is every claim once,
         // plus a second copy of exactly the claims whose id is NOT in MissionExcel (its 78
         // guide-mission claims, ids 1000200-1000375 in GuideMissionExcel's range), and the
         // event-scoped list is exactly that non-MissionExcel subset. An id the client cannot
-        // resolve against an excel (this handler used to leak a literal 0 from
-        // CampaignStageHistory.StoryUniqueId, which is 0 on every row we write) kills the
-        // mission screen — the client renders it from this login-cached response without any
-        // further request, so nothing loads and no error reaches the wire.
+        // resolve against an excel kills the mission screen outright - it renders from this
+        // login-cached response without any further request, so nothing loads and no error
+        // reaches the wire. CampaignStageHistory.StoryUniqueId is 0 on every row written here,
+        // which is why campaign history must not be folded in.
         var claims = db.GetAccountMissionHistories(account.ServerId)
             .Select(x => x.MissionUniqueId)
             .Distinct()
@@ -286,19 +286,17 @@ public class MissionHandler : ProtocolHandlerBase
         }
 
         // The client only offers the claim button once the mission is complete, so a request for an
-        // incomplete one is either a desync or a crafted packet. Claiming used to be allowed either
-        // way, which handed out the reward and consumed the progress row for missions the player had
-        // not finished.
+        // incomplete one is either a desync or a crafted packet. Without this guard the reward is
+        // handed out and the progress row consumed for a mission the player never finished.
         if (!missionProgress.Complete)
         {
             throw new WebAPIException(WebAPIErrorCode.MissionCannotComplete,
                 $"Mission {request.MissionUniqueId} is not complete");
         }
 
-        // Load Mission Excel to get rewards. Validated before anything is mutated: an unknown id used
-        // to fall through with a null excel, which skipped the reward but still deleted the progress
-        // row and wrote a history entry — the mission became permanently unclaimable and the player
-        // silently got nothing. It also made the Category check further down a null dereference.
+        // Validated before anything is mutated: letting an unknown id fall through with a null excel
+        // would still delete the progress row and write a history entry while skipping the reward,
+        // leaving the mission permanently unclaimable.
         var missionExcel = _excelService.GetTable<MissionExcelT>().FirstOrDefault(x => x.Id == request.MissionUniqueId)
             ?? throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound,
                 $"Mission excel {request.MissionUniqueId} not found");
@@ -329,7 +327,7 @@ public class MissionHandler : ProtocolHandlerBase
             CompleteTime = completeTime
         });
 
-        // Official's wire history carries only these two members — ServerId/AccountServerId are
+        // Official's wire history carries only these two members - ServerId/AccountServerId are
         // omitted (the local-session contrast in the detailed capture exposed ours leaking both).
         response.AddedHistoryDB = new MissionHistoryDB
         {

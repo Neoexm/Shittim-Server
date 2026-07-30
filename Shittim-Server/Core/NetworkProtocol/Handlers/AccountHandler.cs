@@ -114,7 +114,7 @@ public class AccountHandler : ProtocolHandlerBase
 
         // The client evaluates content locks (cafe, clan, crafting, schedule, ...) client-side
         // from OpenConditionExcel's ScenarioModeId prerequisites against the account's scenario
-        // history. Seed every referenced mode as cleared so all content is unlocked by default —
+        // history. Seed every referenced mode as cleared so all content is unlocked by default -
         // this also repairs accounts created before this seeding existed.
         await EnsureOpenConditionScenariosCleared(db, account);
 
@@ -151,7 +151,7 @@ public class AccountHandler : ProtocolHandlerBase
         response.AccountDB = _mapper.Map<AccountDB>(account);
         // Official omits the envelope MissionProgressDBs unless the login created/changed progress
         // (first-login-of-day packs); an empty [] is never sent. Battle-pass and event-content rows
-        // share the MissionProgresses table but never appear here on official — an id the client
+        // share the MissionProgresses table but never appear here on official - an id the client
         // cannot resolve against MissionExcel/GuideMissionExcel poisons its mission model.
         var missionProgresses = MissionHandler.FilterMissionScreenProgresses(
                 db.GetAccountMissionProgresses(account.ServerId).ToList(), _excelService)
@@ -162,7 +162,7 @@ public class AccountHandler : ProtocolHandlerBase
     }
 
     // The official StaticOpenConditions dictionary (Account_Auth / Account_LoginSync) contains
-    // exactly these keys, in this order — notably no Favor/Prologue/Guild/WorldRaid, and it
+    // exactly these keys, in this order - notably no Favor/Prologue/Guild/WorldRaid, and it
     // includes zero-valued entries (verified against live captures of client 1.90).
     private static readonly OpenConditionContent[] OfficialStaticOpenConditionKeys =
     {
@@ -442,42 +442,18 @@ public class AccountHandler : ProtocolHandlerBase
 
             foreach (var bp in battlePasses)
             {
-                // Investigate ProductExcel table
-                _logger.LogDebug("[AccountHandler] Debugging: Total Products in Table: {ProductCount}", productExcels.Count);
-
-                // Broad search for ANY product linking to this Battle Pass ID
-                var potentialMatches = productExcels.Where(x => x.ParcelId.Contains(bp.BattlePassId)).ToList();
-                _logger.LogDebug("[AccountHandler] Debugging: Found {MatchCount} products touching BattlePassId {BattlePassId}", potentialMatches.Count, bp.BattlePassId);
-
-                foreach(var p in potentialMatches)
-                {
-                    for(int i=0; i<p.ParcelId.Count; i++)
-                    {
-                        if(p.ParcelId[i] == bp.BattlePassId)
-                        {
-                            _logger.LogDebug("[AccountHandler] CANDIDATE: ProductId={ProductId}, Name={ProductName}, Type={ParcelTypeInt} ({ParcelType})",
-                                p.Id, p.ProductId, (int)p.ParcelType[i], p.ParcelType[i]);
-                        }
-                    }
-                }
-
-                // Debugging removed to fix build error and focus on Mission Rewards
-                // --- DEBUGGING LOGIC REMOVED ---
-
-                // Fallback: Try to find specifically ProductBattlePass (28)
+                // A battle pass is sold through a ProductExcel row carrying a ProductBattlePass (28)
+                // parcel; the parcel id at that slot is the BattlePassId.
                 var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
-                
-                ProductExcelT product = null;
-                
-                // Find product where the linked BattlePassId matches our current BP ID
-                product = battlePassProducts.FirstOrDefault(x => {
+
+                ProductExcelT product = battlePassProducts.FirstOrDefault(x => {
                     var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
                     return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
                 });
 
                 if (product != null)
                 {
-                    var shopCash = _excelService.GetTable<ShopCashExcelT>().FirstOrDefault(x => x.CashProductId == product.Id);
+                    var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
                     if (shopCash != null)
                     {
                         battlePassProductList.Add(new BattlePassProductPurchaseDB
@@ -541,7 +517,7 @@ public class AccountHandler : ProtocolHandlerBase
 
         response.StaticOpenConditions = BuildOfficialStaticOpenConditions();
 
-        // Official LoginSync children carry only their own payload + Protocol — no per-child
+        // Official LoginSync children carry only their own payload + Protocol - no per-child
         // ServerTimeTicks/SessionKey/notification fields. Zero the tick so the serializer drops it.
         foreach (var property in typeof(AccountLoginSyncResponse).GetProperties())
         {
@@ -647,7 +623,7 @@ public class AccountHandler : ProtocolHandlerBase
             .Where(r => r.Level <= account.Level && !claimedIds.Contains(r.Id))
             .ToList();
 
-        // Grant the excel parcels BEFORE marking the ids consumed; the old order marked them
+        // Grant the excel parcels BEFORE marking the ids consumed; the reverse order marks them
         // claimed while granting nothing, permanently losing the rewards for the account.
         var parcels = availableRewards
             .Select(r => new ParcelResult(r.RewardParcelType, r.RewardParcelId, r.RewardParcelAmount))

@@ -7,17 +7,14 @@ using Schale.FlatData;
 
 namespace Shittim_Server.Services
 {
-    // The "View All Recruitments" banner list is built entirely client-side from the client's
-    // encrypted ExcelDB.db (the server never serves it). Some recruitment rows are active but
-    // have an empty GachaBannerPath, so the client draws a blank, still-selectable banner (and
-    // the empty slot pushes the real banners into a gap). That's confusing — you can pick a
-    // banner you can't see.
+    // The "View All Recruitments" list is built client-side from the client's encrypted ExcelDB.db;
+    // the server never serves it. Active recruitment rows with an empty GachaBannerPath draw as a
+    // blank but still selectable banner, and the empty slot pushes the real ones into a gap.
     //
-    // This service fixes that at the source: at startup it opens the client's ExcelDB.db
-    // (SQLCipher, same key ExcelTableService reads with), and for every recruitment row whose
-    // GachaBannerPath is empty it fills in the art of the most closely-related banner (longest
-    // shared Id prefix = same event/family), so the banner renders instead of showing blank.
-    // Same idea as ClientMetadataPatchService patching global-metadata.dat in the install tree.
+    // So this patches the source: at startup it opens ExcelDB.db (SQLCipher, same key
+    // ExcelTableService uses) and fills each empty GachaBannerPath with the art of the most closely
+    // related banner - longest shared Id prefix, meaning the same event family. Same approach as
+    // ClientMetadataPatchService patching global-metadata.dat in the install tree.
     public class ClientExcelBannerPatchService : IHostedService
     {
         private const string SchemaTable = "ShopRecruitDBSchema";
@@ -202,7 +199,7 @@ namespace Shittim_Server.Services
                 }
             }
 
-            // Locate the game across any Steam library on the machine, not just F:\.
+            // Any Steam library can hold the install.
             var located = SteamGameLocator.FindGameFile(relative);
             if (!string.IsNullOrWhiteSpace(located))
                 return located;

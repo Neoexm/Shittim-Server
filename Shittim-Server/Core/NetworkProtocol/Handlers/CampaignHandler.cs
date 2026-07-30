@@ -212,7 +212,7 @@ public class CampaignHandler : ProtocolHandlerBase
         var parcelResultDb = await _campaignManager.CampaignRetreat(db, account, request.StageUniqueId);
 
         // Retreating ends the run. Leaving the save open would have ContentSave_Get keep offering it
-        // back — the client treats anything it gets from there as a mission still in progress.
+        // back - the client treats anything it gets from there as a mission still in progress.
         await _concentrateCampaignManager.CloseConcentrateCampaigns(db, account, request.StageUniqueId);
 
         response.ParcelResultDB = parcelResultDb;

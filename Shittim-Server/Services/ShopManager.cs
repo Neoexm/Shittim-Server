@@ -323,7 +323,7 @@ public class ShopManager
     /// Loads (or creates) the account's purchase counter for a shop, rolls it over if its reset
     /// window has passed, and rejects the purchase when it would exceed the shop's
     /// PurchaseCountLimit. Returns the tracked row so the caller can increment it after the
-    /// consume/reward succeeds. The row is added to the context but not saved — the caller's
+    /// consume/reward succeeds. The row is added to the context but not saved - the caller's
     /// SaveChangesAsync commits the counter together with the parcels it paid for.
     /// </summary>
     public static async Task<ShopPurchaseHistoryDBServer> EnsurePurchasable(

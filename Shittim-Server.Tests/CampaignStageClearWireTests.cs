@@ -13,27 +13,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins the stage clear on Campaign_TacticResult (6008) against the official capture of a full
-/// chapter-11 mission (captures/NetworkLog official.txt, four tactic results, the fourth clearing).
-///
-/// Killing the last enemy on the hex map *is* the stage clear — there is no protocol for it, and
-/// after that response official's client sends Campaign_List and goes back to the lobby. The one
-/// and only signal is a single EndBattle entry in the response's DisplayInfos. We sent an empty
-/// DisplayInfos on every tactic result, so the boss died, the map emptied, and the mission never
-/// ended: the player was left on the cleared map with End Turn as the only thing to press.
-///
-/// The contract, read off line 529 of the capture:
-///
-///  * DisplayInfos holds exactly one entry, and that entry has exactly three keys — Type (1,
-///    EndBattle), Parameter (1) and StageRewardInfo. EntityId, UniqueId and Location stay at their
-///    defaults and are dropped by DefaultValueHandling.Ignore.
-///  * StageRewardInfo carries six keys in order: FirstClearReward, ThreeStarReward,
-///    StrategyObjectRewards, ParcelResultDB, EventContentBonusReward, CampaignStageHistoryDB.
-///  * The nested reward fields are byte-identical to the response's own top-level copies.
-///  * EnemyInfos, which every earlier response carries, is absent once the map is empty.
-///  * The three non-clearing results carry no DisplayInfos at all.
-/// </summary>
 public class CampaignStageClearWireTests
 {
     private static JObject Wire(CampaignTacticResultResponse response) =>
@@ -156,8 +135,8 @@ public class CampaignStageClearWireTests
     [Fact]
     public void TheRewardsTheStageAdvertisesActuallyRideOnTheResponse()
     {
-        // Both fields went out as empty lists on every response before this — no handler anywhere
-        // computed a campaign clear reward, so a stage paid nothing for a first clear or three stars.
+        // Empty lists here are what a stage paying nothing for its first clear or three stars looks
+        // like on the wire, and the clear screen renders straight off these two fields.
         var json = Wire(ClearResponse());
 
         Assert.Equal(101005, (long)json["FirstClearReward"]![0]!["Key"]!["Id"]!);
@@ -212,7 +191,7 @@ public class CampaignStageClearWireTests
     public void TheClearingResponseCarriesTheFiredEventInTheActivationHistory()
     {
         // Official's history goes {"0":[0],"1":[0],"3":[0]} on the last EndTurn (capture line 517) to
-        // {"0":[0],"1":[0],"3":[0],"2":[0]} on the clearing TacticResult (line 529) — event 2 being
+        // {"0":[0],"1":[0],"3":[0],"2":[0]} on the clearing TacticResult (line 529) - event 2 being
         // EndBattle_Win. Appending it is what stops a replayed 6008 firing the clear twice.
         var save = ClearedSave();
         save.ActivatedHexaEventsAndConditions = new Dictionary<long, List<long>>
@@ -240,7 +219,7 @@ public class CampaignStageClearWireTests
     public void AClearWithEnemiesStillOnTheMapStillReportsThem()
     {
         // The clear is the map's boss-death event, so a stage can and usually does end with mobs
-        // alive — on 321 of 321 dumped maps the boss is a strict subset of the roster. EnemyInfos and
+        // alive - on 321 of 321 dumped maps the boss is a strict subset of the roster. EnemyInfos and
         // the EndBattle entry are independent: reporting survivors must not suppress the clear.
         var save = ClearedSave();
         save.EnemyInfos = new Dictionary<long, HexaUnit> { [10027] = new() { EntityId = 10027 } };
@@ -260,7 +239,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void ParameterComesFromTheMapsEndBattleTypeRatherThanAConstant()
     {
-        // No official sample of a Lose exists — none of the 321 dumps carries one — so this pins the
+        // No official sample of a Lose exists - none of the 321 dumps carries one - so this pins the
         // plumbing, not the capture: whatever HexaCommandEndBattle.EndBattleType says reaches the wire.
         var json = Wire(new CampaignTacticResultResponse
         {
@@ -274,7 +253,7 @@ public class CampaignStageClearWireTests
     [Fact]
     public void ANoneEndBattleTypeStillReportsAWin()
     {
-        // None serializes as 0, which DefaultValueHandling.Ignore drops entirely — and an absent
+        // None serializes as 0, which DefaultValueHandling.Ignore drops entirely - and an absent
         // Parameter reads as a loss, so a victory would show the retreat screen. Coerce instead.
         var json = Wire(new CampaignTacticResultResponse
         {

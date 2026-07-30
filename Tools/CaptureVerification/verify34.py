@@ -70,7 +70,7 @@ def login() -> dict:
     return session
 
 
-# ---- DB helpers (the reward has no dedicated column; the delivered mail IS the record) ---------
+# DB helpers (the reward has no dedicated column; the delivered mail IS the record)
 
 def db():
     return sqlite3.connect(DB)
@@ -83,8 +83,7 @@ def reset_boundary(now: datetime.datetime) -> datetime.datetime:
 
 def clean(acct: int):
     c = db()
-    # EF Core stores SQLite DateTimes as TEXT with a space separator, and compares them as strings;
-    # an ISO 'T' here sorts above every same-day time and silently matches nothing.
+    # EF stores DateTimes as TEXT with a space separator; strftime matches that, ISO 'T' doesn't.
     boundary = reset_boundary(datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
     n = c.execute("delete from Mails where AccountServerId=? and Type=11 and SendDate>=?",
                   (acct, boundary)).rowcount
@@ -116,7 +115,7 @@ def clan_mails(acct: int):
         "order by ServerId", (acct,)).fetchall()
 
 
-# ---- probes ------------------------------------------------------------------------------------
+# probes
 
 FAILURES = []
 

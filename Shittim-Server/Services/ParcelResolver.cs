@@ -245,7 +245,7 @@ public class ParcelResolver
         ParcelResult.NewbieBoostAccountExp += isLevelMaxed ? 0 : newbieExp;
 
         // Account exp is a parcel like any other on official's wire: it shows up in ParcelForMission
-        // as {Type:9, Id:1}. BuildParcel is what keeps it out of DisplaySequence — the exp bars are
+        // as {Type:9, Id:1}. BuildParcel is what keeps it out of DisplaySequence - the exp bars are
         // drawn from the Base/Additional/NewbieBoost fields above, not from the reward strip.
         CreateParcelInfo(parcel);
     }
@@ -485,7 +485,7 @@ public class ParcelResolver
         // Official includes AccountDB in a ParcelResultDB only when the reward changed the account
         // row itself. Every captured reward claim (Mail_Receive x1, Mission_MultipleReward x2)
         // granted currency/items and carried no AccountDB, so mirror that by asking the change
-        // tracker — this must happen before SaveChanges, while the entity is still Modified.
+        // tracker - this must happen before SaveChanges, while the entity is still Modified.
         // Scan the tracker rather than calling Context.Entry(Account): the account is frequently
         // loaded on a different context, and Entry() would attach it here (throwing if this
         // context already tracks the same row).

@@ -15,12 +15,11 @@ namespace Shittim_Server.Services
         // the 50001 gateway handshake with this key, so replacing it with the private server's own key
         // is what lets the gateway decode the handshake.
         //
-        // We locate these three byte runs by CONTENT (an AOB / pattern scan) rather than by fixed file
-        // offsets. The offsets move every time the client is rebuilt — e.g. build 439170 shifted all
-        // three by +0x49B0 — and the previous implementation wrote blindly at the stale offsets, which
-        // would corrupt whatever IL2CPP metadata now lived there and hang the client at "Unpacking game
-        // resources". Scanning for the key is stable across updates and, crucially, fails safe: if the
-        // pattern cannot be found the service leaves the file untouched instead of guessing.
+        // The three byte runs are located by content (an AOB scan), not by fixed file offsets, because
+        // the offsets move every time the client is rebuilt - build 439170 shifted all three by +0x49B0.
+        // Writing at a stale offset corrupts whatever IL2CPP metadata now lives there and hangs the
+        // client at "Unpacking game resources". A scan also fails safe: no match means the file is left
+        // untouched rather than patched on a guess.
         private const string OfficialGatewayPublicKeyPem =
             "-----BEGIN PUBLIC KEY-----\n" +
             "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtgS2BXLKIrI8OFIZi3ge\n" +

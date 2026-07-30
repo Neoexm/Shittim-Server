@@ -5,16 +5,10 @@ using System.Threading.Channels;
 namespace Shittim.Utils
 {
     /// <summary>
-    /// A <see cref="TextWriter"/> wrapper that enqueues all writes onto a
-    /// bounded channel and drains them on a single background thread.
-    ///
-    /// This ensures that <c>Console.WriteLine</c> from any ASP.NET
-    /// request-handling thread returns almost immediately – even when the
-    /// underlying console handle or pipe is slow or temporarily blocked
-    /// (e.g. pipe buffer full, or a consumer that is lagging behind).
-    ///
-    /// If the channel reaches capacity the oldest entries are dropped so
-    /// that the calling thread is **never** blocked.
+    /// <see cref="TextWriter"/> wrapper that enqueues writes onto a bounded channel and drains
+    /// them on a single background thread, so <c>Console.WriteLine</c> from an ASP.NET request
+    /// thread returns immediately even when the console handle or pipe is slow or blocked.
+    /// At capacity the oldest entries are dropped rather than blocking the caller.
     /// </summary>
     public sealed class AsyncConsoleWriter : TextWriter
     {
@@ -45,7 +39,7 @@ namespace Shittim.Utils
 
         public override Encoding Encoding => _inner.Encoding;
 
-        // ── TextWriter overrides ───────────────────────────────────────
+        // TextWriter overrides
 
         public override void Write(char value)
         {
@@ -70,17 +64,17 @@ namespace Shittim.Utils
 
         public override void Flush()
         {
-            // No-op – the background thread flushes continuously.
+            // No-op - the background thread flushes continuously.
         }
 
-        // ── Background drain ───────────────────────────────────────────
+        // Background drain
 
         private void DrainLoop()
         {
             try
             {
                 var reader = _channel.Reader;
-                // Synchronous blocking read – fine on a dedicated thread.
+                // Synchronous blocking read - fine on a dedicated thread.
                 while (reader.WaitToReadAsync().AsTask().GetAwaiter().GetResult())
                 {
                     while (reader.TryRead(out var text))
@@ -107,7 +101,7 @@ namespace Shittim.Utils
             }
             catch
             {
-                // Channel completed or unexpected error – stop draining.
+                // Channel completed or unexpected error - stop draining.
             }
         }
 

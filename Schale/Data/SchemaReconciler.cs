@@ -5,17 +5,15 @@ namespace Schale.Data
 {
     /// <summary>
     /// Brings an existing SQLite database up to date with the EF model without migrations.
+    /// <c>EnsureCreated()</c> builds the full schema for a brand-new database and then does nothing
+    /// for one that already exists, so a new entity needs a hand-written
+    /// <c>CREATE TABLE IF NOT EXISTS</c> and a new column on an existing entity has no escape hatch
+    /// at all - it goes missing and every read of it fails at runtime.
     ///
-    /// The server uses <c>EnsureCreated()</c>, which builds the full schema for a brand-new
-    /// database and then does nothing at all for one that already exists. Every entity added after
-    /// a player's database was first created therefore needed a hand-written
-    /// <c>CREATE TABLE IF NOT EXISTS</c>, and — worse — a new *column* on an existing entity had no
-    /// equivalent escape hatch: it simply went missing and every read of it failed at runtime.
-    ///
-    /// This walks the model instead: missing tables are created from EF's own generated script, and
-    /// missing columns are added with <c>ALTER TABLE ... ADD COLUMN</c>. It is idempotent, so it can
-    /// run on every startup. Column *type* changes, drops and renames are out of scope — SQLite
-    /// cannot do them in place, and they need a considered data migration rather than a guess.
+    /// This walks the model instead: missing tables come from EF's own generated script, missing
+    /// columns from <c>ALTER TABLE ... ADD COLUMN</c>. Idempotent, so it runs on every startup.
+    /// Type changes, drops and renames are out of scope - SQLite cannot do them in place and they
+    /// need a considered data migration.
     /// </summary>
     public static class SchemaReconciler
     {
@@ -55,7 +53,7 @@ namespace Schale.Data
                 // Column names have to be resolved against this specific table, not taken from the
                 // property's default name. Owned entities (OwnsOne) are separate entity types that
                 // share the owner's table via table splitting, and their columns carry the navigation
-                // as a prefix — WorldBossDB.HP is stored as "WorldBossDB_HP". The parameterless
+                // as a prefix - WorldBossDB.HP is stored as "WorldBossDB_HP". The parameterless
                 // GetColumnName() returns the unprefixed default, which reads as a missing column and
                 // would have had the reconciler try to ALTER TABLE ADD a column that already exists.
                 var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());

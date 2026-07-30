@@ -216,7 +216,7 @@ public class EventContentHandler : ProtocolHandlerBase
             Seed = account.ServerId * 1_000_003 + request.EventContentId
         };
 
-        // Remaining element count per group for round 1 — an empty dict means "box exhausted".
+        // Remaining element count per group for round 1 - an empty dict means "box exhausted".
         response.BoxGachaGroupIdByCount = _excelService.GetTable<EventContentBoxGachaShopExcelT>()
             .Where(x => x.EventContentId == request.EventContentId && x.Round == 1)
             .GroupBy(x => x.GroupId)

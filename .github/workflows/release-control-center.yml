@@ -9,10 +9,10 @@ name: Release Control Center
 # Usage:
 #   1. Bump "version" in ShittimControlCenter/package.json and commit/push it
 #      (electron-updater compares this semver to decide an update is available;
-#      use valid semver — no leading zeros, e.g. 2026.7.28 not 2026.07.28).
+#      use valid semver - no leading zeros, e.g. 2026.7.28 not 2026.07.28).
 #   2. Actions tab -> "Release Control Center" -> Run workflow.
 #   3. The release goes LIVE immediately when the workflow finishes
-#      (publish.releaseType is "release", not electron-builder's draft default) —
+#      (publish.releaseType is "release", not electron-builder's draft default) -
 #      installed apps will start picking it up on their next launch, so only run
 #      this on a commit you're happy to ship.
 #

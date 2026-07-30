@@ -10,27 +10,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins Campaign_MapMove (6005) against the official capture of a full chapter-11 mission
-/// (captures/NetworkLog official.txt, ten moves across five turns).
-///
-/// Moving an echelon used to change nothing but the animation: the handler appended a MoveUnit entry
-/// to DisplayInfos and left Location, MovementOrder and ActionCount alone. The client walked the unit
-/// to the tile, then the next response re-asserted EchelonInfos with the original position and it
-/// snapped back — the move was never registered, and DisplayInfos grew by one stale entry per move so
-/// every later response replayed the whole run.
-///
-/// The contract these hold to, read off the capture:
-///
-///  * The response reports the mover as it stood *before* the step. Echelon 1 answers its own move to
-///    {-1,2,-1} still sitting at {-2,2,0} and only appears on the new tile in the following response.
-///    The DisplayInfos entry is what walks it there.
-///  * DisplayInfos carries the current step only, never an accumulation.
-///  * MovementOrder is one counter shared by the whole force — deploy hands out 1 and 2, then each
-///    move takes the next value. A tactic does not consume one.
-///  * ActionCount goes 1 -> 0 on a move and is restored at the start of each player phase.
-///  * EchelonEntityId rides on the response, echoing the request.
-/// </summary>
 public class CampaignMapMoveWireTests
 {
     private static JObject Wire(CampaignMapMoveResponse response) =>

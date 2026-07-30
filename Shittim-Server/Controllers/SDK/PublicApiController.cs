@@ -44,14 +44,13 @@ namespace Shittim_Server.Controllers.SDK
         {
             try
             {
-                using var lease = _handlerManager.GetHandlerLease(Protocol.Account_Auth);
-                if (!lease.IsValid)
+                if (!_handlerManager.IsImplemented(Protocol.Account_Auth))
                 {
                     _logger.LogError("Account_Auth handler not found");
                     return StatusCode(500, new { error = "Handler not found" });
                 }
 
-                var response = await lease.Handler.Handle(request);
+                var response = await _handlerManager.Dispatch(Protocol.Account_Auth, request);
                 if (response == null)
                 {
                     return StatusCode(500, new { error = "Handler returned null" });
@@ -71,14 +70,13 @@ namespace Shittim_Server.Controllers.SDK
         {
             try
             {
-                using var lease = _handlerManager.GetHandlerLease(Protocol.Account_Create);
-                if (!lease.IsValid)
+                if (!_handlerManager.IsImplemented(Protocol.Account_Create))
                 {
                     _logger.LogError("Account_Create handler not found");
                     return StatusCode(500, new { error = "Handler not found" });
                 }
 
-                var response = await lease.Handler.Handle(request);
+                var response = await _handlerManager.Dispatch(Protocol.Account_Create, request);
                 if (response == null)
                 {
                     return StatusCode(500, new { error = "Handler returned null" });

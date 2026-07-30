@@ -704,7 +704,7 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Error; }
         // Log-only: official error packets are exactly Protocol/ErrorCode/ServerTimeTicks (seen on
-        // the captured ShopCannotPurchaseActionPointLimitOver rejection) — no reason text on the wire.
+        // the captured ShopCannotPurchaseActionPointLimitOver rejection) - no reason text on the wire.
         [Newtonsoft.Json.JsonIgnore]
         public string? Reason { get; set; }
         public WebAPIErrorCode ErrorCode { get; set; }

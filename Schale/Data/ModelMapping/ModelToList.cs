@@ -7,7 +7,7 @@ namespace Schale.Data.ModelMapping
 {
     public static class ModelToList
     {
-        // --- Specific Collection Mapping Extensions (for IQueryable/Enumerable sources to Lists/Enumerables) ---
+        // Specific Collection Mapping Extensions (for IQueryable/Enumerable sources to Lists/Enumerables)
         // These methods materialize the IQueryable into memory before mapping.
 
         //

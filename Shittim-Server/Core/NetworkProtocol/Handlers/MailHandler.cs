@@ -74,7 +74,7 @@ public class MailHandler : ProtocolHandlerBase
     }
 
     // Official Mail_List is a SendDate-ordered window: newest first for IsDescending (the only
-    // direction the client has been seen to send), and PivotTime bounds the page inclusively —
+    // direction the client has been seen to send), and PivotTime bounds the page inclusively -
     // the follow-up call passes the last row's SendDate and official returns that row again
     // (capture 2026-07-28: page 1 = 22:03:12/22:03:00/22:02:53, page 2 with pivot 22:02:53 =
     // the 22:02:53 row). The first page's pivot is the 9999-12-31 sentinel, which bounds nothing.
@@ -82,11 +82,11 @@ public class MailHandler : ProtocolHandlerBase
         List<MailDBServer> mails, DateTime pivotTime, bool isDescending)
     {
         // The first-page sentinel (9999-12-31, or an unset pivot) bounds nothing in either
-        // direction — only a real timestamp from a previous page's last row narrows the window.
+        // direction - only a real timestamp from a previous page's last row narrows the window.
         var unbounded = pivotTime == default || pivotTime.Year >= 9999;
 
         // The pivot is a SendDate the client echoes back from a previous page, and the wire
-        // truncates to whole seconds while rows are stored with sub-second precision — compare
+        // truncates to whole seconds while rows are stored with sub-second precision - compare
         // at second granularity or the pivot row excludes itself.
         var pivot = TruncateToSecond(pivotTime);
 
@@ -121,7 +121,7 @@ public class MailHandler : ProtocolHandlerBase
         {
             // Every mail type delivers its attachments, not just MailType.System (0). Official
             // granted the rewards on ClanAttendance (11) and ExpiryChangeItem (10) mail in the
-            // captures, and this server's own seeder writes NewUserBonus (13) — all of which the
+            // captures, and this server's own seeder writes NewUserBonus (13) - all of which the
             // old `Type == System` gate dropped on the floor while still deleting the mail, so the
             // attachments vanished and ParcelResultDB came back with nothing but AccountCurrencyDB.
             if (mail.ParcelInfos != null)
@@ -147,7 +147,7 @@ public class MailHandler : ProtocolHandlerBase
     }
 
     // Semi-permanent mailbox (second mail tab: monthly product / battle pass recurring rewards).
-    // This server never seeds semi-permanent mail, so the box is always empty — but the client
+    // This server never seeds semi-permanent mail, so the box is always empty - but the client
     // queries it right after clearing the normal box, and an unhandled protocol there throws the
     // user back to the title screen with "server failed to process request".
     [ProtocolHandler(Protocol.Mail_ListSemiPermanent)]

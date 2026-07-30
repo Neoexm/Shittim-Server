@@ -57,7 +57,7 @@ namespace Shittim_Server.Services
 
                 if (File.Exists(resolvedPath) && File.Exists(bakPath))
                 {
-                    // Both exist — check if current dll is already the stub (small size)
+                    // Both exist - check if current dll is already the stub (small size)
                     var currentSize = new FileInfo(resolvedPath).Length;
                     var stubSize = new FileInfo(stubPath).Length;
                     if (currentSize == stubSize)
@@ -78,7 +78,7 @@ namespace Shittim_Server.Services
 
                 if (!File.Exists(resolvedPath))
                 {
-                    // No real dll, no bak — just deploy stub
+                    // No real dll, no bak - just deploy stub
                     File.Copy(stubPath, resolvedPath);
                     didSwap = true;
                     logger.LogInformation("Deployed grap64.dll stub (no original found): {Path}", resolvedPath);
@@ -90,7 +90,7 @@ namespace Shittim_Server.Services
                 File.Copy(stubPath, resolvedPath);
                 didSwap = true;
                 logger.LogInformation(
-                    "Swapped grap64.dll: real → {BakPath}, stub → {Path}",
+                    "Swapped grap64.dll: real -> {BakPath}, stub -> {Path}",
                     bakPath, resolvedPath);
             }
             catch (Exception ex)
@@ -163,8 +163,7 @@ namespace Shittim_Server.Services
                     return candidate;
             }
 
-            // Locate the game across any Steam library on the machine, not just F:\
-            // or Program Files.
+            // The game can be in any Steam library, not just F:\ or Program Files.
             var located = SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "grap64.dll"));
             if (!string.IsNullOrWhiteSpace(located) && (File.Exists(located) || File.Exists(located + ".bak")))
                 return located;

@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.11" />
     <!-- Sqlite.Core rather than Sqlite: the full package bundles the e_sqlite3 native provider,
          which the server does not want. SqliteProvider.Initialize sets e_sqlcipher and calls
-         FreezeProvider, so the bundled one was overridden at startup anyway — it only served to
+         FreezeProvider, so the bundled one was overridden at startup anyway - it only served to
          pull SQLitePCLRaw.lib.e_sqlite3 2.1.6 (GHSA-2m69-gcr7-jv3q) into the graph. The provider
          now comes solely from the server's SQLitePCLRaw.bundle_e_sqlcipher reference. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="8.0.11" />

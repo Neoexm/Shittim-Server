@@ -163,19 +163,15 @@ public class BattlePassHandler : ProtocolHandlerBase
         if (battlePass == null)
             throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
 
-        // Logic for buying levels
-        // Simplifying: Increment level, assume checking currency is done or simplified (deduct if needed using ParcelHandler)
-        // Ignoring cost for now as per "unblock user" priority, or we can look up cost in Excel if critical.
-        // Usually PassLvUpGoodsID is the currency (e.g. Pyroxene) and amount is needed per level.
-        
+        // Levels are granted free. Cost (PassLvUpGoodsID / amount per level from
+        // BattlePassLevelExcel) is not charged, and the level is not capped against the excel max.
         battlePass.PassLevel += request.BattlePassBuyLevelCount;
-        // Cap level if needed (check BattlePassLevelExcel max level)
-        
+
         await db.SaveChangesAsync();
 
         response.BattlePassInfo = battlePass;
-        
-        // Populate AccountCurrencyDB if changed (it's not changed here, but good practice to return current state)
+
+        // Client syncs currency off this response, so echo the current state back.
         var currency = await db.Currencies.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId);
         if (currency != null)
         {

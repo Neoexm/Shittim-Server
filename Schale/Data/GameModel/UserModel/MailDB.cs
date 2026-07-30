@@ -38,7 +38,7 @@ namespace Schale.Data.GameModel
 
         /// <summary>
         /// The mailbox as the client sees it: unclaimed and not past its expiry. Official's
-        /// Mail_Check count and Mail_List contents both cover exactly this set — the count drops
+        /// Mail_Check count and Mail_List contents both cover exactly this set - the count drops
         /// to 0 (omitted) and MailDBs disappears once the mail is claimed.
         /// </summary>
         public static IQueryable<MailDBServer> GetAccountMailbox(this SchaleDataContext context, long accountId, DateTime now)

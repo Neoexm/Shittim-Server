@@ -174,7 +174,7 @@ namespace Shittim_Server.Services
 
         // Advances EVERY event mission whose condition parameters contain the cleared stage (not
         // just the post-event extension-time variant), and marks them Complete when the condition
-        // count is met — without Complete the client never unlocks the next quest in the chain.
+        // count is met - without Complete the client never unlocks the next quest in the chain.
         private async Task<Dictionary<long, List<MissionProgressDB>>> ProgressEventMissions(
             SchaleDataContext context,
             AccountDBServer account,

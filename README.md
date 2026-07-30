@@ -2,7 +2,7 @@
 
 A functional Blue Archive private server implemented in C# on ASP.NET Core (.NET 10).
 
-Official Discord — https://discord.gg/GANwPn9xX6
+Official Discord - https://discord.gg/GANwPn9xX6
 
 ## What it does
 
@@ -19,7 +19,7 @@ Official Discord — https://discord.gg/GANwPn9xX6
 
 ## Quick start
 
-1. Install the mitmproxy root certificate — once per machine, see [One-time setup](#one-time-setup).
+1. Install the mitmproxy root certificate - once per machine, see [One-time setup](#one-time-setup).
 2. From the repository root, run the launcher:
 
    ```powershell
@@ -64,7 +64,7 @@ You only need to do this once per machine.
 
 7. When asked _"Store Location"_, choose **Local Machine** (not _Current User_), then click **Next**.
 
-8. Select **"Place all certificates in the following store"**, click **Browse…**, and choose:
+8. Select **"Place all certificates in the following store"**, click **Browse...**, and choose:
 
    - **Trusted Root Certification Authorities**
 

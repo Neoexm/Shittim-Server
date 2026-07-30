@@ -91,8 +91,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
                 LastUpdateDate = account.GameSettings.ServerDateTime()
             };
             db.MomoTalkOutLines.Add(momotalkOutline);
-            // Save immediately or let the bottom SaveChanges call handle it?
-            // Better to let bottom handle it so we bundle.
+            // Not saved here - the SaveChanges at the end of the handler bundles it.
         }
 
         // Logic to determine the NEXT message group
@@ -133,33 +132,21 @@ public class MomoTalkHandler : ProtocolHandlerBase
         }
         else
         {
-            // Just reading through, find the current group info
-            // We need to find any message in this group to get the NextGroupId
-            // (Assuming all messages in a group point to the same next group, or we take the last one)
+            // No choice made, so the next group comes from the group being read.
             var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
             if (currentGroupMessages.Count != 0)
             {
-                // Take the one that actually has a NextGroupId (transition point)
+                // The transition is carried by whichever message points somewhere other than its
+                // own group. If none does, fall back to the first message's NextGroupId.
                 var transitionMessage = currentGroupMessages.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
-                
-                // Fallback: just take the first one's NextGroupId not equal to itself? 
-                // Or simply the first one if the structure is simple.
-                // In generic flatbuffers, usually the "Last" message in a chain has the NextGroupId.
-                // But since we query by GroupId, they likely share it or only the last one has it.
-                if (transitionMessage != null)
-                {
-                    nextGroupId = transitionMessage.NextGroupId;
-                }
-                else
-                {
-                    // Maybe it's a linear chain where NextGroupId is on all of them?
-                    nextGroupId = currentGroupMessages.FirstOrDefault()?.NextGroupId ?? 0;
-                }
+                nextGroupId = transitionMessage != null
+                    ? transitionMessage.NextGroupId
+                    : currentGroupMessages[0].NextGroupId;
             }
         }
 
         // A FavorRankUp-gated group only opens once the student's relationship rank reaches the
-        // condition value; advancing past it regardless handed every story out at rank 1.
+        // condition value; advancing past it regardless hands every story out at rank 1.
         if (nextGroupId > 0)
         {
             var nextGroupEntry = _academyMessengers

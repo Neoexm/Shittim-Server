@@ -11,18 +11,15 @@ namespace BlueArchiveAPI.Services
     {
         private readonly ConcurrentDictionary<Type, object> caches = [];
 
-        // TableEncryptionService.UseEncryption is a global static that selects XOR-decryption of every
-        // string and numeric field, and it is read *per field* deep inside the generated UnPackTo
-        // methods — not once up front. The two branches below set it to opposite values, and
-        // ConcurrentDictionary.GetOrAdd does not serialize factories for different keys, so two
-        // requests loading different tables for the first time could each flip the flag out from under
-        // the other's in-flight unpack. The result was silently garbled rows (swallowed by the
-        // row-level catch) that varied run to run. Both branches are genuinely live — .bytes files and
-        // ExcelDB.db coexist in Resources/Dumped — so this is reachable, not theoretical.
-        //
-        // The flag cannot be threaded through as a parameter without regenerating several hundred
-        // FlatData files, so loads are serialized instead. This only ever contends on the very first
-        // load of each table; every subsequent call is served by the lock-free TryGetValue above.
+        // TableEncryptionService.UseEncryption is a global static selecting XOR-decryption of every
+        // string and numeric field, read per field deep inside the generated UnPackTo methods rather
+        // than once up front. The two branches below set it to opposite values and
+        // ConcurrentDictionary.GetOrAdd does not serialize factories across keys, so two first-time
+        // loads of different tables can flip the flag out from under each other's in-flight unpack and
+        // produce garbled rows that the row-level catch swallows. Both branches are live - .bytes files
+        // and ExcelDB.db coexist in Resources/Dumped. Threading the flag through as a parameter means
+        // regenerating several hundred FlatData files, so loads are serialized instead; this contends
+        // only on the first load of each table, every later call hits the lock-free TryGetValue above.
         private static readonly object loadLock = new();
 
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
@@ -231,7 +228,7 @@ namespace BlueArchiveAPI.Services
         // (overridable per-machine via the SHITTIM_EXCELDB_SQLCIPHER_KEY environment variable). The
         // same value is handed to the client in QueuingHandler.GetSqlCipherKeyBytes, so both the server
         // and the client decrypt the CDN's ExcelDB.db with an identical key. There is intentionally no
-        // hard-coded fallback here — a missing key is a configuration error, not something to paper over.
+        // hard-coded fallback here - a missing key is a configuration error, not something to paper over.
         private static string GetExcelDbSqlCipherKey()
         {
             var key = Environment.GetEnvironmentVariable("SHITTIM_EXCELDB_SQLCIPHER_KEY");

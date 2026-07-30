@@ -41,11 +41,11 @@ namespace BlueArchiveAPI.Configuration
             if (File.Exists(otherTxtPath)) File.Delete(otherTxtPath);
             if (File.Exists(txtPath) && File.ReadAllText(txtPath) == expected)
             {
-                Log.Information($"{typeLabel} resources are already being processed…");
+                Log.Information($"{typeLabel} resources are already being processed...");
                 return;
             }
 
-            Log.Information($"{typeLabel} resources does not matched; deleting old resources…");
+            Log.Information($"{typeLabel} resources does not matched; deleting old resources...");
             if (Directory.Exists(DumpedDir))
                 Directory.Delete(DumpedDir, recursive: true);
 

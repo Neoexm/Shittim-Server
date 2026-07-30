@@ -241,8 +241,7 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(configuredPath))
                 return configuredPath;
 
-            // Locate the game across any Steam library on the machine, not just F:\
-            // or Program Files.
+            // Search every Steam library for the install rather than assuming F:\.
             var located = SteamGameLocator.FindGameFile("nxinface.enconfig.json");
             if (!string.IsNullOrWhiteSpace(located))
                 return located;

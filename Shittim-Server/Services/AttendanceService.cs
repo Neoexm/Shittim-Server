@@ -11,20 +11,16 @@ using Schale.MX.NetworkProtocol;
 namespace Shittim_Server.Services;
 
 /// <summary>
-/// Attendance books ("stamp cards"), built to the official wire model reconstructed from the
-/// captures:
-/// <list type="bullet">
-/// <item>Account_Auth carries AttendanceBookRewards = the full definitions of every open book
-/// that still has a claimable day today, and [] once everything is claimed (pre-claim login at
-/// 04:12 shows both books; logins later the same game day show []). AttendanceHistoryDBs is
-/// always the account's full history.</item>
-/// <item>Attendance_Reward's response repeats just the claimed book's definition plus that
-/// book's updated history row, and carries no ParcelResultDB — the reward arrives as mail
-/// (Type 1, UniqueId = the book id, sender UI_MAILBOX_POST_SENDER_ARONA, comment
-/// UI_MAILBOX_ATTENDANCE_REWARD_MESSAGE_NORMAL, expiry send+7d), which is why the response
-/// reads ServerNotification 12 and the next Mail_Check reports-and-consumes bit 4.</item>
-/// <item>History rows on the wire carry only ServerId / AttendanceBookUniqueId / AttendedDay.</item>
-/// </list>
+/// Attendance books ("stamp cards"), built to the wire model reconstructed from the captures.
+/// Account_Auth carries AttendanceBookRewards as the full definitions of every open book with a
+/// claimable day left today, and [] once everything is claimed - the pre-claim login at 04:12 shows
+/// both books, later logins the same game day show none - while AttendanceHistoryDBs is always the
+/// account's full history. Attendance_Reward repeats just the claimed book's definition plus its
+/// updated history row and carries no ParcelResultDB, because the reward arrives as mail (Type 1,
+/// UniqueId = book id, sender UI_MAILBOX_POST_SENDER_ARONA, comment
+/// UI_MAILBOX_ATTENDANCE_REWARD_MESSAGE_NORMAL, expiry send+7d); hence ServerNotification 12 on the
+/// response and bit 4 consumed by the next Mail_Check. History rows on the wire carry only ServerId,
+/// AttendanceBookUniqueId and AttendedDay.
 /// </summary>
 public class AttendanceService
 {
@@ -42,7 +38,7 @@ public class AttendanceService
     /// <summary>
     /// Books whose window is open, whose level gate the account passes, and whose AccountType
     /// matches the account's state. Official only advertises matching books (a Normal account
-    /// never sees the Comeback/Newbie variants); over-advertising desynchronised the client's
+    /// never sees the Comeback/Newbie variants); over-advertising desynchronises the client's
     /// claim loop into resubmitting already-claimed books (error 9000 on the wire).
     /// </summary>
     private List<AttendanceExcelT> OpenBooks(AccountDBServer account, DateTime now)
@@ -81,7 +77,7 @@ public class AttendanceService
 
     /// <summary>
     /// Claims a day: records the history, mails the reward, and returns the claimed book's
-    /// definition plus the updated history row — exactly what the official response carries.
+    /// definition plus the updated history row - exactly what the official response carries.
     /// </summary>
     public async Task<(AttendanceBookReward Book, AttendanceHistoryDB History)> Claim(
         SchaleDataContext db, AccountDBServer account, long bookUniqueId)
@@ -94,7 +90,7 @@ public class AttendanceService
             .FirstOrDefault(x => x.AttendanceBookUniqueId == bookUniqueId);
 
         // Idempotent: a client that re-submits an already-claimed (or completed) book gets the
-        // current state back instead of an error popup — the claim loop can desync after menu
+        // current state back instead of an error popup - the claim loop can desync after menu
         // backouts and re-logins, and error 9000 there is purely user-hostile.
         if (ClaimedToday(history, now) || NextDay(excel, history) <= 0)
             return (BuildBook(excel), ToWire(history!));
@@ -144,13 +140,13 @@ public class AttendanceService
         await db.SaveChangesAsync();
 
         // Attendance mail (unlike clan mail) leaves the NewMailArrived bit pending for the next
-        // Mail_Check — off1's first Mail_Check after the claims reports 12, the second 8.
+        // Mail_Check - off1's first Mail_Check after the claims reports 12, the second 8.
         MailNotificationService.MarkNewMail(account.ServerId);
 
         return (BuildBook(excel), ToWire(history));
     }
 
-    // The wire history carries only these three members — LastAttendedDay/LastAttendedDate stay
+    // The wire history carries only these three members - LastAttendedDay/LastAttendedDate stay
     // server-side (official never emits them).
     private static AttendanceHistoryDB ToWire(AttendanceHistoryDBServer history) => new()
     {

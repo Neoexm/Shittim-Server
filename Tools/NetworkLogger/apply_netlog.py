@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ============================================================================
 #  Blue Archive client Network Logger  -  self-contained in-place patcher
-# ============================================================================
 #  Logs EVERY server request and response (full, untruncated plaintext JSON,
 #  as the client sees it) to:
 #     <GameDir>\DiagnosticLogs\NetworkLog.txt
@@ -16,7 +14,6 @@
 #  To undo:  python apply_netlog.py revert     (or just verify integrity again)
 #
 #  Pure Python standard library - no pip installs, no keystone, nothing extra.
-# ============================================================================
 import struct, os, sys, hashlib, base64
 
 GAMEDIR = r"F:\SteamLibrary\steamapps\common\BlueArchive"

@@ -193,7 +193,7 @@ public class ParcelHandler
     /// The reward strip the client animates, which is ParcelForMission minus the two exp types.
     /// Verified against the official campaign clear: ParcelForMission carried 15 entries and
     /// DisplaySequence the same 15 less the six CharacterExp and the one AccountExp. The strip has no
-    /// icon for either — exp is drawn from the ParcelResultDB's Base/Additional/NewbieBoost fields and
+    /// icon for either - exp is drawn from the ParcelResultDB's Base/Additional/NewbieBoost fields and
     /// from the new levels on the CharacterDBs instead.
     /// </summary>
     public static List<ParcelInfo> DisplaySequenceFor(IEnumerable<ParcelInfo> parcelInfos)

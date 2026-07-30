@@ -6,24 +6,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins Campaign_TacticResult against the official capture of a full chapter-11 mission played with
-/// battle skip (captures/NetworkLog official.txt, four tactic results).
-///
-/// Two defects here made a won skipped battle report the squad as wiped:
-///
-///  * TacticRank was never set, so it went out as its default 0. The client's
-///    CampaignTask.HandleCampaignTacticResultResponseMessage has no local battle to inspect on the
-///    skip path and takes the outcome straight from that field — it tests it &gt; 0 — so every
-///    skipped victory read as a defeat. Official sends 3 on a clean win.
-///  * DyingInfos was built from the same unfiltered set as HpInfos, listing the whole echelon as
-///    downed at full HP. Official sends {} on all four results. HpInfos was additionally drawn from
-///    the *enemy* group's supporters, which silently dropped the player's two Specials — official's
-///    HpInfos is a stable six-member map for the whole mission.
-///  * The first pass at the above split the two maps on HPRateAfter == 0, which is not what death
-///    looks like. A Special who is never called in reports 0 before and 0 after with DeadFrame -1, so
-///    both support slots still went out as casualties. DeadFrame is the field that reports liveness.
-/// </summary>
 public class CampaignTacticResultTests
 {
     private static HeroSummary Hero(
@@ -37,9 +19,9 @@ public class CampaignTacticResultTests
     };
 
     /// <summary>
-    /// A Special who was never called in. This is how real clients report an unused support slot —
-    /// taken from the official 6008 request, not its response — and getting it wrong in a fixture is
-    /// what let the "0 HP means downed" reading survive a green test run.
+    /// A Special who was never called in. This is how real clients report an unused support slot -
+    /// taken from the official 6008 request, not its response. A fixture that gets this wrong lets
+    /// the "0 HP means downed" reading survive a green test run.
     /// </summary>
     private static HeroSummary OffFieldSpecial(long serverId, int entityId) =>
         Hero(serverId, entityId, hpRateAfter: 0, deadFrame: -1, hpRateBefore: 0);
@@ -74,7 +56,7 @@ public class CampaignTacticResultTests
         {
             TeamId = 2,
             Heroes = Collection(Hero(0, 16777221, 0, deadFrame: 212)),
-            // The enemy group has no supporters — reading HpInfos from here lost the player's own.
+            // The enemy group has no supporters - reading HpInfos from here lost the player's own.
             Supporters = Collection(),
         },
     };
@@ -143,7 +125,7 @@ public class CampaignTacticResultTests
 
         var (hpInfos, _) = ConcentrateCampaignManager.ChangeHpInfos(group01.Heroes, group01.Supporters);
 
-        // Official's HpInfos is a stable six-member map — four strikers plus two Specials.
+        // Official's HpInfos is a stable six-member map - four strikers plus two Specials.
         Assert.Equal(6, hpInfos.Count);
         Assert.Equal(9655, hpInfos[243235919]);
     }
@@ -161,9 +143,9 @@ public class CampaignTacticResultTests
     [Fact]
     public void SpecialsWhoNeverTookTheFieldAreNotCasualties()
     {
-        // The regression: both Specials come back at 0/0 with DeadFrame -1, and reading that as death
-        // filed the entire support slot under DyingInfos. Official answers this exact request with
-        // DyingInfos {} and both of them in HpInfos at 10000.
+        // both Specials come back at 0/0 with DeadFrame -1. reading that as death files the whole
+        // support slot under DyingInfos; official answers this request with DyingInfos {} and both
+        // of them in HpInfos at 10000.
         var group01 = WonBattle().Group01Summary!;
 
         var (hpInfos, dyingInfos) = ConcentrateCampaignManager.ChangeHpInfos(group01.Heroes, group01.Supporters);

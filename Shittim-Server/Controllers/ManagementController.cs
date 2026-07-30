@@ -17,7 +17,7 @@ using Shittim.Services.WebClient;
 namespace Shittim_Server.Controllers;
 
 // Always-compiled management API consumed by the Shittim Control Center desktop GUI.
-// Deliberately kept separate from AdminController so the original endpoints
+// Kept separate from AdminController so the original endpoints
 // (accounts, currency/set, mail/send, account/{id}/currencies) stay untouched and
 // are reused by the GUI alongside the richer surface below.
 [ApiController]
@@ -47,7 +47,7 @@ public class ManagementController : ControllerBase
         _mapper = mapper;
     }
 
-    // ----------------------------------------------------------------- status
+    // status
 
     [HttpGet("status")]
     public async Task<IActionResult> Status()
@@ -73,7 +73,7 @@ public class ManagementController : ControllerBase
         });
     }
 
-    // --------------------------------------------------------------- accounts
+    // accounts
 
     [HttpGet("account/{serverId:long}/detail")]
     public async Task<IActionResult> AccountDetail(long serverId)
@@ -140,7 +140,7 @@ public class ManagementController : ControllerBase
             var user = await db.UserAccounts.FirstAsync(u => u.NpSN == publisherId);
             user.Uid = account.ServerId;
 
-            // Full, client-loadable initialization (currencies, default parcels, default characters…).
+            // Full, client-loadable initialization (currencies, default parcels, default characters...).
             await AccountInitializationService.InitializeCompleteAccount(db, account);
             await db.SaveChangesAsync();
 
@@ -243,7 +243,7 @@ public class ManagementController : ControllerBase
         }
     }
 
-    // -------------------------------------------------------------- inventory
+    // inventory
 
     [HttpGet("account/{serverId:long}/items")]
     public async Task<IActionResult> AccountItems(long serverId)
@@ -348,7 +348,7 @@ public class ManagementController : ControllerBase
         }));
     }
 
-    // ------------------------------------------------------------------- mail
+    // mail
 
     [HttpGet("account/{serverId:long}/mails")]
     public async Task<IActionResult> AccountMails(long serverId)
@@ -403,7 +403,7 @@ public class ManagementController : ControllerBase
         }
     }
 
-    // -------------------------------------------------------- command runner
+    // command runner
 
     public class RunCommandRequest
     {
@@ -412,7 +412,7 @@ public class ManagementController : ControllerBase
     }
 
     // Always-on bridge to the full console command set (give / max / giveall /
-    // unlockall / setseason / gacha / …). Mirrors the DEBUG-only /dev/execute-command
+    // unlockall / setseason / gacha / ...). Mirrors the DEBUG-only /dev/execute-command
     // but ships in every build so the GUI can drive it.
     [HttpPost("command")]
     public async Task<IActionResult> RunCommand([FromBody] RunCommandRequest request)
@@ -457,7 +457,7 @@ public class ManagementController : ControllerBase
         }
     }
 
-    // ------------------------------------------------------- static pickers
+    // static pickers
 
     [HttpGet("static/items")]
     public IActionResult StaticItems([FromQuery] string? search = null, [FromQuery] int limit = 300)
@@ -555,7 +555,7 @@ public class ManagementController : ControllerBase
         return Ok(results);
     }
 
-    // ------------------------------------------------------------------ gacha
+    // gacha
 
     private static string GachaConfigPath =>
         Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "gacha_config.json"));
@@ -651,7 +651,7 @@ public class ManagementController : ControllerBase
         return Ok(banners);
     }
 
-    // ----------------------------------------------------------------- events
+    // events
 
     [HttpGet("events/seasons")]
     public IActionResult EventSeasons()
@@ -706,7 +706,7 @@ public class ManagementController : ControllerBase
         });
     }
 
-    // ----------------------------------------------------------------- helpers
+    // helpers
 
     private Dictionary<uint, string> LocalizeMap() =>
         _excel.GetTable<LocalizeEtcExcelT>()

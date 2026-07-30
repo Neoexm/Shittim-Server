@@ -4,34 +4,22 @@ using System.Runtime.Versioning;
 namespace Shittim.Utils
 {
     /// <summary>
-    /// Prevents the server from freezing due to Windows console behaviour.
-    /// 
-    /// Two independent problems are addressed:
-    /// 
-    /// 1. **QuickEdit mode** (direct console launch via cmd / autorun.ps1)
-    ///    Windows enables QuickEdit by default.  An accidental click on the
-    ///    console window puts it into *selection* mode, which **pauses all
-    ///    console output**.  Because ASP.NET request-handling threads write
-    ///    log lines through <c>Console.WriteLine</c>, every request-handling
-    ///    thread blocks until the user presses Escape – freezing the server.
-    ///
-    /// 2. **Stdout pipe buffer saturation** (GUI launcher / piped output)
-    ///    When the server is spawned as a child process whose stdout is a
-    ///    pipe (e.g. the Shittim Console GUI), the OS pipe buffer is only
-    ///    ~4 KB on Windows.  If the consumer cannot drain the pipe quickly
-    ///    enough, <c>Console.Out.Write</c> blocks the calling thread.
-    ///    Replacing <c>Console.Out</c> with an <see cref="AsyncConsoleWriter"/>
-    ///    that enqueues lines onto a background channel eliminates the risk
-    ///    of request-handling threads blocking on pipe writes.
+    /// Stops two Windows console behaviours from freezing the server. QuickEdit mode, on by default
+    /// for a direct cmd / autorun.ps1 launch, puts the window into selection mode on a stray click
+    /// and pauses console output, blocking every ASP.NET request thread that logs through
+    /// <c>Console.WriteLine</c> until someone presses Escape. Separately, when the process is spawned
+    /// by the GUI launcher its stdout is a ~4 KB pipe buffer, and a consumer that cannot drain it
+    /// fast enough blocks the caller inside <c>Console.Out.Write</c>; an
+    /// <see cref="AsyncConsoleWriter"/> moves that write onto a background channel.
     /// </summary>
     public static class ConsoleHelper
     {
-        // ── Win32 constants ────────────────────────────────────────────
+        // Win32 constants
         private const int STD_INPUT_HANDLE = -10;
         private const uint ENABLE_QUICK_EDIT_MODE = 0x0040;
         private const uint ENABLE_EXTENDED_FLAGS = 0x0080;
 
-        // ── Win32 imports ──────────────────────────────────────────────
+        // Win32 imports
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr GetStdHandle(int nStdHandle);
 
@@ -55,7 +43,7 @@ namespace Shittim.Utils
             InstallAsyncConsoleWriter();
         }
 
-        // ── QuickEdit ──────────────────────────────────────────────────
+        // QuickEdit
 
         [SupportedOSPlatform("windows")]
         private static void DisableQuickEditMode()
@@ -75,11 +63,11 @@ namespace Shittim.Utils
             }
             catch
             {
-                // Not fatal – swallow (e.g. running without a console at all).
+                // Not fatal - swallow (e.g. running without a console at all).
             }
         }
 
-        // ── Async Console.Out ──────────────────────────────────────────
+        // Async Console.Out
 
         private static void InstallAsyncConsoleWriter()
         {
@@ -91,7 +79,7 @@ namespace Shittim.Utils
             }
             catch
             {
-                // Not fatal – keep default Console.Out.
+                // Not fatal - keep default Console.Out.
             }
         }
     }

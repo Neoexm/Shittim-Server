@@ -4,12 +4,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins Mail_List's window semantics to the 2026-07-28 official capture. The handler used to
-/// return the mailbox in table order and ignore PivotTime entirely, so page 1 arrived oldest-first
-/// and the client's follow-up page (pivot = last row's SendDate) got the identical full list back.
-/// Official orders by SendDate descending and bounds the page inclusively at the pivot.
-/// </summary>
 public class MailListWindowTests
 {
     // The three official rows: 70527403@22:03:12, 70527400@22:03:00, 70527395@22:02:53.
@@ -21,7 +15,7 @@ public class MailListWindowTests
     ];
 
     [Fact]
-    public void FirstPageSentinelReturnsEverythingNewestFirst()
+    public void FirstPage_Sentinel_ReturnsAllNewestFirst()
     {
         var window = MailHandler.ApplyListWindow(
             OfficialBox(), DateTime.Parse("9999-12-31T23:59:59"), isDescending: true);
@@ -30,7 +24,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void PivotBoundsThePageInclusively()
+    public void Pivot_BoundsInclusively()
     {
         // Official's page 2 passed the last row's own SendDate and got that row back.
         var window = MailHandler.ApplyListWindow(
@@ -40,7 +34,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void PivotComparesAtSecondGranularity()
+    public void Pivot_ComparesAtSeconds()
     {
         // Rows are stored with sub-second precision but SendDate crosses the wire truncated to
         // seconds, and the client echoes the truncated value back as the pivot. A strict
@@ -57,7 +51,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void UnsetPivotBoundsNothing()
+    public void Pivot_Unset_BoundsNothing()
     {
         var window = MailHandler.ApplyListWindow(OfficialBox(), default, isDescending: true);
 
@@ -65,7 +59,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void AscendingOrdersOldestFirstAndBoundsFromBelow()
+    public void Ascending_OldestFirst_BoundsFromBelow()
     {
         var window = MailHandler.ApplyListWindow(
             OfficialBox(), new DateTime(2026, 7, 28, 22, 3, 0), isDescending: false);

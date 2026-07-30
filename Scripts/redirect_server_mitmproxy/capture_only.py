@@ -1,7 +1,7 @@
 """
 Passive capture addon for the OFFICIAL baseline test.
 
-Does NOT rewrite, kill, or redirect anything — every request is forwarded to the
+Does NOT rewrite, kill, or redirect anything - every request is forwarded to the
 real destination so the game logs in against official Nexon servers. Small
 responses (login/config/SDK) are captured in full; large bodies (asset/catalog
 downloads) are streamed so they don't bloat the capture or stall the run.

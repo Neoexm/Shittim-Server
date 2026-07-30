@@ -5,23 +5,6 @@ using Xunit.Abstractions;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Semantic guards on the two models whose slot indices were recovered by hand from the shipped data
-/// rather than generated from a schema.
-///
-/// <see cref="ExcelLayoutDriftTests"/> proves those models are structurally sound — every row verifies and
-/// every row unpacks. That is necessary and not sufficient: width and alignment pin most of a layout but
-/// several fields of the same width are interchangeable to a structural check, so a model can verify
-/// perfectly while a field reads its neighbour's value. What rules that out is meaning — a value that only
-/// makes sense if it was read from the right slot.
-///
-/// So these assert on content: that ShopCashExcel's CashProductId joins to ProductExcel, and that
-/// GroundExcel's fields carry the values a battle map should. Both would survive a wrong-but-same-width
-/// assignment structurally and neither survives it here.
-///
-/// Skips when the excel dumps are absent, same as the drift audit — they are ~300 MB and live in the
-/// server's build output rather than the repository.
-/// </summary>
 public class RecoveredExcelLayoutTests
 {
     private readonly ITestOutputHelper output;
@@ -31,7 +14,7 @@ public class RecoveredExcelLayoutTests
     /// <summary>
     /// The cross-table check on the ShopCashExcel repair. Its 25 data slots were being read as 20
     /// consecutive ones, so IconPath decoded off a 32-bit hash, UnPack threw, and all 1345 rows were
-    /// dropped — every cash-shop lookup returned null.
+    /// dropped - every cash-shop lookup returned null.
     ///
     /// Id and CashProductId are the only two fields any handler reads, and this is what proves the second
     /// one is on the right slot: CashProductId is a foreign key into ProductExcel, so a wrong assignment
@@ -60,8 +43,8 @@ public class RecoveredExcelLayoutTests
 
         Assert.True(orphans.Count == 0,
             $"{orphans.Count} of {shopCash.Count} ShopCashExcel rows carry a CashProductId that is not a " +
-            "ProductExcel id. Either the recovered slot for CashProductId is wrong — it is a 4-byte field " +
-            "among 4-byte neighbours, so the structural checks cannot tell them apart — or a client build " +
+            "ProductExcel id. Either the recovered slot for CashProductId is wrong - it is a 4-byte field " +
+            "among 4-byte neighbours, so the structural checks cannot tell them apart - or a client build " +
             "moved it. First few: " +
             string.Join(", ", orphans.Take(5).Select(s => $"Id {s.Id} -> CashProductId {s.CashProductId}")));
     }
@@ -74,7 +57,7 @@ public class RecoveredExcelLayoutTests
     /// Two independent things are asserted, because the interesting failure is a future regeneration
     /// silently reverting the shift and that has to fail loudly rather than drift:
     ///
-    /// The float trio at slots 50-52 is what pinned the omission to slot 54 in the first place — the rows
+    /// The float trio at slots 50-52 is what pinned the omission to slot 54 in the first place - the rows
     /// hold the exact bit pattern of 0.85f there. Read one slot over, an integer reinterpreted as a float
     /// gives a denormal around 1.19e-38, which no UI scale ever is.
     ///
@@ -109,7 +92,7 @@ public class RecoveredExcelLayoutTests
             {
                 // Zero is the FlatBuffers default, i.e. the row left the field out.
                 Assert.True(scale == 0f || (scale > 0.001f && scale < 1000f),
-                    $"GroundExcel row {g.Id} decoded {name} as {scale:E}, which is not a UI scale — a " +
+                    $"GroundExcel row {g.Id} decoded {name} as {scale:E}, which is not a UI scale - a " +
                     "denormal here is the signature of reading one slot away from where the data writes it.");
             }
 
@@ -122,9 +105,9 @@ public class RecoveredExcelLayoutTests
                          $"{ground.Count(g => g.EnemyPassiveSkillId is { Count: > 0 })} carry enemy passive skills");
     }
 
-    // ------------------------------------------------------------------------------------- fixtures
+    // fixtures
 
-    // Null when the dumps are absent, in which case both tests skip.
+    // Stays null without the dumps; both tests skip then.
     private static readonly ExcelTableService? Service = BuildService();
 
     private static ExcelTableService? BuildService()
@@ -136,8 +119,8 @@ public class RecoveredExcelLayoutTests
 
             var server = Path.Combine(dir.FullName, "Shittim-Server");
 
-            // GetTable resolves Resources against AppContext.BaseDirectory, which under a test run is this
-            // project's output rather than the server's, so point it at the server's copy.
+            // Under a test run AppContext.BaseDirectory is the test project's output, not the
+            // server's, so GetTable has to be pointed at the server's copy.
             var dumped = new[]
             {
                 Path.Combine(server, "Resources", "Dumped"),

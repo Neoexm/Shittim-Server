@@ -4,21 +4,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins the FlatBuffer field layout of <see cref="EventContentSeasonExcel"/> against real rows from
-/// the shipped ExcelDB (TestData/EventContentSeasonRows.txt).
-///
-/// The generated model was one field short: the shipped table carries a string at vtable slot 15
-/// that the model did not declare, so every field below it was read one slot early — all 477 rows
-/// resolved their path and prefab strings out of a long, and IsReturn/OriginalEventContentId could
-/// not be trusted. FlatBuffers tolerates that silently (a missing slot just reads as the field
-/// default), and ExcelTableService only skips rows that actually throw, so the table loaded
-/// "successfully" while handing back garbage. Nothing failed loudly; Mission_List simply could not
-/// tell a rerun event from a normal one.
-///
-/// These rows are the fixture rather than the live ExcelDB so the test runs without downloaded game
-/// resources, and so it keeps testing the layout the client shipped even after a data update.
-/// </summary>
 public class EventContentSeasonLayoutTests
 {
     private static EventContentSeasonExcelT Row(string label)
@@ -75,9 +60,8 @@ public class EventContentSeasonLayoutTests
     [Fact]
     public void NoStringFieldDecodesOutOfANumericSlot()
     {
-        // The failure mode being guarded against: a shifted layout reads a string offset out of a
-        // long, which yields either a wild offset or bytes that are not text. Under the old model
-        // ShiftMainBgImagePath threw often enough to need a try/catch wrapped around it.
+        // a shifted layout reads a string offset out of a long, giving either a wild offset or
+        // bytes that are not text. ShiftMainBgImagePath is the one that throws first.
         foreach (var label in new[] { "856", "10842", "widest_70000" })
         {
             var row = Row(label);

@@ -9,18 +9,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins the ContentSave_Get (26000) wire contract that the pause menu's Retry runs on.
-///
-/// Retry on a campaign battle never sends Campaign_RestartMainStage — UIPause sends ContentSave_Get
-/// and branches on one field. ContentSaveGetNetworkTask.HandleMessage reads "HasValidData" off the
-/// response and treats an absent key as false; UIPause.HandleContentSaveGet then either restarts the
-/// battle or shows LocalizeData.GetText("CampaignStageInvalidSaveData") — "invalid mission info" —
-/// and walks the player back to the lobby.
-///
-/// The handler used to authenticate and return nothing at all, so HasValidData sat at its default
-/// false and DefaultValueHandling.Ignore dropped the key entirely. Retry could only ever fail.
-/// </summary>
 public class ContentSaveGetWireTests
 {
     private static JObject Wire(ContentSaveGetResponse response) =>
@@ -41,7 +29,7 @@ public class ContentSaveGetWireTests
         };
 
         // CampaignMainStageSaveDB hides ContentType with a `new static` property, so the only way to
-        // set it is through the base member — which is exactly the one AutoMapper writes when the
+        // set it is through the base member - which is exactly the one AutoMapper writes when the
         // server entity is mapped onto the wire model.
         ((ContentSaveDB)save).ContentType = ContentType.CampaignMainStage;
 
@@ -51,7 +39,7 @@ public class ContentSaveGetWireTests
     [Fact]
     public void AnOpenRunPutsHasValidDataOnTheWire()
     {
-        // true survives DefaultValueHandling.Ignore; false is what the stub was emitting (nothing).
+        // true survives DefaultValueHandling.Ignore; a false here vanishes from the wire entirely.
         var json = Wire(new ContentSaveGetResponse { HasValidData = true, ContentSaveDB = OpenRun() });
 
         Assert.True((bool)json["HasValidData"]!);
@@ -83,7 +71,7 @@ public class ContentSaveGetWireTests
         // ContentSaveDBService.TryParseContentSaveDB hands the body to ContentSaveDBFactory, which
         // needs ContentType to know it is looking at a campaign run. CampaignMainStageSaveDB shadows
         // the base member with a `new static` property, so that it reaches the wire at all is worth
-        // holding still — the response types it through the abstract ContentSaveDB base.
+        // holding still - the response types it through the abstract ContentSaveDB base.
         var json = Wire(new ContentSaveGetResponse { HasValidData = true, ContentSaveDB = OpenRun() });
 
         Assert.Equal((long)ContentType.CampaignMainStage, (long)json["ContentSaveDB"]!["ContentType"]!);

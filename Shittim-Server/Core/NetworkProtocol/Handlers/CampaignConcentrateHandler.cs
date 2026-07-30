@@ -176,14 +176,14 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         var (stageSave, historyDb, tacticRank, clearReward, endBattleType, parcelResult, missionProgresses) =
             await _concentrateCampaignManager.TacticResult(db, account, request);
 
-        // The manager builds this now — a won tactic pays its characters exp whether or not it cleared
-        // the stage, so there is something to report on every response. This used to be a hand-rolled
-        // shell of two dozen empty collections; official never sends an empty collection inside a
-        // ParcelResultDB at all, and OmitWhenEmpty drops the ones the resolver did not touch.
+        // Built by the manager: a won tactic pays its characters exp whether or not it cleared the
+        // stage, so there is something to report on every response. Official never sends an empty
+        // collection inside a ParcelResultDB, and OmitWhenEmpty drops the ones the resolver did not
+        // touch - so this must not be a hand-rolled shell of empty collections.
         response.ParcelResultDB = parcelResult;
 
         // Killing the map's designated boss ends the mission, and the EndBattle entry attached here is
-        // the only thing that tells the client so. Attached after shaping — ShapeForWire nulls the
+        // the only thing that tells the client so. Attached after shaping - ShapeForWire nulls the
         // empty DisplayInfos the manager leaves on the save row, and the reward payload is wire-only.
         response.SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(
             ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper)), clearReward, endBattleType);
@@ -195,7 +195,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         response.TacticRank = tacticRank;
 
         // Official always carries these, empty when there is nothing to award; the client Syncs them
-        // unconditionally after a tactic. On a clear they repeat what the EndBattle entry carries —
+        // unconditionally after a tactic. On a clear they repeat what the EndBattle entry carries -
         // official's top-level copies are byte-identical to the nested ones.
         response.LevelUpCharacterDBs = new();
         response.FirstClearReward = clearReward?.FirstClearReward ?? new();

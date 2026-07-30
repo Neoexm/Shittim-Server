@@ -112,7 +112,7 @@ public class MailManager
         await context.SaveChangesAsync();
 
         // AccountDB is left to the resolver, which adds it only when the claim changed the account
-        // row — official's mail claims carry AccountCurrencyDB but no AccountDB.
+        // row - official's mail claims carry AccountCurrencyDB but no AccountDB.
         parcelResultDb.AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, _mapper);
         
         return parcelResultDb;

@@ -84,7 +84,7 @@ public struct GoodsExcel : IFlatbufferObject
   public long ProductIdSGS { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ProductIdSTEAM { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   // Slot 15 was missing from this generated model, shifting every later field by one slot: the
-  // reward triple (ParcelType/ParcelId/ParcelAmount) then decoded neighbouring vectors — the AP
+  // reward triple (ParcelType/ParcelId/ParcelAmount) then decoded neighbouring vectors - the AP
   // shop's goods read "Currency 0x1_00000002 x5" instead of ActionPoint x120 while the consume
   // block still decoded correctly. Recovered from the shipped ExcelDB vtables (8,359 of 8,440
   // rows carry 22 slots): a sixth int64 in the platform product-id block, present only on the

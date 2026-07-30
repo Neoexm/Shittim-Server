@@ -64,24 +64,24 @@ namespace BlueArchiveAPI.Services
                     if (segments.Length >= 2)
                     {
                         var versionId = segments[1]; // Should be the version ID
-                        Console.WriteLine($"✓ Detected latest version: {versionId}");
+                        Console.WriteLine($"Detected latest version: {versionId}");
                         Console.WriteLine($"  Game Version: {serverInfo.CurrentVersion}");
                         Console.WriteLine($"  Min Version: {serverInfo.MinimumVersion}");
                         return versionId;
                     }
                 }
 
-                Console.WriteLine("✗ Failed to extract version ID from server info");
+                Console.WriteLine("Failed to extract version ID from server info");
                 return null;
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"✗ Failed to fetch version from server: {ex.Message}");
+                Console.WriteLine($"Failed to fetch version from server: {ex.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"✗ Error parsing version info: {ex.Message}");
+                Console.WriteLine($"Error parsing version info: {ex.Message}");
                 return null;
             }
         }
@@ -97,19 +97,19 @@ namespace BlueArchiveAPI.Services
             
             if (latestVersion == null)
             {
-                Console.WriteLine("⚠ Could not determine latest version, using configured version");
+                Console.WriteLine("Could not determine latest version, using configured version");
                 return (false, currentVersion);
             }
 
             if (latestVersion != currentVersion)
             {
-                Console.WriteLine($"⚠ Version mismatch detected!");
+                Console.WriteLine($"Version mismatch detected!");
                 Console.WriteLine($"  Current: {currentVersion}");
                 Console.WriteLine($"  Latest:  {latestVersion}");
                 return (true, latestVersion);
             }
 
-            Console.WriteLine($"✓ Version is up to date: {currentVersion}");
+            Console.WriteLine($"Version is up to date: {currentVersion}");
             return (false, currentVersion);
         }
 
@@ -123,7 +123,7 @@ namespace BlueArchiveAPI.Services
                 var configPath = "appsettings.json";
                 if (!File.Exists(configPath))
                 {
-                    Console.WriteLine("✗ Config file not found, cannot auto-update version");
+                    Console.WriteLine("Config file not found, cannot auto-update version");
                     return;
                 }
 
@@ -142,12 +142,12 @@ namespace BlueArchiveAPI.Services
                     };
                     
                     File.WriteAllText(configPath, JsonSerializer.Serialize(config, options));
-                    Console.WriteLine($"✓ Updated config: {oldVersion} → {newVersionId}");
+                    Console.WriteLine($"Updated config: {oldVersion} -> {newVersionId}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"✗ Failed to update config file: {ex.Message}");
+                Console.WriteLine($"Failed to update config file: {ex.Message}");
             }
         }
     }

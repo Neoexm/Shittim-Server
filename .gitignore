@@ -2,7 +2,6 @@
 requests/
 request_logs/
 captures/
-issues.md
 /data/
 nexon.har
 nexon.flows
@@ -89,9 +88,6 @@ Thumbs.db
 hosts.bak
 hosts.backup
 
-# Progress tracking
-progress.md
-
 # Protocol dump + local dump tooling/cache
 /protocol_dump.log
 /Scripts/tidy_protocol_dump.ps1
@@ -110,15 +106,9 @@ TESTING_ISSUES.txt
 *.nam
 
 # Large IL2CPP metadata dumps (generated; exceed GitHub's 100 MB file limit).
-# Kept locally only — the small il2cpp.py extractor stays tracked.
+# Kept locally only - the small il2cpp.py extractor stays tracked.
 ida_pro_metadata/il2cpp.json
 ida_pro_metadata/il2cpp.h
-
-# AI assistant tool caches/configs
-.ida-mcp/
-.roo/
-.aider*
-.cursor/
 
 # Project requirement: ALWAYS track Shittim-Server/config and every file inside it.
 # These negations MUST stay at the end of the file so they override the *.pem,

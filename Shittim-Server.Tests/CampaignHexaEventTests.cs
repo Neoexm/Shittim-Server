@@ -11,19 +11,6 @@ using Xunit.Abstractions;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Pins how a campaign stage is cleared.
-///
-/// The clear is not "the map is empty" — it is the map's own HexaCommandEndBattle, fired by a
-/// HexaConditionUnitDead naming ONE designated boss. All 321 dumped strategy maps carry exactly one
-/// such event, and on none of them is that boss the whole enemy roster: strategymap_1011104's boss
-/// is 10013 while 10017 and 10018 are still standing, and the reported failure, stage 1111102, is
-/// boss 10044 out of 10040-10044.
-///
-/// A kill-everything rule is therefore a strict subset of the real one — it fires late, or on the
-/// 21 maps where a TileHide deletes an enemy for you, never. That is exactly the reported bug: the
-/// boss died and the mission carried on.
-/// </summary>
 public class CampaignHexaEventTests(ITestOutputHelper output)
 {
     /// <summary>strategymap_1011104's shape: three enemies, and only 10013 ends the battle.</summary>
@@ -59,8 +46,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void BossDeathWithSurvivorsFiresEndBattle()
     {
-        // The test that would have caught the shipped bug: 10013 is dead, two mobs are still on the
-        // map, and official ends the mission anyway.
+        // 10013 is dead, two mobs are still on the map, and official ends the mission anyway.
         var fired = HexaMapService.FindSatisfiedEndBattle(BossMap(), Alive(10017, 10018), null);
 
         Assert.NotNull(fired);
@@ -124,9 +110,9 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void TheDumpedEndBattleTypeSurvivesDeserialization()
     {
-        // EndBattleType is a public *field*, not a property. If Json.NET ever stopped populating it
-        // the value would be None, DefaultValueHandling.Ignore would drop Parameter off the wire
-        // entirely, and the client would read a victory as a retreat. Pin it against a real dump.
+        // EndBattleType is a public field, not a property. If Json.NET stops populating it the value
+        // is None, DefaultValueHandling.Ignore drops Parameter off the wire, and the client reads a
+        // victory as a retreat.
         if (DumpDir is null) { SkipNote(); return; }
 
         var map = LoadDump(Path.Combine(DumpDir, "strategymap_1161101.json"));
@@ -135,7 +121,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
 
         Assert.Equal(CampaignEndBattle.Win, EndBattleOf(ending).EndBattleType);
 
-        // One boss out of the five enemies 10027-10031 — not the roster.
+        // One boss out of the five enemies 10027-10031 - not the roster.
         var boss = Assert.IsType<HexaConditionUnitDead>(Assert.Single(ending.HexaConditions!));
         Assert.Equal([10031L], boss.UnitEntityIds);
     }
@@ -143,10 +129,9 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void TheRealDumpsNeverGateTheClearOnTheWholeRoster()
     {
-        // The survey that supersedes the kill-everything rule, run against the shipped dumps rather
-        // than quoted from a report: every campaign map has exactly one EndBattle, gated by exactly
-        // one UnitDead, and its boss set is always a *strict* subset of the spawned enemies. If this
-        // ever fails on a new dump, the fallback in TacticResult is what keeps that stage finishable.
+        // across every shipped dump: one EndBattle per map, gated by one UnitDead, boss set always a
+        // strict subset of the spawned enemies. if a new dump breaks this the TacticResult fallback
+        // is what keeps that stage finishable.
         if (DumpDir is null) { SkipNote(); return; }
 
         var maps = Directory.GetFiles(DumpDir, "strategymap_*.json");
@@ -169,7 +154,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     public void EveryRealDumpClearsOnItsBossAloneAndOnlyOnce()
     {
         // End to end over the shipped data: kill just the boss, leave every other enemy standing, and
-        // the evaluator must fire — then must not fire again once the event is in the history.
+        // the evaluator must fire - then must not fire again once the event is in the history.
         if (DumpDir is null) { SkipNote(); return; }
 
         foreach (var path in Directory.GetFiles(DumpDir, "strategymap_*.json"))
@@ -191,8 +176,6 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
             Assert.Null(HexaMapService.FindSatisfiedEndBattle(map, survivors, history));
         }
     }
-
-    // ------------------------------------------------------------------------------------- fixtures
 
     private static bool HasEndBattle(HexaEvent e) =>
         e.HexaCommands?.OfType<HexaCommandEndBattle>().Any() == true;

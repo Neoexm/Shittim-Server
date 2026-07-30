@@ -32,13 +32,13 @@ namespace Shittim_Server.Controllers.Api
     }
 
     // Official gateway DateTimes are ISO strings with NO timezone offset and whole-second
-    // precision — DB-backed values like "2026-07-27T04:12:50". The only fractional value the
+    // precision - DB-backed values like "2026-07-27T04:12:50". The only fractional value the
     // official server ever emits is DateTime.MaxValue ("9999-12-31T23:59:59.9999999", used for
     // never-ending excel dates), so preserve full precision for that one. This also stops
     // DateTimeKind.Local values from leaking a "+01:00" suffix.
     // Deliberately NOT JsonConverter<DateTime>: that base seals CanConvert as
     // typeof(DateTime).IsAssignableFrom(objectType), which is false for DateTime?, so every
-    // nullable date on the wire skipped this converter and fell back to Newtonsoft's ISO format —
+    // nullable date on the wire skipped this converter and fell back to Newtonsoft's ISO format -
     // e.g. a mail's ExpireDate went out as "2026-08-02T23:12:17.3047071" where official sends
     // "2026-08-03T04:19:59".
     public class OfficialDateTimeConverter : JsonConverter
@@ -123,13 +123,13 @@ namespace Shittim_Server.Controllers.Api
             => _accountGates.GetOrAdd(accountServerId, _ => new SemaphoreSlim(1, 1));
 
         // Controllers are instantiated per request, so this safely carries the decoded request body
-        // to CreateProtocolErrorResponse — which is reached from catch blocks where the local is out
+        // to CreateProtocolErrorResponse - which is reached from catch blocks where the local is out
         // of scope, and which needs it to write a complete exchange to the wire dump.
         private string _wireRequestJson = "";
         
         // Official packet serialization rules (verified against live captures):
         // - null members omitted, AND default-valued members omitted (0 / false / default enum /
-        //   default DateTime) — e.g. ServerNotification only appears when non-zero, ItemDB fields
+        //   default DateTime) - e.g. ServerNotification only appears when non-zero, ItemDB fields
         //   with 0/false vanish, empty AccountRestrictionsDB serializes as {}.
         // - floats keep Newtonsoft's default formatting (whole values carry ".0", e.g. 270.0),
         //   so no FloatConverter here.
@@ -207,9 +207,9 @@ namespace Shittim_Server.Controllers.Api
                     responseProtocolOverride = 50001;
                 }
 
-                // Bodies are Debug, not Information: every packet a player sends used to be written
-                // to the log at default verbosity (session material included) for nobody to read.
-                // The one concise Information line per request is emitted in the finally below.
+                // Bodies are Debug, not Information - at default verbosity this would write every
+                // packet a player sends, session material included. The finally below emits one
+                // concise Information line per request instead.
                 _logger.LogDebug("Request {ProtocolInt} / {Protocol}: {Payload}", (int)protocol, protocol, payloadStr);
 
                 if (protocol == Protocol.None)
@@ -239,14 +239,13 @@ namespace Shittim_Server.Controllers.Api
                 // HttpGameSession.MoveNext uses aesKey = O6b74.get_Key() only when the session's
                 // O4baecbba flag (+0x80) is non-null, and GameSessionManager.O26e18cb leaves it null,
                 // so HttpGameMessage.DecryptOrReturnOriginal returns the body as-is (no AES). The
-                // post-Auth "A request that cannot be processed" popup was NOT crypto — it was a content
+                // post-Auth "A request that cannot be processed" popup was NOT crypto - it was a content
                 // problem in the AccountAuthResponse (DateTime ticks vs ISO + missing v433063 fields).
 
-                using var lease = _handlerManager.GetHandlerLease(protocol);
-                if (!lease.IsValid)
+                if (!_handlerManager.IsImplemented(protocol))
                 {
                     // The payload rides along on the error itself rather than as a second
-                    // Information-level body dump — this is a failure, so it keeps its context.
+                    // Information-level body dump - this is a failure, so it keeps its context.
                     _logger.LogError("Protocol {Protocol} is unimplemented and left unhandled. Request: {Payload}", protocol, payloadStr);
 
                     await CreateProtocolErrorResponse("Protocol not implemented (Server Error)", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
@@ -273,7 +272,7 @@ namespace Shittim_Server.Controllers.Api
                 ResponsePacket rsp;
                 try
                 {
-                    rsp = await lease.Handler.Handle(payload);
+                    rsp = await _handlerManager.Dispatch(protocol, payload);
                 }
                 finally
                 {
@@ -320,7 +319,7 @@ namespace Shittim_Server.Controllers.Api
             catch (UnauthorizedAccessException ex)
             {
                 // A dead/mismatched session must NOT surface as the generic 500 ("A request that
-                // cannot be processed") — InvalidSession triggers the client's clean
+                // cannot be processed") - InvalidSession triggers the client's clean
                 // return-to-title + relogin flow instead.
                 _logger.LogWarning("Rejected request with invalid session: {Message}", ex.Message);
                 if (!Response.HasStarted)
@@ -360,7 +359,7 @@ namespace Shittim_Server.Controllers.Api
 
         // The official server stamps ServerNotification on every in-session response; the baseline
         // computed here is HasUnreadMail (8) whenever unclaimed mail exists. Handlers contribute
-        // their own bits on top — ClanHandler.Check adds CanReceiveClanAttendanceReward (2048),
+        // their own bits on top - ClanHandler.Check adds CanReceiveClanAttendanceReward (2048),
         // giving 2048 alone or 2056 when mail is also waiting. NewMailArrived (4, seen as 12 = 8|4
         // on official's Attendance_Reward) is deliberately not baseline either: MailNotificationService
         // holds it per account, and only the delivering handler and Mail_Check (report-and-consume)
@@ -383,12 +382,12 @@ namespace Shittim_Server.Controllers.Api
             try
             {
                 await using var db = await _dbFactory.CreateDbContextAsync();
-                // Unclaimed and unexpired only — official drops the flag once the mail is claimed.
+                // Unclaimed and unexpired only - official drops the flag once the mail is claimed.
                 // Go through GetAccountMailbox so this uses the same predicate AND the same clock as
                 // Mail_Check/Mail_List. An account with ForceDateTime evaluates mail expiry against
                 // its own ServerDateTime(), so reading DateTime.Now here would let the two disagree
                 // in either direction: a red dot over an empty mailbox, or unread mail the client is
-                // never notified about. Official never contradicts itself that way — in both
+                // never notified about. Official never contradicts itself that way - in both
                 // captures the flag and the count appear together and vanish together on
                 // Mail_Receive.
                 var account = await db.Accounts.AsNoTracking()
@@ -558,17 +557,15 @@ namespace Shittim_Server.Controllers.Api
                     typeConversion,
                     payload.Format);
 
-                // The request BODY is gzip+XOR (decodes to plaintext here), but the packet HEADER
-                // carries the per-request AES key/IV the client will use to DECRYPT THE RESPONSE.
-                // (Confirmed by RE of MX.Core.Crypto.PacketCryptManager.EncryptRequest @0x180F33600:
-                // it writes [crc][typeConversion][keyLen][ivLen][aesKey][aesIV][gzip+XOR body];
-                // the server's DecodeGatewayPayload already parses these as headerKey/headerIv.)
-                // Handshake requests (GetCryptoKeys/CheckNexon) send keyLen=0 -> plaintext reply;
-                // in-session requests (Account_Auth and after) send the key -> the reply MUST be
-                // AES-encrypted with it. We previously discarded the header key (responseCrypto=None)
-                // and replied in plaintext, so the client's HttpGameMessage.DecodeResponse
-                // (DecryptOrReturnOriginal with a non-null key) failed to decrypt it ->
-                // "A request that cannot be processed has been received." right after Account_Auth.
+                // The request body is gzip+XOR and decodes to plaintext here, but the packet header
+                // carries the per-request AES key/IV the client will use to decrypt the response.
+                // MX.Core.Crypto.PacketCryptManager.EncryptRequest @0x180F33600 writes
+                // [crc][typeConversion][keyLen][ivLen][aesKey][aesIV][gzip+XOR body], which
+                // DecodeGatewayPayload parses as headerKey/headerIv. Handshake requests
+                // (GetCryptoKeys/CheckNexon) send keyLen=0 and get a plaintext reply; in-session
+                // requests from Account_Auth onward send the key and the reply must be encrypted with
+                // it, or HttpGameMessage.DecodeResponse fails to decrypt and the client shows "A
+                // request that cannot be processed has been received."
                 var responseCrypto = (headerKey.Length > 0 && headerIv.Length == 16 && IsValidAesKeyLength(headerKey.Length))
                     ? new GatewayCryptoContext(true, headerKey, headerIv)
                     : GatewayCryptoContext.None;
@@ -818,135 +815,6 @@ namespace Shittim_Server.Controllers.Api
             return crypto.UseAes && IsValidAesKeyLength(crypto.Key.Length) && crypto.Iv.Length == 16;
         }
 
-        // DIAGNOSTIC: pick the in-session response key from sweep.txt first token. Returns null
-        // (=> plaintext reply, the baseline) unless sweep.txt explicitly names a key source. The
-        // exact in-session crypto is UNRESOLVED — an exhaustive sweep of the handshake keys ×
-        // standard modes was rejected by the client (see memory: account-auth-response-crypto).
-        private static GatewayAesCrypto? SelectSweepKey()
-        {
-            string? src = null;
-            try
-            {
-                const string f = @"C:\Users\tomda\Documents\Shittim-Server\sweep.txt";
-                if (System.IO.File.Exists(f))
-                {
-                    using var fs = new System.IO.FileStream(f, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
-                    using var sr = new System.IO.StreamReader(fs);
-                    foreach (var tok in sr.ReadToEnd().Trim().ToUpperInvariant().Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (tok is "CLIENT0" or "CLIENT1" or "SERVER0" or "SERVER1") { src = tok; break; }
-                    }
-                }
-            }
-            catch { }
-
-            if (src == null)
-                return null; // plaintext reply
-
-            var clients = GatewaySessionCryptoBuilder.GetClientCryptoCandidates();
-            var servers = GatewaySessionCryptoBuilder.GetAesCandidates();
-            return src switch
-            {
-                "CLIENT0" => clients.ElementAtOrDefault(0),
-                "CLIENT1" => clients.ElementAtOrDefault(1),
-                "SERVER0" => servers.ElementAtOrDefault(0),
-                "SERVER1" => servers.ElementAtOrDefault(1),
-                _ => null,
-            };
-        }
-
-        // In-session gateway responses are AES-encrypted with the client's session key. The exact AES
-        // mode used by the obfuscated client decryptor (MX.Core.Crypto.Ob8c791dd...O5093e0d3) can't be
-        // read statically (control-flow flattened), so the mode is selectable via env var while we
-        // confirm it empirically against the live client. Default ECB-PKCS7 (matches the Nexon toy
-        // SDK crypto; CBC-PKCS7 was rejected by the client).
-        private static byte[] EncryptResponseAes(byte[] plain, byte[] key, byte[] iv)
-        {
-            // Sweep config from sweep.txt: "<keyIdx> <mode> <padding>" (e.g. "0 CBC PKCS7").
-            // keyIdx picks the client crypto candidate (0=most recent=CheckNexon, 1=GetCryptoKeys);
-            // -1 keeps the passed key/iv. Read per request so we can sweep without restarting.
-            int keyIdx = 0;
-            string mode = "ECB", pad = "PKCS7";
-            try
-            {
-                const string f = @"C:\Users\tomda\Documents\Shittim-Server\sweep.txt";
-                string? cfg = null;
-                if (System.IO.File.Exists(f))
-                {
-                    using var fs = new System.IO.FileStream(f, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
-                    using var sr = new System.IO.StreamReader(fs);
-                    cfg = sr.ReadToEnd();
-                }
-                if (!string.IsNullOrWhiteSpace(cfg))
-                {
-                    var parts = cfg.Trim().ToUpperInvariant().Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length > 0) int.TryParse(parts[0], out keyIdx);
-                    if (parts.Length > 1) mode = parts[1];
-                    if (parts.Length > 2) pad = parts[2];
-                }
-            }
-            catch { }
-
-            if (keyIdx >= 0)
-            {
-                var cands = GatewaySessionCryptoBuilder.GetClientCryptoCandidates();
-                if (keyIdx < cands.Count) { key = cands[keyIdx].Key; iv = cands[keyIdx].Iv; }
-            }
-
-            var padMode = pad switch
-            {
-                "NONE" => PaddingMode.None,
-                "ZEROS" => PaddingMode.Zeros,
-                "ANSIX923" => PaddingMode.ANSIX923,
-                _ => PaddingMode.PKCS7,
-            };
-
-            if (mode == "CTR")
-                return AesCtrCrypt(plain, key, iv);
-
-            if (padMode == PaddingMode.None && plain.Length % 16 != 0)
-            {
-                var padded = new byte[((plain.Length / 16) + 1) * 16];
-                Buffer.BlockCopy(plain, 0, padded, 0, plain.Length);
-                plain = padded;
-            }
-
-            using var aes = Aes.Create();
-            aes.Key = key;
-            aes.Padding = padMode;
-            switch (mode)
-            {
-                case "CBC": aes.Mode = CipherMode.CBC; aes.IV = iv; break;
-                case "CFB": aes.Mode = CipherMode.CFB; aes.FeedbackSize = 128; aes.IV = iv; break;
-                case "ECB": default: aes.Mode = CipherMode.ECB; break;
-            }
-            using var encryptor = aes.CreateEncryptor();
-            return encryptor.TransformFinalBlock(plain, 0, plain.Length);
-        }
-
-        // AES-CTR (no native CipherMode.CTR in .NET): keystream = AES-ECB(counter), XOR with data.
-        private static byte[] AesCtrCrypt(byte[] data, byte[] key, byte[] iv)
-        {
-            using var aes = Aes.Create();
-            aes.Key = key;
-            aes.Mode = CipherMode.ECB;
-            aes.Padding = PaddingMode.None;
-            using var ecb = aes.CreateEncryptor();
-
-            var output = new byte[data.Length];
-            var counter = (byte[])iv.Clone();
-            var keystream = new byte[16];
-            for (int offset = 0; offset < data.Length; offset += 16)
-            {
-                ecb.TransformBlock(counter, 0, 16, keystream, 0);
-                int block = Math.Min(16, data.Length - offset);
-                for (int i = 0; i < block; i++)
-                    output[offset + i] = (byte)(data[offset + i] ^ keystream[i]);
-                for (int i = 15; i >= 0 && ++counter[i] == 0; i--) { }
-            }
-            return output;
-        }
-
         private sealed record GatewayPayload(string Json, uint Crc, int TypeConversion, GatewayCryptoContext ResponseCrypto);
 
         private sealed record GatewayDecodedPayload(string Format, byte[] Payload, int? ExpectedPlainLength);
@@ -970,7 +838,7 @@ namespace Shittim_Server.Controllers.Api
             if (ShouldUseAes(crypto))
             {
                 byte[] innerPlain = Encoding.UTF8.GetBytes(res.Packet);
-                byte[] innerEnc = HybridCryptor.EncryptSweep(innerPlain, crypto.Key, crypto.Iv);
+                byte[] innerEnc = HybridCryptor.EncryptGatewayResponse(innerPlain, crypto.Key, crypto.Iv);
                 res.Packet = Convert.ToBase64String(innerEnc);
             }
 
@@ -984,13 +852,13 @@ namespace Shittim_Server.Controllers.Api
             // The outer {protocol, packet} envelope must stay PLAINTEXT json so the client can route
             // it by protocol; only the inner `packet` payload is AES-encrypted. The client parses the
             // envelope, then HttpGameMessage.DecodeResponse(aesKey, aesIV, packet) base64-decodes +
-            // AES-decrypts the packet field (DecryptOrReturnOriginal). We previously encrypted the
-            // whole envelope, so the client's envelope JSON parse failed before it ever decrypted ->
+            // AES-decrypts the packet field (DecryptOrReturnOriginal). Encrypting the whole envelope
+            // fails the client's envelope JSON parse before it ever decrypts, and it reports
             // "A request that cannot be processed has been received." regardless of key/mode.
             if (ShouldUseAes(crypto))
             {
                 byte[] innerPlain = Encoding.UTF8.GetBytes(packet.Packet);
-                byte[] innerEnc = HybridCryptor.EncryptSweep(innerPlain, crypto.Key, crypto.Iv);
+                byte[] innerEnc = HybridCryptor.EncryptGatewayResponse(innerPlain, crypto.Key, crypto.Iv);
                 packet.Packet = Convert.ToBase64String(innerEnc);
             }
 

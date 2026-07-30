@@ -198,10 +198,9 @@ namespace BlueArchiveAPI.Services
                 {
                     VersionId = versionId,
                     CdnBaseUrl = cdnBaseUrl,
-                    SourceBuildVersion = await GetGlobalAndroidVersionAsync(ct), // Re-fetching might be redundant but safe, or we can cache it from GetResourcePathAsync if we refactor. 
-                    // Actually GetResourcePathAsync calls GetGlobalAndroidVersionAsync internally. 
-                    // To avoid double call, we could refactor, but for now let's just store what we have.
-                    // Or better, just store the versionId and cdnBaseUrl.
+                    // Second call: GetResourcePathAsync already fetched this internally, but the
+                    // value isn't threaded back out. Cheap enough (cached upstream) to just re-ask.
+                    SourceBuildVersion = await GetGlobalAndroidVersionAsync(ct),
                     LastUpdatedUtc = DateTime.UtcNow
                 };
 

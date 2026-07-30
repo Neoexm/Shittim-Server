@@ -125,7 +125,7 @@ namespace Shittim_Server.Managers
 
             var parcelResolver = await parcelHandler.BuildParcel(context, account, parcelResults, isConsume: true);
 
-            // Official's tier-up carries ConsumeResultDB alongside ParcelResultDB — without it the
+            // Official's tier-up carries ConsumeResultDB alongside ParcelResultDB - without it the
             // client keeps showing the spent ingredients until the next full list. The resolver's
             // post-consume stacks are exactly the "remaining counts" official reports.
             var consumeResult = new ConsumeResultDB

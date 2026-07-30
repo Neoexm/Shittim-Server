@@ -9,7 +9,7 @@ namespace Schale.Data.ModelMapping
     {
         #region IQueryable Mappings
 
-        // --- Specific FirstOrDefault / First Extensions (for IQueryable sources) ---
+        // Specific FirstOrDefault / First Extensions (for IQueryable sources)
         // These methods perform FirstOrDefault/First on the database and then map the single result.
 
         //
@@ -249,7 +249,7 @@ namespace Schale.Data.ModelMapping
 
         #region IEnumerable Mappings
 
-        // --- Specific FirstOrDefault / First Extensions (for IEnumerable sources) ---
+        // Specific FirstOrDefault / First Extensions (for IEnumerable sources)
         // These methods perform FirstOrDefault/First in-memory and then map the single result.
 
         //

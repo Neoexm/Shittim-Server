@@ -45,7 +45,7 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string? OverrideCdnBaseUrl { get; set; }
         // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and
         // overridable per-machine with SHITTIM_ADMIN_API_KEY. Empty by default, which restricts admin
-        // endpoints to loopback (see AdminAuthAttribute) — enough for the Control Center, which
+        // endpoints to loopback (see AdminAuthAttribute) - enough for the Control Center, which
         // connects to 127.0.0.1. Set this only if you need to administer the server remotely.
         public string AdminApiKey { get; set; } = "";
         public string ExcelDbSqlCipherKey { get; set; } = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0";

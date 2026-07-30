@@ -69,7 +69,7 @@ namespace Shittim.CLI
 
                 Console.WriteLine("\n[Command System] Loading commands...");
                 CommandFactory.LoadCommands();
-                Console.WriteLine("✓ Console commands loaded");
+                Console.WriteLine("Console commands loaded");
 
                 Console.WriteLine("\n[Resource Manager] Checking Excel tables...");
                 await ResourceService.LoadResources(Config.Instance.ServerConfiguration.UseCustomExcel);
@@ -140,11 +140,11 @@ namespace Shittim.CLI
                         var keyPem = File.ReadAllText(keyPath);
                         var cert = X509Certificate2.CreateFromPem(certPem, keyPem);
                         httpsCert = new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
-                        Console.WriteLine($"✓ Loaded certificate for HTTPS: {Path.GetFileName(certPath)}");
+                        Console.WriteLine($"Loaded certificate for HTTPS: {Path.GetFileName(certPath)}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"✗ Failed to load certificate: {ex.Message}");
+                        Console.WriteLine($"Failed to load certificate: {ex.Message}");
                     }
                 }
 
@@ -159,11 +159,11 @@ namespace Shittim.CLI
                         {
                             listenOptions.UseHttps(httpsCert);
                         });
-                        Console.WriteLine("✓ HTTPS on port 443 for SDK endpoints");
+                        Console.WriteLine("HTTPS on port 443 for SDK endpoints");
                     }
                     else
                     {
-                        Console.WriteLine("✗ HTTPS on port 443 disabled (no certificate)");
+                        Console.WriteLine("HTTPS on port 443 disabled (no certificate)");
                     }
                     
                     options.Listen(System.Net.IPAddress.Any, apiPort);
@@ -190,19 +190,16 @@ namespace Shittim.CLI
                         context.Database.Migrate();
 
                     // EnsureCreated only builds the schema for a brand-new database and does nothing
-                    // to one that already exists, and the project has no migrations. This used to be
-                    // a stack of hand-written CREATE TABLE IF NOT EXISTS blocks, one per entity added
-                    // after the fact — which covered new tables but silently missed new *columns*.
-                    // SchemaReconciler derives both from the EF model, so adding a property is enough.
+                    // to one that already exists, and the project has no migrations. SchemaReconciler
+                    // derives both tables and columns from the EF model, so adding a property is
+                    // enough - hand-written CREATE TABLE IF NOT EXISTS blocks would cover new tables
+                    // but silently miss new columns.
                     var schemaChanges = await SchemaReconciler.ReconcileAsync(context);
                     foreach (var change in schemaChanges)
                         Console.WriteLine($"Schema: {change}");
 
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);
-
-                    var handlerManager = scope.ServiceProvider.GetRequiredService<HandlerManager>();
-                    handlerManager.Initialize();
 
                     if (console)
                     {

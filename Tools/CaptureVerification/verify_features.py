@@ -155,7 +155,7 @@ if books:
     check("double claim rejected with Error", name, "Error")
     check("  ...code 9000 AttendanceInvalid", err.get("ErrorCode"), 9000)
 else:
-    print("  SKIP claim tests (no books — attendance excel empty?)")
+    print("  SKIP claim tests (no books - attendance excel empty?)")
     FAILURES.append("attendance books unavailable")
 
 print("\n--- crafting chain -------------------------------------------------------------")
@@ -213,7 +213,7 @@ if len(node.get("LeafNodeIds") or []) == 5:
     check_true("post-reward Craft_List omits CraftInfos", "CraftInfos" not in lst)
     check_true("Craft_List never sends ShiftingCraftInfos", "ShiftingCraftInfos" not in lst)
 else:
-    print("  SKIP rest of chain (no leaf candidates — GachaCraftNode excel empty?)")
+    print("  SKIP rest of chain (no leaf candidates - GachaCraftNode excel empty?)")
     FAILURES.append("craft leaf candidates unavailable")
 
 print("\n--- Shop_BuyAP: cap + error envelope + success shape ---------------------------")

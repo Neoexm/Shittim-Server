@@ -184,8 +184,8 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         
-        // Wrap into Gacha3 request (Cost is null, which is handled by our previous fix)
-        var req3 = new ShopBuyGacha3Request 
+        // Gacha1 carries no Cost; ConsumeCurrency resolves it from the shop row when null.
+        var req3 = new ShopBuyGacha3Request
         { 
             ShopUniqueId = request.ShopUniqueId, 
             GoodsId = request.GoodsId,
@@ -199,7 +199,6 @@ public class ShopHandler : ProtocolHandlerBase
         response.ParcelResultDB = new ParcelResultDB
         {
              AccountCurrencyDB = accountCurrency,
-             // Map other results if needed, but for now ensure we don't crash
         };
 
         await db.SaveChangesAsync();
@@ -320,7 +319,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         
-        // Return empty selection for now
+        // Pickup selections are not persisted; the client accepts an empty map.
         response.PickupCharacterSelection = new Dictionary<long, long>();
 
         return response;
@@ -484,7 +483,7 @@ public class ShopHandler : ProtocolHandlerBase
             SoldOut = shopExcel.PurchaseCountLimit > 0
                 && purchaseHistory.PurchaseCount >= shopExcel.PurchaseCountLimit,
             PurchaseCountLimit = shopExcel.PurchaseCountLimit
-            // No Price — official omits it (see ShopManager.GetShopList).
+            // No Price - official omits it (see ShopManager.GetShopList).
         };
 
         await db.SaveChangesAsync();
@@ -641,7 +640,7 @@ public class ShopHandler : ProtocolHandlerBase
 
         ValidatePurchaseCount(request.PurchaseCount);
 
-        // Failures are Error packets, never empty successes — official rejects with a bare
+        // Failures are Error packets, never empty successes - official rejects with a bare
         // {Protocol:-1, ErrorCode, ServerTimeTicks} envelope (captured on the AP-cap rejection).
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
         if (shopExcel == null || shopExcel.GoodsId == null || shopExcel.GoodsId.Count == 0)
@@ -673,7 +672,7 @@ public class ShopHandler : ProtocolHandlerBase
             ? goodsExcel.ParcelAmount[0]
             : 0;
 
-        // Shop_BuyAP grants ActionPoint by definition — the goods rows for shop 21 all carry
+        // Shop_BuyAP grants ActionPoint by definition - the goods rows for shop 21 all carry
         // Currency/5/120 now that the GoodsExcel model has its recovered 22-slot layout; the
         // captured official buy matches (x3: +360 AP, -90 gems). The 120 fallback only covers a
         // future data change that stops naming ActionPoint plausibly.
@@ -742,7 +741,7 @@ public class ShopHandler : ProtocolHandlerBase
             DisplaySequence = [apParcel],
             ParcelForMission = [apParcel]
         };
-        // Official's product carries ProductType and the purchase count — and no Price key. The
+        // Official's product carries ProductType and the purchase count - and no Price key. The
         // count is the running total for the reset window: the captured official Shop_List omitted
         // it (0) immediately before a 3-unit buy whose response reported 3, so cumulative and
         // per-request coincide in that sample; cumulative is the reading that can enforce the

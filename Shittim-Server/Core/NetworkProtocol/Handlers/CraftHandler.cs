@@ -16,16 +16,13 @@ using Shittim_Server.Services;
 namespace Shittim_Server.Core.NetworkProtocol.Handlers
 {
     /// <summary>
-    /// Crafting chamber, modelled on the complete flow in the detailed official capture:
-    /// UpdateNodeLevel (consume materials + gold; the node gains a level, a random seed and five
-    /// leaf choices for the next tier) -> SelectNode (commit one leaf) -> repeated per tier ->
-    /// BeginProcess (the tree resolves per-tier results and a StartTime/EndTime window) ->
-    /// CompleteProcess (time-skip tickets, item 2, one per started 2.5h) -> Reward (parcels; the
-    /// slot clears).
-    ///
-    /// Wire shapes are faithful to the capture throughout; where official's internal rules are
-    /// not observable (leaf-choice weighting, the meaning of ResultId, exact craft duration) the
-    /// approximation is noted inline.
+    /// Crafting chamber, modelled on the complete flow in the detailed official capture: UpdateNodeLevel
+    /// (consume materials + gold; the node gains a level, a random seed and five leaf choices for the
+    /// next tier) -> SelectNode (commit one leaf) -> repeat per tier -> BeginProcess (resolve per-tier
+    /// results and a StartTime/EndTime window) -> CompleteProcess (time-skip tickets, item 2, one per
+    /// started 2.5h) -> Reward (parcels, slot clears). Wire shapes follow the capture throughout; where
+    /// official's internal rules are not observable - leaf-choice weighting, the meaning of ResultId,
+    /// exact craft duration - the approximation is noted inline.
     /// </summary>
     public class CraftHandler : ProtocolHandlerBase
     {
@@ -204,7 +201,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                     node.LeafNodeIds = null;
 
                 // Node -> reward: the node's gacha groups weighted by ProbWeight, then one roll
-                // inside the chosen group. ResultId is set to the chosen group id — its exact
+                // inside the chosen group. ResultId is set to the chosen group id - its exact
                 // official semantics are not derivable from the capture, only its presence.
                 var groups = nodeGroups.Where(x => x.NodeId == node.NodeId).ToList();
                 if (groups.Count == 0)

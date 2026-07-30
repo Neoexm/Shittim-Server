@@ -6,13 +6,13 @@ import datetime
 from pathlib import Path
 from mitmproxy import http, ctx
 
-# --- Diagnostic request logger -------------------------------------------------
-# Logs EVERY request the game makes (regardless of host/disposition) to a flat
-# file we can read. This is the only way to observe requests that go to real
-# Nexon hosts (via the WireGuard tunnel) rather than our loopback server, which
-# our own Serilog already captures. Used to find the request the game issues
-# after get_primary_link that never gets served (the 21s-timeout gap).
-RLOG_PATH = Path(r"C:\Users\tomda\Documents\Shittim-Server\redirect_requests.log")
+# Logs every request the game makes, regardless of host or disposition. Serilog
+# only sees what reaches the loopback server, so this is the only way to observe
+# requests that go out to real Nexon hosts over the WireGuard tunnel.
+RLOG_PATH = Path(
+    os.environ.get("SHITTIM_REDIRECT_LOG")
+    or Path(__file__).resolve().parents[2] / "redirect_requests.log"
+)
 
 def rlog(msg: str) -> None:
     try:
@@ -47,7 +47,7 @@ NGS_HOSTS = [
 ]
 
 def load(loader):
-    rlog("==== redirect_server.py (re)loaded — new logging session ====")
+    rlog("==== redirect_server.py (re)loaded - new logging session ====")
     ctx.options.ignore_hosts = [
         f"{SERVER_HOST}:{SERVER_PORT}",
         f"{SERVER_HOST}:{GATEWAY_PORT}",
@@ -83,7 +83,7 @@ REWRITE_HOST_LIST = [
 
     # Other
     'psm-log.ngs.nexon.com',
-    # Nexon config service (na_time_sync / na_grclist_query) — gamescale/Inface SDK
+    # Nexon config service (na_time_sync / na_grclist_query) - gamescale/Inface SDK
     # init gates on this; must be served, not killed.
     'config.na.nexon.com',
     # GTable (all env variants)
@@ -94,7 +94,7 @@ REWRITE_HOST_LIST = [
 
 KILL_HOST_LIST = [
     'sdk-push.mp.nexon.com'
-    # config.na.nexon.com: do NOT kill — the gamescale/Inface SDK gates its init on
+    # config.na.nexon.com: do NOT kill - the gamescale/Inface SDK gates its init on
     # na_time_sync (config.na). Killing it leaves the SDK uninitialized so the Bolt
     # sign-in base URL is never set and /signInWithTicket.nx never fires. Redirect it
     # to our server (REWRITE_HOST_LIST) and serve the config endpoints instead.

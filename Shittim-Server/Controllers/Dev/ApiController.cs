@@ -74,13 +74,12 @@ namespace Shittim_Server.Controllers.Dev
             var decryptedJson = Utils.DecryptRequestPacket(packet);
             var request = (RequestPacket)JsonConvert.DeserializeObject(decryptedJson, requestType)!;
 
-            using var lease = _handlerManager.GetHandlerLease(proto);
-            if (!lease.IsValid)
+            if (!_handlerManager.IsImplemented(proto))
             {
                 return NotFound();
             }
 
-            var response = await lease.Handler.Handle(request);
+            var response = await _handlerManager.Dispatch(proto, request);
             if (response == null)
             {
                 return StatusCode(500, "Handler returned null");
@@ -108,15 +107,13 @@ namespace Shittim_Server.Controllers.Dev
             var decryptedJson = Utils.DecryptRequestPacket(packet);
             var request = (RequestPacket)JsonConvert.DeserializeObject(decryptedJson, requestType)!;
 
-            using var lease = _handlerManager.GetHandlerLease(proto);
-
-            if (!lease.IsValid)
+            if (!_handlerManager.IsImplemented(proto))
             {
                 _logger.LogWarning($"api: {protocol}@{path1}/{path2} not implemented!");
                 return NotFound();
             }
 
-            var response = await lease.Handler.Handle(request);
+            var response = await _handlerManager.Dispatch(proto, request);
             if (response == null)
             {
                 return StatusCode(500, "Handler returned null");

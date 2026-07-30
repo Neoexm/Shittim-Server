@@ -1,18 +1,13 @@
 'use strict';
 /* ============================================================================
-   Blue Archive — decrypted response capture
+   Blue Archive - decrypted response capture
 
    Reads server responses out of the client's memory AFTER it has decrypted
    them, and appends them to a text file.
 
-   Why memory rather than the wire: the transport payload is encrypted, so a
-   proxy only ever yields ciphertext. But the plaintext must exist in managed
-   memory for the client to deserialize it. Hooking the point where a decrypt
-   returns — or where a deserializer is handed a buffer — yields cleartext
-   without having to defeat the obfuscated crypto at all. That also side-steps
-   the IL2CPP static-analysis problem: string literals are loaded through a
-   metadata table rather than by direct reference, so IDA xrefs dead-end, while
-   the live runtime hands over real class and method names for free.
+   The payload is encrypted on the wire, so a proxy only ever yields ciphertext.
+   The plaintext has to be in managed memory for the client to deserialize it,
+   so hooking where a decrypt returns gets it without touching the crypto.
 
    Self-contained on purpose: `frida -l` does not resolve require(), so there
    is no module to bundle and no frida-compile step.
@@ -30,7 +25,7 @@
    Output lands in ..\..\captures\
    ========================================================================== */
 
-// ------------------------------------------------------------------ config
+// config
 
 const CFG = {
   mode: 'capture',          // 'capture' | 'discover'  (env BA_MODE overrides)
@@ -48,27 +43,27 @@ const CFG = {
 try {
   const m = Process.env && Process.env.BA_MODE;
   if (m) CFG.mode = m.toLowerCase();
-} catch (e) { /* env unavailable — keep default */ }
+} catch (e) { /* env unavailable - keep default */ }
 
 // Only these (class, method) shapes get hooked. Narrow on purpose: hooking
 // every method named "Deserialize" in a 215 MB binary would attach thousands
 // of probes and stutter the game.
 const TARGETS = [
-  // crypto boundaries — the return value is the plaintext
+  // crypto boundaries - the return value is the plaintext
   { cls: /crypt|cipher|aes|rijndael|xor|security|obfusc/i, m: /^decrypt/i, capture: 'ret', kind: 'decrypt' },
   { cls: /packet|protocol|session|gateway|network/i, m: /decrypt/i, capture: 'ret', kind: 'decrypt' },
 
-  // serialization boundaries — the incoming buffer is already plaintext
+  // serialization boundaries - the incoming buffer is already plaintext
   { cls: /messagepack|serializer|formatter/i, m: /^deserialize$/i, capture: 'arg0', kind: 'deserialize' },
   { cls: /packet|protocol/i, m: /^(deserialize|unpack|fromjson|parse)$/i, capture: 'arg0', kind: 'deserialize' },
 
-  // receive path — whatever the transport just handed upward
+  // receive path - whatever the transport just handed upward
   { cls: /packet|protocol|network|session|transport|webrequest/i,
     m: /^(onreceive|onresponse|handleresponse|parseresponse|processpacket|setresponse)$/i,
     capture: 'arg0', kind: 'receive' },
 ];
 
-// ------------------------------------------------------------------ il2cpp
+// il2cpp
 
 const mod = Process.getModuleByName(CFG.module);
 
@@ -96,7 +91,7 @@ try {
   };
 } catch (e) {
   console.log('[!] ' + e.message);
-  console.log('[!] GameAssembly.dll is not loaded yet — attach once the game is at the title screen,');
+  console.log('[!] GameAssembly.dll is not loaded yet - attach once the game is at the title screen,');
   console.log('[!] or use `frida -f <exe>` to spawn and hold at entry.');
   throw e;
 }
@@ -173,7 +168,7 @@ function eachMethod(klass, fn) {
   }
 }
 
-// ------------------------------------------------------------------ output
+// output
 
 function ts() { return new Date().toISOString(); }
 function fileStamp() { return ts().replace(/[:.]/g, '-').slice(0, 19); }
@@ -184,7 +179,7 @@ function openOut(name) {
   return { f, path };
 }
 
-// ------------------------------------------------------------------ format
+// format
 
 function hexPane(bytes, total) {
   const u8 = new Uint8Array(bytes);
@@ -220,7 +215,7 @@ function decodeText(bytes) {
       else { if (cur.length >= 3) runs.push(cur); cur = ''; }
     }
     if (cur.length >= 3) runs.push(cur);
-    return { mode: 'binary', text: runs.join(' \u00b7 ') };
+    return { mode: 'binary', text: runs.join(' - ') };
   }
 
   let text = '';
@@ -228,15 +223,9 @@ function decodeText(bytes) {
   return { mode: 'text', text };
 }
 
-// Control characters are written as \uXXXX escapes so a captured body stays on one
-// line AND parses under a STRICT JSON reader. Official payloads carry raw control
-// bytes inside user text (clan notices, localized mail bodies); those used to land in
-// the capture verbatim, which broke the line format and forced the downstream Python
-// analysis into json.loads(..., strict=False).
-// Quotes and backslashes are deliberately left exactly as captured: a JSON body's own
-// \" / \\ sequences are already valid escapes, and re-escaping them here would corrupt
-// the payload. Only U+0000-U+001F and U+007F are rewritten, so the transform is
-// idempotent-safe and round-trips through any JSON reader.
+// Official payloads carry raw control bytes inside user text (clan notices, localized
+// mail bodies); escaping them keeps a body on one line and readable with strict=True.
+// Quotes and backslashes stay as captured - a body's own \" / \\ are already escapes.
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 
 function escapeControls(s) {
@@ -281,11 +270,11 @@ function coerce(p) {
   return null;
 }
 
-// ------------------------------------------------------------------ capture
+// capture
 
 function runCapture() {
   const { f: out, path } = openOut('responses-' + fileStamp() + '.txt');
-  out.write('# Blue Archive \u2014 decrypted server responses (read from process memory)\r\n' +
+  out.write('# Blue Archive - decrypted server responses (read from process memory)\r\n' +
             '# session started ' + ts() + '\r\n' +
             '# block format: timestamp, hook, byte length, decoded text, hex pane\r\n' +
             '#' + '='.repeat(78) + '\r\n\r\n');
@@ -301,7 +290,7 @@ function runCapture() {
     count++;
 
     const shown = text.length > CFG.maxTextChars
-      ? text.slice(0, CFG.maxTextChars) + ' \u2026[truncated]'
+      ? text.slice(0, CFG.maxTextChars) + '...[truncated]'
       : text;
 
     let b = '';
@@ -365,14 +354,14 @@ function runCapture() {
 
   console.log('[capture] ' + hooked.length + ' hooks installed');
   hooked.slice(0, 40).forEach((h) => console.log('    ' + h));
-  if (hooked.length > 40) console.log('    \u2026 and ' + (hooked.length - 40) + ' more');
+  if (hooked.length > 40) console.log('    ... and ' + (hooked.length - 40) + ' more');
   console.log('[capture] writing to ' + path);
   if (!hooked.length) {
-    console.log('[capture] nothing matched \u2014 run BA_MODE=discover and widen TARGETS');
+    console.log('[capture] nothing matched - run BA_MODE=discover and widen TARGETS');
   }
 }
 
-// ------------------------------------------------------------------ discover
+// discover
 
 function runDiscover() {
   const CLASS_HINTS = ['networkprotocol', 'packet', 'crypt', 'cipher', 'aes', 'rijndael',
@@ -387,7 +376,7 @@ function runDiscover() {
   attachThread();
 
   const lines = [
-    '# IL2CPP discovery \u2014 networking / crypto / serialization surface',
+    '# IL2CPP discovery - networking / crypto / serialization surface',
     '# generated ' + ts(),
     '# format: <image> | <namespace>.<class> :: <method>(<params>) @ <address>',
     '',
@@ -420,7 +409,7 @@ function runDiscover() {
   console.log('[discover] wrote ' + path);
 }
 
-// ------------------------------------------------------------------ entry
+// entry
 
 setImmediate(function () {
   console.log('[ba-capture] mode=' + CFG.mode + '  module=' + CFG.module + ' @ ' + mod.base);

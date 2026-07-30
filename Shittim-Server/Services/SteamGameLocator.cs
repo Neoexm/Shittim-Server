@@ -3,26 +3,17 @@ using System.Text.RegularExpressions;
 
 namespace Shittim_Server.Services
 {
-    // Locates the Steam install of the Blue Archive client (Steam app 3557620,
-    // common folder "BlueArchive") wherever it actually lives, instead of assuming
-    // it is on F:\ or in Program Files (x86). The previous client-patch path
-    // discovery only checked those two hardcoded spots, so anyone who installed
-    // Steam (or the game's Steam library) on another drive got NO client patching:
-    // the gateway public key was never written into global-metadata.dat and the
-    // client hung forever at "Unpacking game resources" (the 50001 RSA handshake
-    // could not complete). This finds the install across every Steam library on
-    // the machine so the patch services work out of the box.
+    // Locates the Steam install of the client (app 3557620, common folder "BlueArchive")
+    // wherever it lives. Checking only F:\ and Program Files (x86) misses anyone with Steam
+    // or their game library on another drive, and with no install path the patch services
+    // never write the gateway public key into global-metadata.dat, leaving the client stuck
+    // at "Unpacking game resources" on a 50001 handshake that cannot complete.
     //
-    // Discovery order (cheapest first; the registry probe spawns reg.exe and only
-    // runs if no Steam install is found in a standard location):
-    //   1. SHITTIM_STEAM_PATH override
-    //   2. Program Files (x86)\Steam and Program Files\Steam
-    //   3. <drive>:\Steam and <drive>:\Program Files (x86)\Steam on every fixed drive
-    //   4. HKCU/HKLM Valve\Steam registry value
-    // For each Steam install found, steamapps\libraryfolders.vdf is parsed for the
-    // user's additional library folders (the common "games on D:" case), and every
-    // library is checked for steamapps\common\BlueArchive. A final fixed-drive scan
-    // catches bare SteamLibrary folders not referenced by any parsed vdf.
+    // Cheapest first: SHITTIM_STEAM_PATH, the two Program Files locations, <drive>:\Steam and
+    // <drive>:\Program Files (x86)\Steam on each fixed drive, then the HKCU/HKLM Valve\Steam
+    // value (spawns reg.exe, so only if nothing else matched). Each install found gets its
+    // steamapps\libraryfolders.vdf parsed for extra libraries - the common "games on D:" case -
+    // and a final fixed-drive scan catches bare SteamLibrary folders no vdf mentions.
     public static class SteamGameLocator
     {
         private const string GameFolderName = "BlueArchive";
@@ -97,7 +88,7 @@ namespace Shittim_Server.Services
             }
         }
 
-        // Candidate Steam *install* directories (the ones that may hold
+        // Candidate Steam install directories (the ones that may hold
         // steamapps\libraryfolders.vdf). Steam itself is almost always in Program
         // Files (x86) even when games live on another drive.
         private static IEnumerable<string> EnumerateSteamInstalls()
@@ -133,7 +124,7 @@ namespace Shittim_Server.Services
                     yield return nested;
             }
 
-            // Only reached when no Steam install was found above — spawns reg.exe.
+            // Only reached when no Steam install was found above - spawns reg.exe.
             var fromRegistry = ReadSteamPathFromRegistry();
             if (Directory.Exists(fromRegistry))
                 yield return fromRegistry;

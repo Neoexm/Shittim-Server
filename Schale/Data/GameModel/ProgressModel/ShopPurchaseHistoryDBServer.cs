@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Schale.Data.GameModel
 {
     // Per-account, per-shop purchase counter. ShopExcel carries a PurchaseCountLimit (20 for the AP
-    // shop) and a PurchaseCountResetType (None/Day/Week/Month), but nothing server-side used to
-    // count purchases, so every limited product was buyable forever and Shop_List always reported
+    // shop) and a PurchaseCountResetType (None/Day/Week/Month), but the count itself has to live
+    // server-side: without this row a limited product is buyable forever and Shop_List reports
     // zero. PeriodStart records which reset window the count belongs to; when the window rolls over
     // the counter is zeroed rather than deleted, so the row stays stable for the account's lifetime.
     public class ShopPurchaseHistoryDBServer
