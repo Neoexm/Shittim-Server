@@ -221,21 +221,17 @@ public class MomoTalkHandler : ProtocolHandlerBase
         var targetOutline = outlines.FirstOrDefault(x => x.CharacterId == schedule.CharacterId);
         if (targetOutline == null)
             return response;
+	
+        var favorRank = db.Characters
+            .FirstOrDefault(c => c.AccountServerId == account.ServerId && c.ServerId == targetOutline.CharacterDBId)
+            ?.FavorRank ?? 1;
+        if (favorRank < schedule.FavorRank)
+            return response;
 
         if (targetOutline.ScheduleIds.Contains(request.ScheduleId))
             return response;
 
-        var accountCurrency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
-        if (accountCurrency == null)
-            return response;
-
-        if (!accountCurrency.CurrencyDict.TryGetValue(CurrencyTypes.AcademyTicket, out var currentTicket) || currentTicket <= 0)
-            return response;
-
-        var parcelResults = new List<ParcelResult>
-        {
-            new(ParcelType.Currency, (long)CurrencyTypes.AcademyTicket, -1)
-        };
+        var parcelResults = new List<ParcelResult>();
 
         var rewardCount = new[]
         {
