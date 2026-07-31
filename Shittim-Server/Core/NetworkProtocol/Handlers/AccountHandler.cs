@@ -297,9 +297,18 @@ public class AccountHandler : ProtocolHandlerBase
         await db.SaveChangesAsync();
 
         sw.Restart();
+        var cafes = db.GetAccountCafes(account.ServerId).ToList();
+
+        // the cafe screen is fed from this sync, not from Cafe_Get - a client can go a whole session without asking for cafe data again, so the substitution has to happen on the way out rather than only where visitors are rolled.
+        if (Config.Instance.ServerConfiguration.KoyukiIncident)
+        {
+            var accountCharacters = db.GetAccountCharacters(account.ServerId).ToList();
+            cafes.ForEach(x => x.CafeVisitCharacterDBs = CafeService.CreateKoyukiVisitors(accountCharacters));
+        }
+
         response.CafeGetInfoResponse = new CafeGetInfoResponse
         {
-            CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper),
+            CafeDBs = cafes.ToMapList(_mapper),
             FurnitureDBs = db.GetAccountFurnitures(account.ServerId).ToMapList(_mapper)
         };
         _logger.LogInformation("Cafe queries took {Ms}ms", sw.ElapsedMilliseconds);
@@ -311,6 +320,16 @@ public class AccountHandler : ProtocolHandlerBase
             // Official always sends this map, empty when nothing expired.
             ExpiredCurrency = new()
         };
+
+        // Item_SelectTicket used to record furniture box picks as characters, leaving rows keyed by furniture ids. The client aborts loading on a character id with no excel entry, so drop those rows here - same repair-on-login idea as the scenario seeding in Auth.
+        var characterExcelIds = _excelService.GetTable<CharacterExcelT>().Select(x => x.Id).ToHashSet();
+        var phantomCharacters = db.GetAccountCharacters(account.ServerId).AsEnumerable().Where(x => !characterExcelIds.Contains(x.UniqueId)).ToList();
+        if (phantomCharacters.Count > 0)
+        {
+            _logger.LogWarning("Removing {Count} character rows with no excel entry for account {AccountId}", phantomCharacters.Count, account.ServerId);
+            db.Characters.RemoveRange(phantomCharacters);
+            await db.SaveChangesAsync();
+        }
 
         response.CharacterListResponse = new CharacterListResponse
         {

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
@@ -45,6 +46,12 @@ public class CafeHandler : ProtocolHandlerBase
 
         var cafes = db.GetAccountCafes(account.ServerId).ToList();
         var furnitures = db.GetAccountFurnitures(account.ServerId).ToList();
+
+        if (Config.Instance.ServerConfiguration.KoyukiIncident)
+        {
+            var accountCharacters = db.GetAccountCharacters(account.ServerId).ToList();
+            cafes.ForEach(x => x.CafeVisitCharacterDBs = CafeService.CreateKoyukiVisitors(accountCharacters));
+        }
 
         response.CafeDBs = cafes.ToMapList(_mapper);
         response.FurnitureDBs = furnitures.ToMapList(_mapper);

@@ -24,22 +24,7 @@ namespace BlueArchiveAPI.Services
             var cafeVisitCharacterDBs = new Dictionary<long, CafeDBServer.CafeCharacterDBServer>();
 
             if (Config.Instance.ServerConfiguration.KoyukiIncident)
-            {
-                var koyuki = characters.FirstOrDefault(c => c.UniqueId == KoyukiId);
-
-                // the keys are seats rather than ids here, since the same student has to fill all of them. the client takes the student off the value's UniqueId - VisitingCharacterDB carries it for the academy too, where the key is the zone.
-                for (var seat = 0; seat < 100; seat++)
-                {
-                    cafeVisitCharacterDBs.Add(seat, new CafeDBServer.CafeCharacterDBServer
-                    {
-                        IsSummon = false,
-                        UniqueId = KoyukiId,
-                        ServerId = koyuki?.ServerId ?? 0
-                    });
-                }
-
-                return cafeVisitCharacterDBs;
-            }
+                return CreateKoyukiVisitors(characters);
 
             var existingCharactersLookup = characters.ToDictionary(c => c.UniqueId);
             var numberOfCharacters = Random.Shared.Next(3, 6);
@@ -61,6 +46,25 @@ namespace BlueArchiveAPI.Services
             }
 
             return cafeVisitCharacterDBs;
+        }
+
+        public static Dictionary<long, CafeDBServer.CafeCharacterDBServer> CreateKoyukiVisitors(List<CharacterDBServer> characters)
+        {
+            var koyuki = characters.FirstOrDefault(c => c.UniqueId == KoyukiId);
+            var visitors = new Dictionary<long, CafeDBServer.CafeCharacterDBServer>();
+
+            // every visit dictionary the client has ever been sent is keyed by character id, so the first seat is keyed the way it expects and the rest go under negative keys no student can collide with. if the cafe reads the student off the value's UniqueId all hundred land, and if it reads the key we still get the one.
+            for (var seat = 0; seat < 100; seat++)
+            {
+                visitors.Add(seat == 0 ? KoyukiId : -seat, new CafeDBServer.CafeCharacterDBServer
+                {
+                    IsSummon = false,
+                    UniqueId = KoyukiId,
+                    ServerId = koyuki?.ServerId ?? 0
+                });
+            }
+
+            return visitors;
         }
 
         public static List<FurnitureDBServer> AddToInventory(
