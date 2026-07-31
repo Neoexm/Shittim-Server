@@ -137,16 +137,20 @@ public class MomoTalkHandler : ProtocolHandlerBase
         {
             // No choice made, so the next group comes from the group being read.
             var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
-			var mmtChatProgression = currentGroupMessages
-				.Where(x => x.MessageCondition != AcademyMessageConditions.Answer && x.MessageCondition != AcademyMessageConditions.Feedback)
-				.ToList();
-			if (mmtChatProgression.Count != 0)
-            {
-                var transitionMessage = mmtChatProgression.FirstOrDefault(x => uwu(x.NextGroupId, request.LastReadMessageGroupId));
-                if(transitionMessage != null) {
-					nextGroupId = transitionMessage.NextGroupId;
+			var mmtChatWaitPlayer = currentGroupMessages.Any(x => x.MessageCondition == AcademyMessageConditions.Answer);
+			if(!mmtChatWaitPlayer) {
+				{
+					var mmtChatProgression = currentGroupMessages
+						.Where(x => x.MessageCondition != AcademyMessageConditions.Answer && x.MessageCondition != AcademyMessageConditions.Feedback)
+						.ToList();
+					if (mmtChatProgression.Count != 0) {
+					var transitionMessage = mmtChatProgression.FirstOrDefault(x => uwu(x.NextGroupId, request.LastReadMessageGroupId));
+					if(transitionMessage != null) {
+						nextGroupId = transitionMessage.NextGroupId;
+						}
+					}
 				}
-            }
+			}
         }
 
         // A FavorRankUp-gated group only opens once the student's relationship rank reaches the
@@ -174,7 +178,13 @@ public class MomoTalkHandler : ProtocolHandlerBase
             // Keep current outline choice null to prevent duplicate message bubbles.
             // Choice history is already represented by MomoTalkChoiceDBs.
             momotalkOutline.ChosenMessageId = null;
-        }
+        } else {
+			momotalkOutline.LatestMessageGroupId = request.LastReadMessageGroupId;
+			momotalkOutline.LastUpdateDate = account.GameSettings.ServerDateTime();
+			if(request.ChosenMessageId.GetValueOrDefault() > 0){
+				momotalkOutline.ChosenMessageId = request.ChosenMessageId.Value;
+			}
+		}
 
         await db.SaveChangesAsync();
 
