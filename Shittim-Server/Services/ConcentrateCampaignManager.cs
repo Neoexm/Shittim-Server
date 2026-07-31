@@ -411,6 +411,10 @@ public class ConcentrateCampaignManager
 
         stageSaveData.EngagedEnemyEntityId = req.EnemyIndex;
 
+        // enemy-phase tactic: the client just played the walks up to and including the engaging enemy, so those become real before the battle
+        if (stageSaveData.CampaignState == CampaignState.EnemyPhase)
+            ApplyEnemyMoves(stageSaveData, req.EnemyIndex);
+
         context.CampaignMainStageSaves.Update(stageSaveData);
         await context.SaveChangesAsync();
 
@@ -454,6 +458,10 @@ public class ConcentrateCampaignManager
 
         stageSaveData.TacticClearTimeMscSum += (long)Math.Floor(req.Summary.EndFrame / 30f) * 1000;
         stageSaveData.EchelonInfos = ChangeConcentratedEchelon(stageSaveData.EchelonInfos, req.Summary, req.Hand);
+
+        // read before the win branch clears them - the enemy-phase continuation below resumes off the engaged id
+        var engagedEnemyId = stageSaveData.EngagedEnemyEntityId;
+        var wasEnemyPhase = stageSaveData.CampaignState == CampaignState.EnemyPhase;
 
         var isStageClear = false;
         var endBattleType = CampaignEndBattle.Win;
@@ -536,7 +544,17 @@ public class ConcentrateCampaignManager
         }
 
         // DisplayInfos is per-response, never an accumulation; the stage-clear entry carries the whole reward payload, so AttachStageClearForWire hangs it on the wire copy instead of persisting it in the save row.
-        stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
+        // exception: a tactic fought mid-enemy-phase interrupted the decision pass, so the enemies after the engaged one still owe their moves and this response is how the client gets them
+        if (wasEnemyPhase && !isStageClear)
+        {
+            DecideEnemyMoves(
+                await _hexaMapService.LoadState(stageSaveData.StageUniqueId), stageSaveData, engagedEnemyId,
+                _excelService.GetTable<CampaignUnitExcelT>(), _excelService.GetTable<CampaignStrategyObjectExcelT>());
+        }
+        else
+        {
+            stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
+        }
 
         // Both rewards are once-per-account, and the gates read the merged history, so a replayed stage still ends but advertises nothing - official does the same on a re-clear.
         var grantFirstClear = isStageClear && historyDb.FirstClearRewardReceive == null;
@@ -845,6 +863,7 @@ public class ConcentrateCampaignManager
         return aliveCount == heroes.Count ? rank + 1 : rank;
     }
 
+    // the enemy phase is two EndTurns: the first answers EnemyPhase with a MoveUnit display entry per acting enemy (EnemyInfos stays put, the client walks the entries), the second - or the EnterTactic that interrupts - makes the moves real
     public async Task<CampaignMainStageSaveDBServer> EndTurn(
         SchaleDataContext context,
         AccountDBServer account,
@@ -854,33 +873,281 @@ public class ConcentrateCampaignManager
         if (stageSaveData == null)
             throw new InvalidOperationException($"Campaign stage save not found for stage {req.StageUniqueId}");
 
-        // whatever the last move queued up has already been played by the client; leaving it in place replays it on the turn change, and again on every response until something else overwrites it
-        stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
-
         if (stageSaveData.CampaignState == CampaignState.PlayerPhase)
         {
+            // whatever the last move queued up has already been played by the client; leaving it in place replays it on the turn change, and again on every response until something else overwrites it
+            stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
             stageSaveData.CampaignState = CampaignState.EnemyPhase;
+
+            DecideEnemyMoves(
+                await _hexaMapService.LoadState(stageSaveData.StageUniqueId), stageSaveData, long.MinValue,
+                _excelService.GetTable<CampaignUnitExcelT>(), _excelService.GetTable<CampaignStrategyObjectExcelT>());
         }
         else if (stageSaveData.CampaignState == CampaignState.EnemyPhase)
         {
-            stageSaveData.CampaignState = CampaignState.PlayerPhase;
-
-            if (stageSaveData.EchelonInfos != null)
+            // an enemy on (or walking onto) an echelon keeps the phase open until that battle resolves
+            if (!HasEncounter(stageSaveData))
             {
-                foreach (var echelon in stageSaveData.EchelonInfos.Values)
-                {
-                    // restored to full, not incremented - a new player phase hands every echelon its allowance back, where adding one would bank the unspent action of an echelon that stood still and let it move twice next turn
-                    echelon.ActionCount = echelon.ActionCountMax;
-                }
-            }
+                ApplyEnemyMoves(stageSaveData);
+                stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
+                stageSaveData.CampaignState = CampaignState.PlayerPhase;
 
-            stageSaveData.CurrentTurn++;
+                if (stageSaveData.EchelonInfos != null)
+                {
+                    foreach (var echelon in stageSaveData.EchelonInfos.Values)
+                    {
+                        // restored to full, not incremented - a new player phase hands every echelon its allowance back, where adding one would bank the unspent action of an echelon that stood still and let it move twice next turn
+                        echelon.ActionCount = echelon.ActionCountMax;
+                    }
+                }
+
+                stageSaveData.CurrentTurn++;
+            }
         }
 
         context.CampaignMainStageSaves.Update(stageSaveData);
         await context.SaveChangesAsync();
 
         return stageSaveData;
+    }
+
+    // mirrors the client's CampaignService.DecideAIDestination: id order, Guard engages in reach, Pursuit engages or closes distance, the first engage stops the pass (lastAiUnitIndex resumes it after the battle)
+    internal static void DecideEnemyMoves(
+        HexaTileMap hexaData,
+        CampaignMainStageSaveDBServer save,
+        long lastAiUnitIndex,
+        List<CampaignUnitExcelT> unitExcels,
+        List<CampaignStrategyObjectExcelT> strategyObjectExcels)
+    {
+        if (save.EnemyInfos == null || save.EnemyInfos.Count == 0 || save.EchelonInfos == null || save.EchelonInfos.Count == 0)
+            return;
+
+        var tiles = new Dictionary<(int x, int y, int z), AiTile>();
+
+        if (hexaData.HexaTileList != null)
+        {
+            for (var i = 0; i < hexaData.HexaTileList.Count; i++)
+            {
+                var tile = hexaData.HexaTileList[i];
+                var isHide = tile.IsHide;
+                var isFog = tile.IsFog;
+                var canNotMove = tile.CanNotMove;
+
+                if (save.TileMapStates != null && save.TileMapStates.TryGetValue(i, out var state))
+                {
+                    isHide = state.IsHide;
+                    isFog = state.IsFog;
+                    canNotMove = state.CanNotMove;
+                }
+
+                tiles[(tile.Location.x, tile.Location.y, tile.Location.z)] = new AiTile
+                {
+                    Location = tile.Location,
+                    Blocked = canNotMove || isHide,
+                    IsFog = isFog,
+                };
+            }
+        }
+
+        // a None-type strategy object blocks its tile, every other type is walkable
+        foreach (var strategy in save.StrategyObjects.Values)
+        {
+            var excel = strategyObjectExcels.FirstOrDefault(x => x.Id == strategy.Id);
+            if (excel == null || excel.StrategyObjectType != StrategyObjectType.None)
+                continue;
+
+            if (tiles.TryGetValue(LocationKey(strategy.Location), out var tile))
+                tile.Blocked = true;
+        }
+
+        foreach (var echelon in save.EchelonInfos.Values)
+        {
+            if (tiles.TryGetValue(LocationKey(echelon.Location), out var tile))
+                tile.Unit = echelon;
+        }
+
+        foreach (var enemy in save.EnemyInfos.Values)
+        {
+            if (tiles.TryGetValue(LocationKey(enemy.Location), out var tile))
+                tile.Unit = enemy;
+        }
+
+        foreach (var kv in save.EnemyInfos.OrderBy(x => x.Key))
+        {
+            if (kv.Key <= lastAiUnitIndex)
+                continue;
+
+            var unitExcel = unitExcels.FirstOrDefault(x => x.Id == kv.Value.Id);
+            if (unitExcel == null || unitExcel.AIMoveType == StrategyAIType.None)
+                continue;
+
+            if (!tiles.TryGetValue(LocationKey(kv.Value.Location), out var origin))
+                continue;
+
+            var route = TraceRouteToNearestEchelon(tiles, origin);
+            if (route == null)
+                continue;
+
+            AiTile? dest = null;
+            var engaged = false;
+
+            if (route.Count <= unitExcel.MoveRange)
+            {
+                // walking onto the echelon is the attack
+                dest = route[0];
+                engaged = true;
+            }
+            else if (unitExcel.AIMoveType == StrategyAIType.Pursuit && unitExcel.MoveRange > 0)
+            {
+                // close up to MoveRange steps, settling on the last tile no fellow enemy holds
+                var steps = 0;
+                for (var i = route.Count - 1; i >= 0; i--)
+                {
+                    var tile = route[i];
+                    if (tile.Unit == null || tile.Unit.IsPlayer)
+                        dest = tile;
+                    if (++steps >= unitExcel.MoveRange)
+                        break;
+                }
+            }
+
+            if (dest != null)
+            {
+                save.DisplayInfos.Add(new HexaDisplayInfo
+                {
+                    Type = HexaDisplayType.MoveUnit,
+                    EntityId = kv.Key,
+                    Location = dest.Location,
+                });
+
+                origin.Unit = null;
+                dest.Unit = kv.Value;
+            }
+
+            if (engaged)
+                break;
+        }
+    }
+
+    // the client's HexaTileMap.GetAIUnitTraceRoute: BFS rings (units never block expansion), nearest echelon, ties by lowest MovementOrder. returned target-first so Count is the step distance and iterating from the end is the client's Pop order
+    private static List<AiTile>? TraceRouteToNearestEchelon(Dictionary<(int x, int y, int z), AiTile> tiles, AiTile origin)
+    {
+        if (!tiles.Values.Any(t => t.Unit is { IsPlayer: true }))
+            return null;
+
+        var rings = new List<List<AiTile>> { new() { origin } };
+        var seen = new HashSet<AiTile> { origin };
+
+        for (var depth = 0; depth <= tiles.Count; depth++)
+        {
+            var next = new List<AiTile>();
+            foreach (var tile in rings[depth])
+            {
+                foreach (var (dx, dy, dz) in HexDirections)
+                {
+                    if (!tiles.TryGetValue((tile.Location.x + dx, tile.Location.y + dy, tile.Location.z + dz), out var neighbor))
+                        continue;
+                    if (seen.Contains(neighbor) || neighbor.Blocked)
+                        continue;
+
+                    seen.Add(neighbor);
+                    next.Add(neighbor);
+                }
+            }
+
+            if (next.Count == 0)
+                return null;
+
+            rings.Add(next);
+
+            var targets = next.Where(t => t.Unit is { IsPlayer: true }).ToList();
+            if (targets.Count == 0)
+                continue;
+
+            var path = new List<AiTile> { targets.OrderBy(t => t.Unit!.MovementOrder).First() };
+            var cur = path[0];
+
+            for (var r = depth; r >= 1; r--)
+            {
+                foreach (var (dx, dy, dz) in HexDirections)
+                {
+                    if (!tiles.TryGetValue((cur.Location.x + dx, cur.Location.y + dy, cur.Location.z + dz), out var neighbor))
+                        continue;
+                    if (!rings[r].Contains(neighbor))
+                        continue;
+
+                    if (neighbor.IsFog || neighbor.Unit == null || !neighbor.Unit.IsPlayer)
+                    {
+                        path.Add(neighbor);
+                        cur = neighbor;
+                        break;
+                    }
+                }
+            }
+
+            return path;
+        }
+
+        return null;
+    }
+
+    // pending MoveUnit entries become positions, each consumed as it lands; upToEntityId bounds the EnterTactic interrupt
+    internal static void ApplyEnemyMoves(CampaignMainStageSaveDBServer save, long? upToEntityId = null)
+    {
+        if (save.EnemyInfos == null || save.DisplayInfos == null)
+            return;
+
+        foreach (var kv in save.EnemyInfos.OrderBy(x => x.Key))
+        {
+            if (upToEntityId != null && kv.Key > upToEntityId)
+                continue;
+
+            var moveInfo = save.DisplayInfos.FirstOrDefault(x => x.Type == HexaDisplayType.MoveUnit && x.EntityId == kv.Key);
+            if (moveInfo == null)
+                continue;
+
+            kv.Value.Location = new HexLocation2D { x = moveInfo.Location.x, y = moveInfo.Location.y, z = moveInfo.Location.z };
+            save.DisplayInfos.Remove(moveInfo);
+        }
+    }
+
+    // an enemy standing on an echelon tile, or a pending move that would land one there
+    internal static bool HasEncounter(CampaignMainStageSaveDBServer save)
+    {
+        if (save.EchelonInfos == null || save.EnemyInfos == null)
+            return false;
+
+        var occupied = new HashSet<(int x, int y, int z)>(save.EchelonInfos.Values.Select(x => LocationKey(x.Location)));
+
+        foreach (var kv in save.EnemyInfos)
+        {
+            if (occupied.Contains(LocationKey(kv.Value.Location)))
+                return true;
+
+            var moveInfo = save.DisplayInfos?.FirstOrDefault(x => x.Type == HexaDisplayType.MoveUnit && x.EntityId == kv.Key);
+            if (moveInfo != null && occupied.Contains((moveInfo.Location.x, moveInfo.Location.y, moveInfo.Location.z)))
+                return true;
+        }
+
+        return false;
+    }
+
+    // AddHexaUnitList and AddHexaStrategyList null out an all-zero location when building the save, so null means the origin tile
+    private static (int x, int y, int z) LocationKey(HexLocation2D? location)
+        => location == null ? (0, 0, 0) : (location.x, location.y, location.z);
+
+    // hex cube neighbors in the client's HexLocation.Directions order
+    private static readonly (int x, int y, int z)[] HexDirections =
+    [
+        (1, -1, 0), (1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1), (0, -1, 1),
+    ];
+
+    private class AiTile
+    {
+        public HexLocation Location;
+        public bool Blocked;
+        public bool IsFog;
+        public HexaUnit? Unit;
     }
 
     private bool CheckIfCleared(BattleSummary summary)
