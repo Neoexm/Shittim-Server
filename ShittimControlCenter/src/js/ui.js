@@ -172,7 +172,7 @@ export function confirmDialog({ title = 'Confirm', message, confirmLabel = 'Conf
       footer: [no, yes],
       onClose: () => resolve(false),
     });
-    yes.addEventListener('click', () => { ref.close(); resolve(true); });
+    yes.addEventListener('click', () => { resolve(true); ref.close(); });
     no.addEventListener('click', () => { ref.close(); resolve(false); });
   });
 }

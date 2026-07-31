@@ -90,6 +90,8 @@ export const api = {
   accountCreate: (b) => req('POST', '/api/admin/account/create', b),
   accountUpdate: (b) => req('POST', '/api/admin/account/update', b),
   accountDelete: (id) => req('POST', '/api/admin/account/delete', { serverId: id }),
+  selectedAccount: () => req('GET', '/api/admin/account/selected'),
+  selectAccount: (id) => req('POST', '/api/admin/account/select', { serverId: id }),
   currencies: (id) => req('GET', `/api/admin/account/${id}/currencies`),
   setCurrency: (b) => req('POST', '/api/admin/currency/set', b),
 

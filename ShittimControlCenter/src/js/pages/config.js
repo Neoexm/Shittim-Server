@@ -48,7 +48,7 @@ const GROUPS = [
       { key: 'UseEncryption', label: 'Packet encryption', type: 'bool', desc: 'Encrypt protocol responses' },
       { key: 'BypassAuthentication', label: 'Bypass authentication', type: 'bool', desc: 'Skip login auth checks' },
       { key: 'UseCustomExcel', label: 'Custom Excel tables', type: 'bool', desc: 'Load overridden game data' },
-      { key: 'KoyukiIncident', label: 'Koyuki incident', type: 'bool', desc: 'Every cafe seat is Koyuki and the lobby banner opens Koyuki Clicker' },
+      { key: 'KoyukiIncident', label: 'Koyuki incident', type: 'bool', desc: 'nihahaha' },
       { key: 'AutoCheckVersion', label: 'Auto-check version', type: 'bool', desc: 'Resolve latest data version on boot' },
       { key: 'AutoUpdateVersion', label: 'Auto-update version', type: 'bool', desc: 'Apply resolved version automatically' },
       { key: 'AutoUpdateResources', label: 'Auto-update resources', type: 'bool', desc: 'Re-download game data (Excel, HexaMap) when the version changes' },

@@ -222,12 +222,42 @@ public class ManagementController : ControllerBase
             await db.Database.ExecuteSqlRawAsync(
                 "DELETE FROM \"UserAccounts\" WHERE Uid = {0}", request.ServerId);
 
+            if (Config.Instance.ServerConfiguration.SelectedAccountId == request.ServerId)
+            {
+                Config.Instance.ServerConfiguration.SelectedAccountId = 0;
+                Config.Save();
+            }
+
             return Ok(new { success = true });
         }
         catch (Exception ex)
         {
             return BadRequest(new { error = ex.GetBaseException().Message });
         }
+    }
+
+    [HttpGet("account/selected")]
+    public IActionResult SelectedAccount()
+    {
+        return Ok(new { selectedAccountId = Config.Instance.ServerConfiguration.SelectedAccountId });
+    }
+
+    public class SelectAccountRequest { public long ServerId { get; set; } }
+
+    // Which account the game logs into. Takes effect at the next Account_CheckNexon, no restart needed - GenerateSession reads it live.
+    [HttpPost("account/select")]
+    public async Task<IActionResult> SelectAccount([FromBody] SelectAccountRequest request)
+    {
+        if (request.ServerId > 0)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            if (!await db.Accounts.AnyAsync(x => x.ServerId == request.ServerId))
+                return NotFound(new { error = "Account not found" });
+        }
+
+        Config.Instance.ServerConfiguration.SelectedAccountId = Math.Max(0, request.ServerId);
+        Config.Save();
+        return Ok(new { success = true, selectedAccountId = Config.Instance.ServerConfiguration.SelectedAccountId });
     }
 
     [HttpGet("account/{serverId:long}/items")]

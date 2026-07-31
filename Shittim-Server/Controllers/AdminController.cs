@@ -105,7 +105,9 @@ public class AdminController : ControllerBase
     {
         try
         {
+            // AI clients (the Schale assist bot) carry a DevId; they are server-owned and stay out of the roster.
             var accounts = _context.Accounts
+                .Where(a => a.DevId == null)
                 .Select(a => new
                 {
                     a.ServerId,

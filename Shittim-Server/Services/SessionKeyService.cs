@@ -81,6 +81,11 @@ namespace BlueArchiveAPI.Services
             var account = await db.Accounts
                 .FirstOrDefaultAsync(a => a.PublisherAccountId == publisherAccountId);
 
+            // Account selected in the Control Center wins over the publisher mapping, so any Steam identity logs into the chosen roster entry.
+            var selectedId = Config.Instance.ServerConfiguration.SelectedAccountId;
+            if (selectedId > 0)
+                account = await db.Accounts.FirstOrDefaultAsync(a => a.ServerId == selectedId) ?? account;
+
             if (account == null)
                 return null;
 

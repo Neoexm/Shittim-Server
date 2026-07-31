@@ -36,6 +36,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string SQLConnectionString { get; set; } = "Data Source=shittim.sqlite3";
         public bool UseEncryption { get; set; } = false;
         public bool BypassAuthentication { get; set; } = false;
+        // When nonzero, logins are answered with this account regardless of which publisher identity connects. Set from the Control Center accounts page, 0 disables.
+        public long SelectedAccountId { get; set; } = 0;
         public bool UseCustomExcel { get; set; } = false;
         // Fills every cafe with Koyuki and swaps the lobby banner list for the single webview banner. Off means stock random visitors and no banners.
         public bool KoyukiIncident { get; set; } = false;

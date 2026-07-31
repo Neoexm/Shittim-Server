@@ -79,11 +79,19 @@ public class ParcelResolver
     public async Task UpdateCharacter(ParcelResult parcel, List<CharacterExcelT> characterExcels)
     {
         if (IsConsume) return;
+
+        // a character row whose id has no excel entry aborts the client's login sync, so never write one
+        var characterExcel = characterExcels.FirstOrDefault(x => x.Id == parcel.Id);
+        if (characterExcel == null)
+        {
+            Log.Warning("Refusing character parcel with unknown id {characterUniqueId}", parcel.Id);
+            return;
+        }
+
         var character = Context.Characters.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
 
         if (character != null)
         {
-            var characterExcel = characterExcels.GetCharacter(character.UniqueId);
             await UpdateItem(new ParcelResult(ParcelType.Item, characterExcel.CharacterPieceItemId, characterExcel.CharacterPieceItemAmount));
             return;
         }

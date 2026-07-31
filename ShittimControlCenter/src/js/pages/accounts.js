@@ -1,4 +1,4 @@
-import { el, frag, clear, button, input, field, toast, modal, confirmDialog, notifyRestart, num, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, input, select, field, toast, modal, confirmDialog, notifyRestart, num, escapeHtml, emptyState } from '../ui.js';
 import { icon } from '../icons.js';
 import { api, store, reloadAccounts, CURRENCY_ID, CURRENCY_NAME, PRIMARY_CURRENCIES } from '../api.js';
 import { gate, loadInto } from './_util.js';
@@ -20,6 +20,23 @@ export default {
 
   mount(root) {
     return gate(root, { needServer: true }, (root) => {
+      const gameSel = select([], { style: { minWidth: '220px' } });
+      gameSel.addEventListener('change', async () => {
+        const id = Number(gameSel.value);
+        try {
+          await api.selectAccount(id);
+          gameAccountId = id || null;
+          const picked = allRows.find((a) => a.serverId === id);
+          toast(id ? `Game will log into "${picked ? picked.nickname : id}" from the next launch` : 'Game follows the Steam account again', 'good');
+          paintList();
+        } catch (e) { toast(e.message, 'bad'); fillGameSel(); }
+      });
+      root.appendChild(el('div.card', { style: { marginBottom: '18px' } },
+        el('div.card-body', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' } },
+          el('b', { text: 'Game account', style: { fontFamily: 'var(--font-round)', fontSize: '13px' } }),
+          gameSel,
+          el('span.muted', { text: 'The account the game logs into. Applies from the next launch.', style: { fontSize: '12px' } }))));
+
       const layout = el('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.25fr)', gap: '18px', alignItems: 'start' } });
       const listCard = el('div.card', { style: { minWidth: '0' } });
       const detailCard = el('div.card', { style: { minWidth: '0' } });
@@ -37,6 +54,7 @@ export default {
       listCard.appendChild(listBody);
 
       let allRows = [];
+      let gameAccountId = null;
       searchInput.addEventListener('input', () => paintList());
 
       function paintList() {
@@ -47,7 +65,8 @@ export default {
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Nickname</th><th style="width:54px">Lvl</th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const a of rows) {
-          const tr = frag(`<tr><td class="num" data-selectable>${a.serverId}</td><td style="max-width:0"><b data-selectable style="font-family:var(--font-round);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(a.nickname)}</b></td><td class="num">${a.level}</td></tr>`);
+          const inGame = a.serverId === gameAccountId ? '<span class="tag" style="flex:none">in game</span>' : '';
+          const tr = frag(`<tr><td class="num" data-selectable>${a.serverId}</td><td style="max-width:0"><div style="display:flex;align-items:center;gap:6px;min-width:0"><b data-selectable style="font-family:var(--font-round);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(a.nickname)}</b>${inGame}</div></td><td class="num">${a.level}</td></tr>`);
           if (a.serverId === store.get().targetId) tr.classList.add('sel');
           tr.addEventListener('click', () => { store.set({ targetId: a.serverId }); paintList(); loadDetail(a.serverId); });
           tb.appendChild(tr);
@@ -55,9 +74,22 @@ export default {
         listBody.appendChild(tbl);
       }
 
+      function fillGameSel() {
+        clear(gameSel);
+        for (const o of [{ value: 0, label: 'Follow the Steam account' }, ...allRows.map((a) => ({ value: a.serverId, label: `${a.nickname} (#${a.serverId})` }))]) {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.label;
+          gameSel.appendChild(opt);
+        }
+        gameSel.value = String(gameAccountId || 0);
+      }
+
       async function loadList() {
         listBody.innerHTML = `<div class="empty"><div class="spinner"></div></div>`;
         allRows = await reloadAccounts();
+        gameAccountId = await api.selectedAccount().then((r) => r.selectedAccountId || null).catch(() => null);
+        fillGameSel();
         paintList();
         const t = store.get().targetId;
         if (t) loadDetail(t); else showDetailPlaceholder();
