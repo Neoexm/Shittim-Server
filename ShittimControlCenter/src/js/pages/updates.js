@@ -2,7 +2,7 @@ import { el, frag, clear, button, toast, escapeHtml } from '../ui.js';
 import { icon } from '../icons.js';
 
 // Git-free updater. "Check" compares the locally recorded commit (a download marker, or - for a real git checkout - HEAD) against origin/<branch> through the GitHub API and lists the incoming changelog.
-// "Install" fast-forwards a git checkout, or re-downloads the latest source for a plain folder. A rebuild action recompiles the .NET server the update may change.
+// "Install" fast-forwards a git checkout, or re-downloads the latest source for a plain folder, then rebuilds the .NET server so the new code is what actually runs.
 export default {
   id: 'updates',
   title: 'Updates',  icon: 'download',
@@ -28,7 +28,7 @@ export default {
       el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Maintenance' })),
       el('div.card-body', {},
         el('p', {
-          html: 'The update above pulls the latest server source - rebuild it afterwards so the new code is compiled in (build output streams to the console). The Control Center app updates itself separately from GitHub Releases: it checks on launch and prompts you, or check now below.',
+          html: 'Installing an update rebuilds the server for you, so this button is only for rebuilding by hand - after editing the source yourself, or when a build failed. A running server is stopped for the build and started again afterwards, and the output streams to the console. The Control Center app updates itself separately from GitHub Releases: it checks on launch and prompts you, or check now below.',
           style: { fontSize: '13px', color: 'var(--ink-2)', margin: '0 0 14px', lineHeight: '1.6' },
         }),
         el('div.row.wrap', { style: { gap: '10px' } }, rebuildBtn, selfBtn)));
@@ -201,10 +201,20 @@ export default {
         if (progUnsub) { progUnsub(); progUnsub = null; }
         clear(resultBody);
         if (res.ok) {
-          toast(`Updated to ${res.head || 'latest'}`, 'good', 'Update installed');
-          resultBody.appendChild(statusRow('good', 'Update installed', `Now at ${res.head || 'latest'}. Rebuild the server below, then restart the control center.`));
-          const rb = button('Rebuild server now', { variant: 'ghost', iconName: 'bolt', onClick: doRebuild });
-          resultBody.appendChild(el('div', { style: { marginTop: '14px' } }, rb));
+          toast(`Updated to ${res.head || 'latest'} - rebuilding`, 'good', 'Update installed');
+          // The update only writes source. Without the build the server keeps launching the old bin/Debug exe and the update looks like it did nothing.
+          resultBody.appendChild(spinnerRow('Rebuilding the server... (output in the console)'));
+          const built = await window.host.updatesRebuild();
+          clear(resultBody);
+          if (built.ok) {
+            toast('Server rebuilt successfully', 'good');
+            resultBody.appendChild(statusRow('good', 'Update installed', `Now at ${res.head || 'latest'} and rebuilt${built.restarted ? '. The server is back up' : ''}. Restart the control center when convenient.`));
+          } else {
+            toast(built.error || `Build failed (code ${built.code})`, 'bad', 'Rebuild failed');
+            resultBody.appendChild(statusRow('warn', 'Updated, but the rebuild failed', `Now at ${res.head || 'latest'}, though the previous build is still what runs. ${built.error || `dotnet build exited with code ${built.code}`} - the console has the full output.`));
+            const rb = button('Try the rebuild again', { variant: 'ghost', iconName: 'bolt', onClick: doRebuild });
+            resultBody.appendChild(el('div', { style: { marginTop: '14px' } }, rb));
+          }
         } else {
           toast('Update could not be applied', 'bad');
           const detail = res.method === 'git'

@@ -30,6 +30,13 @@ public class ManagementHandler : ProtocolHandlerBase
 
         var server = Config.Instance.ServerConfiguration;
 
+        if (!server.KoyukiIncident)
+        {
+            response.BannerDBs = [];
+
+            return response;
+        }
+
         // OpenWebView is the one banner type with no content behind it, so the tap goes straight to WebViewUrl instead of resolving a stage/shop/raid id.
         response.BannerDBs =
         [

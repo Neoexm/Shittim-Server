@@ -639,7 +639,7 @@ async function applyUpdate() {
 }
 
 // Check-and-notify only: runs once shortly after launch and every few hours while the app stays open, toasting the renderer when the server source is behind origin.
-// Applying + rebuilding stays a user action on the Updates page - the server may be live mid-session, and an apply can need files closed.
+// Applying stays a user action on the Updates page - the server may be live mid-session, and an apply can need files closed.
 
 const SERVER_UPDATE_CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
 let lastNotifiedServerSha = null;
@@ -661,10 +661,22 @@ async function watchServerUpdates() {
   } catch { /* offline or rate-limited - the next cycle retries */ }
 }
 
-function rebuildServer() {
+async function rebuildServer() {
   const p = resolvePaths();
-  if (!fs.existsSync(p.csproj)) return Promise.resolve({ ok: false, error: 'Server project not found' });
-  return new Promise((resolve) => {
+  if (!fs.existsSync(p.csproj)) return { ok: false, error: 'Server project not found' };
+
+  // The build can't replace Shittim-Server.exe or Schale.dll while the server holds them open, so a live one comes down for it and goes back up after. Under `dotnet run` the server is a grandchild of the process we wait on and outlives it slightly, hence the settle.
+  const running = procs.server && !procs.server.killed ? procs.server : null;
+  if (running) {
+    broadcast('proc:log', { source: 'server', line: '> stopping the server so the build can replace its binaries...' });
+    stopServer();
+    await new Promise((resolve) => {
+      const bail = setTimeout(resolve, 10000);
+      running.once('exit', () => { clearTimeout(bail); setTimeout(resolve, 500); });
+    });
+  }
+
+  const res = await new Promise((resolve) => {
     broadcast('proc:log', { source: 'server', line: '> dotnet build -c Debug (rebuilding after update)...' });
     broadcast('proc:state', { rebuild: 'building' });
     const dn = resolveDotnet();
@@ -675,6 +687,14 @@ function rebuildServer() {
     child.on('exit', (code) => { broadcast('proc:state', { rebuild: 'done' }); broadcast('proc:log', { source: 'server', line: `> build exited (code ${code})` }); resolve({ ok: code === 0, code }); });
     child.on('error', (err) => { broadcast('proc:state', { rebuild: 'failed' }); resolve({ ok: false, error: err.message }); });
   });
+
+  // Back up even on a failed build, on the old binaries, rather than leaving the server down.
+  if (running) {
+    const back = startServer();
+    if (!back.ok) broadcast('proc:log', { source: 'server', line: `> could not restart the server: ${back.error}` });
+  }
+
+  return { ...res, restarted: !!running };
 }
 
 // One-click acquisition of the three host prerequisites the readiness card reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert.

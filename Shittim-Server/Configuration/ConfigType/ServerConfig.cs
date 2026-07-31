@@ -37,6 +37,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool UseEncryption { get; set; } = false;
         public bool BypassAuthentication { get; set; } = false;
         public bool UseCustomExcel { get; set; } = false;
+        // Fills every cafe with Koyuki and swaps the lobby banner list for the single webview banner. Off means stock random visitors and no banners.
+        public bool KoyukiIncident { get; set; } = false;
         public bool AutoCheckVersion { get; set; } = true;
         public bool AutoUpdateVersion { get; set; } = true;
         public bool AutoUpdateResources { get; set; } = false;
