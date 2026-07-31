@@ -74,12 +74,7 @@ namespace BlueArchiveAPI.Services
 
             foreach (var furniture in furnituresToPickup)
             {
-                var furnitureToRemove = context.Furnitures.FirstOrDefault(x =>
-                    x.AccountServerId == accountId && x.UniqueId == furniture.UniqueId && x.ItemDeploySequence != 0);
-
-                if (furnitureToRemove != null)
-                    context.Furnitures.Remove(furnitureToRemove);
-
+                // callers have already removed the exact deployed rows - matching by UniqueId here can hit the same furniture deployed in the other cafe
                 var inventoryFurniture = inventoryUpdates.FirstOrDefault(x => x.UniqueId == furniture.UniqueId) ??
                     context.Furnitures.FirstOrDefault(x => x.AccountServerId == accountId && x.UniqueId == furniture.UniqueId && x.ItemDeploySequence == 0);
 

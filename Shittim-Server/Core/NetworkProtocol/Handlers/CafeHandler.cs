@@ -45,6 +45,7 @@ public class CafeHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var cafes = db.GetAccountCafes(account.ServerId).ToList();
+        await _cafeManager.RefreshVisitors(db, account, cafes);
         var furnitures = db.GetAccountFurnitures(account.ServerId).ToList();
 
         if (Config.Instance.ServerConfiguration.KoyukiIncident)

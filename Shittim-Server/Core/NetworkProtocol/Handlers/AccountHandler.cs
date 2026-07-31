@@ -26,6 +26,7 @@ public class AccountHandler : ProtocolHandlerBase
     private readonly MissionService _missionService;
     private readonly AttendanceService _attendanceService;
     private readonly ParcelHandler _parcelHandler;
+    private readonly CafeManager _cafeManager;
 
     public AccountHandler(
         IProtocolHandlerRegistry registry,
@@ -35,7 +36,8 @@ public class AccountHandler : ProtocolHandlerBase
         ILogger<AccountHandler> logger,
         MissionService missionService,
         AttendanceService attendanceService,
-        ParcelHandler parcelHandler) : base(registry)
+        ParcelHandler parcelHandler,
+        CafeManager cafeManager) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
@@ -44,6 +46,7 @@ public class AccountHandler : ProtocolHandlerBase
         _missionService = missionService;
         _attendanceService = attendanceService;
         _parcelHandler = parcelHandler;
+        _cafeManager = cafeManager;
     }
 
     [ProtocolHandler(Protocol.Account_CheckNexon)]
@@ -298,6 +301,8 @@ public class AccountHandler : ProtocolHandlerBase
 
         sw.Restart();
         var cafes = db.GetAccountCafes(account.ServerId).ToList();
+        await _cafeManager.RepairFurniture(db, account, cafes);
+        await _cafeManager.RefreshVisitors(db, account, cafes);
 
         // the cafe screen is fed from this sync, not from Cafe_Get - a client can go a whole session without asking for cafe data again, so the substitution has to happen on the way out rather than only where visitors are rolled.
         if (Config.Instance.ServerConfiguration.KoyukiIncident)

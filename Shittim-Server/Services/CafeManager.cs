@@ -24,10 +24,12 @@ public class CafeManager
     private readonly List<FurnitureExcelT> _furnitureExcel;
     private readonly List<FurnitureTemplateElementExcelT> _furnitureTemplateElementExcel;
     private readonly List<CafeProductionExcelT> _cafeProductionExcel;
+    private readonly List<DefaultFurnitureExcelT> _defaultFurnitureExcel;
 
     private readonly List<FurnitureSubCategory> _nonInteriorSubCategories =
     [
-        FurnitureSubCategory.Floor,
+        // floor coverings ship as InteriorsSubCategory1 - no furniture in the dump uses SubCategory.Floor
+        FurnitureSubCategory.InteriorsSubCategory1,
         FurnitureSubCategory.Wallpaper,
         FurnitureSubCategory.Background
     ];
@@ -45,6 +47,7 @@ public class CafeManager
         _furnitureExcel = excelTableService.GetTable<FurnitureExcelT>();
         _furnitureTemplateElementExcel = excelTableService.GetTable<FurnitureTemplateElementExcelT>();
         _cafeProductionExcel = excelTableService.GetTable<CafeProductionExcelT>();
+        _defaultFurnitureExcel = excelTableService.GetTable<DefaultFurnitureExcelT>();
     }
 
     public async Task UpdateCafeData(SchaleDataContext context, AccountDBServer account, CafeDBServer cafeDb)
@@ -61,22 +64,84 @@ public class CafeManager
         SchaleDataContext context, AccountDBServer account, long cafeDBId)
     {
         var cafe = context.Cafes.GetCafeByCafeDBId(account.ServerId, cafeDBId);
+        await RefreshVisitors(context, account, [cafe]);
+        return cafe;
+    }
 
-        var currentDate = account.GameSettings.CurrentDateTime;
-        var updateDateAfter = cafe.LastUpdate.AddHours(12);
-        var updateDateBefore = cafe.LastUpdate.AddHours(-12);
+    // visitors turn over on the 04:00/16:00 resets like live. the client mostly never asks for cafe data outside login sync, so this has to run wherever cafes go out on the wire.
+    public async Task RefreshVisitors(SchaleDataContext context, AccountDBServer account, List<CafeDBServer> cafes)
+    {
+        var now = account.GameSettings.ServerDateTime();
+        var boundary = now.Hour >= 16 ? now.Date.AddHours(16)
+            : now.Hour >= 4 ? now.Date.AddHours(4)
+            : now.Date.AddHours(-8);
 
-        if (updateDateBefore < currentDate || updateDateAfter > currentDate)
+        var stale = cafes.Where(x => x.VisitUpdateTime < boundary).ToList();
+        if (stale.Count == 0)
+            return;
+
+        var characters = context.GetAccountCharacters(account.ServerId).ToList();
+        foreach (var cafe in stale)
         {
-            var characters = context.GetAccountCharacters(account.ServerId).ToList();
             cafe.CafeVisitCharacterDBs = CafeService.CreateRandomVisitor(characters, _characterExcel);
-            cafe.LastUpdate = currentDate.Date;
+            cafe.VisitUpdateTime = now;
             cafe.IsNew = true;
             context.Cafes.Update(cafe);
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    // Cafe_ApplyTemplate wrote deployed rows with CafeDBId 0 for a while, swallowing stacks out of inventory and leaving cafes without their background, wallpaper and floor. Rows like that are still sitting in databases, so put them back on login and reseed any interior slot that ended up empty.
+    public async Task RepairFurniture(SchaleDataContext context, AccountDBServer account, List<CafeDBServer> cafes)
+    {
+        var cafeDbIds = cafes.Select(x => x.CafeDBId).ToHashSet();
+        var orphans = context.GetAccountFurnitures(account.ServerId).AsEnumerable()
+            .Where(x => x.ItemDeploySequence != 0 && !cafeDbIds.Contains(x.CafeDBId))
+            .ToList();
+
+        if (orphans.Count > 0)
+        {
+            context.Furnitures.RemoveRange(orphans);
+            CafeService.AddToInventory(context, account.ServerId, orphans);
             await context.SaveChangesAsync();
         }
 
-        return cafe;
+        foreach (var cafe in cafes)
+        {
+            var deployedSubCategories = context.Furnitures.GetCafeDeployedFurniture(account.ServerId, cafe.CafeDBId).AsEnumerable()
+                .Select(x => _furnitureExcel.FirstOrDefault(e => e.Id == x.UniqueId)?.SubCategory)
+                .ToHashSet();
+
+            var reseeded = new List<FurnitureDBServer>();
+            foreach (var subCategory in _nonInteriorSubCategories.Where(x => !deployedSubCategories.Contains(x)))
+            {
+                var defaultRow = _defaultFurnitureExcel.FirstOrDefault(x =>
+                    _furnitureExcel.FirstOrDefault(e => e.Id == x.Id)?.SubCategory == subCategory);
+                if (defaultRow == null)
+                    continue;
+
+                reseeded.Add(new FurnitureDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    CafeDBId = cafe.CafeDBId,
+                    UniqueId = defaultRow.Id,
+                    Location = defaultRow.Location,
+                    PositionX = defaultRow.PositionX,
+                    PositionY = defaultRow.PositionY,
+                    Rotation = defaultRow.Rotation,
+                    StackCount = 1
+                });
+            }
+
+            if (reseeded.Count > 0)
+            {
+                context.Furnitures.AddRange(reseeded);
+                await context.SaveChangesAsync();
+                reseeded.ForEach(x => x.ItemDeploySequence = x.ServerId);
+                await context.SaveChangesAsync();
+            }
+        }
     }
 
     public async Task<(CafeDBServer, FurnitureDBServer, FurnitureDBServer)> CafeDeployFurniture(
@@ -320,7 +385,21 @@ public class CafeManager
         {
             furniture.ItemDeploySequence = furniture.ServerId;
         }
-        CafeService.RemoveFromInventory(context, account.ServerId, furnitureData);
+        // sequences have to hit the database before the stack lookup below - the fresh template rows sit at sequence 0 until then and the inventory query would eat them instead of the stacks
+        await context.SaveChangesAsync();
+
+        foreach (var furniture in furnitureData)
+        {
+            // the rows added above are already the deployed copies - only an owned stack needs consuming, anything the account lacks is simply granted
+            var inventoryFurniture = context.Furnitures.FirstOrDefault(x =>
+                x.AccountServerId == account.ServerId && x.UniqueId == furniture.UniqueId && x.ItemDeploySequence == 0);
+            if (inventoryFurniture != null)
+            {
+                inventoryFurniture.StackCount--;
+                if (inventoryFurniture.StackCount <= 0)
+                    context.Furnitures.Remove(inventoryFurniture);
+            }
+        }
         await context.SaveChangesAsync();
         await UpdateCafeData(context, account, cafeDb);
 
