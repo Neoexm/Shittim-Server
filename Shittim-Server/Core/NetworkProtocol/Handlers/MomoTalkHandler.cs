@@ -37,6 +37,9 @@ public class MomoTalkHandler : ProtocolHandlerBase
         _academyMessengers = _excelService.GetTable<AcademyMessangerExcelT>();
         _academyFavorSchedules = _excelService.GetTable<AcademyFavorScheduleExcelT>();
     }
+	
+	private static bool uwu(long candidateNextGroupId, long currentGroupId)
+		=> candidateNextGroupId > 0 && candidateNextGroupId != currentGroupId;
 
     [ProtocolHandler(Protocol.MomoTalk_MessageList)]
     public async Task<MomoTalkMessageListResponse> MessageList(
@@ -101,10 +104,10 @@ public class MomoTalkHandler : ProtocolHandlerBase
         if (request.ChosenMessageId.GetValueOrDefault() > 0)
         {
             var chosenMessage = _academyMessengers.FirstOrDefault(x => x.Id == request.ChosenMessageId.Value);
-            if (chosenMessage != null)
-            {
-                nextGroupId = chosenMessage.NextGroupId;
-                
+            if (chosenMessage != null){
+				if (uwu(chosenMessage.NextGroupId, request.LastReadMessageGroupId)) {
+					nextGroupId = chosenMessage.NextGroupId;
+                }
                 // Record the choice if not exists
                 var existingChoice = db.MomoTalkChoices.FirstOrDefault(x => 
                     x.AccountServerId == account.ServerId && 
@@ -135,16 +138,14 @@ public class MomoTalkHandler : ProtocolHandlerBase
             // No choice made, so the next group comes from the group being read.
             var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
 			var mmtChatProgression = currentGroupMessages
-				.Where(x => x.MessageCondition != AcademyMessageConditions.Answer)
+				.Where(x => x.MessageCondition != AcademyMessageConditions.Answer && x.MessageCondition != AcademyMessageConditions.Feedback)
 				.ToList();
 			if (mmtChatProgression.Count != 0)
             {
-                // The transition is carried by whichever message points somewhere other than its
-                // own group. If none does, fall back to the first message's NextGroupId.
-                var transitionMessage = mmtChatProgression.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
-                nextGroupId = transitionMessage != null
-                    ? transitionMessage.NextGroupId
-                    : mmtChatProgression[0].NextGroupId;
+                var transitionMessage = mmtChatProgression.FirstOrDefault(x => uwu(x.NextGroupId, request.LastReadMessageGroupId));
+                if(transitionMessage != null) {
+					nextGroupId = transitionMessage.NextGroupId;
+				}
             }
         }
 
@@ -154,14 +155,15 @@ public class MomoTalkHandler : ProtocolHandlerBase
         {
             var nextGroupEntry = _academyMessengers
                 .FirstOrDefault(x => x.MessageGroupId == nextGroupId);
-            if (nextGroupEntry != null
-                && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp)
-            {
-                var favorRank = db.Characters
-                    .FirstOrDefault(c => c.AccountServerId == account.ServerId
-                        && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
-                if (favorRank < nextGroupEntry.ConditionValue)
+            if (nextGroupEntry != null){
+				if (nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp) {
+					var favorRank = db.Characters .FirstOrDefault(c => c.AccountServerId == account.ServerId && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
+				if (favorRank < nextGroupEntry.ConditionValue)
                     nextGroupId = 0;
+				}
+				if (nextGroupId > 0 && nextGroupEntry.PreConditionFavorScheduleId > 0 && !momotalkOutline.ScheduleIds.Contains(nextGroupEntry.PreConditionFavorScheduleId)) {
+					nextGroupId = 0;
+				}
             }
         }
 
