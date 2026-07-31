@@ -57,20 +57,20 @@ namespace Shittim_Server.Services
             // The 4th occurrence (`mov eax,0x2FCDB393`/B8, in a transaction-status function) is left alone - patching it produces a spurious "Your product is on the way" popup.
             new(
                 "ifinpay-checkprecond-enter-suppress-1",
-                Hex("4C 8D 85 90 00 00 00 BA 93 B3 CD 2F 48 8D 4D 80"),
-                Hex("4C 8D 85 90 00 00 00 BA 00 00 00 00 48 8D 4D 80"),
+                Hex("4C 8D 4D 68 BA 93 B3 CD 2F 4C 8D 45 C8 48 8D 4C 24 48"),
+                Hex("4C 8D 4D 68 BA 00 00 00 00 4C 8D 45 C8 48 8D 4C 24 48"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #1)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
             new(
                 "ifinpay-checkprecond-enter-suppress-2",
-                Hex("E8 D0 85 72 00 BA 93 B3 CD 2F 48 8D 8D B0 00 00 00"),
-                Hex("E8 D0 85 72 00 BA 00 00 00 00 48 8D 8D B0 00 00 00"),
+                Hex("48 8B CB E8 85 5A 25 00 BA 93 B3 CD 2F 48 8D 4D 48"),
+                Hex("48 8B CB E8 85 5A 25 00 BA 00 00 00 00 48 8D 4D 48"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #2)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
             new(
                 "ifinpay-checkprecond-enter-suppress-3",
-                Hex("48 89 44 24 40 BA 93 B3 CD 2F 48 8D 8D B0 00 00 00"),
-                Hex("48 89 44 24 40 BA 00 00 00 00 48 8D 8D B0 00 00 00"),
+                Hex("BA 93 B3 CD 2F 48 8D 4D 48 48 8B D8"),
+                Hex("BA 00 00 00 00 48 8D 4D 48 48 8B D8"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #3)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
         ];

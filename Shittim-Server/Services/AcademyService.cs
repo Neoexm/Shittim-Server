@@ -9,13 +9,14 @@ namespace BlueArchiveAPI.Services
             List<CharacterDBServer> characters, List<AcademyZoneExcelT> academyZoneExcels, List<long> characterIds)
         {
             var characterLookup = characters.ToDictionary(c => c.UniqueId, c => c);
+            var ownedCharacterIds = characterIds.Where(characterLookup.ContainsKey).ToList();
             var random = Random.Shared;
-            
+
             return academyZoneExcels.ToDictionary(
                 x => x.Id,
                 x =>
                 {
-                    var availableCharacterIds = new List<long>(characterIds);
+                    var availableCharacterIds = new List<long>(ownedCharacterIds);
                     var visitingCharacters = new List<VisitingCharacterDBServer>();
                     var studentVisitProbs = x.StudentVisitProb;
                     

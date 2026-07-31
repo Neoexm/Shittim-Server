@@ -32,6 +32,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string ClientGrap64Path { get; set; } = "";
         public bool AutoPatchClientBanners { get; set; } = true;
         public string ClientExcelDbPath { get; set; } = "";
+        // Replaces the title-screen region label, which the client builds from its own metadata rather than from anything on the wire. Blank puts the stock region name back.
+        public string RegionDisplayText { get; set; } = "";
         public string SQLProvider { get; set; } = "SQLite3";
         public string SQLConnectionString { get; set; } = "Data Source=shittim.sqlite3";
         public bool UseEncryption { get; set; } = false;

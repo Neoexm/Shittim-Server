@@ -15,6 +15,7 @@ const DEFAULT_SERVER_CONFIG = {
   AutoPatchClientInfaceConfig: true, ClientInfaceConfigPath: '',
   AutoManageGrap64: true, ClientGrap64Path: '',
   AutoPatchClientBanners: true, ClientExcelDbPath: '',
+  RegionDisplayText: '',
   SQLProvider: 'SQLite3',
   SQLConnectionString: 'Data Source=shittim.sqlite3',
   UseEncryption: false,
@@ -80,6 +81,7 @@ const GROUPS = [
       { key: 'AutoPatchClientInfaceConfig', label: 'Patch inface config', type: 'bool', path: 'ClientInfaceConfigPath' },
       { key: 'AutoManageGrap64', label: 'Manage grap64', type: 'bool', path: 'ClientGrap64Path' },
       { key: 'AutoPatchClientBanners', label: 'Patch recruitment banners', type: 'bool', path: 'ClientExcelDbPath' },
+      { key: 'RegionDisplayText', label: 'Region label', type: 'text', hint: 'shown on the title screen, blank = stock region name' },
     ],
   },
   {

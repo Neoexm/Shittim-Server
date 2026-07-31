@@ -26,21 +26,21 @@ namespace BlueArchiveAPI.Services
             if (Config.Instance.ServerConfiguration.KoyukiIncident)
                 return CreateKoyukiVisitors(characters);
 
-            var existingCharactersLookup = characters.ToDictionary(c => c.UniqueId);
+            // seats have to come out of the owned roster - a visitor with no CharacterDB goes out with ServerId 0 and login sync throws the whole cafe away.
+            var releasedIds = characterExcels.Select(x => x.Id).ToHashSet();
+            var ownedCharacters = characters.Where(c => releasedIds.Contains(c.UniqueId)).ToList();
             var numberOfCharacters = Random.Shared.Next(3, 6);
-            var randomCharacters = SelectRandomCharacters(characterExcels, numberOfCharacters);
+            var randomCharacters = SelectRandomCharacters(ownedCharacters, numberOfCharacters);
 
             foreach (var character in randomCharacters)
             {
-                existingCharactersLookup.TryGetValue(character.Id, out var existingCharacter);
-
                 cafeVisitCharacterDBs.Add(
-                    character.Id,
+                    character.UniqueId,
                     new CafeDBServer.CafeCharacterDBServer
                     {
                         IsSummon = false,
-                        UniqueId = character.Id,
-                        ServerId = existingCharacter?.ServerId ?? 0
+                        UniqueId = character.UniqueId,
+                        ServerId = character.ServerId
                     }
                 );
             }

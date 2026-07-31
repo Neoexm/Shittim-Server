@@ -305,7 +305,7 @@ namespace Shittim_Server.Services
             File.WriteAllText(statePath, JsonSerializer.Serialize(state, JsonOptions));
         }
 
-        private static string GetMetadataPath()
+        internal static string GetMetadataPath()
         {
             var configuredPath = Environment.GetEnvironmentVariable("SHITTIM_CLIENT_METADATA_PATH");
             if (string.IsNullOrWhiteSpace(configuredPath))

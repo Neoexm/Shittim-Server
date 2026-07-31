@@ -98,6 +98,7 @@ namespace Shittim.CLI
                 builder.Services.AddHostedService<ClientInfaceConfigPatchService>();
                 builder.Services.AddHostedService<ClientNativeIasPatchService>();
                 builder.Services.AddHostedService<ClientExcelBannerPatchService>();
+                builder.Services.AddHostedService<ClientRegionLabelPatchService>();
                 builder.Services.AddGameClient();
                 builder.Services.AddManagers();
                 builder.Services.AddHandlers();
