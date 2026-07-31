@@ -10,6 +10,7 @@ namespace BlueArchiveAPI.Services
     {
         private readonly ILogger<CafeService> _logger;
         private static readonly Random _rng = new();
+        private const long KoyukiId = 10063;
 
         public CafeService(ILogger<CafeService> logger)
         {
@@ -20,23 +21,17 @@ namespace BlueArchiveAPI.Services
             List<CharacterDBServer> characters, List<CharacterExcelT> characterExcels)
         {
             var cafeVisitCharacterDBs = new Dictionary<long, CafeDBServer.CafeCharacterDBServer>();
-            var existingCharactersLookup = characters.ToDictionary(c => c.UniqueId);
-            var numberOfCharacters = Random.Shared.Next(3, 6);
-            var randomCharacters = SelectRandomCharacters(characterExcels, numberOfCharacters);
+            var koyuki = characters.FirstOrDefault(c => c.UniqueId == KoyukiId);
 
-            foreach (var character in randomCharacters)
+            // the keys are seats rather than ids here, since the same student has to fill all of them. the client takes the student off the value's UniqueId - VisitingCharacterDB carries it for the academy too, where the key is the zone.
+            for (var seat = 0; seat < 100; seat++)
             {
-                existingCharactersLookup.TryGetValue(character.Id, out var existingCharacter);
-
-                cafeVisitCharacterDBs.Add(
-                    character.Id,
-                    new CafeDBServer.CafeCharacterDBServer
-                    {
-                        IsSummon = false,
-                        UniqueId = character.Id,
-                        ServerId = existingCharacter?.ServerId ?? 0
-                    }
-                );
+                cafeVisitCharacterDBs.Add(seat, new CafeDBServer.CafeCharacterDBServer
+                {
+                    IsSummon = false,
+                    UniqueId = KoyukiId,
+                    ServerId = koyuki?.ServerId ?? 0
+                });
             }
 
             return cafeVisitCharacterDBs;

@@ -52,6 +52,9 @@
     <None Update="Data\Excel\MultiFloorRaidSeasonManageExcelT.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Data\Koyuki\koyuki.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
