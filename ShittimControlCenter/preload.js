@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld('host', {
   mitmStop: () => ipcRenderer.invoke('mitm:stop'),
   systemStart: () => ipcRenderer.invoke('system:start'),
   systemStop: () => ipcRenderer.invoke('system:stop'),
+  systemStartOffline: () => ipcRenderer.invoke('system:startOffline'),
+  offlineStatus: () => ipcRenderer.invoke('offline:status'),
+  offlineHosts: (on) => ipcRenderer.invoke('offline:hosts', on),
   procStatus: () => ipcRenderer.invoke('proc:status'),
 
   envCheck: () => ipcRenderer.invoke('env:check'),

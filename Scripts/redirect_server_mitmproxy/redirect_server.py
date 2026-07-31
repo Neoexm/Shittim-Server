@@ -32,13 +32,15 @@ def get_local_ip():
     except Exception:
         return "127.0.0.1"  # Fallback to localhost if detection fails
 
-SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
 GATEWAY_PORT = 5100
 IRC_PORT = 6667
 NGS_PROBE_PORT = 58880
 X_INIT_RESPONSE_PATH = Path(__file__).with_name("ngs_x_init_response.bin")
 NGS_PASSTHROUGH = os.environ.get("SHITTIM_NGS_PASSTHROUGH") == "1"
+OFFLINE_MODE = os.environ.get("SHITTIM_OFFLINE_MODE") == "1"
+# offline there is nothing to divert - the hosts file aims the game at 127.0.0.2 and mitmproxy answers there as a reverse proxy. It refuses to forward anywhere it recognises as itself, which is the same port at 127.0.0.1/localhost/::1/its own listen address, and the game's ports are exactly the server's. 127.0.0.3 is that same server (it binds 0.0.0.0) under an address the guard does not match.
+SERVER_HOST = "127.0.0.3" if OFFLINE_MODE else "127.0.0.1"
 NGS_HOSTS = [
     'x-init.ngs.nexon.com',
     'x-phaethon.ngs.nexon.com',
@@ -47,6 +49,10 @@ NGS_HOSTS = [
 
 def load(loader):
     rlog("==== redirect_server.py (re)loaded - new logging session ====")
+    if OFFLINE_MODE:
+        # a reverse listener only ever gets the connections the hosts file sends it, and an entry matching the rewrite target would tunnel the game's TLS straight into a plaintext port
+        ctx.options.ignore_hosts = [f".*:{NGS_PROBE_PORT}"]
+        return
     ctx.options.ignore_hosts = [
         f"{SERVER_HOST}:{SERVER_PORT}",
         f"{SERVER_HOST}:{GATEWAY_PORT}",
@@ -116,6 +122,13 @@ def request_host(flow: http.HTTPFlow) -> str:
 def host_endswith(host: str, hosts: list[str]) -> bool:
     return any(host.endswith(item) for item in hosts)
 
+def kill_or_stub(flow: http.HTTPFlow, status: int = 502) -> None:
+    if OFFLINE_MODE:
+        # a kill drops the whole connection rather than the one request, and since every Nexon host resolves to the same loopback listener the client keep-alives unrelated requests onto that connection - the collateral then surfaces as a failure somewhere it was never asked for and the boot loops
+        flow.response = http.Response.make(status, b"", {"Content-Type": "text/plain"})
+    else:
+        flow.kill()
+
 def request(flow: http.HTTPFlow) -> None:
     host = request_host(flow)
     rlog(f"REQ  {flow.request.method:4} {flow.request.scheme}://{flow.request.pretty_host}:{flow.request.port}{flow.request.path}")
@@ -130,11 +143,12 @@ def request(flow: http.HTTPFlow) -> None:
 
     if host_endswith(host, KILL_HOST_LIST):
         rlog(f"  -> KILL (host list) {host}")
-        flow.kill()
+        kill_or_stub(flow)
         return
     if any(flow.request.url.endswith(item) for item in OTHER_KILL_HOST):
         rlog(f"  -> KILL (url list) {flow.request.path}")
-        flow.kill()
+        # not an empty 200: the client reads the body as a password-protected zip and Unity hands back a null buffer for a zero-length response
+        kill_or_stub(flow)
         return
     if host == 'bolo7yechd.execute-api.ap-northeast-1.amazonaws.com' and flow.request.path.startswith('/prod/crexception-prop'):
         flow.response = http.Response.make(
@@ -173,6 +187,17 @@ def request(flow: http.HTTPFlow) -> None:
         rlog(f"  -> SERVE gamescale pcc ({len(pcc)} bytes)")
         flow.response = http.Response.make(200, pcc, {"Content-Type": "application/json"})
         return
+    # ToySteam reads is_free and price_overview out of this to work out the store currency before it asks Steam Inventory for item prices, and with nothing answering it the lobby comes up with "Failed to request prices".
+    if host == 'store.steampowered.com' and flow.request.path.startswith('/api/appdetails'):
+        appid = flow.request.query.get('appids', '3557620')
+        details = ('{"' + appid + '":{"success":true,"data":{"type":"game","name":"Blue Archive",'
+                   '"steam_appid":' + appid + ',"required_age":0,"is_free":true,'
+                   '"developers":["NEXON Games"],"publishers":["NEXON Games"],'
+                   '"platforms":{"windows":true,"mac":false,"linux":false},'
+                   '"release_date":{"coming_soon":false,"date":"6 Nov, 2024"}}}}').encode('utf-8')
+        rlog(f"  -> SERVE steam appdetails {appid} ({len(details)} bytes)")
+        flow.response = http.Response.make(200, details, {"Content-Type": "application/json"})
+        return
     if host_endswith(host, PING_HOST_REDIRECT):
         rlog(f"  -> STUB empty-200 (ping redirect) {host}")
         flow.response = http.Response.make(
@@ -183,11 +208,11 @@ def request(flow: http.HTTPFlow) -> None:
         return
     if flow.request.url.endswith("client.all.secure"):
         rlog("  -> KILL client.all.secure")
-        flow.kill()
+        kill_or_stub(flow)
         return
     if flow.request.url.endswith("sdk-api/user-meta/last-login"):
         rlog("  -> KILL sdk-api/user-meta/last-login")
-        flow.kill()
+        kill_or_stub(flow)
         return
     # Redirect any connection on port 5100 (game gateway) to our local gateway, regardless of the destination host.
     # This catches the case where the server config has an empty GatewayUrl and the game uses its hardcoded Nexon gateway fallback.
@@ -203,12 +228,15 @@ def request(flow: http.HTTPFlow) -> None:
         # For CloudFront (d2vaidpni345rp.cloudfront.net), only redirect server config paths.
         # Asset bundle / catalog downloads from CloudFront must go to the real CDN.
         if host == 'd2vaidpni345rp.cloudfront.net':
-            is_server_config = (
-                '/server_config/' in flow.request.path
-                or flow.request.path.endswith('.json')
-            ) and '_Live' in flow.request.path
+            is_server_config = '/server_config/' in flow.request.path or (
+                flow.request.path.endswith('.json') and '_Live' in flow.request.path
+            )
             if not is_server_config:
                 # Let CloudFront asset requests pass through (do not redirect)
+                if OFFLINE_MODE:
+                    rlog(f"  -> OFFLINE-STUB cloudfront {flow.request.path}")
+                    kill_or_stub(flow)
+                    return
                 rlog(f"  -> CLOUDFRONT-PASSTHROUGH {flow.request.path}")
                 return
         print(f"[Rewrite] {flow.request.method} {host}{flow.request.path} -> {SERVER_HOST}:{SERVER_PORT}")
@@ -216,6 +244,12 @@ def request(flow: http.HTTPFlow) -> None:
         flow.request.scheme = 'http'
         flow.request.host = SERVER_HOST
         flow.request.port = SERVER_PORT
+        return
+
+    if OFFLINE_MODE:
+        # with no route out, letting this through just means waiting for the connect to time out. answer it now so the log names every host that still wants the internet.
+        rlog(f"  -> OFFLINE-STUB {host}{flow.request.path}")
+        flow.response = http.Response.make(502, b"", {"Content-Type": "text/plain"})
         return
 
     # No rule matched: mitmproxy forwards this to the REAL host over the tunnel.

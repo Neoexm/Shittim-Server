@@ -156,11 +156,12 @@ function hasWebSdk(dir) {
   } catch { return false; }
 }
 
-function startServer() {
+function startServer(offline) {
   if (procs.server && !procs.server.killed) return { ok: false, error: 'Server already running' };
   const p = resolvePaths();
   const dn = resolveDotnet();
   const env = dotnetEnv(dn.root);
+  if (offline) env.SHITTIM_AUTO_PATCH_STEAM_OFFLINE = 'true';
 
   let cmd, args, cwd;
   if (p.exePath) {
@@ -203,19 +204,29 @@ function stopServer() {
   return { ok: true };
 }
 
-function startMitm() {
+function startMitm(offline) {
   if (procs.mitm && !procs.mitm.killed) return { ok: false, error: 'mitmproxy already running' };
   const p = resolvePaths();
   if (!fs.existsSync(p.redirectScript)) return { ok: false, error: 'redirect_server.py not found' };
 
-  const args = ['-m', 'wireguard', '--no-http2', '-s', 'redirect_server.py',
-    '--set', 'termlog_verbosity=warn', '--mode', 'local:BlueArchive.exe'];
+  // local mode never sees these connections - the hosts file sends them to loopback and WinDivert does not divert loopback - so offline mitmproxy owns the ports itself. reverse:http:// still terminates the client's TLS, since next_layer inserts a client TLS layer when the first bytes are a ClientHello, where reverse:https:// would force TLS upstream onto a plaintext Kestrel; keep_host_header leaves the Host the addon routes on alone.
+  const args = offline
+    ? ['--no-http2', '-s', 'redirect_server.py', '--set', 'termlog_verbosity=warn', '--set', 'keep_host_header=true',
+      '--mode', 'reverse:http://127.0.0.3:5000@127.0.0.2:443',
+      '--mode', 'reverse:http://127.0.0.3:5000@127.0.0.2:5000',
+      '--mode', 'reverse:http://127.0.0.3:5100@127.0.0.2:5100']
+    : ['-m', 'wireguard', '--no-http2', '-s', 'redirect_server.py',
+      '--set', 'termlog_verbosity=warn', '--mode', 'local:BlueArchive.exe'];
   const cmd = process.platform === 'win32' ? 'mitmweb.exe' : 'mitmweb';
 
-  broadcast('proc:log', { source: 'mitm', line: `> launching mitmweb (cwd: ${p.scriptsDir})` });
+  // the addon reads this at import time and answers anything it has no local route for with a 502 instead of forwarding it, so a missed host shows up as a logged failure rather than a connection that hangs until it times out.
+  const env = { ...process.env };
+  if (offline) env.SHITTIM_OFFLINE_MODE = '1';
+
+  broadcast('proc:log', { source: 'mitm', line: `> launching mitmweb (cwd: ${p.scriptsDir})${offline ? ' in offline mode' : ''}` });
   let child;
   try {
-    child = spawn(cmd, args, { cwd: p.scriptsDir, windowsHide: true, env: { ...process.env } });
+    child = spawn(cmd, args, { cwd: p.scriptsDir, windowsHide: true, env });
   } catch (e) {
     return { ok: false, error: String(e.message || e) };
   }
@@ -243,6 +254,66 @@ function stopMitm() {
   procs.mitm = null;
   broadcast('proc:state', { mitm: 'stopped' });
   return { ok: true };
+}
+
+const HOSTS_PATH = () => path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'drivers', 'etc', 'hosts');
+const HOSTS_MARK = '# shittim offline';
+
+// every host the client reaches for across a full boot, read off the redirect log. mitmproxy's local mode can only divert a connection the client actually manages to open, and with no route out the name lookup fails before that - so these have to resolve on their own. 127.0.0.2 and not .1 because that is where the reverse listeners sit, and mitmproxy refuses to forward to a port it is itself listening on at 127.0.0.1.
+const OFFLINE_HOSTS = [
+  'public.api.nexon.com',
+  'nxm-th-bagl.nexon.com',
+  'nxm-eu-bagl.nexon.com',
+  'config.na.nexon.com',
+  'platform.gamescale.nexon.com',
+  'toy.log.nexon.io',
+  'psm-log.ngs.nexon.com',
+  'd2vaidpni345rp.cloudfront.net',
+  'bolo7yechd.execute-api.ap-northeast-1.amazonaws.com',
+];
+
+function offlineHostsApplied() {
+  try { return fs.readFileSync(HOSTS_PATH(), 'utf8').includes(`${HOSTS_MARK} begin`); } catch { return false; }
+}
+
+function hostsWithBlock(text, on) {
+  const kept = [];
+  let inBlock = false;
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    if (t === `${HOSTS_MARK} begin`) { inBlock = true; continue; }
+    if (t === `${HOSTS_MARK} end`) { inBlock = false; continue; }
+    if (!inBlock) kept.push(line);
+  }
+  while (kept.length && !kept[kept.length - 1].trim()) kept.pop();
+  if (!on) return `${kept.join('\r\n')}\r\n`;
+  return `${[...kept, '', `${HOSTS_MARK} begin`, ...OFFLINE_HOSTS.map((h) => `127.0.0.2 ${h}`), `${HOSTS_MARK} end`].join('\r\n')}\r\n`;
+}
+
+// hosts sits under System32, so staging the finished file next to it and copying it across keeps the elevated half down to one copy and a resolver cache flush - the cache matters because a name the client already looked up stays pointed at the real address until it is dropped.
+async function setOfflineHosts(on) {
+  if (process.platform !== 'win32') return { ok: false, error: 'Offline hosts entries are wired up for Windows only.' };
+  const hosts = HOSTS_PATH();
+  let cur;
+  try {
+    cur = fs.readFileSync(hosts, 'utf8');
+  } catch (e) {
+    return { ok: false, error: `could not read ${hosts}: ${e.message}` };
+  }
+
+  const next = hostsWithBlock(cur, on);
+  if (next === cur) return { ok: true, changed: false, applied: on };
+
+  const staged = path.join(os.tmpdir(), `scc-hosts-${process.pid}.txt`);
+  fs.writeFileSync(staged, next, 'utf8');
+  const inner = `Copy-Item -LiteralPath ${psQuote(staged)} -Destination ${psQuote(hosts)} -Force; ipconfig /flushdns | Out-Null`;
+  const ps = `$p = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-Command', ${psQuote(inner)}) -Verb RunAs -PassThru -Wait -WindowStyle Hidden; exit $p.ExitCode`;
+  const r = await runPwsh(ps, (l) => broadcast('proc:log', { source: 'mitm', line: l }));
+  try { fs.unlinkSync(staged); } catch { /* ignore */ }
+
+  if (!r.ok) return { ok: false, error: 'the hosts file was not written - elevation was declined or the copy failed' };
+  broadcast('proc:log', { source: 'mitm', line: on ? `> pointed ${OFFLINE_HOSTS.length} hosts at 127.0.0.2` : '> removed the offline hosts entries' });
+  return { ok: true, changed: true, applied: on };
 }
 
 function execCheck(command, timeout = 6000) {
@@ -1245,11 +1316,23 @@ ipcMain.handle('system:start', () => {
   const mitm = startMitm();
   return { ok: server.ok || mitm.ok, server, mitm };
 });
-ipcMain.handle('system:stop', () => {
+ipcMain.handle('system:stop', async () => {
   const server = procs.server ? stopServer() : { ok: true, error: 'Server not running' };
   const mitm = procs.mitm ? stopMitm() : { ok: true, error: 'mitmproxy not running' };
-  return { ok: true, server, mitm };
+  const hosts = offlineHostsApplied() ? await setOfflineHosts(false) : { ok: true, changed: false };
+  return { ok: true, server, mitm, hosts };
 });
+
+// offline start: the hosts entries have to land before anything else, since the client resolves its first name within seconds of launch and a stale cache entry would send it out to the real address.
+ipcMain.handle('system:startOffline', async () => {
+  const hosts = await setOfflineHosts(true);
+  if (!hosts.ok) return { ok: false, error: hosts.error, hosts };
+  const server = startServer(true);
+  const mitm = startMitm(true);
+  return { ok: server.ok || mitm.ok, hosts, server, mitm };
+});
+ipcMain.handle('offline:status', () => ({ hosts: offlineHostsApplied(), hostnames: OFFLINE_HOSTS }));
+ipcMain.handle('offline:hosts', (_e, on) => setOfflineHosts(!!on));
 
 ipcMain.handle('project:status', () => projectStatus());
 ipcMain.handle('project:download', (_e, opts) => downloadProject(opts || {}));

@@ -18,6 +18,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool AutoPatchClientMetadata { get; set; } = true;
         public string ClientMetadataPath { get; set; } = "";
         public bool AutoPatchClientGameAssemblyIas { get; set; } = false;
+        // Lets the client hand out an external ticket with Steam offline or not running. Off by default because it rewrites GameAssembly.dll, which Steam restores on a file verify.
+        public bool AutoPatchClientSteamOffline { get; set; } = false;
         public string ClientGameAssemblyPath { get; set; } = "";
         public bool AutoPatchClientGamescaleIas { get; set; } = true;
         public string ClientGamescaleCorePath { get; set; } = "";
@@ -32,6 +34,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string ClientGrap64Path { get; set; } = "";
         public bool AutoPatchClientBanners { get; set; } = true;
         public string ClientExcelDbPath { get; set; } = "";
+        // Sends the client's steam store lookup to this server instead, so the shop currency check still answers with no route out.
+        public bool AutoPatchClientStoreUrl { get; set; } = true;
         // Replaces the title-screen region label, which the client builds from its own metadata rather than from anything on the wire. Blank puts the stock region name back.
         public string RegionDisplayText { get; set; } = "";
         public string SQLProvider { get; set; } = "SQLite3";

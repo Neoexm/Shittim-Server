@@ -94,11 +94,13 @@ namespace Shittim.CLI
 
                 builder.Services.AddHostedService<ClientMetadataPatchService>();
                 builder.Services.AddHostedService<ClientGameAssemblyIasPatchService>();
+                builder.Services.AddHostedService<ClientSteamOfflinePatchService>();
                 builder.Services.AddHostedService<ClientGrap64ManagementService>();
                 builder.Services.AddHostedService<ClientInfaceConfigPatchService>();
                 builder.Services.AddHostedService<ClientNativeIasPatchService>();
                 builder.Services.AddHostedService<ClientExcelBannerPatchService>();
                 builder.Services.AddHostedService<ClientRegionLabelPatchService>();
+                builder.Services.AddHostedService<ClientStoreUrlPatchService>();
                 builder.Services.AddGameClient();
                 builder.Services.AddManagers();
                 builder.Services.AddHandlers();
