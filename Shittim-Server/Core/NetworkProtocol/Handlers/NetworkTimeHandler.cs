@@ -24,10 +24,8 @@ public class NetworkTimeHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official semantics (live captures): ReceiveTick equals ServerTimeTicks exactly
-        // (server receive time, whole-second precision, same clock base), while EchoSendTick is
-        // the full-precision server time at send. Both must come off the same clock base as
-        // ServerTimeTicks (local); mixing in DateTime.UtcNow here skews them by the UTC offset.
+        // Official semantics (live captures): ReceiveTick equals ServerTimeTicks exactly (server receive time, whole-second precision, same clock base), while EchoSendTick is the full-precision server time at send.
+        // Both must come off the same clock base as ServerTimeTicks (local); mixing in DateTime.UtcNow here skews them by the UTC offset.
         response.ReceiveTick = response.ServerTimeTicks;
         response.EchoSendTick = DateTimeOffset.Now.Ticks;
 

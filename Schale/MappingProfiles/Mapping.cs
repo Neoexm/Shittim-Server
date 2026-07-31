@@ -7,8 +7,7 @@ namespace Schale.MappingProfiles
 {
     public class GameModelsMappingProfile : Profile
     {
-        // Exact key set + order the official server serializes for AccountCurrencyDB.CurrencyDict
-        // (live captures, client 1.90): no Invalid/deprecated WeekDungeon tickets, no Max sentinel.
+        // Exact key set + order the official server serializes for AccountCurrencyDB.CurrencyDict (live captures, client 1.90): no Invalid/deprecated WeekDungeon tickets, no Max sentinel.
         private static readonly CurrencyTypes[] OfficialCurrencyKeys =
         {
             CurrencyTypes.Gem, CurrencyTypes.GemPaid, CurrencyTypes.GemBonus, CurrencyTypes.Gold,
@@ -93,8 +92,7 @@ namespace Schale.MappingProfiles
         {
             CreateMap<MissionProgressDBServer, MissionProgressDB>();
             CreateMap<AttendanceHistoryDBServer, AttendanceHistoryDB>();
-            // AcademyDB.ZoneScheduleGroupRecords is [OmitWhenEmpty]: AutoMapper always materialises
-            // an empty dictionary here, and the gateway drops it on the way out.
+            // AcademyDB.ZoneScheduleGroupRecords is [OmitWhenEmpty]: AutoMapper always materialises an empty dictionary here, and the gateway drops it on the way out.
             CreateMap<AcademyDBServer, AcademyDB>();
             CreateMap<AcademyLocationDBServer, AcademyLocationDB>();
             CreateMap<CampaignMainStageSaveDBServer, CampaignMainStageSaveDB>();

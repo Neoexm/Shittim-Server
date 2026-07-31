@@ -11,16 +11,8 @@ public class RecoveredExcelLayoutTests
 
     public RecoveredExcelLayoutTests(ITestOutputHelper output) => this.output = output;
 
-    /// <summary>
-    /// The cross-table check on the ShopCashExcel repair. Its 25 data slots were being read as 20
-    /// consecutive ones, so IconPath decoded off a 32-bit hash, UnPack threw, and all 1345 rows were
-    /// dropped - every cash-shop lookup returned null.
-    ///
-    /// Id and CashProductId are the only two fields any handler reads, and this is what proves the second
-    /// one is on the right slot: CashProductId is a foreign key into ProductExcel, so a wrong assignment
-    /// would have to produce values that happen to be valid product ids across the whole table. Slot 1 is a
-    /// 4-byte field like several of its neighbours, so nothing structural distinguishes them.
-    /// </summary>
+    // ShopCashExcel's 25 data slots were being read as 20 consecutive ones, so IconPath decoded off a 32-bit hash, UnPack threw, and all 1345 rows got dropped - every cash-shop lookup returned null.
+    // Id and CashProductId are the only two fields any handler reads, and CashProductId is a foreign key into ProductExcel, so a wrong slot would have to land on values that are all valid product ids. Slot 1 is 4 bytes among 4-byte neighbours; nothing structural tells them apart.
     [Fact]
     public void ShopCashCashProductIdJoinsToProductExcel()
     {
@@ -49,22 +41,9 @@ public class RecoveredExcelLayoutTests
             string.Join(", ", orphans.Take(5).Select(s => $"Id {s.Id} -> CashProductId {s.CashProductId}")));
     }
 
-    /// <summary>
-    /// The value-shape check on the GroundExcel repair. The data writes 59 slots and the model declared 58
-    /// consecutively, so from data slot 54 on every field read its neighbour; a string among them threw and
-    /// took 227 of 4424 rows with it.
-    ///
-    /// Two independent things are asserted, because the interesting failure is a future regeneration
-    /// silently reverting the shift and that has to fail loudly rather than drift:
-    ///
-    /// The float trio at slots 50-52 is what pinned the omission to slot 54 in the first place - the rows
-    /// hold the exact bit pattern of 0.85f there. Read one slot over, an integer reinterpreted as a float
-    /// gives a denormal around 1.19e-38, which no UI scale ever is.
-    ///
-    /// The four fields the shift actually ran through are two parallel id/level pairs, and parallel arrays
-    /// are self-checking: a one-slot shift would point the string vector at the int vector beside it, so the
-    /// lengths stop matching even in the rows where nothing throws.
-    /// </summary>
+    // GroundExcel writes 59 slots and the model declared 58 consecutively, so from data slot 54 on every field read its neighbour; a string among them threw and took 227 of 4424 rows with it.
+    // The float trio at slots 50-52 pinned the omission to slot 54 - the rows hold the exact bit pattern of 0.85f there, and one slot over an int reinterpreted as a float gives a denormal around 1.19e-38, which no UI scale ever is.
+    // The four shifted fields are two parallel id/level pairs, so a one-slot shift points the string vector at the int vector beside it and the lengths stop matching even where nothing throws.
     [Fact]
     public void GroundExcelDecodesPlausibleBattleMapValues()
     {
@@ -77,8 +56,6 @@ public class RecoveredExcelLayoutTests
         var ground = Service.GetTable<GroundExcelT>(false, true);
         Assert.NotEmpty(ground);
 
-        // Every row loads. Before the repair the misread string field threw on the rows whose vtable
-        // reached the omission, and ExcelTableService dropped them.
         Assert.All(ground, g => Assert.True(g.Id > 0, $"GroundExcel row has a non-positive Id: {g.Id}"));
 
         foreach (var g in ground)
@@ -105,8 +82,6 @@ public class RecoveredExcelLayoutTests
                          $"{ground.Count(g => g.EnemyPassiveSkillId is { Count: > 0 })} carry enemy passive skills");
     }
 
-    // fixtures
-
     // Stays null without the dumps; both tests skip then.
     private static readonly ExcelTableService? Service = BuildService();
 
@@ -119,8 +94,7 @@ public class RecoveredExcelLayoutTests
 
             var server = Path.Combine(dir.FullName, "Shittim-Server");
 
-            // Under a test run AppContext.BaseDirectory is the test project's output, not the
-            // server's, so GetTable has to be pointed at the server's copy.
+            // Under a test run AppContext.BaseDirectory is the test project's output, not the server's, so GetTable has to be pointed at the server's copy.
             var dumped = new[]
             {
                 Path.Combine(server, "Resources", "Dumped"),

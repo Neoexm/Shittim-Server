@@ -43,8 +43,7 @@ namespace Schale.Data.GameModel
 
             foreach (var currencyType in currencyTypes)
             {
-                // The Max sentinel and the two deprecated WeekDungeon tickets never appear in
-                // official CurrencyDicts; don't seed them.
+                // The Max sentinel and the two deprecated WeekDungeon tickets never appear in official CurrencyDicts; don't seed them.
                 if (currencyType is CurrencyTypes.Invalid or CurrencyTypes.Max
                     or CurrencyTypes.WeekDungeonFindGiftTicket or CurrencyTypes.WeekDungeonBloodTicket)
                     continue;

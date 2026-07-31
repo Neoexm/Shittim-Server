@@ -37,10 +37,7 @@ export default {
           if (!seasons.length) {
             body.appendChild(emptyState('No seasons defined', 'This content has no Excel seasons'));
           } else {
-            // Window 132px fits the nowrap date lines; 94px fits the Apply
-            // button (box-sizing includes the 28px cell padding) - anything
-            // narrower paints the button over the date column and past the
-            // card edge.
+            // Window 132px fits the nowrap date lines; 94px fits the Apply button (box-sizing includes the 28px cell padding) - anything narrower paints the button over the date column and past the card edge.
             const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th>Season</th><th style="width:132px">Window</th><th style="width:94px"></th></tr></thead><tbody></tbody></table>');
             const tb = tbl.querySelector('tbody');
             for (const s of seasons) {

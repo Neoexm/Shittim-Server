@@ -39,10 +39,8 @@ namespace Shittim_Server.Controllers.SDK
             if (!string.IsNullOrWhiteSpace(payload))
                 logger.LogDebug("[IAS LoginLink] {Payload}", payload);
 
-            // Fresh login clears the static session dicts first. They otherwise gain an entry per
-            // login and are never evicted, so the inface SDK's persisted web_token re-matches a
-            // stale session and reuses its dead ticket, which stalls the primary-link auth. Safe
-            // to drop prior sessions on this single-account offline server.
+            // Fresh login clears the static session dicts first. They otherwise gain an entry per login and are never evicted, so the inface SDK's persisted web_token re-matches a stale session and reuses its dead ticket, which stalls the primary-link auth.
+            // Dropping prior sessions is safe on a single-account offline server.
             if (!string.IsNullOrWhiteSpace(ReadString(payload, "link_platform_token")))
             {
                 if (SessionsByWebToken.Count > 0)
@@ -154,12 +152,8 @@ namespace Shittim_Server.Controllers.SDK
                 ?? RememberSession(payload, CreateWebToken(), ResolveIdentity(payload, ""));
             var gameToken = CreateGameToken(session);
 
-            // Shape consumed by the inface JS SDK: issue() does
-            //   const n = await reqIAS(...); return n.error_code===ERROR_SUCCESS ? n.game_token : ...
-            // ERROR_SUCCESS===0 (a NUMBER), and reqIAS merges this body over its own
-            // {error_code:0} base via Object.assign, so a string "0" here would override
-            // the SDK's 0 and fail the strict === check. error_code MUST be numeric 0, and
-            // game_token MUST be present (that's the field issue() reads).
+            // Shape consumed by the inface JS SDK, whose issue() does: const n = await reqIAS(...); return n.error_code===ERROR_SUCCESS ? n.game_token : ...
+            // ERROR_SUCCESS===0 (a NUMBER), and reqIAS merges this body over its own {error_code:0} base via Object.assign, so a string "0" here would override the SDK's 0 and fail the strict === check. error_code MUST be numeric 0, and game_token MUST be present - that is the field issue() reads.
             return Results.Json(new
             {
                 errorCode = 0,
@@ -175,10 +169,7 @@ namespace Shittim_Server.Controllers.SDK
                 message = "",
                 uid = DefaultUid,
                 gid = "2079",
-                // Account guid bound to the issued game-token. Must match the unified
-                // primary guid derived from the login identity (STEAM), NOT the old
-                // hard-coded ARENA guid, so the gateway/account view stays self-consistent
-                // with the IAS/IMS link responses (see BuildPrimaryLinkDetails).
+                // Account guid bound to the issued game-token. Must match the primary guid derived from the login identity (STEAM) so the gateway/account view stays self-consistent with the IAS/IMS link responses; see BuildPrimaryLinkDetails.
                 guid = BuildPrimaryLinkDetails(session.Identity).Guid,
                 game_token = gameToken,
                 gameToken,
@@ -444,8 +435,7 @@ namespace Shittim_Server.Controllers.SDK
         [HttpPost("ias/alpha/public/v1/link/account/platform/primary")]
         [HttpGet("ias/qa/public/v1/link/account/platform/primary")]
         [HttpPost("ias/qa/public/v1/link/account/platform/primary")]
-        // IMS routes: gamescale native IMS URL builder uses /ims/public/v1 as base,
-        // then appends /v1/link/account/platform/primary as the operation path.
+        // gamescale's native IMS URL builder uses /ims/public/v1 as base, then appends /v1/link/account/platform/primary as the operation path, hence the doubled /v1 variants.
         [HttpGet("ims/public/v1/link/account/platform/primary")]
         [HttpPost("ims/public/v1/link/account/platform/primary")]
         [HttpGet("ims/public/v1/v1/link/account/platform/primary")]
@@ -594,11 +584,8 @@ namespace Shittim_Server.Controllers.SDK
 
             logger.LogInformation("[IAS Public] {Method} {Env} {Path}", Request.Method, env, path);
 
-            // A bare "GET /ims/public" is ambiguous - get_primary_link and the IMS service/config
-            // GETs look identical on the route alone, and they need different bodies. Full
-            // path+query plus the request headers (Authorization / x-ias-* / web_token) identify
-            // the operation. Debug and guarded: the header join is pure diagnostic cost, and the
-            // headers carry credentials that have no business in the default log.
+            // A bare "GET /ims/public" is ambiguous - get_primary_link and the IMS service/config GETs look identical on the route alone yet need different bodies, so the full path+query plus the request headers (Authorization / x-ias-* / web_token) are what identify the operation.
+            // Debug and guarded: the header join is pure diagnostic cost, and the headers carry credentials that have no business in the default log.
             if (logger.IsEnabled(LogLevel.Debug))
             {
                 var headerDump = string.Join(" | ", Request.Headers
@@ -617,13 +604,8 @@ namespace Shittim_Server.Controllers.SDK
             if (route.EndsWith("issue/ticket/by-web-token") || route.Contains("/issue/ticket/by-web-token"))
                 return await IssueTicketByWebToken();
 
-            // The inface IAS SDK is JavaScript: reqIAS("/issue/game-token/by-ticket",
-            // {locale}, {"x-ias-ticket":e}) builds <ias_url>+endpoint, but on the wire the
-            // endpoint+/xxxxxx/v1 segment is dropped and the request collapses to a bare
-            // POST /ias/live/public carrying only the x-ias-ticket header + body {"locale":...}.
-            // So the path-based check below never matches; dispatch by the header instead.
-            // (GET /ims/public also carries x-ias-ticket - that's get_primary_link, handled by
-            // the isIms branch; verify/game-token uses x-ias-game-token, excluded here.)
+            // The inface IAS SDK is JavaScript: reqIAS("/issue/game-token/by-ticket", {locale}, {"x-ias-ticket":e}) builds <ias_url>+endpoint, but on the wire the endpoint+/xxxxxx/v1 segment is dropped and the request collapses to a bare POST /ias/live/public carrying only the x-ias-ticket header plus body {"locale":...}, so the path-based check below never matches and dispatch goes by the header instead.
+            // GET /ims/public also carries x-ias-ticket - that one is get_primary_link, handled by the isIms branch. verify/game-token uses x-ias-game-token and is excluded here.
             var iasTicketHeader = Request.Headers["x-ias-ticket"].FirstOrDefault();
             var iasGameTokenHeader = Request.Headers["x-ias-game-token"].FirstOrDefault();
             if (route.EndsWith("issue/game-token/by-ticket") || route.Contains("/issue/game-token/by-ticket")
@@ -682,17 +664,10 @@ namespace Shittim_Server.Controllers.SDK
                         session.Identity.LocalSessionUserId,
                         session.Identity.LocalSessionType);
 
-                    // CONFIRMED by decompiling ResolvePrimaryPlatformInternal (0x1893FB3C0): this
-                    // FetchPrimaryLink result MUST report the link as PRIMARY (isPrimary=true).
-                    //   - HasPrimaryLink==true (overridePrimaryPlatform==false) -> "already-primary,
-                    //     proceed" success callback (LABEL_8). This is the returning-user path.
-                    //   - isPrimary=false -> get_HasPrimaryLink()==false -> the method iterates links
-                    //     and, because our link has a non-empty platformUserId AND non-null gameData
-                    //     (v30>0), it pops the interactive NXPAccountLinkPrimaryPickerDialog, which has
-                    //     no input in the offline flow and hard-stalls "Now Loading".
-                    // So markPrimary=true is correct; the remaining post-get_primary_link stall is in
-                    // the success-callback continuation, NOT here. (Earlier markPrimary=false test was
-                    // doubly wrong: confounded by the scheme bug AND triggers the picker dialog.)
+                    // CONFIRMED by decompiling ResolvePrimaryPlatformInternal (0x1893FB3C0): this FetchPrimaryLink result MUST report the link as PRIMARY (isPrimary=true).
+                    //   - HasPrimaryLink==true (overridePrimaryPlatform==false) -> "already-primary, proceed" success callback (LABEL_8), the returning-user path.
+                    //   - isPrimary=false -> get_HasPrimaryLink()==false -> the method iterates links and, because our link has a non-empty platformUserId AND non-null gameData (v30>0), it pops the interactive NXPAccountLinkPrimaryPickerDialog, which has no input in the offline flow and hard-stalls "Now Loading".
+                    // So markPrimary=true. The remaining post-get_primary_link stall sits in the success-callback continuation, not here.
                     var response = BuildPrimaryLinkResponse(session, markPrimary: true);
                     // Guarded so the body is not serialized at all unless Debug is on.
                     if (logger.IsEnabled(LogLevel.Debug))
@@ -704,25 +679,14 @@ namespace Shittim_Server.Controllers.SDK
             if (HttpMethods.IsPost(Request.Method))
                 return await LoginLink();
 
-            // A bare IMS GET that matched no operation above is the native get_primary_link
-            // call. gamescale.core.dll's get_primary_link response handler (sub_180707880)
-            // accepts HTTP status in {200,400,500} then deserializes the body via
-            // sub_180029270; the deserializer REQUIRES the primary-link string fields
-            // (primary_platform_type / primary_platform_user_id / primary_platform_guid,
-            // plus trace_id / token / token_type / guid - note the dedicated "<field> is
-            // empty" strings clustered with the parser). The thin LoginLink shape lacks all
-            // of these, so the deserializer throws and the handler emits
-            // if.error.auth.ims.get_primary_link.response.parse_exception(10001), which
-            // silently stalls login right before Queuing_GetTicket (observed as the game
-            // hanging on "Now Loading..." immediately after a 200 on GET /ims/public).
-            // Serve the rich primary-link shape (same body proven good for POST
-            // PrimaryLinkFetch) instead.
+            // A bare IMS GET that matched no operation above is the native get_primary_link call.
+            // gamescale.core.dll's get_primary_link response handler (sub_180707880) accepts HTTP status in {200,400,500} then deserializes the body via sub_180029270, and that deserializer REQUIRES the primary-link string fields: primary_platform_type / primary_platform_user_id / primary_platform_guid, plus trace_id / token / token_type / guid. The dedicated "<field> is empty" strings sit clustered with the parser.
+            // The thin LoginLink shape lacks all of these, so the deserializer throws and the handler emits if.error.auth.ims.get_primary_link.response.parse_exception(10001), which silently stalls login right before Queuing_GetTicket - the game hangs on "Now Loading..." immediately after a 200 on GET /ims/public. Serve the rich primary-link shape, the same body proven good for POST PrimaryLinkFetch.
             var isIms = Request.Path.Value?.StartsWith("/ims", StringComparison.OrdinalIgnoreCase) == true;
             if (isIms)
             {
                 var imsSession = CreateDefaultSession();
-                // Serve the rich primary-link shape for the native get_primary_link parser.
-                // (Toggling isPrimary here was tested and does NOT affect the stall.)
+                // isPrimary makes no difference on this path - it was toggled both ways and neither value affects the stall.
                 var imsResponse = BuildPrimaryLinkResponse(imsSession);
                 logger.LogInformation("[IMS get_primary_link fallback] {Path} -> primary-link shape", Request.Path.Value);
                 return Results.Json(imsResponse);
@@ -977,9 +941,7 @@ namespace Shittim_Server.Controllers.SDK
             return session;
         }
 
-        // Clears all accumulated IAS session state so a new login starts from a clean slate
-        // (equivalent to a server restart). Called at the start of each genuine LoginLink to
-        // prevent the stale-session reuse that hangs the inface IAS auth -> "Abnormal client".
+        // Clears all accumulated IAS session state so a new login starts from a clean slate, equivalent to a server restart. Called at the start of each genuine LoginLink to prevent the stale-session reuse that hangs the inface IAS auth -> "Abnormal client".
         private static void ResetSessionState()
         {
             SessionsByWebToken.Clear();
@@ -1015,14 +977,9 @@ namespace Shittim_Server.Controllers.SDK
         }
 
         // markPrimary controls whether the emitted links carry isPrimary=true.
-        // FetchPrimaryLinkResult.get_HasPrimaryLink (0x189460AE0) returns true iff some link has
-        // isPrimary ([link+0x10]) != 0, and NXPToyAuthenticationManager.ResolvePrimaryPlatformInternal
-        // (0x1893FB3C0) branches on it with overridePrimaryPlatform=false: true takes the "already
-        // linked, proceed" path, which issues get_primary_link and stalls before Queuing_GetTicket;
-        // false takes SetPrimaryLink (POST /v1/link/account/platform/primary), whose success spawns
-        // the worker that advances managed to Queuing_GetTicket. So the POST PrimaryLinkFetch response
-        // must report the login-platform link as non-primary; get_primary_link and UpdatePrimaryLink
-        // keep markPrimary=true, the primary being established by then.
+        // FetchPrimaryLinkResult.get_HasPrimaryLink (0x189460AE0) returns true iff some link has isPrimary ([link+0x10]) != 0, and NXPToyAuthenticationManager.ResolvePrimaryPlatformInternal (0x1893FB3C0) branches on it with overridePrimaryPlatform=false.
+        // true takes the "already linked, proceed" path, which issues get_primary_link and stalls before Queuing_GetTicket. false takes SetPrimaryLink (POST /v1/link/account/platform/primary), whose success spawns the worker that advances managed to Queuing_GetTicket.
+        // So the POST PrimaryLinkFetch response must report the login-platform link as non-primary; get_primary_link and UpdatePrimaryLink keep markPrimary=true, the primary being established by then.
         private static object BuildPrimaryLinkResponse(IasSession session, bool markPrimary = true)
         {
             var primary = BuildPrimaryLinkDetails(session.Identity);
@@ -1034,16 +991,9 @@ namespace Shittim_Server.Controllers.SDK
                 status_code = 200,
                 message = "",
                 name = "",
-                // The native gamescale.core.dll C-API GameAuthAccountLinkUpdatePrimaryLink
-                // (0x1800cda90) parses this body and REQUIRES the following top-level fields
-                // to each be a JSON STRING (nlohmann value_t::string == 3), checked in order:
-                //   trace_id, token_type, token, primary_platform_type,
-                //   primary_platform_user_id, guid.
-                // If any is absent or non-string it logs "<field> is empty", routes
-                // if.error.auth.account_link.fetch_primary.invalid_arg, and returns WITHOUT
-                // calling sub_1800979A0 (the SetPrimaryLink continuation). That missing
-                // continuation is exactly why the managed layer never advances to
-                // Queuing_GetTicket. token is a FLAT top-level string here, not a nested object.
+                // The native gamescale.core.dll C-API GameAuthAccountLinkUpdatePrimaryLink (0x1800cda90) parses this body and REQUIRES the following top-level fields to each be a JSON STRING (nlohmann value_t::string == 3), checked in this order: trace_id, token_type, token, primary_platform_type, primary_platform_user_id, guid.
+                // If any is absent or non-string it logs "<field> is empty", routes if.error.auth.account_link.fetch_primary.invalid_arg, and returns WITHOUT calling sub_1800979A0 (the SetPrimaryLink continuation), which is why the managed layer never advances to Queuing_GetTicket.
+                // token is a FLAT top-level string here, not a nested object.
                 trace_id = $"shittim-trace:{Guid.NewGuid():N}",
                 token = session.WebToken,
                 token_type = "Bearer",
@@ -1051,18 +1001,9 @@ namespace Shittim_Server.Controllers.SDK
                 primary_platform_user_id = primary.PlatformUserId,
                 primary_platform_guid = primary.Guid,
                 guid = primary.Guid,
-                // After UpdatePrimaryLink (0x1800cda90) succeeds, gamescale.core.dll spawns a
-                // worker thread running IFGameAuth::LoginAccountLink's lambda
-                // (sub_18005E950 @ 0x18005E950). That lambda parses this same response body and
-                // unconditionally extracts "ticket" via nlohmann get<std::string>()
-                // (sub_180043C20, called at 0x18005fe63). If "ticket" is absent the inserted
-                // null fails the value_t::string (==3) check and throws an UNHANDLED
-                // type_error 302 "type must be string, but is null", which fast-fails the
-                // process (C0000409, FAST_FAIL_FATAL_APP_EXIT) with no WER dump - the "clean
-                // exit right after PrimaryLinkFetch" symptom. The lambda also reads web_token
-                // (its success gate), local_session_user_id, and local_session_type as strings,
-                // so emit all four here. These are extra keys the UpdatePrimaryLink parser
-                // ignores (it only validates its 6 fields), so adding them is safe.
+                // After UpdatePrimaryLink (0x1800cda90) succeeds, gamescale.core.dll spawns a worker thread running IFGameAuth::LoginAccountLink's lambda (sub_18005E950 @ 0x18005E950). That lambda parses this same response body and unconditionally extracts "ticket" via nlohmann get<std::string>() (sub_180043C20, called at 0x18005fe63).
+                // If "ticket" is absent the inserted null fails the value_t::string (==3) check and throws an UNHANDLED type_error 302 "type must be string, but is null", which fast-fails the process (C0000409, FAST_FAIL_FATAL_APP_EXIT) with no WER dump - the "clean exit right after PrimaryLinkFetch" symptom.
+                // The lambda also reads web_token (its success gate), local_session_user_id and local_session_type as strings, so all four are emitted here. The UpdatePrimaryLink parser only validates its 6 fields and ignores extra keys, so adding them is safe.
                 ticket = session.Ticket,
                 web_token = session.WebToken,
                 local_session_user_id = session.Identity.LocalSessionUserId,
@@ -1106,10 +1047,7 @@ namespace Shittim_Server.Controllers.SDK
                 ? DefaultSteamGuid
                 : BuildAccountGuid(platformUserId);
 
-            // One self-consistent PRIMARY link for the platform being logged in with. Emitting it
-            // as non-primary alongside a primary ARENA link contradicts both the STEAM login and
-            // the get_primary_link response (see BuildPrimaryLinkDetails), and the client hangs on
-            // the mismatch.
+            // One self-consistent PRIMARY link for the platform being logged in with. Emitting it as non-primary alongside a primary ARENA link contradicts both the STEAM login and the get_primary_link response (see BuildPrimaryLinkDetails), and the client hangs on the mismatch.
             return
             [
                 BuildLink(true, platformType, platformUserId, guid, "1752526340000", "2026-06-04T17:31:01Z")
@@ -1131,12 +1069,7 @@ namespace Shittim_Server.Controllers.SDK
 
             if (!markPrimary)
             {
-                // FetchPrimaryLink: report the login-platform link with isPrimary=FALSE so
-                // get_HasPrimaryLink returns false and ResolvePrimaryPlatformInternal takes
-                // the SetPrimaryLink branch (POST /v1/link/account/platform/primary) instead
-                // of the "already-primary, proceed" branch, which stalls before
-                // Queuing_GetTicket. The list stays non-empty so that branch still has the
-                // login platform as its candidate.
+                // FetchPrimaryLink: report the login-platform link with isPrimary=FALSE so get_HasPrimaryLink returns false and ResolvePrimaryPlatformInternal takes the SetPrimaryLink branch (POST /v1/link/account/platform/primary) rather than the "already-primary, proceed" branch, which stalls before Queuing_GetTicket. The list stays non-empty so that branch still has the login platform as its candidate.
                 return
                 [
                     BuildPrimaryLink(false, platformType, platformUserId, guid, "2026-06-04T17:31:01Z")
@@ -1219,16 +1152,9 @@ namespace Shittim_Server.Controllers.SDK
 
         private static PrimaryLinkDetails BuildPrimaryLinkDetails(SessionIdentity identity)
         {
-            // For the self-contained offline server, the account's PRIMARY platform is
-            // ALWAYS the platform the player actually logged in with (e.g. STEAM). The
-            // previous hard-coded ARENA primary created a login-vs-primary mismatch:
-            // get_primary_link reported primary=ARENA while the login was STEAM, so the
-            // native get_primary_link continuation / managed InfaceSDK GameAuth flow took
-            // the "switch to the other platform's primary account" branch, for which we
-            // never supplied valid ARENA credentials. That continuation faults and the
-            // client hangs on "Now Loading" right after GET /ims/public, issuing no
-            // further request (no SetPrimaryLink POST, no Queuing_GetTicket). Mirroring the
-            // login platform keeps the entire IAS/IMS view self-consistent.
+            // For the self-contained offline server the account's PRIMARY platform is ALWAYS the platform the player actually logged in with, e.g. STEAM.
+            // A login-vs-primary mismatch (get_primary_link reporting primary=ARENA while the login was STEAM) sends the native get_primary_link continuation / managed InfaceSDK GameAuth flow down the "switch to the other platform's primary account" branch, for which there are no valid ARENA credentials to supply. That continuation faults and the client hangs on "Now Loading" right after GET /ims/public, issuing no further request at all: no SetPrimaryLink POST, no Queuing_GetTicket.
+            // Mirroring the login platform keeps the entire IAS/IMS view self-consistent.
             var platformType = string.IsNullOrWhiteSpace(identity.LocalSessionType)
                 ? DefaultLocalSessionType
                 : identity.LocalSessionType.ToUpperInvariant();

@@ -97,7 +97,6 @@ public class BattlePassHandler : ProtocolHandlerBase
         var rewardExcels = _excelTableService.GetTable<BattlePassRewardExcelT>();
         var parcels = new List<ParcelInfo>();
 
-        // Collect Normal Rewards
         if (battlePass.ReceiveRewardLevel < battlePass.PassLevel)
         {
             var newRewards = rewardExcels.Where(x => 
@@ -116,7 +115,6 @@ public class BattlePassHandler : ProtocolHandlerBase
             battlePass.ReceiveRewardLevel = battlePass.PassLevel;
         }
 
-        // Collect Paid Rewards
         if (battlePass.PurchaseGroupId != 0 && battlePass.ReceivePurchaseRewardLevel < battlePass.PassLevel)
         {
             var newPaidRewards = rewardExcels.Where(x => 
@@ -163,8 +161,8 @@ public class BattlePassHandler : ProtocolHandlerBase
         if (battlePass == null)
             throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
 
-        // Levels are granted free. Cost (PassLvUpGoodsID / amount per level from
-        // BattlePassLevelExcel) is not charged, and the level is not capped against the excel max.
+        // Levels are granted free.
+        // Cost (PassLvUpGoodsID / amount per level from BattlePassLevelExcel) is not charged, and the level is not capped against the excel max.
         battlePass.PassLevel += request.BattlePassBuyLevelCount;
 
         await db.SaveChangesAsync();

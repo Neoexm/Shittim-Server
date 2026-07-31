@@ -22,8 +22,7 @@ public class GoodsExcelLayoutTests
     }
 
     /// <summary>
-    /// The undecoded row blobs, for <see cref="ExcelLayoutDriftTests"/> - it measures the vtable the
-    /// writer emitted rather than unpacking through the model, so it needs the bytes and not a GoodsExcelT.
+    /// The undecoded row blobs, for <see cref="ExcelLayoutDriftTests"/> - it measures the vtable the writer emitted rather than unpacking through the model, so it needs the bytes and not a GoodsExcelT.
     /// </summary>
     internal static IEnumerable<byte[]> AllRowBytes() => File.ReadLines(FixturePath)
         .Where(line => !line.StartsWith('#') && line.Contains(' '))
@@ -48,8 +47,7 @@ public class GoodsExcelLayoutTests
     [Fact]
     public void CashGoodsKeepProductIds()
     {
-        // One of the 56 cash rows that populate the six-long product-id block. A 21-slot layout
-        // decodes this row's reward triple out of the neighbouring vectors, so it catches that.
+        // One of the 56 cash rows that populate the six-long product-id block. A 21-slot layout decodes this row's reward triple out of the neighbouring vectors, so it catches that.
         var goods = Row("cash_90030397");
 
         Assert.Equal(101L, goods.ProductIdAOS);

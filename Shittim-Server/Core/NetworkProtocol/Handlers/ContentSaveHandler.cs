@@ -28,12 +28,9 @@ public class ContentSaveHandler : ProtocolHandlerBase
     /// <summary>
     /// "Am I in the middle of something?" - asked at login, and again by the pause menu's Retry.
     ///
-    /// Retry on a campaign battle never sends Campaign_RestartMainStage; UIPause sends this and branches
-    /// on one field. ContentSaveGetNetworkTask.HandleMessage reads "HasValidData", treating an absent key
-    /// as false, and UIPause.HandleContentSaveGet either restarts the battle or puts up
-    /// LocalizeData.GetText("CampaignStageInvalidSaveData") - "invalid mission info" - and drops the
-    /// player back to the lobby. Left at its default false the key is dropped from the wire by
-    /// DefaultValueHandling.Ignore, so answering with the open run is what makes Retry work at all.
+    /// Retry on a campaign battle never sends Campaign_RestartMainStage; UIPause sends this and branches on one field.
+    /// ContentSaveGetNetworkTask.HandleMessage reads "HasValidData", treating an absent key as false, and UIPause.HandleContentSaveGet either restarts the battle or puts up LocalizeData.GetText("CampaignStageInvalidSaveData") - "invalid mission info" - and drops the player back to the lobby.
+    /// Left at its default false the key is dropped from the wire by DefaultValueHandling.Ignore, so answering with the open run is what makes Retry work at all.
     /// </summary>
     [ProtocolHandler(Protocol.ContentSave_Get)]
     public async Task<ContentSaveGetResponse> Get(
@@ -45,8 +42,7 @@ public class ContentSaveHandler : ProtocolHandlerBase
 
         var save = await _concentrateCampaignManager.GetOpenConcentrateCampaign(db, account);
 
-        // No open run is the ordinary case - official's login-time answer is a bare header, which is
-        // exactly what leaving HasValidData false produces.
+        // No open run is the ordinary case - official's login-time answer is a bare header, which is exactly what leaving HasValidData false produces.
         if (save == null)
             return response;
 
@@ -57,9 +53,7 @@ public class ContentSaveHandler : ProtocolHandlerBase
     }
 
     /// <summary>
-    /// The client giving up on a run it was offered. Closing the save keeps the next
-    /// ContentSave_Get from offering it again - without this the abandoned mission would follow the
-    /// player into every subsequent login.
+    /// The client giving up on a run it was offered. Closing the save keeps the next ContentSave_Get from offering it again - without this the abandoned mission would follow the player into every subsequent login.
     /// </summary>
     [ProtocolHandler(Protocol.ContentSave_Discard)]
     public async Task<ContentSaveDiscardResponse> Discard(

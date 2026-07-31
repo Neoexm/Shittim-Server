@@ -45,8 +45,7 @@ public class AcademyHandler : ProtocolHandlerBase
         return now < todaysReset ? todaysReset.AddDays(-1) : todaysReset;
     }
 
-    // Lesson tickets refill to the rank-determined cap at the 04:00 game-day boundary; the
-    // per-zone schedule records reset with them.
+    // Lesson tickets refill to the rank-determined cap at the 04:00 game-day boundary; the per-zone schedule records reset with them.
     private void EnsureDailyTicketRefill(SchaleDataContext db, AccountDBServer account, AcademyDBServer? academy)
     {
         var currency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
@@ -221,8 +220,7 @@ public class AcademyHandler : ProtocolHandlerBase
 
         response.AcademyDB = _mapper.Map<AcademyDB>(academy);
 
-        // Official's Academy_AttendSchedule ticks the schedule dailies (MissionProgressDBs on
-        // every captured attend).
+        // Official's Academy_AttendSchedule ticks the schedule dailies (MissionProgressDBs on every captured attend).
         var updatedMissions = _missionService.UpdateMissionProgress(
             db, account, MissionCompleteConditionType.Reset_CompleteScheduleCount);
         if (updatedMissions.Count > 0)

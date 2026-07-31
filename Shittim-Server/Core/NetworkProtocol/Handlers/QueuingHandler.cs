@@ -53,20 +53,16 @@ public class QueuingHandler : ProtocolHandlerBase
                 var majorMinorMismatch = clientVersion.Major != serverVersion.Major ||
                                          clientVersion.Minor != serverVersion.Minor;
 
-                // Do not hard-fail queue bootstrap when client and server versions differ.
-                // Returning a ticket lets startup continue so downstream bootstrap endpoints
-                // (including gtable fetch) can be observed and aligned.
+                // Do not hard-fail queue bootstrap when client and server versions differ. Returning a ticket lets startup continue so downstream bootstrap endpoints (including gtable fetch) can be observed and aligned.
                 _ = majorMinorMismatch;
             }
         }
         
         byte[] rawTicketBytes = Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}");
         response.EnterTicket = Convert.ToBase64String(rawTicketBytes);
-        // Official shape (live captures): Birth is an empty string, the ticket/allowed sequences are
-        // large non-zero counters with AllowedSequence ahead of TicketSequence (no queue wait), and
-        // RequiredSecondsPerUser is a small positive value. No ServerTimeTicks on queuing responses.
-        // ServerSeed stays empty: the official 1KB seed only feeds Nexon Game Security, which this
-        // server intentionally bypasses.
+        // Official shape (live captures): Birth is an empty string, the ticket/allowed sequences are large non-zero counters with AllowedSequence ahead of TicketSequence (no queue wait), and RequiredSecondsPerUser is a small positive value.
+        // No ServerTimeTicks on queuing responses.
+        // ServerSeed stays empty: the official 1KB seed only feeds Nexon Game Security, which this server intentionally bypasses.
         response.Birth = "";
         response.TicketSequence = 130_000_000 + (DateTimeOffset.UtcNow.ToUnixTimeSeconds() % 10_000_000);
         response.AllowedSequence = response.TicketSequence + 1722;

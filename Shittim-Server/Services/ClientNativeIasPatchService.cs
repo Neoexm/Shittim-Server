@@ -14,10 +14,7 @@ namespace Shittim_Server.Services
         private static readonly byte[] HttpSchemeBuilder = Convert.FromBase64String("SMdF9wcAAABIuGh0dHA6Ly8ASIlF58ZF7wA=");
         private static readonly BinaryPatchDefinition[] NoBinaryPatches = [];
 
-        // IMS base URLs used by gamescale's alternative URL builder (sub_1806FC110 / sub_18007F550).
-        // These build the IMS base WITHOUT /v1 appended; the caller appends /v1/<path>.
-        // The null terminator is included in the 36/40-byte signatures to avoid false matches
-        // with the /v1 variants which have '/' at that position rather than '\0'.
+        // IMS base URLs used by gamescale's alternative URL builder (sub_1806FC110 / sub_18007F550). These build the IMS base WITHOUT /v1 appended; the caller appends /v1/<path>. The null terminator is included in the 36/40-byte signatures to avoid false matches with the /v1 variants which have '/' at that position rather than '\0'.
         private static readonly BinaryPatchDefinition[] GamescaleBinaryPatches =
         [
             new(
@@ -44,35 +41,20 @@ namespace Shittim_Server.Services
                 [.. Ascii.GetBytes("http://127.0.0.1:5000/ims/public"), 0, 0, 0, 0, 0, 0, 0, 0],
                 "https://dev-signin.nexon.com/ims/public",
                 "http://127.0.0.1:5000/ims/public"),
-            // The native Bolt sign-in (IFGameAuth signInWithTicket worker sub_18006A500) builds its
-            // URL as <scheme><toy-host>/signInWithTicket.nx. The live toy host is this static string,
-            // appended by the toy base builder (sub_180046230) with a FIXED length of 0x1C (28). The
-            // native gamescale HTTP client (a) refuses to send an http:// request to an EXTERNAL host
-            // and (b) pins its TLS so mitm cannot intercept its https:// request - so the Bolt POST to
-            // public.api.nexon.com never reaches our server either way and login hangs on "Now Loading"
-            // right after get_primary_link. Redirect the host to our LOOPBACK server (where plain http
-            // works, exactly like the IAS/IMS loopback calls). The replacement MUST stay exactly 28
-            // bytes (the append copies a fixed 0x1C) so we keep the same length with a harmless userinfo
-            // prefix: curl connects to 127.0.0.1:5000 and POSTs /toy/sdk/signInWithTicket.nx; the
-            // "userx@" userinfo is never sent to the server. Requires the toy scheme builder to be
-            // http:// (see ResolveSchemePatches - all gamescale scheme builders are http).
+            // The native Bolt sign-in (IFGameAuth signInWithTicket worker sub_18006A500) builds its URL as <scheme><toy-host>/signInWithTicket.nx. The live toy host is this static string, appended by the toy base builder (sub_180046230) with a FIXED length of 0x1C (28).
+            // The native gamescale HTTP client (a) refuses to send an http:// request to an EXTERNAL host and (b) pins its TLS so mitm cannot intercept its https:// request - so the Bolt POST to public.api.nexon.com never reaches our server either way and login hangs on "Now Loading" right after get_primary_link.
+            // Redirect the host to our LOOPBACK server (where plain http works, exactly like the IAS/IMS loopback calls). The replacement MUST stay exactly 28 bytes (the append copies a fixed 0x1C) so we keep the same length with a harmless userinfo prefix: curl connects to 127.0.0.1:5000 and POSTs /toy/sdk/signInWithTicket.nx; the "userx@" userinfo is never sent to the server.
+            // Requires the toy scheme builder to be http:// - ResolveSchemePatches puts every gamescale scheme builder there.
             new(
                 "toy-bolt-host-loopback",
                 [.. Ascii.GetBytes("public.api.nexon.com/toy/sdk")],
                 [.. Ascii.GetBytes("userx@127.0.0.1:5000/toy/sdk")],
                 "public.api.nexon.com/toy/sdk",
                 "userx@127.0.0.1:5000/toy/sdk"),
-            // IFInpay (cash shop) "Enter" precondition suppress. On the Steam build
-            // IFInpay::CheckPreConditions reports 0x2FCDB393 (802010003, "Failed Enter Request")
-            // because the product catalog loads from Steam IAP and an offline server has none, so
-            // its GTable/Stamp checks fail. It is raised entirely client-side - live capture across
-            // five triggers shows no HTTP to answer - and the popup returns on every lobby entry.
-            // The code is an immediate (`mov edx,0x2FCDB393`) in three failure branches just before
-            // the error result is built; zeroing it yields success and no popup. Anchored on
-            // surrounding bytes because the patched form (`mov edx,0` / BA 00 00 00 00) is common
-            // enough to match unrelated code and corrupt the DLL on restore. The 4th occurrence
-            // (`mov eax,0x2FCDB393`/B8, in a transaction-status function) is left alone - patching
-            // it produces a spurious "Your product is on the way" popup.
+            // IFInpay (cash shop) "Enter" precondition suppress.
+            // On the Steam build IFInpay::CheckPreConditions reports 0x2FCDB393 (802010003, "Failed Enter Request") because the product catalog loads from Steam IAP and an offline server has none, so its GTable/Stamp checks fail. It is raised entirely client-side - live capture across five triggers shows no HTTP to answer - and the popup returns on every lobby entry.
+            // The code is an immediate (`mov edx,0x2FCDB393`) in three failure branches just before the error result is built; zeroing it yields success and no popup. Anchored on surrounding bytes because the patched form (`mov edx,0` / BA 00 00 00 00) is common enough to match unrelated code and corrupt the DLL on restore.
+            // The 4th occurrence (`mov eax,0x2FCDB393`/B8, in a transaction-status function) is left alone - patching it produces a spurious "Your product is on the way" popup.
             new(
                 "ifinpay-checkprecond-enter-suppress-1",
                 Hex("4C 8D 85 90 00 00 00 BA 93 B3 CD 2F 48 8D 4D 80"),
@@ -146,18 +128,18 @@ namespace Shittim_Server.Services
             new("ims-live-v1-base", true, "/ims/public", "/v1", 38, PatchPadding.Null,
             [
                 "https://signin.nexon.com/ims/public/v1",
-                "http://192.168.20.1:5000/ims/public/v1"     // in case previously patched to stale LAN IP
+                "http://192.168.20.1:5000/ims/public/v1"     // also matches a stale LAN IP left by an earlier patch run
             ]),
             new("ims-pre-v1-base", true, "/ims/pre/public", "/v1", 42, PatchPadding.Null,
             [
                 "https://signin.nexon.com/ims/pre/public/v1",
-                "http://192.168.20.1:5000/ims/pre/public/v1" // in case previously patched to stale LAN IP
+                "http://192.168.20.1:5000/ims/pre/public/v1" // also matches a stale LAN IP left by an earlier patch run
             ]),
             new("ims-dev-test-v1-base", true, "/ims/public", "/v1", 43, PatchPadding.Null,
             [
                 "https://dev-signin.nexon.com/ims/public/v1",
                 "https://test-signin.nexon.com/ims/public/v1",
-                "http://192.168.20.1:5000/ims/public/v1"     // in case previously patched to stale LAN IP (fits within 43-byte slot)
+                "http://192.168.20.1:5000/ims/public/v1"     // also matches a stale LAN IP left by an earlier patch run
             ],
             false,
             false)
@@ -542,18 +524,10 @@ namespace Shittim_Server.Services
 
         private List<PatchResult> ResolveSchemePatches(ModulePatchDefinition module, byte[] data, ModulePatchState existingState)
         {
-            // The scheme builder is the compiled code `mov rax,'https://'; len=8` (HttpsSchemeBuilder
-            // pattern) that gamescale.core.dll / NexonPlatformModules.dll use to prepend a scheme to a
-            // HOST-only base (e.g. "127.0.0.1:5000/ias/live/public"). gamescale builds several IAS/IMS
-            // calls this way, so if the builder stays https:// it produces https://127.0.0.1:5000/ias/...
-            // and the native curl client does a TLS handshake against our plain-HTTP Kestrel - which
-            // fails with no response, surfacing in-game as "ias api failed. StatusCode: 0(803020008)".
-            // (The IAS LoginLink survives only because it uses a separate FULL http:// base string.)
-            // It MUST be patched to http:// here, exactly like NexonPlatformModules. This does NOT
-            // affect the Bolt sign-in / toy calls to public.api.nexon.com: their TLS is not pinned, so
-            // mitm intercepts and rewrites them to our server whether they go out as http or https.
-            // (An earlier build skipped gamescale on a "bolt needs native https" theory; that was wrong
-            // - gamescale has no native bolt URL string, bolt_url comes from the JS bundle.)
+            // The scheme builder is the compiled code `mov rax,'https://'; len=8` (HttpsSchemeBuilder pattern) that gamescale.core.dll / NexonPlatformModules.dll use to prepend a scheme to a HOST-only base (e.g. "127.0.0.1:5000/ias/live/public").
+            // gamescale builds several IAS/IMS calls this way, so if the builder stays https:// it produces https://127.0.0.1:5000/ias/... and the native curl client does a TLS handshake against our plain-HTTP Kestrel - which fails with no response, surfacing in-game as "ias api failed. StatusCode: 0(803020008)". (The IAS LoginLink survives only because it uses a separate FULL http:// base string.)
+            // It MUST be patched to http:// here, exactly like NexonPlatformModules.
+            // This does NOT affect the Bolt sign-in / toy calls to public.api.nexon.com: their TLS is not pinned, so mitm intercepts and rewrites them to our server whether they go out as http or https. gamescale has no native bolt URL string of its own; bolt_url comes from the JS bundle.
             var offsets = new SortedSet<long>();
 
             foreach (var entry in existingState?.Patches.Where(x => x.Name.StartsWith("ias-http-scheme-builder", StringComparison.Ordinal)) ?? [])
@@ -574,14 +548,8 @@ namespace Shittim_Server.Services
                 return [];
             }
 
-            // ALL scheme-builder constants (each the compiled `mov [len],8; mov rax,'https://'`
-            // sequence) are patched to http://. gamescale has three of these inside sibling base-URL
-            // builders (toy/Bolt = sub_180046230, IAS = sub_180049870, IMS = sub_18004B650); every one
-            // of those bases is routed to our LOOPBACK server (the IAS/IMS bases via string patches and
-            // the toy/Bolt host via the "toy-bolt-host-loopback" binary patch), and the loopback server
-            // is plain HTTP, so the scheme MUST be http:// for all of them. (An earlier build kept the
-            // toy/Bolt scheme https:// hoping mitm would intercept the external Bolt request, but the
-            // native gamescale HTTP client pins its TLS so mitm cannot - hence the loopback approach.)
+            // ALL scheme-builder constants (each the compiled `mov [len],8; mov rax,'https://'` sequence) are patched to http://.
+            // gamescale has three of these inside sibling base-URL builders (toy/Bolt = sub_180046230, IAS = sub_180049870, IMS = sub_18004B650); every one of those bases is routed to our LOOPBACK server (the IAS/IMS bases via string patches and the toy/Bolt host via the "toy-bolt-host-loopback" binary patch), and the loopback server is plain HTTP, so the scheme MUST be http:// for all of them.
             long keepHttpsOffset = -1;
 
             var results = new List<PatchResult>();
@@ -599,9 +567,7 @@ namespace Shittim_Server.Services
                 var desired = keepHttps ? HttpsSchemeBuilder : HttpSchemeBuilder;
 
                 var existingEntry = FindExistingPatch(existingState, "ias-http-scheme-builder", offset);
-                // Clean (unpatched) form of this constant is always https://; record that as Original
-                // so an on-shutdown restore returns the DLL to its pristine state regardless of which
-                // scheme we currently want.
+                // Clean (unpatched) form of this constant is always https://; record that as Original so an on-shutdown restore returns the DLL to its pristine state regardless of which scheme we currently want.
                 var original = existingEntry?.Original ?? Convert.ToBase64String(HttpsSchemeBuilder);
                 var name = existingEntry?.Name ?? $"ias-http-scheme-builder-{index}";
 

@@ -15,7 +15,7 @@ public class MailListWindowTests
     ];
 
     [Fact]
-    public void FirstPage_Sentinel_ReturnsAllNewestFirst()
+    public void TheSentinelPivotReturnsTheWholeBoxNewestFirst()
     {
         var window = MailHandler.ApplyListWindow(
             OfficialBox(), DateTime.Parse("9999-12-31T23:59:59"), isDescending: true);
@@ -24,7 +24,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void Pivot_BoundsInclusively()
+    public void ThePivotRowIncludesItself()
     {
         // Official's page 2 passed the last row's own SendDate and got that row back.
         var window = MailHandler.ApplyListWindow(
@@ -34,11 +34,10 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void Pivot_ComparesAtSeconds()
+    public void PivotComparisonIsAtSecondPrecision()
     {
-        // Rows are stored with sub-second precision but SendDate crosses the wire truncated to
-        // seconds, and the client echoes the truncated value back as the pivot. A strict
-        // comparison made the pivot row exclude itself and page 2 come back empty (live repro).
+        // Rows are stored with sub-second precision but SendDate crosses the wire truncated to seconds, and the client echoes the truncated value back as the pivot. A strict comparison
+        // made the pivot row exclude itself and page 2 come back empty (live repro).
         var box = new List<MailDBServer>
         {
             new() { ServerId = 1, SendDate = new DateTime(2026, 7, 27, 14, 11, 19).AddTicks(5378123) },
@@ -51,7 +50,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void Pivot_Unset_BoundsNothing()
+    public void AnUnsetPivotBoundsNothing()
     {
         var window = MailHandler.ApplyListWindow(OfficialBox(), default, isDescending: true);
 
@@ -59,7 +58,7 @@ public class MailListWindowTests
     }
 
     [Fact]
-    public void Ascending_OldestFirst_BoundsFromBelow()
+    public void AscendingPagesBoundFromBelow()
     {
         var window = MailHandler.ApplyListWindow(
             OfficialBox(), new DateTime(2026, 7, 28, 22, 3, 0), isDescending: false);

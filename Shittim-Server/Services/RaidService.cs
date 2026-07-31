@@ -43,8 +43,7 @@ public static class RaidService
     {
         if (assistCharacter == null)
         {
-            // A blank AssistCharacterDB (UniqueId 0) wedges the client's battle setup and
-            // softlocks the whole game; failing the request is strictly better.
+            // A blank AssistCharacterDB (UniqueId 0) wedges the client's battle setup and softlocks the whole game; failing the request is strictly better.
             Serilog.Log.Error(
                 "Assist character {CharacterDBId} (echelon {EchelonType}) not found in the assist cache",
                 clanAssistUse.CharacterDBId, clanAssistUse.EchelonType);
@@ -134,10 +133,8 @@ public static class RaidService
     }
 
     /// <summary>
-    /// Derives the bare boss name that <see cref="AIPhaseCheck"/> keys its phase tables on from a
-    /// stage's RaidBossGroup. The shipped ExcelDB writes that column either bare ("HOD", "Goz",
-    /// "EN0006") or suffixed with terrain and armour ("Binah_Street", "Goz_Outdoor_HeavyArmor"),
-    /// so the boss is the segment before the first underscore.
+    /// Derives the bare boss name that <see cref="AIPhaseCheck"/> keys its phase tables on from a stage's RaidBossGroup.
+    /// The shipped ExcelDB writes that column either bare ("HOD", "Goz", "EN0006") or suffixed with terrain and armour ("Binah_Street", "Goz_Outdoor_HeavyArmor"), so the boss is the segment before the first underscore.
     /// </summary>
     internal static string BossNameOf(string raidBossGroup) =>
         raidBossGroup is null ? string.Empty : raidBossGroup.Split('_')[0];

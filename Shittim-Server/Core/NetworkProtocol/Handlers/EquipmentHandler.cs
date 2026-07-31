@@ -74,8 +74,7 @@ public class EquipmentHandler : ProtocolHandlerBase
 
         response.EquipmentDB = targetEquipment.ToMap(_mapper);
         response.ConsumeResultDB = consumeResult;
-        // Official's level-up always returns the updated currency (feeding costs gold) and ticks
-        // the equipment-growth missions.
+        // Official's level-up always returns the updated currency (feeding costs gold) and ticks the equipment-growth missions.
         response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefault()?.ToMap(_mapper);
 
         var updatedMissions = _missionService.UpdateMissionProgress(

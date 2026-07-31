@@ -5,9 +5,7 @@ using System.Threading.Channels;
 namespace Shittim.Utils
 {
     /// <summary>
-    /// <see cref="TextWriter"/> wrapper that enqueues writes onto a bounded channel and drains
-    /// them on a single background thread, so <c>Console.WriteLine</c> from an ASP.NET request
-    /// thread returns immediately even when the console handle or pipe is slow or blocked.
+    /// <see cref="TextWriter"/> wrapper that enqueues writes onto a bounded channel and drains them on a single background thread, so <c>Console.WriteLine</c> from an ASP.NET request thread returns immediately even when the console handle or pipe is slow or blocked.
     /// At capacity the oldest entries are dropped rather than blocking the caller.
     /// </summary>
     public sealed class AsyncConsoleWriter : TextWriter
@@ -39,8 +37,6 @@ namespace Shittim.Utils
 
         public override Encoding Encoding => _inner.Encoding;
 
-        // TextWriter overrides
-
         public override void Write(char value)
         {
             _channel.Writer.TryWrite(value.ToString());
@@ -66,8 +62,6 @@ namespace Shittim.Utils
         {
             // No-op - the background thread flushes continuously.
         }
-
-        // Background drain
 
         private void DrainLoop()
         {

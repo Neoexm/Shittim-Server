@@ -32,10 +32,9 @@ namespace BlueArchiveAPI.Services
             if (!Directory.Exists(CustomDir)) Directory.CreateDirectory(CustomDir);
             if (!Directory.Exists(DumpedDir)) Directory.CreateDirectory(DumpedDir);
 
-            // Check for version updates if enabled
             string versionId = Config.Instance.ServerConfiguration.VersionId;
             
-            // Version check is now handled at startup by BlueArchiveVersionResolver
+            // Version check is handled at startup by BlueArchiveVersionResolver
             Console.WriteLine($"[Resource Manager] Using VersionId: {versionId}");
 
             var versionTxtPath = Path.Combine(ResourceDir, "original_version.txt");
@@ -61,9 +60,8 @@ namespace BlueArchiveAPI.Services
                 return;
             }
 
-            // Auto resource update is opt-in. When it's disabled and we already have resources,
-            // keep the existing ones instead of re-downloading on a version change. A first-time
-            // bootstrap (no resources present yet) still downloads so the server can start.
+            // Auto resource update is opt-in. When it's disabled and we already have resources, keep the existing ones instead of re-downloading on a version change.
+            // A first-time bootstrap (no resources present yet) still downloads so the server can start.
             bool hasExistingResources = Directory.Exists(DumpedDir)
                 && Directory.GetFiles(DumpedDir, "*", SearchOption.AllDirectories).Length > 0;
             if (!Config.Instance.ServerConfiguration.AutoUpdateResources && hasExistingResources)

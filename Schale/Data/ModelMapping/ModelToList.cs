@@ -7,13 +7,8 @@ namespace Schale.Data.ModelMapping
 {
     public static class ModelToList
     {
-        // Specific Collection Mapping Extensions (for IQueryable/Enumerable sources to Lists/Enumerables)
         // These methods materialize the IQueryable into memory before mapping.
 
-        //
-        // User Data
-        // 
-        
         public static List<AccountCurrencyDB> ToMapList(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.AsNoTracking().ToList().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper).ToList();
         public static IEnumerable<AccountCurrencyDB> ToMapEnumerable(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
         public static List<AccountCurrencyDB> ToMapList(this IEnumerable<AccountCurrencyDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<AccountCurrencyDBServer, AccountCurrencyDB>(mapper).ToList();
@@ -109,10 +104,6 @@ namespace Schale.Data.ModelMapping
         public static List<AccountLevelRewardDB> ToMapList(this IEnumerable<AccountLevelRewardDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper).ToList();
         public static IEnumerable<AccountLevelRewardDB> ToMapEnumerable(this IEnumerable<AccountLevelRewardDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper);
 
-        //
-        // Progress Data
-        // 
-
         public static List<MissionProgressDB> ToMapList(this IQueryable<MissionProgressDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<MissionProgressDBServer, MissionProgressDB>(mapper).ToList();
         public static IEnumerable<MissionProgressDB> ToMapEnumerable(this IQueryable<MissionProgressDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<MissionProgressDBServer, MissionProgressDB>(mapper);
         public static List<MissionProgressDB> ToMapList(this IEnumerable<MissionProgressDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<MissionProgressDBServer, MissionProgressDB>(mapper).ToList();
@@ -192,10 +183,6 @@ namespace Schale.Data.ModelMapping
         public static IEnumerable<StickerBookDB> ToMapEnumerable(this IQueryable<StickerBookDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<StickerBookDBServer, StickerBookDB>(mapper);
         public static List<StickerBookDB> ToMapList(this IEnumerable<StickerBookDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<StickerBookDBServer, StickerBookDB>(mapper).ToList();
         public static IEnumerable<StickerBookDB> ToMapEnumerable(this IEnumerable<StickerBookDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<StickerBookDBServer, StickerBookDB>(mapper);
-
-        //
-        // Content Data
-        // 
 
         public static List<SingleRaidLobbyInfoDB> ToMapList(this IQueryable<SingleRaidLobbyInfoDBServer> source, IMapper mapper) => source.ToList().MapInternalEnumerable<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper).ToList();
         public static IEnumerable<SingleRaidLobbyInfoDB> ToMapEnumerable(this IQueryable<SingleRaidLobbyInfoDBServer> source, IMapper mapper) => source.AsEnumerable().MapInternalEnumerable<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);

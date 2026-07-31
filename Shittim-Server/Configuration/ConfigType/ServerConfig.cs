@@ -3,8 +3,7 @@ namespace BlueArchiveAPI.Configuration.ConfigType
     public class ServerConfig
     {
         public Version GameVersion { get; set; } = new("1.90.439170");
-        // Data-build number reported as Account_Auth.CurrentVersion. The official server answers
-        // its latest build regardless of the client's (captured: 446690 for a 1.90.443855 client).
+        // Data-build number reported as Account_Auth.CurrentVersion. The official server answers its latest build regardless of the client's (captured: 446690 for a 1.90.443855 client).
         public long AuthCurrentVersion { get; set; } = 446690;
         public string VersionId => BlueArchiveVersionState.Current.VersionId;
         public string CdnBaseUrl => BlueArchiveVersionState.Current.CdnBaseUrl;
@@ -43,10 +42,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool AutoUpdateResources { get; set; } = false;
         public string? OverrideVersionId { get; set; }
         public string? OverrideCdnBaseUrl { get; set; }
-        // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and
-        // overridable per-machine with SHITTIM_ADMIN_API_KEY. Empty by default, which restricts admin
-        // endpoints to loopback (see AdminAuthAttribute) - enough for the Control Center, which
-        // connects to 127.0.0.1. Set this only if you need to administer the server remotely.
+        // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and overridable per-machine with SHITTIM_ADMIN_API_KEY.
+        // Empty by default, which restricts admin endpoints to loopback (see AdminAuthAttribute) - enough for the Control Center, which connects to 127.0.0.1. Set this only if you need to administer the server remotely.
         public string AdminApiKey { get; set; } = "";
         public string ExcelDbSqlCipherKey { get; set; } = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0";
         public string ExcelDbSqlCipherLicense { get; set; } = "OmNpZDowMDFWSjAwMDAwY3pzaVlZQVE6cGxhdGZvcm06MjY6ZXhwaXJlOm5ldmVyOnZlcnNpb246MTpsaWJ2ZXI6NC4xMC4wOmhtYWM6ODQ1Y2JkMzQ0MDc3YjIxNmRlYTgyOWI3OTIyMzRkM2UwYmUyMzNhYw==";
@@ -71,10 +68,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool RequestPacket { get; set; } = true;
         public bool ResponsePacket { get; set; } = false;
         public bool ErrorPacket = false;
-        // Writes every gateway exchange to logs/wire-{date}.txt in the same format as the reference
-        // captures, so a session can be diffed against official traffic. On by default: the client
-        // reports protocol faults as opaque popups, and without the response bytes there is nothing
-        // to compare. Costs one buffered append per request.
+        // Writes every gateway exchange to logs/wire-{date}.txt in the same format as the reference captures, so a session can be diffed against official traffic.
+        // On by default: the client reports protocol faults as opaque popups, and without the response bytes there is nothing to compare. Costs one buffered append per request.
         public bool WireDump { get; set; } = true;
     }
 }

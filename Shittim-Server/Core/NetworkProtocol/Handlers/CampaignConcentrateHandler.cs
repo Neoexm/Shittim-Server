@@ -49,8 +49,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 
         response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
 
-        // Guarded: the indented serialization of a whole stage save is not worth paying for on
-        // every Campaign_EnterMainStage when nobody is reading Debug.
+        // Guarded: the indented serialization of a whole stage save is not worth paying for on every Campaign_EnterMainStage when nobody is reading Debug.
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug("[SHITTIM] Response SaveDataDB JSON:\n{Json}",
@@ -141,8 +140,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         // Official echoes the mover back on every MapMove reply.
         response.EchelonEntityId = request.EchelonEntityId;
 
-        // Rewind before shaping: the response reports the mover as it stood before this step, and the
-        // DisplayInfos entry is what walks it to the destination.
+        // Rewind before shaping: the response reports the mover as it stood at the start of this step, and the DisplayInfos entry is what walks it to the destination.
         response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(
             ConcentrateCampaignManager.RewindMovedEchelonForWire(
                 stageSave.ToMap(_mapper), request.EchelonEntityId, preMove));
@@ -158,8 +156,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Official replies with nothing but the header here; the work is remembering which enemy
-        // was engaged so Campaign_TacticResult can clear it off the map.
+        // Official replies with nothing but the header here; the work is remembering which enemy was engaged so Campaign_TacticResult can clear it off the map.
         await _concentrateCampaignManager.EnterTactic(db, account, request);
 
         return response;
@@ -176,34 +173,26 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         var (stageSave, historyDb, tacticRank, clearReward, endBattleType, parcelResult, missionProgresses) =
             await _concentrateCampaignManager.TacticResult(db, account, request);
 
-        // Built by the manager: a won tactic pays its characters exp whether or not it cleared the
-        // stage, so there is something to report on every response. Official never sends an empty
-        // collection inside a ParcelResultDB, and OmitWhenEmpty drops the ones the resolver did not
-        // touch - so this must not be a hand-rolled shell of empty collections.
+        // Built by the manager: a won tactic pays its characters exp whether or not it cleared the stage, so there is something to report on every response.
+        // Official never sends an empty collection inside a ParcelResultDB, and OmitWhenEmpty drops the ones the resolver did not touch.
         response.ParcelResultDB = parcelResult;
 
-        // Killing the map's designated boss ends the mission, and the EndBattle entry attached here is
-        // the only thing that tells the client so. Attached after shaping - ShapeForWire nulls the
-        // empty DisplayInfos the manager leaves on the save row, and the reward payload is wire-only.
+        // Killing the map's designated boss ends the mission, and the EndBattle entry attached here is the only thing that tells the client so. Attached after shaping, since ShapeForWire nulls the empty DisplayInfos the manager leaves on the save row and the reward payload is wire-only.
         response.SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(
             ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper)), clearReward, endBattleType);
         response.CampaignStageHistoryDB = historyDb;
 
-        // On the battle-skip path the client has no local battle to read the outcome from, so it
-        // takes the win/lose flag straight from TacticRank (> 0 means the player won). Omitting it
-        // left the field at 0 and every skipped victory was reported as a wipe.
+        // On the battle-skip path the client has no local battle to read the outcome from, so it takes the win/lose flag straight from TacticRank (> 0 means the player won).
+        // Left out, the field sits at 0 and every skipped victory reads as a wipe.
         response.TacticRank = tacticRank;
 
-        // Official always carries these, empty when there is nothing to award; the client Syncs them
-        // unconditionally after a tactic. On a clear they repeat what the EndBattle entry carries -
-        // official's top-level copies are byte-identical to the nested ones.
+        // Official always carries these, empty when there is nothing to award; the client Syncs them unconditionally after a tactic. On a clear they repeat what the EndBattle entry carries - official's top-level copies are byte-identical to the nested ones.
         response.LevelUpCharacterDBs = new();
         response.FirstClearReward = clearReward?.FirstClearReward ?? new();
         response.ThreeStarReward = clearReward?.ThreeStarReward ?? new();
         response.StrategyObjectRewards = clearReward?.StrategyObjectRewards ?? new();
 
-        // Official carries MissionProgressDBs on every tactic result; without it the client's mission
-        // screen only learned about campaign progress at the next login, when Mission_List re-read it.
+        // Official carries MissionProgressDBs on every tactic result; without it the client's mission screen only learns about campaign progress at the next login, when Mission_List re-reads it.
         if (missionProgresses.Count > 0)
             response.MissionProgressDBs = missionProgresses;
 

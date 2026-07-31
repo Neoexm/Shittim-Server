@@ -1,7 +1,5 @@
-// Clean stroke icon set. Each entry is the inner markup of an <svg>. Most live
-// on a 24x24 grid; the window-caption glyphs use their own 10x10 grid (see VB)
-// so they render crisp and centered at the small caption-button size instead of
-// shrinking into a corner of a 24-unit box.
+// Clean stroke icon set. Each entry is the inner markup of an <svg>.
+// Most live on a 24x24 grid; the window-caption glyphs use their own 10x10 grid (see VB) so they render crisp and centered at the small caption-button size instead of shrinking into a corner of a 24-unit box.
 const P = {
   dashboard: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
   server: '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><circle cx="7" cy="7.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="7" cy="16.5" r="0.9" fill="currentColor" stroke="none"/>',
@@ -54,9 +52,7 @@ const VB = {
   win_close: '0 0 10 10',
 };
 
-// Rendered-markup cache: icons are requested constantly on re-render (status
-// pills, table repaints, nav) with a small set of distinct (name, cls, stroke)
-// combos, so memoising the string skips the rebuild entirely.
+// Rendered-markup cache: icons are requested constantly on re-render (status pills, table repaints, nav) with a small set of distinct (name, cls, stroke) combos, so memoising the string skips the rebuild entirely.
 const CACHE = new Map();
 
 export function icon(name, cls = 'ico', stroke = 1.85) {
@@ -70,9 +66,7 @@ export function icon(name, cls = 'ico', stroke = 1.85) {
   return svg;
 }
 
-// The Schale halo emblem used as the app mark. Brand-constant colors (BA gold +
-// cyan) so it reads identically on either theme; bold enough to stay legible at
-// the 16px titlebar size and the 38px rail size.
+// The Schale halo emblem used as the app mark. Brand-constant colors (BA gold + cyan) so it reads identically on either theme; bold enough to stay legible at the 16px titlebar size and the 38px rail size.
 export function haloMark(cls = 'halo') {
   return `<svg class="${cls}" viewBox="0 0 48 48" fill="none">
     <ellipse cx="24" cy="18" rx="15" ry="5.6" stroke="#ffce4d" stroke-width="3.4"/>

@@ -13,7 +13,7 @@ namespace Shittim_Server.Tests;
 
 public class CampaignHexaEventTests(ITestOutputHelper output)
 {
-    /// <summary>strategymap_1011104's shape: three enemies, and only 10013 ends the battle.</summary>
+    // strategymap_1011104's shape: three enemies, and only 10013 ends the battle.
     private static HexaTileMap BossMap() => new()
     {
         Events =
@@ -46,7 +46,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void BossDeathWithSurvivorsFiresEndBattle()
     {
-        // 10013 is dead, two mobs are still on the map, and official ends the mission anyway.
+        // 10013 is dead, two mobs still standing, and official ends the mission anyway.
         var fired = HexaMapService.FindSatisfiedEndBattle(BossMap(), Alive(10017, 10018), null);
 
         Assert.NotNull(fired);
@@ -58,7 +58,6 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void MobDeathWithTheBossAliveFiresNothing()
     {
-        // Guards the other direction: clearing two of three enemies must not end the mission early.
         Assert.Null(HexaMapService.FindSatisfiedEndBattle(BossMap(), Alive(10013), null));
     }
 
@@ -73,8 +72,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void AMapWithNoEventsFiresNothing()
     {
-        // LoadState hands back an eventless map when a strategymap dump is missing. It must fall
-        // through to TacticResult's EnemyInfos-empty fallback, not clear the stage on turn one.
+        // LoadState hands back an eventless map when a strategymap dump is missing. It must fall through to TacticResult's EnemyInfos-empty fallback, not clear the stage on turn one.
         Assert.Null(HexaMapService.FindSatisfiedEndBattle(new HexaTileMap { Events = [] }, Alive(10013), null));
         Assert.Null(HexaMapService.FindSatisfiedEndBattle(new HexaTileMap(), Alive(10013), null));
     }
@@ -82,8 +80,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void AnEventWithAnUnhandledConditionIsNotFired()
     {
-        // And-semantics, conservatively: a condition type the evaluator does not understand counts as
-        // unsatisfied rather than being skipped, so a partly-understood event can never fire early.
+        // And-semantics, conservatively: a condition type the evaluator does not understand counts as unsatisfied rather than being skipped, so a partly-understood event can never fire early.
         var map = BossMap();
         map.Events![1].HexaConditions!.Add(new HexaConditionArriveTile
         {
@@ -110,9 +107,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void TheDumpedEndBattleTypeSurvivesDeserialization()
     {
-        // EndBattleType is a public field, not a property. If Json.NET stops populating it the value
-        // is None, DefaultValueHandling.Ignore drops Parameter off the wire, and the client reads a
-        // victory as a retreat.
+        // EndBattleType is a public field, not a property. If Json.NET stops populating it the value is None, DefaultValueHandling.Ignore drops Parameter off the wire, and the client reads a victory as a retreat.
         if (DumpDir is null) { SkipNote(); return; }
 
         var map = LoadDump(Path.Combine(DumpDir, "strategymap_1161101.json"));
@@ -129,9 +124,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void TheRealDumpsNeverGateTheClearOnTheWholeRoster()
     {
-        // across every shipped dump: one EndBattle per map, gated by one UnitDead, boss set always a
-        // strict subset of the spawned enemies. if a new dump breaks this the TacticResult fallback
-        // is what keeps that stage finishable.
+        // across every shipped dump: one EndBattle per map, gated by one UnitDead, boss set always a strict subset of the spawned enemies. if a new dump breaks this the TacticResult fallback is what keeps that stage finishable.
         if (DumpDir is null) { SkipNote(); return; }
 
         var maps = Directory.GetFiles(DumpDir, "strategymap_*.json");
@@ -153,8 +146,6 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void EveryRealDumpClearsOnItsBossAloneAndOnlyOnce()
     {
-        // End to end over the shipped data: kill just the boss, leave every other enemy standing, and
-        // the evaluator must fire - then must not fire again once the event is in the history.
         if (DumpDir is null) { SkipNote(); return; }
 
         foreach (var path in Directory.GetFiles(DumpDir, "strategymap_*.json"))
@@ -190,8 +181,7 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
             SerializationBinder = new HexaMapSerializationBinder(),
         })!;
 
-    // Null when the dumps are absent, in which case the dump-backed tests skip. They live in the
-    // server's build output rather than the repo, same as the excel dumps.
+    // Null when the dumps are absent, in which case the dump-backed tests skip. They live in the server's build output rather than the repo, same as the excel dumps.
     private static readonly string? DumpDir = LocateDumps();
 
     private static string? LocateDumps()

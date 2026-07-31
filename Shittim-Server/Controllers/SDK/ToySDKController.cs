@@ -149,13 +149,9 @@ namespace Shittim_Server.Controllers.SDK
         [HttpPost("signInWithTicket.nx")]
         public IResult SignInWithTicket()
         {
-            // Field set derived from NPA.InfaceSDK.NXPToySignInWithTicketResponse.FillJsonBody
-            // (0x18943DDD0) - the SDK's own serializer, i.e. the authoritative shape of this response.
-            // The deserializer matches JSON keys to these field names. The post-sign-in managed path
-            // (NXPAccountLinkBase._LoginWithTicket_b__0 @0x1893D6850) reads guid, umKey, sessionToken
-            // and termsAgree, builds the NXPUpdatedUser (SetSessionToken) and calls AgreeTermsWithTicket
-            // -> GetGameToken. Omitting sessionToken/npToken left the user half-populated and the
-            // post-sign-in chain stalled before issuing the game-token request. Provide the full shape:
+            // Field set derived from NPA.InfaceSDK.NXPToySignInWithTicketResponse.FillJsonBody (0x18943DDD0) - the SDK's own serializer, i.e. the authoritative shape of this response. The deserializer matches JSON keys to these field names.
+            // The post-sign-in managed path (NXPAccountLinkBase._LoginWithTicket_b__0 @0x1893D6850) reads guid, umKey, sessionToken and termsAgree, builds the NXPUpdatedUser (SetSessionToken) and calls AgreeTermsWithTicket -> GetGameToken.
+            // Omitting sessionToken/npToken leaves the user half-populated and the post-sign-in chain stalls before issuing the game-token request.
             var res = new
             {
                 errorCode = 0,
@@ -173,9 +169,7 @@ namespace Shittim_Server.Controllers.SDK
                     loginResultType = 1,
                     withdrawExpiresIn = 0,
                     isSwap = false,
-                    // termsAgree empty -> NXPToyTermsManager.IsAgree (0x1893F98D0) short-circuits to
-                    // "agreed" (empty/null list), so AgreeTermsWithTicket proceeds straight to
-                    // GetGameToken instead of popping the offline-incompatible NXPTermsDialog.
+                    // termsAgree empty -> NXPToyTermsManager.IsAgree (0x1893F98D0) short-circuits to "agreed" (empty/null list), so AgreeTermsWithTicket proceeds straight to GetGameToken instead of popping the offline-incompatible NXPTermsDialog.
                     termsAgree = Array.Empty<object>(),
                     terms = Array.Empty<object>()
                 }
@@ -193,33 +187,23 @@ namespace Shittim_Server.Controllers.SDK
                 errorText = "Success",
                 result = new
                 {
-                    // Empty terms so the merged terms list the SDK evaluates (NXPToyTermsManager.
-                    // IsAgree) is empty -> treated as agreed -> no NXPTermsDialog. See signInWithTicket.
+                    // Empty terms so the merged terms list the SDK evaluates (NXPToyTermsManager.IsAgree) is empty -> treated as agreed -> no NXPTermsDialog. See signInWithTicket.
                     terms = Array.Empty<object>()
                 }
             };
             return Results.Json(res);
         }
 
-        // The AES "npsn" the toy SDK uses for NPSN-crypt Bolt traffic is NOT the npSN field -
-        // NXPAuthRequestCredential..ctor(NXPToySession) (GameAssembly 0x18937EC20) sets
+        // The AES "npsn" the toy SDK uses for NPSN-crypt Bolt traffic is NOT the npSN field - NXPAuthRequestCredential..ctor(NXPToySession) (GameAssembly 0x18937EC20) sets
         //   _Npsn = long.Parse(session.guid)
-        // i.e. it is the account GUID parsed as a long. session.guid comes from the guid we
-        // return in signInWithTicket, so this MUST equal that guid (= IasController
-        // DefaultSteamGuid "20790000041274554"). Using the npSN here derived the wrong AES key
-        // and the SDK decrypted getPolicyList into garbage -> JSON parse 10001.
+        // i.e. it is the account GUID parsed as a long. session.guid comes from the guid we return in signInWithTicket, so this MUST equal that guid (= IasController DefaultSteamGuid "20790000041274554"). Using the npSN here derives the wrong AES key and the SDK decrypts getPolicyList into garbage -> JSON parse 10001.
         private const long DefaultNpsn = 20790000041274554L;
 
-        // getPolicyList/getUserInfo/getTermsList/logoutSVC are managed toy Bolt requests
-        // (NXPToyBoltRequestManager over BestHTTP, so visible via mitm). NXPToyNetworkUtil
-        // .MakeSuccessResult (GameAssembly 0x1893839A0) decrypts the body before parsing it:
-        //   text = NXPCrypto.Decrypt(req.DecryptType, BytesToHexString(response.RawBytes), Npsn)
-        //   JSON.Parse(text)   // on failure: errorCode 10001, gs_error_network_response_json_parsing
-        // NXPToyGetPolicyListRequest sets EncryptType/DecryptType = Npsn (0x200000002), so the cipher
-        // is AES-128-ECB under NXCrypto.GenerateNpsnAes128Key - not the shared PreGatewayAes key that
-        // the pre-login getCountry/getPromotion calls use. Plain JSON or shared-key ciphertext decrypts
-        // to garbage, JSON.Parse throws, and "Request failed (10001)" at TAP TO START blocks the
-        // game-server handoff. Emit raw NPSN-encrypted bytes; the SDK hex-encodes them itself.
+        // getPolicyList/getUserInfo/getTermsList/logoutSVC are managed toy Bolt requests (NXPToyBoltRequestManager over BestHTTP, so visible via mitm). NXPToyNetworkUtil.MakeSuccessResult (GameAssembly 0x1893839A0) decrypts the body before parsing it:
+        //   text = NXPCrypto.Decrypt(req.DecryptType, BytesToHexString(response.RawBytes), Npsn); JSON.Parse(text) - on failure errorCode 10001, gs_error_network_response_json_parsing
+        // NXPToyGetPolicyListRequest sets EncryptType/DecryptType = Npsn (0x200000002), so the cipher is AES-128-ECB under NXCrypto.GenerateNpsnAes128Key - not the shared PreGatewayAes key that the pre-login getCountry/getPromotion calls use.
+        // Plain JSON or shared-key ciphertext decrypts to garbage, JSON.Parse throws, and "Request failed (10001)" at TAP TO START blocks the game-server handoff.
+        // Emit raw NPSN-encrypted bytes; the SDK hex-encodes them itself.
         [HttpPost("getPolicyList.nx")]
         [HttpPost("getUserInfo.nx")]
         [HttpPost("getTermsList.nx")]

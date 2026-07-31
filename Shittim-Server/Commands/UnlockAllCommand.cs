@@ -79,9 +79,7 @@ namespace Shittim.Commands
                     break;
 
                 case "story":
-                    // Story (scenario) progression is what the client keys campaign/story unlocks on:
-                    // an episode is cleared iff its ModeId is in ScenarioHistoryDBs (Scenario_List /
-                    // login sync), and ScenarioModeExcel.ClearedModeId chains episodes together.
+                    // Story (scenario) progression is what the client keys campaign/story unlocks on: an episode is cleared iff its ModeId is in ScenarioHistoryDBs (Scenario_List / login sync), and ScenarioModeExcel.ClearedModeId chains episodes together.
                     // Stage histories alone leave everything visually locked.
                     var scenarioModeExcel = connection.ExcelTableService.GetTable<ScenarioModeExcelT>();
                     var existingScenarioIds = context.ScenarioHistories
@@ -92,8 +90,7 @@ namespace Shittim.Commands
 
                     foreach (var mode in scenarioModeExcel)
                     {
-                        // Event stories are granted through the event-content protocols; forcing them
-                        // here would put ids in the account the client can only resolve mid-event.
+                        // Event stories are granted through the event-content protocols; forcing them here would put ids in the account the client can only resolve mid-event.
                         if (mode.EventContentId != 0)
                             continue;
 

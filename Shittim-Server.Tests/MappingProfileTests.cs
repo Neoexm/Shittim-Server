@@ -39,13 +39,10 @@ public class MappingProfileTests
         Language.Kr, Language.En, Language.Th, Language.Tw,
     };
 
-    // currencies
-
     [Fact]
-    public void CurrencyDict_CarriesOfficialKeysInOrder()
+    public void CurrencyDictCarriesTheOfficialKeysInOrder()
     {
-        // the entity's constructor seeds nearly every CurrencyTypes value, so this also covers the
-        // profile narrowing rather than passing the internal set straight through.
+        // the entity's constructor seeds nearly every CurrencyTypes value, so this also covers the profile narrowing rather than passing the internal set straight through.
         var mapped = Mapper.Map<AccountCurrencyDB>(new AccountCurrencyDBServer(accountId: 1));
 
         Assert.NotNull(mapped.CurrencyDict);
@@ -53,13 +50,12 @@ public class MappingProfileTests
     }
 
     [Theory]
-    // Values the server tracks internally but official never sends. Max is a sentinel; the two
-    // WeekDungeon tickets are deprecated content.
+    // Values the server tracks internally but official never sends. Max is a sentinel; the two WeekDungeon tickets are deprecated content.
     [InlineData(CurrencyTypes.Invalid)]
     [InlineData(CurrencyTypes.Max)]
     [InlineData(CurrencyTypes.WeekDungeonFindGiftTicket)]
     [InlineData(CurrencyTypes.WeekDungeonBloodTicket)]
-    public void CurrencyDict_DropsKeysOfficialNeverSends(CurrencyTypes shouldBeAbsent)
+    public void ServerOnlyCurrenciesAreDropped(CurrencyTypes shouldBeAbsent)
     {
         var source = new AccountCurrencyDBServer(accountId: 1);
         source.CurrencyDict[shouldBeAbsent] = 99;
@@ -70,10 +66,9 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void CurrencyDict_MissingKeys_FilledWithZero()
+    public void ACurrencyTheAccountNeverHeldStillGoesOutAsZero()
     {
-        // A key the client expects but the account has never held must still be present as 0 - the
-        // client reads these unconditionally, so an omitted key is not the same as a zero one.
+        // A key the client expects but the account has never held must still be present as 0 - the client reads these unconditionally, so an omitted key is not the same as a zero one.
         var source = new AccountCurrencyDBServer(accountId: 1);
         source.CurrencyDict.Clear();
         source.CurrencyDict[CurrencyTypes.Gem] = 1200;
@@ -86,7 +81,7 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void UpdateTimeDict_OmitsNonRegenerating()
+    public void TheFourFlatCurrenciesGetNoTimestamp()
     {
         var mapped = Mapper.Map<AccountCurrencyDB>(new AccountCurrencyDBServer(accountId: 1));
 
@@ -101,7 +96,7 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void UpdateTimeDict_PreservesStoredTimestamps()
+    public void StoredTimestampsAreKept()
     {
         var stamp = new DateTime(2026, 7, 26, 4, 0, 0, DateTimeKind.Utc);
         var source = new AccountCurrencyDBServer(accountId: 1);
@@ -112,13 +107,10 @@ public class MappingProfileTests
         Assert.Equal(stamp, mapped.UpdateTimeDict![CurrencyTypes.ActionPoint]);
     }
 
-    // mail
-
     [Fact]
-    public void LocalizedMailText_FourLanguagesInOrder()
+    public void MailKeepsFourLanguagesInOrder()
     {
-        // MailDBServer seeds every Language value; official GL sends only these four, and Jp is not
-        // among them.
+        // MailDBServer seeds every Language value; official GL sends only these four, and Jp is not among them.
         var mapped = Mapper.Map<MailDB>(new MailDBServer());
 
         Assert.Equal(ExpectedMailLanguages, mapped.LocalizedSender!.Keys);
@@ -126,7 +118,7 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void LocalizedMailText_MissingLanguage_IsEmptyString()
+    public void AMissingLanguageBecomesAnEmptyString()
     {
         var source = new MailDBServer();
         source.LocalizedSender.Clear();
@@ -140,17 +132,13 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void LocalizedMailText_Null_FabricatesNoKeys()
+    public void NullLocalizedTextInventsNoKeys()
     {
-        // Absent is distinct from "present but blank" on the wire: a mail with no localized text
-        // must not go out as four empty strings, which would read to the client as real content
-        // that happens to be blank.
+        // Absent is distinct from "present but blank" on the wire: a mail with no localized text must not go out as four empty strings, which would read to the client as real content that happens to be blank.
         //
-        // Note this comes back as an empty dictionary rather than null. The profile's MapFrom
-        // returns null, but AutoMapper runs with AllowNullCollections = false by default and
-        // materialises an empty collection instead - the same behaviour the profile already
-        // documents for AcademyDB.ZoneScheduleGroupRecords. What matters here is that no key/value
-        // pair is invented.
+        // Note this comes back as an empty dictionary rather than null.
+        // The profile's MapFrom returns null, but AutoMapper runs with AllowNullCollections = false by default and materialises an empty collection instead - the same behaviour the profile already
+        // documents for AcademyDB.ZoneScheduleGroupRecords. What matters here is that no key/value pair is invented.
         var source = new MailDBServer { LocalizedSender = null!, LocalizedComment = null! };
 
         var mapped = Mapper.Map<MailDB>(source);
@@ -162,12 +150,11 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void RemainParcelInfos_Empty_SerializesNothing()
+    public void AnEmptyRemainParcelInfosStaysEmpty()
     {
-        // Official only sends RemainParcelInfos for partially-claimed mail. The profile maps an
-        // empty list to null for that reason; AutoMapper turns that back into an empty list (see
-        // above), and MailDB.RemainParcelInfos is [OmitWhenEmpty] so the gateway drops it on the
-        // way out. Either representation is fine - a populated one would not be.
+        // Official only sends RemainParcelInfos for partially-claimed mail.
+        // The profile maps an empty list to null for that reason; AutoMapper turns that back into an empty list (see above), and MailDB.RemainParcelInfos is [OmitWhenEmpty] so the gateway drops it on the way out.
+        // Either representation is fine - a populated one would not be.
         var mapped = Mapper.Map<MailDB>(new MailDBServer { RemainParcelInfos = new List<ParcelInfo>() });
 
         Assert.NotNull(mapped.RemainParcelInfos);
@@ -175,7 +162,7 @@ public class MappingProfileTests
     }
 
     [Fact]
-    public void RemainParcelInfos_Populated_Preserved()
+    public void PartiallyClaimedMailKeepsItsRemainder()
     {
         var source = new MailDBServer
         {
@@ -188,41 +175,35 @@ public class MappingProfileTests
         Assert.Single(mapped.RemainParcelInfos!);
     }
 
-    // account
-
     [Fact]
-    public void RetentionDays_AlwaysZero()
+    public void RetentionDaysIsZeroNotNull()
     {
-        // Official emits RetentionDays: 0 even for a fresh account, and the client distinguishes 0
-        // from null.
+        // Official emits RetentionDays: 0 even for a fresh account, and the client distinguishes 0 from null.
         var mapped = Mapper.Map<AccountDB>(new AccountDBServer { ServerId = 1, Nickname = "Sensei" });
 
         Assert.Equal(0, mapped.RetentionDays);
     }
 
     [Fact]
-    public void ItemCanConsume_NotMappedFromEntity()
+    public void CanConsumeIsNotCarriedOverFromTheEntity()
     {
-        // CanConsume is decided per-request by the parcel layer, not stored, so the profile ignores
-        // it. ItemDBServer.CanConsume is hardcoded to true, so without the Ignore() every mapped
-        // ItemDB would go out claiming to be consumable.
+        // CanConsume is decided per-request by the parcel layer, not stored, so the profile ignores it. ItemDBServer.CanConsume is hardcoded to true, so without the Ignore()
+        // every mapped ItemDB would go out claiming to be consumable.
         var mapped = Mapper.Map<ItemDB>(new ItemDBServer());
 
         Assert.True(new ItemDBServer().CanConsume);
         Assert.False(mapped.CanConsume);
     }
 
-    // Built exactly the way the server builds it (GameServer.AddAutoMapper), so that a change in how
-    // AutoMapper is registered shows up here rather than only at runtime.
+    // Built exactly the way the server builds it (GameServer.AddAutoMapper), so that a change in how AutoMapper is registered shows up here rather than only at runtime.
     private static readonly IMapper Mapper = BuildMapper();
 
     private static IMapper BuildMapper()
     {
         var services = new ServiceCollection();
 
-        // AutoMapper resolves an ILoggerFactory out of the container from 14.0 onwards. The server
-        // gets one for free from WebApplicationBuilder; a bare ServiceCollection does not, and
-        // without it AddAutoMapper's factory throws while building IMapper.
+        // AutoMapper resolves an ILoggerFactory out of the container from 14.0 onwards.
+        // The server gets one for free from WebApplicationBuilder; a bare ServiceCollection does not, and without it AddAutoMapper's factory throws while building IMapper.
         services.AddLogging();
         services.AddAutoMapper(cfg => { }, typeof(GameModelsMappingProfile).Assembly);
 

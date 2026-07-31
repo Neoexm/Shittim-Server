@@ -21,12 +21,8 @@ namespace Shittim_Server.Core
         private static readonly TimeSpan AesSessionTimeout = TimeSpan.FromMinutes(30);
         private static readonly ConcurrentDictionary<string, StoredGatewayAesCrypto> AesSessions = new();
 
-        // Persist the gateway AES sessions across server restarts. A restart otherwise wipes these
-        // in-memory sessions; a client that has switched to session-encrypted mode then keeps
-        // resuming a session the server no longer knows, so its requests (50001 onward) fail to
-        // decrypt and the client hangs at "Unpacking game resources". Reloading on startup lets a
-        // resumed session keep working across a restart. (Single-account offline server, so writing
-        // the session keys to a local file is acceptable.)
+        // Persist the gateway AES sessions across server restarts. A restart wipes these in-memory sessions, and a client already in session-encrypted mode keeps resuming one the server no longer knows.
+        // Its requests from 50001 onward then fail to decrypt and it hangs at "Unpacking game resources". Single-account offline server, so the session keys can live in a local file.
         private static readonly object PersistLock = new();
         private static string PersistPath => Path.Combine(Config.ConfigDirectory, "gateway_aes_sessions.json");
 
@@ -35,14 +31,12 @@ namespace Shittim_Server.Core
             LoadPersistedSessions();
         }
 
-        // Most-recent client-generated key/IV from a handshake (GetCryptoKeys/CheckNexon). The client
-        // uses this for in-session response decryption (see Build).
+        // Most-recent client-generated key/IV from a handshake (GetCryptoKeys/CheckNexon). The client uses it for in-session response decryption.
         private static volatile GatewayAesCrypto? _lastClientCrypto;
 
         public static GatewayAesCrypto? GetLastClientCrypto() => _lastClientCrypto;
 
-        // History of recent handshake client cryptos (most-recent last). Used by the in-session
-        // response-crypto sweep to try clientKey from GetCryptoKeys vs CheckNexon.
+        // History of recent handshake client cryptos (most-recent last). The in-session response-crypto sweep uses it to try clientKey from GetCryptoKeys against the one from CheckNexon.
         private static readonly object _clientHistLock = new();
         private static readonly List<GatewayAesCrypto> _clientCryptoHistory = new();
 
@@ -87,14 +81,9 @@ namespace Shittim_Server.Core
                 throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Invalid client generated crypto material: {ex.Message}");
             }
 
-            // Two handshakes share this field with different framing:
-            //  * Queuing_GetCryptoKeys sends the AES key/IV as raw bytes (16/24/32 + 16) in the clear.
-            //  * Account_CheckNexon / Queuing_GetAuthTicket RSA-encrypt the AES key+IV with the gateway
-            //    PUBLIC key that ClientMetadataPatchService injects into the client (256 bytes for the
-            //    RSA-2048 key pair), so they arrive as RSA ciphertext.
-            // RSA-decrypt with the matching gateway private key when the bytes are not already a valid
-            // AES key/IV. Only a result of the right length (decrypted under the correct padding) is
-            // accepted, so a wrong-padding garbage decrypt is rejected.
+            // Two handshakes share this field with different framing. Queuing_GetCryptoKeys sends the AES key/IV as raw bytes (16/24/32 + 16) in the clear.
+            // Account_CheckNexon / Queuing_GetAuthTicket instead RSA-encrypt the key+IV with the gateway PUBLIC key that ClientMetadataPatchService injects into the client (256 bytes for the RSA-2048 key pair), so they arrive as RSA ciphertext.
+            // RSA-decrypt with the matching gateway private key when the bytes are not already a valid AES key/IV, and accept only a result of the right length, so a wrong-padding garbage decrypt is rejected.
             if (!IsValidAesKeyLength(key.Length) && TryRsaDecrypt(key, IsValidAesKeyLength, out var decryptedKey))
                 key = decryptedKey;
             if (iv.Length != 16 && TryRsaDecrypt(iv, length => length == 16, out var decryptedIv))
@@ -155,9 +144,8 @@ namespace Shittim_Server.Core
 
         public static string EncryptAesBase64(string text, byte[] key, byte[] iv)
         {
-            // MUST stay CBC: this encrypts EncryptedKey/EncryptedIV AND the SqlCipher asset-DB key.
-            // The client decrypts these with CBC (proven: assets unpack and login proceeds with CBC);
-            // changing it stalls "Unpacking game resources". Only the in-session response mode is swept.
+            // Stays CBC: this encrypts EncryptedKey/EncryptedIV and the SqlCipher asset-DB key, both of which the client decrypts with CBC, so another mode stalls it at "Unpacking game resources".
+            // Only the in-session response mode is swept.
             var encrypted = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(text), key, iv);
             return Convert.ToBase64String(encrypted);
         }
@@ -356,8 +344,7 @@ namespace Shittim_Server.Core
                 if (snapshot == null)
                     return;
 
-                // Refresh LastUsedUtc to "now" so a reloaded session survives the post-restart resume
-                // window (the client resumes immediately on launch). Keep the newest MaxAesSessions.
+                // Refresh LastUsedUtc to "now" so a reloaded session survives the post-restart resume window (the client resumes immediately on launch). Keep the newest MaxAesSessions.
                 var now = DateTime.UtcNow;
                 foreach (var entry in snapshot
                     .OrderByDescending(e => e.LastUsedTicks)

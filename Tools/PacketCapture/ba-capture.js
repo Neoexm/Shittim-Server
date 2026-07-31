@@ -25,8 +25,6 @@
    Output lands in ..\..\captures\
    ========================================================================== */
 
-// config
-
 const CFG = {
   mode: 'capture',          // 'capture' | 'discover'  (env BA_MODE overrides)
   outDir: 'C:\\Users\\tomda\\Documents\\Shittim-Server\\captures',
@@ -45,9 +43,7 @@ try {
   if (m) CFG.mode = m.toLowerCase();
 } catch (e) { /* env unavailable - keep default */ }
 
-// Only these (class, method) shapes get hooked. Narrow on purpose: hooking
-// every method named "Deserialize" in a 215 MB binary would attach thousands
-// of probes and stutter the game.
+// Only these (class, method) shapes get hooked. Narrow on purpose: hooking every method named "Deserialize" in a 215 MB binary would attach thousands of probes and stutter the game.
 const TARGETS = [
   // crypto boundaries - the return value is the plaintext
   { cls: /crypt|cipher|aes|rijndael|xor|security|obfusc/i, m: /^decrypt/i, capture: 'ret', kind: 'decrypt' },
@@ -62,8 +58,6 @@ const TARGETS = [
     m: /^(onreceive|onresponse|handleresponse|parseresponse|processpacket|setresponse)$/i,
     capture: 'arg0', kind: 'receive' },
 ];
-
-// il2cpp
 
 const mod = Process.getModuleByName(CFG.module);
 
@@ -98,8 +92,7 @@ try {
 
 function cstr(p) { return (!p || p.isNull()) ? '' : p.readUtf8String(); }
 
-// 64-bit IL2CPP layouts. MethodInfo.methodPointer is at offset 0, so the
-// native entry point is a straight pointer read.
+// 64-bit IL2CPP layouts. MethodInfo.methodPointer is at offset 0, so the native entry point is a straight pointer read.
 const OFF = {
   methodPointer: 0x00,
   arrayLength:   0x18,   // Il2CppArray.max_length
@@ -168,8 +161,6 @@ function eachMethod(klass, fn) {
   }
 }
 
-// output
-
 function ts() { return new Date().toISOString(); }
 function fileStamp() { return ts().replace(/[:.]/g, '-').slice(0, 19); }
 
@@ -178,8 +169,6 @@ function openOut(name) {
   const f = new File(path, 'w');
   return { f, path };
 }
-
-// format
 
 function hexPane(bytes, total) {
   const u8 = new Uint8Array(bytes);
@@ -197,9 +186,7 @@ function hexPane(bytes, total) {
   return rows.join('\r\n');
 }
 
-// MessagePack and JSON both survive a UTF-8 decode well enough to be useful.
-// For MessagePack the printable runs give you the field names, which is the
-// part that matters when matching against a server implementation.
+// MessagePack and JSON both survive a UTF-8 decode well enough to be useful. For MessagePack the printable runs give you the field names, which is the part that matters when matching against a server implementation.
 function decodeText(bytes) {
   const u8 = new Uint8Array(bytes);
   let printable = 0;
@@ -223,8 +210,7 @@ function decodeText(bytes) {
   return { mode: 'text', text };
 }
 
-// Official payloads carry raw control bytes inside user text (clan notices, localized
-// mail bodies); escaping them keeps a body on one line and readable with strict=True.
+// Official payloads carry raw control bytes inside user text (clan notices, localized mail bodies); escaping them keeps a body on one line and readable with strict=True.
 // Quotes and backslashes stay as captured - a body's own \" / \\ are already escapes.
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 
@@ -252,8 +238,7 @@ function fingerprint(bytes, len) {
   return len + ':' + (h >>> 0).toString(16);
 }
 
-// A hooked value may be a managed byte[] or a managed string; try both and
-// keep whichever reads back sanely.
+// A hooked value may be a managed byte[] or a managed string; try both and keep whichever reads back sanely.
 function coerce(p) {
   if (!p || p.isNull()) return null;
   try {
@@ -269,8 +254,6 @@ function coerce(p) {
   } catch (e) { /* not a string */ }
   return null;
 }
-
-// capture
 
 function runCapture() {
   const { f: out, path } = openOut('responses-' + fileStamp() + '.txt');
@@ -361,8 +344,6 @@ function runCapture() {
   }
 }
 
-// discover
-
 function runDiscover() {
   const CLASS_HINTS = ['networkprotocol', 'packet', 'crypt', 'cipher', 'aes', 'rijndael',
     'xor', 'protocol', 'session', 'gateway', 'messagepack', 'serializer', 'formatter',
@@ -408,8 +389,6 @@ function runDiscover() {
   console.log('[discover] walked ' + classes + ' classes; matched ' + mClasses + ' classes / ' + mMethods + ' methods');
   console.log('[discover] wrote ' + path);
 }
-
-// entry
 
 setImmediate(function () {
   console.log('[ba-capture] mode=' + CFG.mode + '  module=' + CFG.module + ' @ ' + mod.base);

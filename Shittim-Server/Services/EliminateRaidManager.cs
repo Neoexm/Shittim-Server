@@ -94,8 +94,7 @@ public class EliminateRaidManager
                     { targetSeason.OpenRaidBossGroup02, Difficulty.Lunatic },
                     { targetSeason.OpenRaidBossGroup03, Difficulty.Lunatic }
                 },
-                // The client's Mobilize handler resolves the selected boss group through these
-                // two members; leaving them empty faults it before the request is even built.
+                // The client's Mobilize handler resolves the selected boss group through these two members; leaving them empty faults it before the request is even built.
                 OpenedBossGroups =
                 [
                     targetSeason.OpenRaidBossGroup01,

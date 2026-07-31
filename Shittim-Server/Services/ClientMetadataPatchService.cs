@@ -10,16 +10,11 @@ namespace Shittim_Server.Services
         private const int ChunkLength = 150;
         private const int ChunkCount = 3;
 
-        // The official Nexon gateway RSA-2048 public key, exactly as it is embedded (split into three
-        // 150-byte string literals) inside the client's global-metadata.dat. The client RSA-encrypts
-        // the 50001 gateway handshake with this key, so replacing it with the private server's own key
-        // is what lets the gateway decode the handshake.
+        // The official Nexon gateway RSA-2048 public key, exactly as it is embedded (split into three 150-byte string literals) inside the client's global-metadata.dat.
+        // The client RSA-encrypts the 50001 gateway handshake with this key, so swapping in the private server's own key is what lets the gateway decode the handshake.
         //
-        // The three byte runs are located by content (an AOB scan), not by fixed file offsets, because
-        // the offsets move every time the client is rebuilt - build 439170 shifted all three by +0x49B0.
-        // Writing at a stale offset corrupts whatever IL2CPP metadata now lives there and hangs the
-        // client at "Unpacking game resources". A scan also fails safe: no match means the file is left
-        // untouched rather than patched on a guess.
+        // The three byte runs are located by content (an AOB scan) rather than by fixed file offsets: the offsets move every time the client is rebuilt, and build 439170 shifted all three by +0x49B0.
+        // Writing at a stale offset corrupts whatever IL2CPP metadata now lives there and hangs the client at "Unpacking game resources". A scan also fails safe: a chunk that cannot be found means no write at all.
         private const string OfficialGatewayPublicKeyPem =
             "-----BEGIN PUBLIC KEY-----\n" +
             "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtgS2BXLKIrI8OFIZi3ge\n" +
@@ -105,9 +100,8 @@ namespace Shittim_Server.Services
             var statePath = GetStatePath(path);
             var fileBytes = File.ReadAllBytes(path);
 
-            // Resolve where each key chunk currently lives by scanning for its bytes. A chunk is either
-            // still the official key (needs patching) or already our key (previously patched). If a
-            // chunk cannot be located as either, abort without writing so we never corrupt the file.
+            // Resolve where each key chunk currently lives by scanning for its bytes: a chunk is either still the official key (needs patching) or already ours (patched on an earlier run).
+            // If neither turns up, abort without writing rather than corrupt the file.
             var offsets = new long[ChunkCount];
             var alreadyPatched = true;
             for (var i = 0; i < ChunkCount; i++)
@@ -133,8 +127,7 @@ namespace Shittim_Server.Services
 
             if (alreadyPatched)
             {
-                // The official key is a known constant, so the original bytes are always recoverable
-                // regardless of any stale sidecar left by a previous client build.
+                // The official key is a known constant, so the original bytes stay recoverable regardless of any stale sidecar left by an older client build.
                 var state = CreateState(offsets, officialChunks, targetChunks);
                 SaveState(statePath, state);
                 logger.LogInformation("Client metadata already patched: {MetadataPath}", path);
@@ -192,9 +185,7 @@ namespace Shittim_Server.Services
             logger.LogInformation("Restored client metadata: {MetadataPath}", path);
         }
 
-        // Splits a PEM public key into ChunkCount fixed-size byte runs, matching how the client stores
-        // it. Newlines are normalized to '\n' and any trailing newline trimmed so the byte layout is
-        // identical to the metadata's embedded copy.
+        // Splits a PEM public key into ChunkCount fixed-size byte runs, matching how the client stores it. Newlines are normalized to '\n' and any trailing newline trimmed so the byte layout is identical to the metadata's embedded copy.
         private static byte[][] BuildKeyChunks(string publicKey, string label)
         {
             var normalized = publicKey
@@ -213,8 +204,7 @@ namespace Shittim_Server.Services
             return chunks;
         }
 
-        // Finds the single occurrence of pattern in data. Returns false if absent or ambiguous (found
-        // more than once), so the caller can fail safe rather than patch the wrong location.
+        // Finds the single occurrence of pattern in data. Returns false if absent or ambiguous (found more than once) so the caller can fail safe instead of patching the wrong location.
         private static bool TryLocateUnique(byte[] data, byte[] pattern, out long offset)
         {
             offset = -1;
@@ -324,8 +314,7 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(configuredPath))
                 return ResolvePath(configuredPath);
 
-            // Locate the game across any Steam library on the machine (any drive /
-            // custom library folder), not just F:\ or Program Files.
+            // Any Steam library can hold the install.
             var located = SteamGameLocator.FindGameFile(Path.Combine("BlueArchive_Data", "il2cpp_data", "Metadata", "global-metadata.dat"));
             if (!string.IsNullOrWhiteSpace(located))
                 return located;

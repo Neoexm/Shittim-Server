@@ -11,14 +11,12 @@ namespace Shittim_Server.Tests;
 
 public class ShopPurchaseLimitTests
 {
-    // the request-level guard
-
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-30)]
     [InlineData(long.MinValue)]
-    public void PurchaseCount_NonPositive_Rejected(long count)
+    public void ANonPositiveCountIsRefused(long count)
     {
         // A non-positive count is what inverted the consume into a grant.
         var ex = Assert.Throws<WebAPIException>(() => ShopHandler.ValidatePurchaseCount(count));
@@ -29,10 +27,9 @@ public class ShopPurchaseLimitTests
     [InlineData(long.MaxValue)]
     [InlineData(long.MaxValue / 2)]
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest + 1)]
-    public void PurchaseCount_Absurd_Rejected(long count)
+    public void ACountBigEnoughToOverflowTheCostIsRefused(long count)
     {
-        // The bound has to be two-sided: `> 0` alone still allows a count large enough that
-        // cost * count overflows to a negative number, which re-opens the same hole.
+        // The bound has to be two-sided: `> 0` alone still allows a count large enough that cost * count overflows to a negative number, which re-opens the same hole.
         var ex = Assert.Throws<WebAPIException>(() => ShopHandler.ValidatePurchaseCount(count));
         Assert.Equal(WebAPIErrorCode.ShopInvalidCostOrReward, ex.ErrorCode);
     }
@@ -42,15 +39,13 @@ public class ShopPurchaseLimitTests
     [InlineData(3)]
     [InlineData(20)]
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest)]
-    public void PurchaseCount_Realistic_Accepted(long count)
+    public void RealisticCountsPass(long count)
     {
         ShopHandler.ValidatePurchaseCount(count);
     }
 
-    // reset windows
-
     [Fact]
-    public void Window_NoReset_IsOneWindow()
+    public void AShopThatNeverResetsIsASingleWindow()
     {
         Assert.Equal(
             DateTime.MinValue,
@@ -63,7 +58,7 @@ public class ShopPurchaseLimitTests
     [InlineData("2026-07-26T04:00:00", "2026-07-26")]
     [InlineData("2026-07-26T00:00:00", "2026-07-25")]
     [InlineData("2026-07-26T23:59:59", "2026-07-26")]
-    public void Window_Daily_RollsAtFourAm(string now, string expected)
+    public void TheDailyWindowRollsAtFourAm(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
@@ -78,7 +73,7 @@ public class ShopPurchaseLimitTests
     // 04:00 Monday is the first moment of the new week; 03:00 Monday still belongs to the old one.
     [InlineData("2026-07-27T04:00:00", "2026-07-27")]
     [InlineData("2026-07-27T03:00:00", "2026-07-20")]
-    public void Window_Weekly_StartsMonday(string now, string expected)
+    public void WeeklyWindowsStartOnMonday(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
@@ -90,17 +85,15 @@ public class ShopPurchaseLimitTests
     // 03:00 on the 1st is still the previous month's last game day.
     [InlineData("2026-08-01T03:00:00", "2026-07-01")]
     [InlineData("2026-08-01T04:00:00", "2026-08-01")]
-    public void Window_Monthly_StartsOnTheFirst(string now, string expected)
+    public void MonthlyWindowsStartOnTheFirst(string now, string expected)
     {
         Assert.Equal(
             DateTime.Parse(expected),
             ShopManager.PeriodStart(PurchaseCountResetType.Month, DateTime.Parse(now)));
     }
 
-    // limit enforcement
-
     [Fact]
-    public async Task Limit_Accumulates_AndIsEnforced()
+    public async Task TheCounterAccumulatesAcrossPurchasesAndTheCapIsEnforced()
     {
         using var db = NewContext();
         var account = NewAccount(db);
@@ -134,7 +127,7 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task Counter_WindowRolls_Resets()
+    public async Task RollingIntoANewWindowZeroesTheSameRow()
     {
         using var db = NewContext();
         var account = NewAccount(db);
@@ -148,8 +141,7 @@ public class ShopPurchaseLimitTests
         await Assert.ThrowsAsync<WebAPIException>(
             () => ShopManager.EnsurePurchasable(db, account, shop.Id, shop, 1));
 
-        // Backdate the stored window to simulate the game day having rolled over. The row is kept
-        // and zeroed rather than deleted, so the account's counter stays a stable single row.
+        // Backdate the stored window to simulate the game day having rolled over. The row is kept and zeroed rather than deleted, so the account's counter stays a stable single row.
         history.PeriodStart = history.PeriodStart.AddDays(-1);
         await db.SaveChangesAsync();
 
@@ -159,13 +151,12 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task Limit_Unset_Uncapped()
+    public async Task AZeroLimitMeansUncapped()
     {
         using var db = NewContext();
         var account = NewAccount(db);
 
-        // PurchaseCountLimit of 0 means "no limit" - most shop products are like this, and they must
-        // not start failing now that a counter exists.
+        // PurchaseCountLimit of 0 means "no limit" - most shop products are like this, and they must not start failing now that a counter exists.
         var shop = ApShop(limit: 0);
 
         var history = await ShopManager.EnsurePurchasable(db, account, shop.Id, shop, 9999);
@@ -177,7 +168,7 @@ public class ShopPurchaseLimitTests
     }
 
     [Fact]
-    public async Task Counter_TrackedPerShopAndAccount()
+    public async Task CountersAreKeptPerShopAndPerAccount()
     {
         using var db = NewContext();
         var first = NewAccount(db, serverId: 1);
@@ -199,9 +190,8 @@ public class ShopPurchaseLimitTests
 
     private static SchaleDataContext NewContext()
     {
-        // A private file-backed SQLite database per test; EnsureCreated builds the schema from the
-        // model, which is also what proves ShopPurchaseHistories is actually registered on the
-        // context (it was a new entity and the project has no migrations).
+        // A private file-backed SQLite database per test; EnsureCreated builds the schema from the model, which is also what proves ShopPurchaseHistories is actually registered on the context
+        // (it was a new entity and the project has no migrations).
         var path = Path.Combine(Path.GetTempPath(), $"shittim-shoptest-{Guid.NewGuid():N}.sqlite3");
         var context = new SchaleDataContext(
             new DbContextOptionsBuilder<SchaleDataContext>().UseSqlite($"Data Source={path}").Options);

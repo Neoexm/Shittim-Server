@@ -1,8 +1,7 @@
 import { el, frag, clear, button } from '../ui.js';
 import { store, targetAccount } from '../api.js';
 
-// Gate a page body behind "server must be online" / "an account must be
-// selected" preconditions, and auto-repaint when those preconditions flip.
+// Gate a page body behind "server must be online" / "an account must be selected" preconditions, and auto-repaint when those preconditions flip.
 export function gate(root, opts, renderFn) {
   let prevOnline = store.get().online;
   let prevTarget = store.get().targetId;

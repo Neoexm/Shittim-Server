@@ -1,10 +1,8 @@
-// HTTP client for the server's /api/admin surface plus a tiny reactive store
-// shared across pages. The renderer reaches the server over loopback only.
+// HTTP client for the server's /api/admin surface plus a tiny reactive store shared across pages. The renderer reaches the server over loopback only.
 
 const host = window.host;
 
-// Stable currency map (mirrors Schale.FlatData.CurrencyTypes) so the Accounts
-// page can render balances regardless of how enum dict keys are serialized.
+// Stable currency map (mirrors Schale.FlatData.CurrencyTypes) so the Accounts page can render balances regardless of how enum dict keys are serialized.
 export const CURRENCIES = [
   [1, 'Gold'], [2, 'GemPaid'], [3, 'GemBonus'], [4, 'Gem'], [5, 'ActionPoint'],
   [6, 'AcademyTicket'], [7, 'ArenaTicket'], [8, 'RaidTicket'],
@@ -71,8 +69,7 @@ export const api = {
 
   // Two-stage probe so the UI never lies about being "online":
   //   live  = the web host answers /health (process is up / port bound)
-  //   ready = /api/admin/status answers - that handler hits the DB, so a 200
-  //           means the server is genuinely able to serve, not just listening.
+  //   ready = /api/admin/status answers - that handler hits the DB, so a 200 means the server is genuinely able to serve, not just listening.
   // Only `ready` should ever render as "Online".
   async probe() {
     let live = false;

@@ -32,8 +32,7 @@ public class NewMailArrivedTests
     [Fact]
     public void TwoDeliveriesOneReport()
     {
-        // A set, not a counter: official's capture mails rewards twice before the client checks,
-        // and the single Mail_Check consumes everything - 12 once, then straight back to 8.
+        // A set, not a counter: official's capture mails rewards twice before the client checks, and the single Mail_Check consumes everything - 12 once, then straight back to 8.
         MailNotificationService.MarkNewMail(910005);
         MailNotificationService.MarkNewMail(910005);
 

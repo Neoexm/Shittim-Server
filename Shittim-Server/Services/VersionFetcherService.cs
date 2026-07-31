@@ -56,7 +56,6 @@ namespace BlueArchiveAPI.Services
                 {
                     var catalogUrl = serverInfo.Mapping.Resources.AddressablesCatalogUrlRoot;
                     
-                    // Extract version ID from URL
                     // Format: https://ba.dn.nexoncdn.co.kr/com.nexon.bluearchive/{VERSION_ID}/
                     var uri = new Uri(catalogUrl);
                     var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);

@@ -10,35 +10,16 @@ using Xunit.Abstractions;
 
 namespace Shittim_Server.Tests;
 
-/// <summary>
-/// Guards the generated FlatBuffer models in Schale.FlatData against the excel data the client ships.
-/// They are reverse-engineered per client build rather than compiled from an authoritative .fbs, and a
-/// reader stops at the last field it knows about without complaining, so drift is silent.
-///
-/// Trailing fields past the model's last slot are harmless - a vtable is an explicit index-to-offset map,
-/// so earlier slots still decode. A field missing from the middle is not: every later slot shifts by one
-/// and reads its neighbour, which is how GoodsExcel's absent sixth product-id long turned 120 ActionPoint
-/// into "Currency 0x1_00000002 x5". A slot count cannot tell those apart, so the real check is
-/// <see cref="NoShippedRowFailsVerification"/>, running each table's generated <c>Verify</c> over every
-/// shipped row; <see cref="ModelWidthsHaveNotDriftedFurther"/> ratchets the counts on top.
-///
-/// The dumps are not in the repository (~300 MB, fetched into the build output), so those sweeps skip
-/// when absent and <see cref="GoodsExcelModelMatchesItsShippedRows"/> carries the hermetic coverage.
-/// </summary>
+// The FlatData models are reverse-engineered per client build rather than compiled from a real .fbs, and a reader stops at the last field it knows about without complaining, so drift is silent.
+//
+// Trailing fields past the model's last slot are harmless because a vtable is an explicit index-to-offset map and the earlier slots still decode. A field missing from the middle is not: every later slot shifts by one and reads its neighbour. That is how GoodsExcel's absent sixth product-id long turned 120 ActionPoint into "Currency 0x1_00000002 x5".
+// A slot count cannot separate those two cases, so the load-bearing check runs each table's generated Verify over every shipped row.
+//
+// The dumps are ~300 MB and live in the build output, not the repo, so anything needing them skips when they are absent.
 public class ExcelLayoutDriftTests
 {
-    /// <summary>
-    /// Tables whose models are known to stop short of the shipped data, all of them confirmed benign by
-    /// <see cref="NoShippedRowFailsVerification"/>: the extra slots are appended past the model's last
-    /// field, so nothing the model does read is misaligned. Listing them turns an unactionable wall of 32
-    /// findings into a ratchet - a table drifting for the first time fails, these do not.
-    ///
-    /// Regenerating any of these from the current client's schema is what removes it from the list; it
-    /// would let the server read content it currently ignores, which is a feature, not a defect.
-    ///
-    /// Do not add a table here to silence a verification failure. Verification failing means the model
-    /// genuinely misreads the data, which no baseline makes acceptable.
-    /// </summary>
+    // Models that stop short of the shipped data. All benign: the extra slots sit past the model's last field, so nothing it does read is misaligned.
+    // Listed to turn 32 unactionable findings into a ratchet - a table drifting for the first time fails, these do not. Regenerating one against the current client removes it from the list.
     private static readonly string[] KnownNarrowModels =
     [
         "ArenaMapExcel", "ArenaSeasonExcel", "BattlePassFlavorTextExcel", "CafeInfoExcel",
@@ -52,21 +33,9 @@ public class ExcelLayoutDriftTests
         "SystemMailExcel", "TutorialFailureImageExcel", "WebEventSeasonExcel",
     ];
 
-    /// <summary>
-    /// Tables whose models misread the shipped data, with the row counts at measurement time so the list
-    /// ratchets three ways: a new table breaking fails, one of these verifying fewer rows fails, and one
-    /// that starts reading every row has to be removed. Unlike <see cref="KnownNarrowModels"/> these are
-    /// misaligned rather than short - a slot index has moved, so later fields decode out of their neighbour.
-    ///
-    /// Measurement recovers where a field sits but not its name or contents. The reward tables were fixable
-    /// because the omitted column had a recognisable signature - a <c>*ParcelUniqueName</c> string vector
-    /// between the id and amount vectors - and none of these do, so naming their fields needs the client's
-    /// global-metadata. A guess yields a model that verifies while still decoding the wrong column.
-    ///
-    /// Leaving them is safe because <see cref="TablesTheServerReadsLoadEveryShippedRow"/> holds
-    /// unconditionally: of these only CharacterStatExcel is read by a handler, and every field the server
-    /// touches sits at slots 0-10, ahead of the first shifted slot.
-    /// </summary>
+    // Models that misread the data, with row counts at measurement time so the list ratchets three ways: a new table breaking fails, one of these verifying fewer rows fails, and one that starts reading everything has to come out.
+    // These are misaligned rather than merely short. Fixing them needs the client's global-metadata: measurement recovers where a field sits but not its name, and the reward tables were only fixable because the missing column had a recognisable *ParcelUniqueName signature. Guessing produces a model that verifies while still decoding the wrong column.
+    // Safe to leave - of these only CharacterStatExcel is read by a handler, and the fields the server touches sit at slots 0-10, ahead of the first shift.
     private static readonly (string Name, int FailedRows, int Rows)[] KnownBrokenModels =
     [
         ("ArenaMapExcel", 60, 60),
@@ -94,20 +63,8 @@ public class ExcelLayoutDriftTests
 
     public ExcelLayoutDriftTests(ITestOutputHelper output) => this.output = output;
 
-    // the checks
-
-    /// <summary>
-    /// The check that speaks to behaviour rather than layout: every table a handler reads has to come back
-    /// from <see cref="ExcelTableService"/> with all of its rows.
-    ///
-    /// The service catches per-row unpack failures and skips the offending row, which is the right call for
-    /// a content patch adding a table the server does not care about, but it means a misaligned model
-    /// degrades silently - a string field whose slot has shifted reads a uoffset that lands outside the
-    /// buffer, UnPack throws, and the row vanishes. RaidStageExcel was doing exactly that for all 157 of
-    /// its rows, so <c>FirstOrDefault</c> in the raid battle path returned null on every submission.
-    ///
-    /// No baseline here: a table the server reads and cannot fully load is a live defect.
-    /// </summary>
+    // ExcelTableService catches per-row unpack failures and skips the row, which is right for a content patch adding a table nobody reads, but it means a misaligned model degrades silently: a shifted string slot reads a uoffset outside the buffer, UnPack throws, the row vanishes.
+    // RaidStageExcel was doing that for all 157 of its rows, so FirstOrDefault in the raid battle path returned null on every submission. No baseline - a table the server reads and cannot fully load is a live defect.
     [Fact]
     public void TablesTheServerReadsLoadEveryShippedRow()
     {
@@ -117,8 +74,7 @@ public class ExcelLayoutDriftTests
             return;
         }
 
-        // GetTable resolves Resources against AppContext.BaseDirectory, which under a test run is this
-        // project's output rather than the server's. Point it at the data the audit just measured.
+        // GetTable resolves Resources against AppContext.BaseDirectory, which under a test run is this project's output rather than the server's. Point it at the data the audit just measured.
         ExcelTableService.DumpedDir = DumpedDir!;
         var service = new ExcelTableService();
 
@@ -146,9 +102,7 @@ public class ExcelLayoutDriftTests
     [Fact]
     public void GoodsExcelModelMatchesItsShippedRows()
     {
-        // The hermetic anchor, and the self-check on everything below: it is the one table whose correct
-        // width is known independently (recovered by hand from a capture diff), so if the measurement or
-        // the verification were wrong, this is where it shows.
+        // The hermetic anchor, and the self-check on everything below: it is the one table whose correct width is known independently (recovered by hand from a capture diff), so if the measurement or the verification were wrong, this is where it shows.
         var widest = 0;
         var verify = VerifyActionFor(typeof(GoodsExcel))!;
 
@@ -186,9 +140,8 @@ public class ExcelLayoutDriftTests
             "Regenerate these from the current client's schema:" +
             Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", appeared));
 
-        // count passing rows, not failing ones - a content patch adds rows, so a raw failure count
-        // trips on every client update. rows that verified at baseline and no longer do is the
-        // signal, and it survives the table growing.
+        // count passing rows, not failing ones - a content patch adds rows, so a raw failure count trips on every client update.
+        // rows that verified at baseline and no longer do is the signal, and it survives the table growing.
         var worse = broken
             .Where(t => baseline.TryGetValue(t.Name, out var was)
                         && t.Rows - t.FailedRows < was.Rows - was.FailedRows)
@@ -244,8 +197,6 @@ public class ExcelLayoutDriftTests
         "No Resources/Dumped found, so nothing was compared. The excel dumps live in the server's build " +
         "output rather than the repo; run the server once to download them, then re-run this test.");
 
-    // the audit
-
     private readonly record struct TableAudit(
         string Name, string Source, int ModelSlots, int DataSlots, int Rows, int FailedRows);
 
@@ -253,12 +204,7 @@ public class ExcelLayoutDriftTests
     private static readonly string? DumpedDir = LocateDumpedExcelData();
     private static readonly List<TableAudit>? Report = BuildReport();
 
-    /// <summary>
-    /// The tables a handler actually reads, recovered from the server's own <c>GetTable&lt;FooT&gt;</c> call
-    /// sites. Read out of the source rather than kept as a list here so it cannot go stale: a handler that
-    /// starts reading a table brings it under
-    /// <see cref="TablesTheServerReadsLoadEveryShippedRow"/> automatically.
-    /// </summary>
+    // Scraped from the server's own GetTable<FooT> call sites rather than kept as a list here, so a handler that starts reading a new table gets covered without anyone remembering to update this.
     private static readonly HashSet<string>? TablesTheServerReads = FindTablesTheServerReads();
 
     private static HashSet<string>? FindTablesTheServerReads()
@@ -295,11 +241,7 @@ public class ExcelLayoutDriftTests
         return report;
     }
 
-    /// <summary>
-    /// The .bytes route: one file per table holding a <c>{Name}Table</c> wrapper whose single field is the
-    /// row vector. The whole file is XOR-obfuscated under a key derived from the wrapper's name, so it has
-    /// to be decoded before any offset in it means anything.
-    /// </summary>
+    // One file per table, holding a {Name}Table wrapper whose single field is the row vector. XOR-obfuscated under a key derived from the wrapper name, so it has to be decoded before any offset in it means anything.
     private static IEnumerable<TableAudit> AuditBytesFiles(string dumpedDir)
     {
         var excelDir = Path.Combine(dumpedDir, "Excel");
@@ -318,8 +260,7 @@ public class ExcelLayoutDriftTests
 
             var root = FlatBufferLayout.Root(bytes);
 
-            // Generated wrapper, so this is a self-check on the decode rather than an expectation about
-            // the data: byte soup would almost never present as a single-field root table.
+            // Generated wrapper, so this is a self-check on the decode rather than an expectation about the data: byte soup would almost never present as a single-field root table.
             if (FlatBufferLayout.SlotCount(bytes, root) != 1)
                 throw new InvalidOperationException(
                     $"{path} did not decode to a single-field table wrapper; the XOR key or the file " +
@@ -342,10 +283,7 @@ public class ExcelLayoutDriftTests
         }
     }
 
-    /// <summary>
-    /// The ExcelDB route: one SQLite table per excel, each row a standalone plaintext FlatBuffer. This is
-    /// where the GoodsExcel bug lived, and it covers about five times as many tables as the .bytes files.
-    /// </summary>
+    // One SQLite table per excel, each row a standalone plaintext FlatBuffer. Where the GoodsExcel bug lived, and it covers roughly five times as many tables as the .bytes files.
     private static IEnumerable<TableAudit> AuditExcelDb(string dumpedDir)
     {
         var dbPath = Path.Combine(dumpedDir, "ExcelDB.db");
@@ -387,9 +325,8 @@ public class ExcelLayoutDriftTests
 
                     rows++;
 
-                    // Widest, not first: a row's vtable is truncated after its last non-default field, so
-                    // a row leaving the tail at defaults looks narrower than the schema. Only the maximum
-                    // over the whole table is the real width.
+                    // Widest, not first: a row's vtable is truncated after its last non-default field, so a row leaving the tail at defaults looks narrower than the schema.
+                    // Only the maximum over the whole table is the real width.
                     widest = Math.Max(widest, FlatBufferLayout.SlotCount(row, FlatBufferLayout.Root(row)));
 
                     if (!Verifies(row, verify))
@@ -401,10 +338,7 @@ public class ExcelLayoutDriftTests
         }
     }
 
-    /// <summary>
-    /// Every generated object-API class (<c>FooT</c>) paired with its reader struct (<c>Foo</c>). Nested
-    /// tables come back too; they are filtered out by having neither a .bytes file nor a DBSchema table.
-    /// </summary>
+    // Each generated FooT object-API class paired with its Foo reader struct. Nested tables come back too and get filtered out later by having neither a .bytes file nor a DBSchema table.
     private static IEnumerable<(Type Model, Type Reader, string BaseName)> ExcelModels()
     {
         var assembly = typeof(GoodsExcelT).Assembly;
@@ -424,14 +358,13 @@ public class ExcelLayoutDriftTests
 
     private static bool Verifies(byte[] buffer, VerifyTableAction verify)
     {
-        // The defaults cap tables and depth low enough that a large .bytes wrapper trips the cap and
-        // reports a false failure; the caps exist to bound work on untrusted input, which this is not.
+        // The defaults cap tables and depth low enough that a large .bytes wrapper trips the cap and reports a false failure; the caps exist to bound work on untrusted input, which this is not.
         var verifier = new Verifier(new ByteBuffer(buffer), new Options())
             .SetMaxTables(int.MaxValue)
             .SetMaxDepth(int.MaxValue);
 
-        // Excel buffers carry no file identifier and are not size-prefixed. The identifier has to be
-        // null rather than empty - Verifier length-checks anything non-null against the 4-byte format.
+        // Excel buffers carry no file identifier and are not size-prefixed.
+        // The identifier has to be null rather than empty - Verifier length-checks anything non-null against the 4-byte format.
         return verifier.VerifyBuffer(null!, false, verify);
     }
 
@@ -463,8 +396,7 @@ public class ExcelLayoutDriftTests
         {
             var server = Path.Combine(root, "Shittim-Server");
 
-            // ExcelTableService resolves Resources against AppContext.BaseDirectory, which in a test run
-            // is the test project's own output. The data belongs to the server, so look there instead.
+            // ExcelTableService resolves Resources against AppContext.BaseDirectory, which in a test run is the test project's own output. The data belongs to the server, so look there instead.
             return new[]
             {
                 Path.Combine(server, "Resources", "Dumped"),
@@ -477,20 +409,15 @@ public class ExcelLayoutDriftTests
     }
 }
 
-/// <summary>
-/// Just enough of the FlatBuffers binary format to measure a table's width without a schema. Reading a row
-/// through its generated model cannot measure drift - a short model is precisely the case that succeeds
-/// quietly - so this looks at the vtable the writer emitted instead.
-/// </summary>
+// Just enough of the FlatBuffers binary format to measure a table's width without a schema. Reading a row through its generated model cannot measure drift, since a short model is exactly the case that succeeds quietly, so this reads the vtable the writer emitted instead.
 internal static class FlatBufferLayout
 {
-    /// <summary>Follows a uoffset_t, which is relative to its own position and always forward.</summary>
+    // a uoffset_t is relative to its own position and always points forward
     private static int Follow(byte[] buffer, int position) =>
         position + BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(position));
 
     public static int Root(byte[] buffer) => Follow(buffer, 0);
 
-    /// <summary>Number of field slots the writer emitted for the table at <paramref name="table"/>.</summary>
     public static int SlotCount(byte[] buffer, int table)
     {
         var vtable = VTable(buffer, table);
@@ -498,7 +425,7 @@ internal static class FlatBufferLayout
         return (BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(vtable)) - 4) / 2;
     }
 
-    /// <summary>Positions of the tables held by a vector-of-tables field.</summary>
+    // positions of the tables held by a vector-of-tables field
     public static IEnumerable<int> VectorElements(byte[] buffer, int table, int slot)
     {
         var vtable = VTable(buffer, table);

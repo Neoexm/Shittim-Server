@@ -28,9 +28,7 @@ public class ContentSaveGetWireTests
             },
         };
 
-        // CampaignMainStageSaveDB hides ContentType with a `new static` property, so the only way to
-        // set it is through the base member - which is exactly the one AutoMapper writes when the
-        // server entity is mapped onto the wire model.
+        // CampaignMainStageSaveDB hides ContentType with a `new static` property, so the only way to set it is through the base member - which is exactly the one AutoMapper writes when the server entity is mapped onto the wire model.
         ((ContentSaveDB)save).ContentType = ContentType.CampaignMainStage;
 
         return save;
@@ -48,8 +46,7 @@ public class ContentSaveGetWireTests
     [Fact]
     public void NoOpenRunLeavesTheResponseBareLikeOfficialsLoginAnswer()
     {
-        // The only ContentSave_Get in the official capture is at login with no run in progress, and
-        // it comes back as nothing but the header.
+        // The only ContentSave_Get in the official capture is at login with no run in progress, and it comes back as nothing but the header.
         var json = Wire(new ContentSaveGetResponse());
 
         Assert.Null(json["HasValidData"]);
@@ -68,10 +65,8 @@ public class ContentSaveGetWireTests
     [Fact]
     public void TheSaveCarriesContentTypeSoTheClientCanPickTheConcreteType()
     {
-        // ContentSaveDBService.TryParseContentSaveDB hands the body to ContentSaveDBFactory, which
-        // needs ContentType to know it is looking at a campaign run. CampaignMainStageSaveDB shadows
-        // the base member with a `new static` property, so that it reaches the wire at all is worth
-        // holding still - the response types it through the abstract ContentSaveDB base.
+        // ContentSaveDBService.TryParseContentSaveDB hands the body to ContentSaveDBFactory, which needs ContentType to know it is looking at a campaign run.
+        // CampaignMainStageSaveDB shadows the base member with a `new static` property, so that it reaches the wire at all is worth holding still - the response types it through the abstract ContentSaveDB base.
         var json = Wire(new ContentSaveGetResponse { HasValidData = true, ContentSaveDB = OpenRun() });
 
         Assert.Equal((long)ContentType.CampaignMainStage, (long)json["ContentSaveDB"]!["ContentType"]!);

@@ -9,12 +9,7 @@ namespace Schale.Data.ModelMapping
     {
         #region IQueryable Mappings
 
-        // Specific FirstOrDefault / First Extensions (for IQueryable sources)
         // These methods perform FirstOrDefault/First on the database and then map the single result.
-
-        //
-        // User Data
-        // 
 
         public static AccountCurrencyDB? FirstOrDefaultMapTo(this IQueryable<AccountCurrencyDBServer> source, Expression<Func<AccountCurrencyDBServer, bool>> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
         public static AccountCurrencyDB? FirstOrDefaultMapTo(this IQueryable<AccountCurrencyDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
@@ -112,10 +107,6 @@ namespace Schale.Data.ModelMapping
         public static AccountLevelRewardDB? FirstMapTo(this IQueryable<AccountLevelRewardDBServer> source, Expression<Func<AccountLevelRewardDBServer, bool>> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper);
         public static AccountLevelRewardDB? FirstMapTo(this IQueryable<AccountLevelRewardDBServer> source, IMapper mapper) => source.First().MapInternalSingle<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper);
 
-        //
-        // Progress Data
-        // 
-
         public static MissionProgressDB? FirstOrDefaultMapTo(this IQueryable<MissionProgressDBServer> source, Expression<Func<MissionProgressDBServer, bool>> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
         public static MissionProgressDB? FirstOrDefaultMapTo(this IQueryable<MissionProgressDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
         public static MissionProgressDB? FirstMapTo(this IQueryable<MissionProgressDBServer> source, Expression<Func<MissionProgressDBServer, bool>> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
@@ -191,10 +182,6 @@ namespace Schale.Data.ModelMapping
         public static StickerBookDB? FirstMapTo(this IQueryable<StickerBookDBServer> source, Expression<Func<StickerBookDBServer, bool>> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<StickerBookDBServer, StickerBookDB>(mapper);
         public static StickerBookDB? FirstMapTo(this IQueryable<StickerBookDBServer> source, IMapper mapper) => source.First().MapInternalSingle<StickerBookDBServer, StickerBookDB>(mapper);
 
-        //
-        // Content Data
-        // 
-
         public static SingleRaidLobbyInfoDB? FirstOrDefaultMapTo(this IQueryable<SingleRaidLobbyInfoDBServer> source, Expression<Func<SingleRaidLobbyInfoDBServer, bool>> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);
         public static SingleRaidLobbyInfoDB? FirstOrDefaultMapTo(this IQueryable<SingleRaidLobbyInfoDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);
         public static SingleRaidLobbyInfoDB? FirstMapTo(this IQueryable<SingleRaidLobbyInfoDBServer> source, Expression<Func<SingleRaidLobbyInfoDBServer, bool>> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);
@@ -249,12 +236,7 @@ namespace Schale.Data.ModelMapping
 
         #region IEnumerable Mappings
 
-        // Specific FirstOrDefault / First Extensions (for IEnumerable sources)
         // These methods perform FirstOrDefault/First in-memory and then map the single result.
-
-        //
-        // User Data
-        //
 
         public static AccountCurrencyDB? FirstOrDefaultMapTo(this IEnumerable<AccountCurrencyDBServer> source, Func<AccountCurrencyDBServer, bool> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
         public static AccountCurrencyDB? FirstOrDefaultMapTo(this IEnumerable<AccountCurrencyDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<AccountCurrencyDBServer, AccountCurrencyDB>(mapper);
@@ -351,10 +333,6 @@ namespace Schale.Data.ModelMapping
         public static AccountLevelRewardDB? FirstMapTo(this IEnumerable<AccountLevelRewardDBServer> source, Func<AccountLevelRewardDBServer, bool> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper);
         public static AccountLevelRewardDB? FirstMapTo(this IEnumerable<AccountLevelRewardDBServer> source, IMapper mapper) => source.First().MapInternalSingle<AccountLevelRewardDBServer, AccountLevelRewardDB>(mapper);
 
-        //
-        // Progress Data
-        //
-
         public static MissionProgressDB? FirstOrDefaultMapTo(this IEnumerable<MissionProgressDBServer> source, Func<MissionProgressDBServer, bool> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
         public static MissionProgressDB? FirstOrDefaultMapTo(this IEnumerable<MissionProgressDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
         public static MissionProgressDB? FirstMapTo(this IEnumerable<MissionProgressDBServer> source, Func<MissionProgressDBServer, bool> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<MissionProgressDBServer, MissionProgressDB>(mapper);
@@ -429,10 +407,6 @@ namespace Schale.Data.ModelMapping
         public static StickerBookDB? FirstOrDefaultMapTo(this IEnumerable<StickerBookDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<StickerBookDBServer, StickerBookDB>(mapper);
         public static StickerBookDB? FirstMapTo(this IEnumerable<StickerBookDBServer> source, Func<StickerBookDBServer, bool> predicate, IMapper mapper) => source.First(predicate).MapInternalSingle<StickerBookDBServer, StickerBookDB>(mapper);
         public static StickerBookDB? FirstMapTo(this IEnumerable<StickerBookDBServer> source, IMapper mapper) => source.First().MapInternalSingle<StickerBookDBServer, StickerBookDB>(mapper);
-
-        //
-        // Content Data
-        //
 
         public static SingleRaidLobbyInfoDB? FirstOrDefaultMapTo(this IEnumerable<SingleRaidLobbyInfoDBServer> source, Func<SingleRaidLobbyInfoDBServer, bool> predicate, IMapper mapper) => source.FirstOrDefault(predicate).MapInternalSingle<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);
         public static SingleRaidLobbyInfoDB? FirstOrDefaultMapTo(this IEnumerable<SingleRaidLobbyInfoDBServer> source, IMapper mapper) => source.FirstOrDefault().MapInternalSingle<SingleRaidLobbyInfoDBServer, SingleRaidLobbyInfoDB>(mapper);

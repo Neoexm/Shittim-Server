@@ -79,12 +79,8 @@ public class HexaMapService
 
         foreach (var hexaUnit in hexaUnitData)
         {
-            // Copy the dump verbatim. Official's enemy entries carry exactly EntityId/Id/Location/
-            // Rotate on the wire - the dump's zero stats and null HP/dying collections round-trip
-            // as-is (zeros and nulls drop in serialization; deployed PLAYER echelons are the ones
-            // that get live stats, in DeployConcentratedEchelon). Null/zero enemy stats are NOT a
-            // "Now Loading" hang cause - official's working capture sends exactly this shape; that
-            // hang is the HexLocation2D z-coordinate drop.
+            // Copy the dump verbatim. Official's enemy entries carry exactly EntityId/Id/Location/Rotate on the wire - the dump's zero stats and null HP/dying collections round-trip as-is (zeros and nulls drop in serialization; deployed PLAYER echelons are the ones that get live stats, in DeployConcentratedEchelon).
+            // Null/zero enemy stats are NOT a "Now Loading" hang cause - official's working capture sends exactly this shape; that hang is the HexLocation2D z-coordinate drop.
             var unitInfo = new HexaUnit
             {
                 EntityId = hexaUnit.EntityId,
@@ -158,10 +154,8 @@ public class HexaMapService
 
     public static Dictionary<int, HexaTileState> AddHexaTileList(HexaTileMap hexaTileMap)
     {
-        // TileMapStates is keyed by the tile's index in HexaTileList, and HexaTileState.Id must be
-        // that same index (a HexaTile has no numeric id, only a Location). Padding the front of the
-        // map with one blank tile per strategy object shifts every real tile's index/Id by
-        // StrategyCount and desyncs the client's hex grid from the tile list.
+        // TileMapStates is keyed by the tile's index in HexaTileList, and HexaTileState.Id must be that same index (a HexaTile has no numeric id, only a Location).
+        // Padding the front of the map with one blank tile per strategy object shifts every real tile's index/Id by StrategyCount and desyncs the client's hex grid from the tile list.
         var tileDataset = new Dictionary<int, HexaTileState>();
 
         if (hexaTileMap.HexaTileList == null)
@@ -213,19 +207,10 @@ public class HexaMapService
         };
     }
 
-    /// <summary>
-    /// The map's stage-clear event, if its conditions are now satisfied.
-    ///
-    /// Clearing a stage is data-driven, not "the map is empty": all 321 dumped strategy maps carry
-    /// exactly one HexaCommandEndBattle gated by one HexaConditionUnitDead naming a single designated
-    /// boss, never the whole roster. On strategymap_1011104 the boss is 10013 while 10017 and 10018
-    /// are still standing when official ends the mission. Requiring an empty map makes the player mop
-    /// up units official never asks for, and can never be satisfied where a TileHide removes one.
-    ///
-    /// Membership is tested against the surviving enemies rather than the unit just killed, so this
-    /// keeps working once TileHide and UnitDie start removing units too. The returned objects belong
-    /// to the process-wide map cache: read them, never mutate them.
-    /// </summary>
+    // The map's stage-clear event, if its conditions are now satisfied.
+    // Clearing a stage is data-driven, not "the map is empty": all 321 dumped strategy maps carry exactly one HexaCommandEndBattle gated by one HexaConditionUnitDead naming a single designated boss, never the whole roster. On strategymap_1011104 the boss is 10013 while 10017 and 10018 are still standing when official ends the mission.
+    // Requiring an empty map makes the player mop up units official never asks for, and can never be satisfied where a TileHide removes one.
+    // Membership is tested against the surviving enemies rather than the unit just killed, so this keeps working once TileHide and UnitDie start removing units too. The returned objects belong to the process-wide map cache.
     public static (HexaEvent Event, List<long> ConditionIds, HexaCommandEndBattle Command)? FindSatisfiedEndBattle(
         HexaTileMap map,
         IReadOnlyDictionary<long, HexaUnit>? survivingEnemies,
@@ -240,25 +225,21 @@ public class HexaMapService
             if (endBattle == null)
                 continue;
 
-            // A replayed or duplicated Campaign_TacticResult must not fire the clear twice.
+            // A replayed Campaign_TacticResult must not fire the clear twice.
             if (alreadyActivated?.ContainsKey(hexaEvent.EventId) == true)
                 continue;
 
-            // No conditions means nothing to satisfy, not "satisfied by default" - this is the guard
-            // that stops an eventless or malformed map from clearing itself for free.
+            // No conditions means nothing to satisfy, not "satisfied by default" - this is the guard that stops an eventless or malformed map from clearing itself for free.
             var conditions = hexaEvent.HexaConditions;
             if (conditions == null || conditions.Count == 0)
                 continue;
 
-            // Every dump uses And. Or would need each condition's own trigger history to evaluate
-            // correctly, so rather than guess it, leave the event unfired and let the caller's
-            // fallback end the run.
+            // Every dump uses And. Or would need each condition's own trigger history to evaluate correctly, so rather than guess it,
+            // leave the event unfired and let the caller's fallback end the run.
             if (hexaEvent.MultipleConditionCheckType != MultipleConditionCheckType.And)
                 continue;
 
-            // Conservative on purpose: a condition type we do not evaluate (ArriveTile, EveryTurn,
-            // ...) is treated as unsatisfied rather than skipped, so a partially-understood event
-            // can never fire early.
+            // Conservative on purpose: a condition type we do not evaluate (ArriveTile, EveryTurn, ...) is treated as unsatisfied rather than skipped, so a partially-understood event can never fire early.
             if (!conditions.All(c => IsUnitDeadConditionSatisfied(c, survivingEnemies)))
                 continue;
 
@@ -275,7 +256,7 @@ public class HexaMapService
         if (condition is not HexaConditionUnitDead unitDead)
             return false;
 
-        // An empty id list would otherwise be vacuously true and clear the stage on the first kill.
+        // An empty id list is vacuously true and clears the stage on the first kill.
         if (unitDead.UnitEntityIds == null || unitDead.UnitEntityIds.Count == 0)
             return false;
 

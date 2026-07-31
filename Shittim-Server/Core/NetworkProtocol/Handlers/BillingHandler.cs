@@ -41,11 +41,9 @@ public class BillingHandler : ProtocolHandlerBase
         response.BlockedProductDBs = [];
         response.GachaTicketItemIdList = [];
         response.ProductMonthlyIdInMailList = [];
-        // Official's standalone response carries this (as [] when empty) and has no IsTeenage key
-        // - that's a request-side field.
+        // Official's standalone response carries this (as [] when empty) and has no IsTeenage key - that's a request-side field.
         response.DailyRecordIdInMailList = [];
         
-        // Populate BattlePassProductList
         var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
         var battlePassProductList = new List<BattlePassProductPurchaseDB>();
 
@@ -58,13 +56,11 @@ public class BillingHandler : ProtocolHandlerBase
             {
                 Log.Debug("[BillingHandler] BattlePassId: {BattlePassId}. Total Products: {ProductCount}", bp.BattlePassId, productExcels.Count);
 
-                // Targeted search for ProductBattlePass
                 var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
                 Log.Debug("[BillingHandler] Found {MatchCount} products containing ProductBattlePass type.", battlePassProducts.Count);
 
                 ProductExcelT product = null;
                 
-                // New Logic: Find product where the linked BattlePassId matches our current BP ID
                 product = battlePassProducts.FirstOrDefault(x => {
                     var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
                     return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
@@ -72,7 +68,6 @@ public class BillingHandler : ProtocolHandlerBase
 
                 if (product != null)
                 {
-                    // Find shop cash entry for this product
                     var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
                     
                     if (shopCash != null)

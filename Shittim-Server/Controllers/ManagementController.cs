@@ -16,10 +16,7 @@ using Shittim.Services.WebClient;
 
 namespace Shittim_Server.Controllers;
 
-// Always-compiled management API consumed by the Shittim Control Center desktop GUI.
-// Kept separate from AdminController so the original endpoints
-// (accounts, currency/set, mail/send, account/{id}/currencies) stay untouched and
-// are reused by the GUI alongside the richer surface below.
+// Always-compiled management API consumed by the Shittim Control Center desktop GUI. Kept separate from AdminController so the original endpoints (accounts, currency/set, mail/send, account/{id}/currencies) stay untouched and are reused by the GUI alongside the richer surface below.
 [ApiController]
 [Route("api/admin")]
 [AdminAuth]
@@ -47,8 +44,6 @@ public class ManagementController : ControllerBase
         _mapper = mapper;
     }
 
-    // status
-
     [HttpGet("status")]
     public async Task<IActionResult> Status()
     {
@@ -72,8 +67,6 @@ public class ManagementController : ControllerBase
             uptimeSeconds = (long)(DateTime.Now - ProcessStart).TotalSeconds,
         });
     }
-
-    // accounts
 
     [HttpGet("account/{serverId:long}/detail")]
     public async Task<IActionResult> AccountDetail(long serverId)
@@ -188,8 +181,7 @@ public class ManagementController : ControllerBase
         }
     }
 
-    // SQL identifiers cannot be parameterized, so any name that is interpolated into a statement is
-    // required to be a bare identifier first.
+    // SQL identifiers cannot be parameterized, so any name that is interpolated into a statement is required to be a bare identifier first.
     private static bool IsPlainSqlIdentifier(string name)
     {
         return !string.IsNullOrEmpty(name)
@@ -208,8 +200,7 @@ public class ManagementController : ControllerBase
             if (!await db.Accounts.AnyAsync(x => x.ServerId == request.ServerId))
                 return NotFound(new { error = "Account not found" });
 
-            // Cascade by hand: wipe every child table that carries an AccountServerId column,
-            // discovered from the SQLite catalogue so we never miss one.
+            // Cascade by hand: wipe every child table that carries an AccountServerId column, discovered from the SQLite catalogue so we never miss one.
             var tables = await db.Database
                 .SqlQueryRaw<string>(
                     "SELECT m.name AS Value FROM sqlite_master m " +
@@ -217,10 +208,6 @@ public class ManagementController : ControllerBase
                     "WHERE m.type='table' AND p.name='AccountServerId'")
                 .ToListAsync();
 
-            // The id is bound as a parameter rather than interpolated. A table name cannot be
-            // parameterized in SQL, so each one is checked to be a bare identifier before it is
-            // quoted into the statement; the names come from the catalogue rather than the request,
-            // and this makes it structurally impossible for one to carry SQL regardless.
             foreach (var table in tables.Distinct())
             {
                 if (!IsPlainSqlIdentifier(table))
@@ -242,8 +229,6 @@ public class ManagementController : ControllerBase
             return BadRequest(new { error = ex.GetBaseException().Message });
         }
     }
-
-    // inventory
 
     [HttpGet("account/{serverId:long}/items")]
     public async Task<IActionResult> AccountItems(long serverId)
@@ -348,8 +333,6 @@ public class ManagementController : ControllerBase
         }));
     }
 
-    // mail
-
     [HttpGet("account/{serverId:long}/mails")]
     public async Task<IActionResult> AccountMails(long serverId)
     {
@@ -403,17 +386,14 @@ public class ManagementController : ControllerBase
         }
     }
 
-    // command runner
-
     public class RunCommandRequest
     {
         public long Uid { get; set; }
         public string Command { get; set; } = "";
     }
 
-    // Always-on bridge to the full console command set (give / max / giveall /
-    // unlockall / setseason / gacha / ...). Mirrors the DEBUG-only /dev/execute-command
-    // but ships in every build so the GUI can drive it.
+    // Always-on bridge to the full console command set (give / max / giveall / unlockall / setseason / gacha / ...).
+    // Mirrors the DEBUG-only /dev/execute-command but ships in every build so the GUI can drive it.
     [HttpPost("command")]
     public async Task<IActionResult> RunCommand([FromBody] RunCommandRequest request)
     {
@@ -456,8 +436,6 @@ public class ManagementController : ControllerBase
             return BadRequest(new { error = ex.GetBaseException().Message });
         }
     }
-
-    // static pickers
 
     [HttpGet("static/items")]
     public IActionResult StaticItems([FromQuery] string? search = null, [FromQuery] int limit = 300)
@@ -555,8 +533,6 @@ public class ManagementController : ControllerBase
         return Ok(results);
     }
 
-    // gacha
-
     private static string GachaConfigPath =>
         Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "gacha_config.json"));
 
@@ -651,8 +627,6 @@ public class ManagementController : ControllerBase
         return Ok(banners);
     }
 
-    // events
-
     [HttpGet("events/seasons")]
     public IActionResult EventSeasons()
     {
@@ -705,8 +679,6 @@ public class ManagementController : ControllerBase
             final = final.OrderBy(x => x.seasonId),
         });
     }
-
-    // helpers
 
     private Dictionary<uint, string> LocalizeMap() =>
         _excel.GetTable<LocalizeEtcExcelT>()

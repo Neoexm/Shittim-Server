@@ -111,8 +111,7 @@ export default {
               <div style="font-size:12.5px;color:var(--ink-2);min-width:0;overflow-wrap:anywhere">${escapeHtml(m.comment || '')}</div>
               <div class="bc-feat">${parcels || '<span class="muted" style="font-size:12px">no attachments</span>'}</div>
               <div class="muted" style="font-size:11.5px;min-width:0;overflow-wrap:anywhere">sent ${shortDate(m.sendDate)} - expires ${shortDate(m.expireDate)}</div></div>`);
-            // delete sits in the flex row after the status pill - absolutely
-            // positioning it overlapped the pill at every window size
+            // delete sits in the flex row after the status pill - absolutely positioning it overlapped the pill at every window size
             const del = frag(`<button class="chip-x" style="flex:none">✕</button>`);
             del.addEventListener('click', async () => { await api.deleteMail({ accountServerId: uid, mailServerId: m.serverId }); toast('Mail deleted', 'warn'); reloadInbox(); });
             card.querySelector('.bc-top').appendChild(del);

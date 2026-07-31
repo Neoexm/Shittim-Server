@@ -48,11 +48,8 @@ namespace Schale.MX.Campaign
         public bool StartTile { get; set; }
     }
 
-    // The client deserializes this into a UnityEngine.Vector3 through Newtonsoft's
-    // VectorConverter, whose PopulateVector3 reads x/y/z with Extensions.Value<float>() and
-    // throws ArgumentNullException on any missing component. The gateway's global
-    // DefaultValueHandling.Ignore would otherwise drop zero components - official sends
-    // {"x":0.0,"y":240.0,"z":0.0} - so every component is forced onto the wire here.
+    // The client deserializes this into a UnityEngine.Vector3 through Newtonsoft's VectorConverter, whose PopulateVector3 reads x/y/z with Extensions.Value<float>() and throws ArgumentNullException on any missing component.
+    // The gateway's global DefaultValueHandling.Ignore would otherwise drop zero components - official sends {"x":0.0,"y":240.0,"z":0.0} - so every component is forced onto the wire here.
     public class SimpleVector3
     {
         [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
@@ -65,11 +62,9 @@ namespace Schale.MX.Campaign
         public float z { get; set; }
     }
 
-    // hex cube coordinates (x + y + z = 0), same lattice as HexLocation. the name is misleading -
-    // z is load-bearing. the strategymap dumps carry it and official puts it on the wire, omitting
-    // only zero components like every other default. drop it on either side and every enemy lands
-    // off-lattice, the client can't build the strategy map, and Mission Start on any campaign main
-    // stage does nothing.
+    // hex cube coordinates (x + y + z = 0), same lattice as HexLocation. the name is misleading - z is load-bearing.
+    // the strategymap dumps carry it and official puts it on the wire, omitting only zero components like every other default.
+    // drop it on either side and every enemy lands off-lattice, the client can't build the strategy map, and Mission Start on any campaign main stage does nothing.
     public class HexLocation2D
     {
         public int x { get; set; }

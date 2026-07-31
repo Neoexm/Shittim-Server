@@ -61,8 +61,7 @@ namespace Shittim.Commands
                 var currencies = context.Currencies.First(x => x.AccountServerId == account.ServerId);
                 var now = account.GameSettings.ServerDateTime();
 
-                // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every
-                // parcel update), so a direct Gem write would be discarded; set the sources.
+                // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every parcel update), so a direct Gem write would be discarded; set the sources.
                 if (currencyType == CurrencyTypes.Gem)
                 {
                     currencies.CurrencyDict[CurrencyTypes.GemBonus] = amount;

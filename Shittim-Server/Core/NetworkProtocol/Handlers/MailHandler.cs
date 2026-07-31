@@ -38,15 +38,12 @@ public class MailHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        // Unclaimed, unexpired only: official's CommonMailCount matches Mail_List's Count and both
-        // fall to 0 (key omitted) after Mail_Receive.
+        // Unclaimed, unexpired only: official's CommonMailCount matches Mail_List's Count and both fall to 0 (key omitted) after Mail_Receive.
         response.CommonMailCount = db
             .GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime())
             .Count();
 
-        // Report-and-consume: official's first Mail_Check after an in-session delivery carries
-        // NewMailArrived on top of the gateway's mailbox baseline (12 = 8|4) and the second is
-        // back to 8 while the mail still sits unread.
+        // Report-and-consume: official's first Mail_Check after an in-session delivery carries NewMailArrived on top of the gateway's mailbox baseline (12 = 8|4) and the second is back to 8 while the mail still sits unread.
         if (MailNotificationService.Consume(account.ServerId))
             response.ServerNotification |= ServerNotificationFlag.NewMailArrived;
 
@@ -63,8 +60,7 @@ public class MailHandler : ProtocolHandlerBase
 
         var mails = db.GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime()).ToList();
 
-        // Count is the whole unreceived mailbox, not the returned window: official's second page
-        // (PivotTime = last row's SendDate) returned 1 row but kept Count at 3.
+        // Count is the whole unreceived mailbox, not the returned window: official's second page (PivotTime = last row's SendDate) returned 1 row but kept Count at 3.
         response.MailDBs = _mapper.Map<List<MailDB>>(ApplyListWindow(mails, request.PivotTime, request.IsDescending));
         response.Count = mails.Count;
         if (account.GameSettings.EnableMultiFloorRaid)
@@ -73,21 +69,14 @@ public class MailHandler : ProtocolHandlerBase
         return response;
     }
 
-    // Official Mail_List is a SendDate-ordered window: newest first for IsDescending (the only
-    // direction the client has been seen to send), and PivotTime bounds the page inclusively -
-    // the follow-up call passes the last row's SendDate and official returns that row again
-    // (capture 2026-07-28: page 1 = 22:03:12/22:03:00/22:02:53, page 2 with pivot 22:02:53 =
-    // the 22:02:53 row). The first page's pivot is the 9999-12-31 sentinel, which bounds nothing.
+    // Official Mail_List is a SendDate-ordered window: newest first for IsDescending (the only direction the client has been seen to send), and PivotTime bounds the page inclusively - the follow-up call passes the last row's SendDate and official returns that row again (capture 2026-07-28: page 1 = 22:03:12/22:03:00/22:02:53, page 2 with pivot 22:02:53 = the 22:02:53 row).
     internal static List<MailDBServer> ApplyListWindow(
         List<MailDBServer> mails, DateTime pivotTime, bool isDescending)
     {
-        // The first-page sentinel (9999-12-31, or an unset pivot) bounds nothing in either
-        // direction - only a real timestamp from a previous page's last row narrows the window.
+        // The first-page sentinel (9999-12-31, or an unset pivot) bounds nothing in either direction - only a real timestamp from a previous page's last row narrows the window.
         var unbounded = pivotTime == default || pivotTime.Year >= 9999;
 
-        // The pivot is a SendDate the client echoes back from a previous page, and the wire
-        // truncates to whole seconds while rows are stored with sub-second precision - compare
-        // at second granularity or the pivot row excludes itself.
+        // The pivot is a SendDate the client echoes back from a previous page, and the wire truncates to whole seconds while rows are stored with sub-second precision - compare at second granularity or the pivot row excludes itself.
         var pivot = TruncateToSecond(pivotTime);
 
         var window = unbounded
@@ -119,11 +108,7 @@ public class MailHandler : ProtocolHandlerBase
         var parcelResults = new List<ParcelResult>();
         foreach (var mail in mailsToReceive)
         {
-            // Every mail type delivers its attachments, not just MailType.System (0). Official
-            // granted the rewards on ClanAttendance (11) and ExpiryChangeItem (10) mail in the
-            // captures, and this server's own seeder writes NewUserBonus (13) - all of which the
-            // old `Type == System` gate dropped on the floor while still deleting the mail, so the
-            // attachments vanished and ParcelResultDB came back with nothing but AccountCurrencyDB.
+            // Every mail type delivers its attachments, not just MailType.System (0). Official granted the rewards on ClanAttendance (11) and ExpiryChangeItem (10) mail in the captures, and this server's own seeder writes NewUserBonus (13); a `Type == System` gate drops all of those on the floor while still deleting the mail, so the attachments vanish and ParcelResultDB comes back with nothing but AccountCurrencyDB.
             if (mail.ParcelInfos != null)
             {
                 foreach (var parcel in mail.ParcelInfos)
@@ -146,10 +131,7 @@ public class MailHandler : ProtocolHandlerBase
         return response;
     }
 
-    // Semi-permanent mailbox (second mail tab: monthly product / battle pass recurring rewards).
-    // This server never seeds semi-permanent mail, so the box is always empty - but the client
-    // queries it right after clearing the normal box, and an unhandled protocol there throws the
-    // user back to the title screen with "server failed to process request".
+    // Semi-permanent mailbox (second mail tab: monthly product / battle pass recurring rewards). This server never seeds semi-permanent mail, so the box is always empty - but the client queries it right after clearing the normal box, and an unhandled protocol there throws the user back to the title screen with "server failed to process request".
     [ProtocolHandler(Protocol.Mail_ListSemiPermanent)]
     public async Task<MailListSemiPermanentResponse> ListSemiPermanent(
         SchaleDataContext db,
@@ -164,8 +146,7 @@ public class MailHandler : ProtocolHandlerBase
         return response;
     }
 
-    // Defensive: the semi-permanent box is empty, so the client won't normally reach this. If a
-    // semi-permanent mail ever exists, receive the single requested mail like a regular one.
+    // The semi-permanent box is empty, so the client won't normally reach this; if a semi-permanent mail ever exists, receive the single requested mail like a regular one.
     [ProtocolHandler(Protocol.Mail_ReceiveSemiPermanent)]
     public async Task<MailReceiveSemiPermanentResponse> ReceiveSemiPermanent(
         SchaleDataContext db,

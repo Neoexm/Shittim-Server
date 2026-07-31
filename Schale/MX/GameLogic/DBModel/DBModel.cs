@@ -537,8 +537,7 @@ namespace Schale.MX.GameLogic.DBModel
         public bool IsFavorite { get; set; }
         public List<long>? EquipmentServerIds { get; set; }
         public Dictionary<int, int>? PotentialStats { get; set; }
-        // Server-side slot bookkeeping; official never sends it (verified across 59 characters
-        // with equipment) - the client reads EquipmentServerIds instead.
+        // Server-side slot bookkeeping; official never sends it (verified across 59 characters with equipment) - the client reads EquipmentServerIds instead.
         [Newtonsoft.Json.JsonIgnore]
         public Dictionary<int, long>? EquipmentSlotAndDBIds { get; set; }
     }
@@ -1040,8 +1039,7 @@ namespace Schale.MX.GameLogic.DBModel
         public long TSSInteractionServerId { get; set; }
         public EchelonStatusFlag UsingFlag { get; set; }
         public bool IsUsing { get; set; }
-        // Derived slot views the official server never puts on the wire - the client recomputes
-        // them from MainSlotServerIds/SupportSlotServerIds (verified across 26 official echelons).
+        // Derived slot views the official server never puts on the wire - the client recomputes them from MainSlotServerIds/SupportSlotServerIds (verified across 26 official echelons).
         [Newtonsoft.Json.JsonIgnore]
         public List<long>? AllCharacterServerIds { get; set; }
         [Newtonsoft.Json.JsonIgnore]
@@ -1593,8 +1591,7 @@ namespace Schale.MX.GameLogic.DBModel
 
     public class MissionProgressDB
     {
-        // Official MissionProgressDB wire items carry only MissionUniqueId/Complete/StartTime/
-        // ProgressParameters - never the row ids (verified against live captures).
+        // Official MissionProgressDB wire items carry only MissionUniqueId/Complete/StartTime/ProgressParameters - never the row ids (verified against live captures).
         [Newtonsoft.Json.JsonIgnore]
         public long ServerId { get; set; }
         [Newtonsoft.Json.JsonIgnore]
@@ -1992,9 +1989,8 @@ namespace Schale.MX.GameLogic.DBModel
     {
         [Newtonsoft.Json.JsonIgnore]
         public long AccountServerId { get; set; }
-        // The wire name has no typo: the client sends and the official server returns
-        // "ScenarioGroupUniqueId". Without this the client reads 0 for every cleared group and
-        // replays story it has already watched.
+        // The wire name has no typo: the client sends and the official server returns "ScenarioGroupUniqueId".
+        // Without this the client reads 0 for every cleared group and replays story it has already watched.
         [Newtonsoft.Json.JsonProperty("ScenarioGroupUniqueId")]
         public long ScenarioGroupUqniueId { get; set; }
         public long ScenarioType { get; set; }

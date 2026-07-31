@@ -49,8 +49,7 @@ public class ParcelResolver
         IsConsume = isConsume;
         ParcelResult = parcelResult ?? new ParcelResultDB
         {
-            // AccountDB is deliberately not pre-filled: FinalizeUpdates adds it only if the reward
-            // actually modified the account row (see the comment there).
+            // AccountDB is deliberately not pre-filled: FinalizeUpdates adds it only if the reward actually modified the account row.
             AccountCurrencyDB = context.Currencies.FirstMapTo(x => x.AccountServerId == account.ServerId, mapper),
             AcademyLocationDBs = new List<AcademyLocationDB>(),
             CharacterDBs = new List<CharacterDB>(),
@@ -244,9 +243,7 @@ public class ParcelResolver
         ParcelResult.AdditionalAccountExp += isLevelMaxed ? 0 : newbieExp;
         ParcelResult.NewbieBoostAccountExp += isLevelMaxed ? 0 : newbieExp;
 
-        // Account exp is a parcel like any other on official's wire: it shows up in ParcelForMission
-        // as {Type:9, Id:1}. BuildParcel is what keeps it out of DisplaySequence - the exp bars are
-        // drawn from the Base/Additional/NewbieBoost fields above, not from the reward strip.
+        // Account exp is a parcel like any other on official's wire: it shows up in ParcelForMission as {Type:9, Id:1}. BuildParcel is what keeps it out of DisplaySequence - the exp bars are drawn from the Base/Additional/NewbieBoost fields above, not from the reward strip.
         CreateParcelInfo(parcel);
     }
 
@@ -270,9 +267,7 @@ public class ParcelResolver
         Context.Characters.Update(character);
         _updatedCharacters[character.UniqueId] = character;
 
-        // Same as account exp: {Type:10, Id:<characterUniqueId>} belongs in ParcelForMission but not
-        // in the reward strip. Official's per-tactic ParcelResultDB is nothing but these six entries
-        // plus the CharacterDBs they updated.
+        // Same as account exp: {Type:10, Id:<characterUniqueId>} belongs in ParcelForMission but not in the reward strip. Official's per-tactic ParcelResultDB is nothing but these six entries plus the CharacterDBs they updated.
         CreateParcelInfo(parcel);
     }
 
@@ -482,13 +477,8 @@ public class ParcelResolver
         if (Account.Level != accountCurrencyDB.AccountLevel)
             accountCurrencyDB.UpdateAccountLevel(Account.Level);
 
-        // Official includes AccountDB in a ParcelResultDB only when the reward changed the account
-        // row itself. Every captured reward claim (Mail_Receive x1, Mission_MultipleReward x2)
-        // granted currency/items and carried no AccountDB, so mirror that by asking the change
-        // tracker - this must happen before SaveChanges, while the entity is still Modified.
-        // Scan the tracker rather than calling Context.Entry(Account): the account is frequently
-        // loaded on a different context, and Entry() would attach it here (throwing if this
-        // context already tracks the same row).
+        // Official includes AccountDB in a ParcelResultDB only when the reward changed the account row itself. Every captured reward claim (Mail_Receive x1, Mission_MultipleReward x2) granted currency/items and carried no AccountDB, so the change tracker decides, which has to happen before SaveChanges while the entity is still Modified.
+        // Scan the tracker rather than calling Context.Entry(Account): the account is frequently loaded on a different context, and Entry() would attach it here (throwing if this context already tracks the same row).
         var trackedAccount = Context.ChangeTracker.Entries<AccountDBServer>()
             .FirstOrDefault(x => x.Entity.ServerId == Account.ServerId);
         if (trackedAccount?.State == EntityState.Modified)

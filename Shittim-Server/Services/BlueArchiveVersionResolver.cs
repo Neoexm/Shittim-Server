@@ -20,10 +20,8 @@ namespace BlueArchiveAPI.Services
         private readonly ILogger _logger;
         private const string CacheFilePath = "./config/ba_version_cache.json";
 
-        // PureAPK constants
         private const string PureApkVersionUrl = "https://api.pureapk.com/m/v3/cms/app_version?hl=en-US&package_name=com.nexon.bluearchive";
         
-        // Nexon Patch API constants
         private const string NexonPatchApiUrl = "https://api-pub.nexon.com/patch/v1.1/version-check";
         private const string MarketGameId = "com.nexon.bluearchive";
         private const string MarketCode = "playstore";
@@ -50,7 +48,6 @@ namespace BlueArchiveAPI.Services
                 response.EnsureSuccessStatusCode();
                 var body = await response.Content.ReadAsStringAsync(ct);
 
-                // Extract version using Regex: X.Y.Z
                 var match = Regex.Match(body, @"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)");
                 
                 if (match.Success)
@@ -156,14 +153,12 @@ namespace BlueArchiveAPI.Services
             bool forceRefresh = false,
             CancellationToken ct = default)
         {
-            // 1. Check for manual overrides
             if (!string.IsNullOrWhiteSpace(overrideVersionId) && !string.IsNullOrWhiteSpace(overrideCdnBaseUrl))
             {
                 _logger.LogWarning("Using manual override for VersionId: {VersionId} and CdnBaseUrl: {CdnBaseUrl}", overrideVersionId, overrideCdnBaseUrl);
                 return (overrideVersionId, overrideCdnBaseUrl);
             }
 
-            // 2. Try to load from cache
             VersionIdCache? cache = null;
             try
             {
@@ -187,19 +182,16 @@ namespace BlueArchiveAPI.Services
                 return (cache.VersionId, cache.CdnBaseUrl);
             }
 
-            // 3. Fetch fresh data
             try
             {
                 var resourcePath = await GetResourcePathAsync(ct);
                 var (versionId, cdnBaseUrl) = ParseVersionIdFromResourcePath(resourcePath);
 
-                // 4. Save to cache
                 var newCache = new VersionIdCache
                 {
                     VersionId = versionId,
                     CdnBaseUrl = cdnBaseUrl,
-                    // Second call: GetResourcePathAsync already fetched this internally, but the
-                    // value isn't threaded back out. Cheap enough (cached upstream) to just re-ask.
+                    // Second call: GetResourcePathAsync already fetched this internally, but the value isn't threaded back out. Cheap enough (cached upstream) to just re-ask.
                     SourceBuildVersion = await GetGlobalAndroidVersionAsync(ct),
                     LastUpdatedUtc = DateTime.UtcNow
                 };

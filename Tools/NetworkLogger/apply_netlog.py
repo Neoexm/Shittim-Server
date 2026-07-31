@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #  Blue Archive client Network Logger  -  self-contained in-place patcher
-#  Logs EVERY server request and response (full, untruncated plaintext JSON,
-#  as the client sees it) to:
+#  Logs EVERY server request and response (full, untruncated plaintext JSON, as the client sees it) to:
 #     <GameDir>\DiagnosticLogs\NetworkLog.txt
 #
 #  HOW TO USE
