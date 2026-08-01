@@ -64,12 +64,17 @@ public class MissionHandler : ProtocolHandlerBase
         // Official's MissionHistoryUniqueIds carries claimed-mission ids only - never campaign stage data. In the 2026-07-28 capture pair the account-wide list is every claim once, plus a second copy of exactly the claims whose id is NOT in MissionExcel (its 78 guide-mission claims, ids 1000200-1000375 in GuideMissionExcel's range), and the event-scoped list is exactly that non-MissionExcel subset.
         // An id the client cannot resolve against an excel kills the mission screen outright - it renders from this login-cached response without any further request, so nothing loads and no error reaches the wire.
         // CampaignStageHistory.StoryUniqueId is 0 on every row written here, so campaign history must not be folded in.
-        var claims = db.GetAccountMissionHistories(account.ServerId)
-            .Select(x => x.MissionUniqueId)
+        // Daily/weekly claims must not survive their reset window: the client has no time axis on MissionHistoryUniqueIds and treats membership as claimed-forever, so a stale daily claim leaves that task permanently unclaimable. Official's 875-claim capture list is achievements for the same reason.
+        var missionExcels = _excelService.GetTable<MissionExcelT>();
+        var claims = CurrentWindowClaims(
+            db.GetAccountMissionHistories(account.ServerId).AsEnumerable()
+                .Select(x => (x.MissionUniqueId, x.CompleteTime)),
+            missionExcels.ToDictionary(x => x.Id, x => x.ResetType),
+            account.GameSettings.ServerDateTime())
             .Distinct()
             .ToList();
 
-        var missionExcelIds = _excelService.GetTable<MissionExcelT>().Select(x => x.Id).ToHashSet();
+        var missionExcelIds = missionExcels.Select(x => x.Id).ToHashSet();
         var guideOrEventIds = _excelService.GetTable<GuideMissionExcelT>().Select(x => x.Id)
             .Concat(_excelService.GetTable<EventContentMissionExcelT>().Select(x => x.Id))
             .ToHashSet();
@@ -95,6 +100,26 @@ public class MissionHandler : ProtocolHandlerBase
         response.ClearedOrignalMissionIds = BuildClearedOriginalMissionIds(db, account, request.EventContentId);
 
         return response;
+    }
+
+    // The game day rolls at 04:00 and weeks start Monday, same windows as ShopManager.PeriodStart. Ids outside MissionExcel (guide/event claims) have no reset type and always survive.
+    internal static List<long> CurrentWindowClaims(
+        IEnumerable<(long MissionUniqueId, DateTime CompleteTime)> histories,
+        Dictionary<long, MissionResetType> resetTypeById,
+        DateTime now)
+    {
+        var dayStart = (now.TimeOfDay < TimeSpan.FromHours(4) ? now.AddDays(-1) : now).Date.AddHours(4);
+        var weekStart = dayStart.AddDays(-(((int)dayStart.DayOfWeek + 6) % 7));
+
+        return histories
+            .Where(h => resetTypeById.GetValueOrDefault(h.MissionUniqueId) switch
+            {
+                MissionResetType.Daily => h.CompleteTime >= dayStart,
+                MissionResetType.Weekly => h.CompleteTime >= weekStart,
+                _ => true,
+            })
+            .Select(h => h.MissionUniqueId)
+            .ToList();
     }
 
     // Official's account-wide list is every resolvable claim once plus a second copy of the non-MissionExcel claims, and the event-scoped list is only that non-MissionExcel subset (verified against the 2026-07-28 capture: 953 = 875 distinct claims + the 78 guide claims repeated; the event call returns exactly those 78).

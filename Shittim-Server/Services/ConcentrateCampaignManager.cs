@@ -280,6 +280,10 @@ public class ConcentrateCampaignManager
         if (stageSaveData == null)
             throw new InvalidOperationException($"Campaign stage save not found for stage {stageReq.StageUniqueId}");
 
+        // the fee is charged when the run actually starts, not at map entry - backing out of echelon select is free, and Confirm fires once per run so a resumed save can't pay twice
+        if (stageSaveData.CampaignState == CampaignState.BeforeStart && stageSaveData.StageEntranceFee is { Count: > 0 })
+            await _parcelHandler.BuildParcel(context, account, stageSaveData.StageEntranceFee, isConsume: true);
+
         var deployedEchelonInfos = stageSaveData.EchelonInfos?.Values.ToList() ?? new List<HexaUnit>();
 
         stageSaveData.CampaignState = CampaignState.PlayerPhase;

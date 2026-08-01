@@ -235,6 +235,7 @@ namespace Shittim_Server.Managers
             existHistoryDb.Star1Flag = existHistoryDb.Star1Flag || newHistoryDb.Star1Flag;
             existHistoryDb.Star2Flag = existHistoryDb.Star2Flag || newHistoryDb.Star2Flag;
             existHistoryDb.Star3Flag = existHistoryDb.Star3Flag || newHistoryDb.Star3Flag;
+            existHistoryDb.IsClearedEver = existHistoryDb.IsClearedEver || newHistoryDb.IsClearedEver;
 
             existHistoryDb.TodayPlayCount += 1;
             existHistoryDb.LastPlay = dateTime;

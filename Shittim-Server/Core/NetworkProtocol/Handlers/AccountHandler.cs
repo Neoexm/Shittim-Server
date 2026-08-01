@@ -336,6 +336,16 @@ public class AccountHandler : ProtocolHandlerBase
             await db.SaveChangesAsync();
         }
 
+        // The sub-stage and skip clear paths used to write history rows without IsClearedEver, which is the only flag the client's CampaignService reads for unlocks - hard tabs, extra stages and the next chapter all stayed locked. Those rows stamped FirstClearRewardReceive, rows from lost attempts didn't, so that's the repair condition.
+        var unlabeledClears = db.GetAccountCampaignStageHistories(account.ServerId)
+            .Where(x => !x.IsClearedEver && x.FirstClearRewardReceive != null).ToList();
+        if (unlabeledClears.Count > 0)
+        {
+            foreach (var history in unlabeledClears)
+                history.IsClearedEver = true;
+            await db.SaveChangesAsync();
+        }
+
         response.CharacterListResponse = new CharacterListResponse
         {
             CharacterDBs = db.GetAccountCharacters(account.ServerId).ToMapList(_mapper),

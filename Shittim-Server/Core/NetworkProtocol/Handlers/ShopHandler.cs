@@ -260,6 +260,22 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        var exchange = await _shopManager.TryBuyStudent(db, account, request);
+        if (exchange != null)
+        {
+            var (currency, acquired, results) = exchange.Value;
+            response.GemBonusRemain = currency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
+            response.GemPaidRemain = currency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
+            response.GachaResults = results;
+            response.AcquiredItems = acquired;
+            response.UpdateTime = account.GameSettings.ServerDateTime();
+            response.PickupFirstGetHistoryDBs = [];
+            response.ServerTimeTicks = account.GameSettings.ServerDateTimeTicks();
+
+            await db.SaveChangesAsync();
+            return response;
+        }
+
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, request);
         response.GemBonusRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
         response.GemPaidRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
@@ -348,6 +364,20 @@ public class ShopHandler : ProtocolHandlerBase
             FreeRecruitId = request.FreeRecruitId,
             Cost = request.Cost
         };
+
+        var exchange = await _shopManager.TryBuyStudent(db, account, req3);
+        if (exchange != null)
+        {
+            var (currency, acquired, results) = exchange.Value;
+            response.GemBonusRemain = currency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
+            response.GemPaidRemain = currency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemPaid);
+            response.GachaResults = results;
+            response.AcquiredItems = acquired;
+            response.UpdateTime = account.GameSettings.ServerDateTime();
+
+            await db.SaveChangesAsync();
+            return response;
+        }
 
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
         response.GemBonusRemain = accountCurrency.CurrencyDict.GetValueOrDefault(CurrencyTypes.GemBonus);
@@ -600,6 +630,7 @@ public class ShopHandler : ProtocolHandlerBase
         return response;
     }
 
+    // The secret stone shop rides its own protocol (the client's ShopBuyEligmaNetworkTask): each shop row is one character's eleph, eligma in and stones out.
     [ProtocolHandler(Protocol.Shop_BuyEligma)]
     public async Task<ShopBuyEligmaResponse> BuyEligma(
         SchaleDataContext db,
@@ -607,6 +638,67 @@ public class ShopHandler : ProtocolHandlerBase
         ShopBuyEligmaResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        ValidatePurchaseCount(request.PurchaseCount);
+
+        var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
+        if (shopExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
+
+        var goodsExcel = _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == request.GoodsUniqueId);
+        if (goodsExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsUniqueId} not found");
+
+        var purchaseHistory = await ShopManager.EnsurePurchasable(
+            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+
+        var consumeParcels = new List<ParcelInfo>();
+        for (int i = 0; i < (goodsExcel.ConsumeParcelType ?? []).Count; i++)
+        {
+            consumeParcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = goodsExcel.ConsumeParcelType[i], Id = goodsExcel.ConsumeParcelId[i] },
+                Amount = goodsExcel.ConsumeParcelAmount[i] * request.PurchaseCount
+            });
+        }
+
+        var rewardParcels = new List<ParcelInfo>();
+        for (int i = 0; i < (goodsExcel.ParcelType ?? []).Count; i++)
+        {
+            rewardParcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = goodsExcel.ParcelType[i], Id = goodsExcel.ParcelId[i] },
+                Amount = goodsExcel.ParcelAmount[i] * request.PurchaseCount
+            });
+        }
+
+        var consumeResolver = await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
+
+        // the client applies the eligma spend through ConsumeResultDB (its ItemInventory removal path), not through the reward parcel
+        response.ConsumeResultDB = new ConsumeResultDB
+        {
+            RemovedItemServerIds = consumeResolver.ParcelResult.RemovedItemIds,
+            UsedItemServerIdAndRemainingCounts = consumeResolver.ParcelResult.ItemDBs.ToDictionary(x => x.Key, x => x.Value.StackCount)
+        };
+
+        var parcelResultDB = new ParcelResultDB();
+        await _parcelHandler.BuildParcel(db, account, rewardParcels, parcelResultDB);
+        parcelResultDB.AcquiredItems = rewardParcels;
+        response.ParcelResultDB = parcelResultDB;
+
+        purchaseHistory.PurchaseCount += request.PurchaseCount;
+
+        response.ShopProductDB = new ShopProductDB
+        {
+            ShopExcelId = request.ShopUniqueId,
+            Category = shopExcel.CategoryType,
+            DisplayOrder = shopExcel.DisplayOrder,
+            PurchaseCount = purchaseHistory.PurchaseCount,
+            SoldOut = shopExcel.PurchaseCountLimit > 0 && purchaseHistory.PurchaseCount >= shopExcel.PurchaseCountLimit,
+            PurchaseCountLimit = shopExcel.PurchaseCountLimit
+        };
+
+        await db.SaveChangesAsync();
 
         return response;
     }

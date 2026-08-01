@@ -74,6 +74,33 @@ public class ShopManager
         return (parcelResolver.ParcelResult.AccountCurrencyDB, consumedItems, gachaAmount);
     }
 
+    // The recruit point exchange arrives on the gacha protocols, not Shop_BuyMerchandise: the client's ShopRecruitBuyStudentNetworkTask sends Shop_BuyGacha3 (Shop_PickupSelectionGachaBuy on selection banners) with GoodsId pointing at the RecruitSellection goods and Cost carrying the coins. That goods rewards the chosen character directly, so it must never be rolled as a ten-pull.
+    public async Task<(AccountCurrencyDB, List<ItemDB>, List<GachaResult>)?> TryBuyStudent(
+        SchaleDataContext context, AccountDBServer account, ShopBuyGacha3Request req)
+    {
+        var goods = _goodsExcels.FirstOrDefault(x => x.Id == req.GoodsId);
+        if (goods == null || goods.ParcelType == null)
+            return null;
+
+        var characterSlot = goods.ParcelType.IndexOf(ParcelType.Character);
+        if (characterSlot < 0)
+            return null;
+
+        var (accountCurrency, consumedItems, _) = await ConsumeCurrency(context, account, req);
+
+        var character = _characterExcels.GetCharacter(goods.ParcelId[characterSlot]);
+        var gachaList = new List<GachaResult>();
+        var itemList = new List<ItemDBServer>();
+        await GachaService.AddGachaResult(context, account, _mapper, character, gachaList, itemList);
+
+        // the coin's post-consume stack rides AcquiredItems, same as the pull path reporting the coins it awards
+        var acquired = itemList.ToMapList(_mapper);
+        if (consumedItems != null)
+            acquired.AddRange(consumedItems);
+
+        return (accountCurrency, acquired, gachaList);
+    }
+
     public async Task<(List<ItemDBServer>, List<GachaResult>)> CreateTenGacha(
         SchaleDataContext context, AccountDBServer account, ShopBuyGacha3Request req, long gachaAmount)
     {
