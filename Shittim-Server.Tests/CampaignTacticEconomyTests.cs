@@ -91,7 +91,7 @@ public class CampaignTacticEconomyTests(ITestOutputHelper output)
     [Fact]
     public void OnlyTheDefaultTaggedRowsAreRolledAsDrops()
     {
-        // FirstClear and ThreeStar rows live in the same reward group and carry probabilities of their own, so rolling the whole group - which the sub-stage and sweep paths still do - re-grants the once-per-account rewards on every clear.
+        // FirstClear and ThreeStar rows live in the same reward group and carry probabilities of their own, so rolling the whole group re-grants the once-per-account rewards on every clear.
         // probabilities are pinned at 10000 so the tag decides the roll, not the RNG.
         var rewards = new List<CampaignStageRewardExcelT>
         {

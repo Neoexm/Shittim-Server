@@ -26,7 +26,7 @@ public class CampaignClearUnlockTests
         var account = NewAccount(db);
         var stageId = FirstNormalStage();
 
-        var (history, _) = await Manager().CampaignSubStageResult(db, account, new CampaignSubStageResultRequest
+        var (history, _, _, _) = await Manager().CampaignSubStageResult(db, account, new CampaignSubStageResultRequest
         {
             SessionKey = new SessionKey { AccountServerId = account.ServerId, MxToken = "test" },
             Summary = ClearedBattle(stageId)
@@ -54,7 +54,7 @@ public class CampaignClearUnlockTests
         });
         db.SaveChanges();
 
-        var (history, _) = await Manager().CampaignSubStageResult(db, account, new CampaignSubStageResultRequest
+        var (history, _, _, _) = await Manager().CampaignSubStageResult(db, account, new CampaignSubStageResultRequest
         {
             SessionKey = new SessionKey { AccountServerId = account.ServerId, MxToken = "test" },
             Summary = ClearedBattle(stageId)

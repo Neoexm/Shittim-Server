@@ -26,6 +26,7 @@ public class ParcelHandler
     private readonly List<AccountLevelExcelT> _accountLevelExcels;
     private readonly List<GachaElementExcelT> _gachaElementExcels;
     private readonly List<CostumeExcelT> _costumeExcels;
+    private readonly List<CurrencyExcelT> _currencyExcels;
 
     public ParcelHandler(ExcelTableService excelService, IMapper mapper)
     {
@@ -40,6 +41,7 @@ public class ParcelHandler
         _accountLevelExcels = _excelService.GetTable<AccountLevelExcelT>();
         _gachaElementExcels = _excelService.GetTable<GachaElementExcelT>();
         _costumeExcels = _excelService.GetTable<CostumeExcelT>();
+        _currencyExcels = _excelService.GetTable<CurrencyExcelT>();
 
         _characterExpData = new ExpLevelData().ConvertExpLevelData(characterLevelExcel);
         _favorExpData = new ExpLevelData().ConvertExpLevelData(favorLevelExcel);
@@ -72,7 +74,7 @@ public class ParcelHandler
         ParcelResultDB? parcelResultDB = null,
         bool isConsume = false)
     {
-        var parcelResolver = new ParcelResolver(context, account, _mapper, parcelResultDB, isConsume);
+        var parcelResolver = new ParcelResolver(context, account, _mapper, parcelResultDB, isConsume, _currencyExcels);
         if (parcelResultList.Count == 0)
             return parcelResolver;
 

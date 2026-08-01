@@ -21,6 +21,7 @@ public class ParcelResolver
     private AccountDBServer Account { get; set; }
     private IMapper Mapper { get; set; }
     private bool IsConsume { get; set; }
+    private List<CurrencyExcelT> CurrencyExcels { get; set; }
 
     public ParcelResultDB ParcelResult { get; set; }
     public List<ParcelInfo> ParcelInfos { get; set; } = [];
@@ -41,12 +42,14 @@ public class ParcelResolver
         AccountDBServer account,
         IMapper mapper,
         ParcelResultDB? parcelResult,
-        bool isConsume)
+        bool isConsume,
+        List<CurrencyExcelT> currencyExcels)
     {
         Context = context;
         Account = account;
         Mapper = mapper;
         IsConsume = isConsume;
+        CurrencyExcels = currencyExcels;
         ParcelResult = parcelResult ?? new ParcelResultDB
         {
             // AccountDB is deliberately not pre-filled: FinalizeUpdates adds it only if the reward actually modified the account row.
@@ -130,6 +133,27 @@ public class ParcelResolver
 
         accountCurrencyDB.UpdateCurrency(type, amount, dateTime);
         accountCurrencyDB.UpdateGem(dateTime);
+
+        // AP held past OverChargeLimit is invisible to the player - the client clamps the counter at 999, so a stored 1400 spends down without the number ever moving. Official never stores the excess: it goes out as an InventoryFull mail.
+        if (!IsConsume && type == CurrencyTypes.ActionPoint)
+        {
+            var overChargeLimit = CurrencyExcels.First(x => x.CurrencyType == CurrencyTypes.ActionPoint).OverChargeLimit;
+            var held = accountCurrencyDB.CurrencyDict[type];
+            if (held > overChargeLimit)
+            {
+                accountCurrencyDB.CurrencyDict[type] = overChargeLimit;
+                Context.Mails.Add(new MailDBServer
+                {
+                    AccountServerId = Account.ServerId,
+                    Type = MailType.InventoryFull,
+                    SendDate = dateTime,
+                    ExpireDate = dateTime.AddDays(7),
+                    ParcelInfos = [new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = (long)CurrencyTypes.ActionPoint }, Amount = held - overChargeLimit }],
+                    RemainParcelInfos = new List<ParcelInfo>()
+                });
+                MailNotificationService.MarkNewMail(Account.ServerId);
+            }
+        }
 
         accountCurrencyDB.UpdateAcademyLocationRankSum(Context.GetAccountAcademyLocations(Account.ServerId).ToList());
 

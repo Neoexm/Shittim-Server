@@ -7,6 +7,7 @@ using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
 using Schale.MX.Logic.Battles.Summary;
 using Schale.MX.Logic.Battles;
+using Schale.MX.Core.Math;
 using BlueArchiveAPI.Services;
 using Shittim_Server.Services;
 
@@ -96,13 +97,17 @@ namespace Shittim_Server.Managers
             return (historyDb, parcelResultDb);
         }
 
-        public async Task<(CampaignStageHistoryDBServer, ParcelResultDB)> CampaignSubStageResult(
+        public async Task<(CampaignStageHistoryDBServer, ParcelResultDB, List<ParcelInfo>, List<ParcelInfo>)> CampaignSubStageResult(
             SchaleDataContext context, AccountDBServer account, CampaignSubStageResultRequest req)
         {
             var campaignExcel = _campaignStageExcels.GetCampaignStageId(req.Summary.StageId);
             var dateTime = account.GameSettings.ServerDateTime();
             CampaignStageHistoryDBServer historyDb = new();
 
+            // FirstClear and ThreeStar rows sit in the same reward group as the drops with 100% probabilities of their own, so the old roll-everything path paid the once-per-account pyroxene again on every clear. They gate on the history's receive dates now, like the concentrate path.
+            var grantFirstClear = false;
+            var grantThreeStar = false;
+
             if (CheckIfCleared(req.Summary))
             {
                 var chapterId = _campaignChapterExcels.GetChapterIdFromStageId(req.Summary.StageId);
@@ -113,37 +118,53 @@ namespace Shittim_Server.Managers
                 {
                     var existHistory = context.GetAccountCampaignStageHistories(req.AccountId)
                         .Where(x => x.StageUniqueId == req.Summary.StageId).First();
+                    grantFirstClear = existHistory.FirstClearRewardReceive == null;
                     MergeExistHistoryWithNew(context, existHistory, historyDb, dateTime);
+                    grantThreeStar = existHistory.Star1Flag && existHistory.Star2Flag && existHistory.Star3Flag && existHistory.StarRewardReceive == null;
+                    if (grantFirstClear) existHistory.FirstClearRewardReceive = dateTime;
+                    if (grantThreeStar) existHistory.StarRewardReceive = dateTime;
 
                     historyDb = existHistory;
                 }
                 else
+                {
+                    grantFirstClear = true;
+                    grantThreeStar = historyDb.Star1Flag && historyDb.Star2Flag && historyDb.Star3Flag;
+                    // the ctor stamps both receive dates; a clear short of three stars has to leave the star claim open for the run that completes it
+                    if (!grantThreeStar) historyDb.StarRewardReceive = null;
                     context.CampaignStageHistories.Add(historyDb);
+                }
             }
             else
             {
                 var retreatParcel = await CampaignRetreat(context, account, req.Summary.StageId);
-                return (historyDb, retreatParcel);
+                return (historyDb, retreatParcel, [], []);
             }
-            
-            var rewardDatas = _campaignStageRewardExcels.GetAllRewardsByGroupId(campaignExcel.CampaignStageRewardId);
-            var parcelInfo = GetCalcProbability(rewardDatas);
+
+            var rewardDatas = _campaignStageRewardExcels.GetAllRewardsByGroupId(campaignExcel.CampaignStageRewardId).ToList();
+            var firstClear = grantFirstClear ? TaggedRewards(rewardDatas, RewardTag.FirstClear) : new List<ParcelResult>();
+            var threeStar = grantThreeStar ? TaggedRewards(rewardDatas, RewardTag.ThreeStar) : new List<ParcelResult>();
+
+            var parcelInfo = firstClear.Concat(ConcentrateCampaignManager.RolledDrops(rewardDatas)).ToList();
             parcelInfo.Add(new ParcelResult(ParcelType.AccountExp, 0, campaignExcel.StageEnterCostAmount));
+            parcelInfo.AddRange(threeStar);
             var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelInfo);
             var parcelResultDb = parcelResolver.ParcelResult;
 
             await context.SaveChangesAsync();
 
-            return (historyDb, parcelResultDb);
+            return (historyDb, parcelResultDb, ToParcelInfos(firstClear), ToParcelInfos(threeStar));
         }
 
-        public async Task<(CampaignStageHistoryDBServer, ParcelResultDB)> CampaignMainStageStrategySkipResult(
+        public async Task<(CampaignStageHistoryDBServer, ParcelResultDB, List<ParcelInfo>, List<ParcelInfo>)> CampaignMainStageStrategySkipResult(
             SchaleDataContext context, AccountDBServer account, CampaignMainStageStrategySkipResultRequest req)
         {
             var campaignExcel = _campaignStageExcels.GetCampaignStageId(req.Summary.StageId);
             var dateTime = account.GameSettings.ServerDateTime();
 
             CampaignStageHistoryDBServer historyDb = new();
+            var grantFirstClear = false;
+            var grantThreeStar = false;
 
             if (CheckIfCleared(req.Summary))
             {
@@ -155,28 +176,41 @@ namespace Shittim_Server.Managers
                 {
                     var existHistory = context.GetAccountCampaignStageHistories(req.AccountId)
                         .Where(x => x.StageUniqueId == req.Summary.StageId).First();
+                    grantFirstClear = existHistory.FirstClearRewardReceive == null;
                     MergeExistHistoryWithNew(context, existHistory, historyDb, dateTime);
+                    grantThreeStar = existHistory.Star1Flag && existHistory.Star2Flag && existHistory.Star3Flag && existHistory.StarRewardReceive == null;
+                    if (grantFirstClear) existHistory.FirstClearRewardReceive = dateTime;
+                    if (grantThreeStar) existHistory.StarRewardReceive = dateTime;
 
                     historyDb = existHistory;
                 }
                 else
+                {
+                    grantFirstClear = true;
+                    grantThreeStar = historyDb.Star1Flag && historyDb.Star2Flag && historyDb.Star3Flag;
+                    if (!grantThreeStar) historyDb.StarRewardReceive = null;
                     context.CampaignStageHistories.Add(historyDb);
+                }
             }
             else
             {
                 var retreatParcel = await CampaignRetreat(context, account, req.Summary.StageId);
-                return (historyDb, retreatParcel);
+                return (historyDb, retreatParcel, [], []);
             }
-            
-            var rewardDatas = _campaignStageRewardExcels.GetAllRewardsByGroupId(campaignExcel.CampaignStageRewardId);
-            var parcelInfo = GetCalcProbability(rewardDatas);
+
+            var rewardDatas = _campaignStageRewardExcels.GetAllRewardsByGroupId(campaignExcel.CampaignStageRewardId).ToList();
+            var firstClear = grantFirstClear ? TaggedRewards(rewardDatas, RewardTag.FirstClear) : new List<ParcelResult>();
+            var threeStar = grantThreeStar ? TaggedRewards(rewardDatas, RewardTag.ThreeStar) : new List<ParcelResult>();
+
+            var parcelInfo = firstClear.Concat(ConcentrateCampaignManager.RolledDrops(rewardDatas)).ToList();
             parcelInfo.Add(new ParcelResult(ParcelType.AccountExp, 0, campaignExcel.StageEnterCostAmount));
+            parcelInfo.AddRange(threeStar);
             var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelInfo);
             var parcelResultDb = parcelResolver.ParcelResult;
 
             await context.SaveChangesAsync();
 
-            return (historyDb, parcelResultDb);
+            return (historyDb, parcelResultDb, ToParcelInfos(firstClear), ToParcelInfos(threeStar));
         }
 
         public async Task<(CampaignChapterClearRewardHistoryDBServer, ParcelResultDB)> CampaignChapterClearReward(
@@ -210,6 +244,21 @@ namespace Shittim_Server.Managers
             var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelInfos);
             return parcelResolver.ParcelResult;
         }
+
+        private static List<ParcelResult> TaggedRewards(IEnumerable<CampaignStageRewardExcelT> rewards, RewardTag tag)
+            => rewards
+                .Where(x => x.RewardTag == tag)
+                .Select(x => new ParcelResult(x.StageRewardParcelType, x.StageRewardId, x.StageRewardAmount))
+                .ToList();
+
+        private static List<ParcelInfo> ToParcelInfos(IEnumerable<ParcelResult> parcels)
+            => parcels.Select(r => new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = r.Type, Id = r.Id },
+                Amount = r.Amount,
+                Multiplier = BasisPoint.One,
+                Probability = BasisPoint.One
+            }).ToList();
 
         private static List<ParcelResult> GetCalcProbability(IEnumerable<CampaignStageRewardExcelT> rewardExcels)
         {

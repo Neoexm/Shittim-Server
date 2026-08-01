@@ -117,14 +117,14 @@ public class CampaignHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (historyDb, parcelResultDb) = await _campaignManager.CampaignSubStageResult(db, account, request);
+        var (historyDb, parcelResultDb, firstClearReward, threeStarReward) = await _campaignManager.CampaignSubStageResult(db, account, request);
 
         response.TacticRank = 0;
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
         response.LevelUpCharacterDBs = new();
         response.ParcelResultDB = parcelResultDb;
-        response.FirstClearReward = new();
-        response.ThreeStarReward = new();
+        response.FirstClearReward = firstClearReward;
+        response.ThreeStarReward = threeStarReward;
 
         return response;
     }
@@ -152,14 +152,14 @@ public class CampaignHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (historyDb, parcelResultDb) = await _campaignManager.CampaignMainStageStrategySkipResult(db, account, request);
+        var (historyDb, parcelResultDb, firstClearReward, threeStarReward) = await _campaignManager.CampaignMainStageStrategySkipResult(db, account, request);
 
         response.TacticRank = 0;
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
         response.LevelUpCharacterDBs = new();
         response.ParcelResultDB = parcelResultDb;
-        response.FirstClearReward = new();
-        response.ThreeStarReward = new();
+        response.FirstClearReward = firstClearReward;
+        response.ThreeStarReward = threeStarReward;
 
         return response;
     }

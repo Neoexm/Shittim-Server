@@ -255,9 +255,18 @@ def request(flow: http.HTTPFlow) -> None:
     # No rule matched: mitmproxy forwards this to the REAL host over the tunnel.
     rlog(f"  -> FORWARD-REAL {host}{flow.request.path}")
 
+def responseheaders(flow: http.HTTPFlow) -> None:
+    # streaming has to be decided here - by the response hook the body is already buffered, which is why the old stream=True down there never did anything. Local server traffic stays buffered so its bodies are still readable in the web ui; everything real (cdn bundles, telemetry) streams through untouched, otherwise hours of play balloon the flow store by the full size of every asset the game pulls.
+    if flow.request.host != SERVER_HOST and flow.response.raw_content is None:
+        flow.response.stream = True
+
 def response(flow: http.HTTPFlow) -> None:
     rlog(f"RESP {flow.request.method:4} {flow.request.pretty_host}:{flow.request.port}{flow.request.path} -> {flow.response.status_code}")
-    flow.response.stream = True
+    # mitmweb keeps every flow for its ui and never evicts, so a long session still creeps by flow metadata alone
+    view = ctx.master.addons.get("view")
+    if view is not None and len(view) > 5000:
+        rlog(f"flow store at {len(view)} entries - clearing to keep memory bounded")
+        view.clear()
     # if flow.request.url.endswith('/api/gateway'):
     #     try:
     #         req = flow.request.raw_content

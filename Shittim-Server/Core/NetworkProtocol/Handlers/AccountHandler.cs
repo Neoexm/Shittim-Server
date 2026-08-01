@@ -318,6 +318,29 @@ public class AccountHandler : ProtocolHandlerBase
         };
         _logger.LogInformation("Cafe queries took {Ms}ms", sw.ElapsedMilliseconds);
 
+        // Overflow AP stored before the OverChargeLimit clamp existed keeps the client's counter pinned at 999 no matter what is spent, because the client clamps the displayed value. Same repair-on-login idea: move the excess into the mailbox where official puts it.
+        var currencyDb = db.GetAccountCurrencies(account.ServerId).FirstOrDefault();
+        var apOverChargeLimit = _excelService.GetTable<CurrencyExcelT>().First(x => x.CurrencyType == CurrencyTypes.ActionPoint).OverChargeLimit;
+        if (currencyDb != null && currencyDb.CurrencyDict[CurrencyTypes.ActionPoint] > apOverChargeLimit)
+        {
+            var apExcess = currencyDb.CurrencyDict[CurrencyTypes.ActionPoint] - apOverChargeLimit;
+            var now = account.GameSettings.ServerDateTime();
+            currencyDb.CurrencyDict[CurrencyTypes.ActionPoint] = apOverChargeLimit;
+            currencyDb.UpdateTimeDict[CurrencyTypes.ActionPoint] = now;
+            db.Currencies.Update(currencyDb);
+            db.Mails.Add(new MailDBServer
+            {
+                AccountServerId = account.ServerId,
+                Type = MailType.InventoryFull,
+                SendDate = now,
+                ExpireDate = now.AddDays(7),
+                ParcelInfos = [new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = (long)CurrencyTypes.ActionPoint }, Amount = apExcess }],
+                RemainParcelInfos = new List<ParcelInfo>()
+            });
+            await db.SaveChangesAsync();
+            MailNotificationService.MarkNewMail(account.ServerId);
+        }
+
         sw.Restart();
         response.AccountCurrencySyncResponse = new AccountCurrencySyncResponse
         {
@@ -343,6 +366,16 @@ public class AccountHandler : ProtocolHandlerBase
         {
             foreach (var history in unlabeledClears)
                 history.IsClearedEver = true;
+            await db.SaveChangesAsync();
+        }
+
+        // Rows the always-roll paths wrote claim StarRewardReceive from creation, which would deny the three-star pyroxene now that the grant is gated on it. A row short of three stars can't have had a legitimate claim, so reopen those.
+        var stampedShortOfThreeStars = db.GetAccountCampaignStageHistories(account.ServerId)
+            .Where(x => x.StarRewardReceive != null && !(x.Star1Flag && x.Star2Flag && x.Star3Flag)).ToList();
+        if (stampedShortOfThreeStars.Count > 0)
+        {
+            foreach (var history in stampedShortOfThreeStars)
+                history.StarRewardReceive = null;
             await db.SaveChangesAsync();
         }
 

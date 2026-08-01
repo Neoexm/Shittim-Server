@@ -67,6 +67,7 @@ public class ContentSweepHandler : ProtocolHandlerBase
         var campaignStageExcels = _excelService.GetTable<CampaignStageExcelT>();
         var campaignStageRewardExcels = _excelService.GetTable<CampaignStageRewardExcelT>();
         var campaignChapterExcels = _excelService.GetTable<CampaignChapterExcelT>();
+        var gachaElementExcels = _excelService.GetTable<GachaElementExcelT>();
 
         var stageExcel = campaignStageExcels.GetCampaignStageId(request.StageId);
 
@@ -79,8 +80,10 @@ public class ContentSweepHandler : ProtocolHandlerBase
 
         for (int i = 0; i < request.Count; i++)
         {
+            // A sweep pays only the per-run drop table. The FirstClear and ThreeStar rows share the reward group with their own 100% probabilities, so rolling everything handed out the once-per-account pyroxene on every single sweep.
+            // The GachaGroup rows are rolled to concrete items up front: they are IsDisplayed=false in the excel, and sent raw they show up as blank cells in the client's sweep result.
             var rewardDatas = campaignStageRewardExcels.GetAllRewardsByGroupId(stageExcel.CampaignStageRewardId);
-            var sweepRewards = GetCalcProbability(rewardDatas);
+            var sweepRewards = ConcentrateCampaignManager.RolledDrops(rewardDatas).GenerateGachaGroup(gachaElementExcels);
 
             clearParcels.Add(ToParcelInfos(sweepRewards));
             allRewardParcels.AddRange(sweepRewards);
@@ -361,21 +364,6 @@ public class ContentSweepHandler : ProtocolHandlerBase
         response.MultiSweepPresetDBs = account.GameSettings.MultiSweepPresetDBs;
 
         return response;
-    }
-
-    private static List<ParcelResult> GetCalcProbability(IEnumerable<CampaignStageRewardExcelT> rewardExcels)
-    {
-        var result = new List<ParcelResult>();
-        foreach (var rewardExcel in rewardExcels)
-        {
-            if (!GenerateProbability(rewardExcel.StageRewardProb)) continue;
-            var parcelInfos = new ParcelResult(
-                rewardExcel.StageRewardParcelType,
-                rewardExcel.StageRewardId,
-                rewardExcel.StageRewardAmount);
-            result.Add(parcelInfos);
-        }
-        return result;
     }
 
     private static bool GenerateProbability(long probability)

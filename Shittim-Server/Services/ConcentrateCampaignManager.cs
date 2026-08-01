@@ -653,7 +653,7 @@ public class ConcentrateCampaignManager
             .Select(x => new ParcelResult(x.StageRewardParcelType, x.StageRewardId, x.StageRewardAmount))
             .ToList();
 
-    // Only Default-tagged rows take part. FirstClear and ThreeStar rows sit in the same table with probabilities of their own, so rolling the whole group - which the sub-stage and sweep paths still do - pays the once-per-account rewards again on every single clear.
+    // Only Default-tagged rows take part. FirstClear and ThreeStar rows sit in the same table with probabilities of their own, so rolling the whole group pays the once-per-account rewards again on every single clear.
     public static List<ParcelResult> RolledDrops(IEnumerable<CampaignStageRewardExcelT> rewards)
         => rewards
             .Where(x => x.RewardTag == RewardTag.Default)
