@@ -609,7 +609,8 @@ namespace Shittim.GameMasters
                     }
                     break;
                 case "star":
-                    if (int.TryParse(parameters, out int star))
+                    // Same bound as the single-character path: the client draws five slots.
+                    if (int.TryParse(parameters, out int star) && star is >= 1 and <= 5)
                     {
                         foreach (var character in allCharacters)
                             character.StarGrade = star;
