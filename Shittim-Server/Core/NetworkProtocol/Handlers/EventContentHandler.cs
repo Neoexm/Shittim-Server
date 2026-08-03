@@ -65,7 +65,7 @@ public class EventContentHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        ShopHandler.ValidatePurchaseCount(request.PurchaseCount);
+        var purchaseCount = ShopHandler.NormalizePurchaseCount(request.PurchaseCount);
 
         var shopExcel = EventShop(request.EventContentId).FirstOrDefault(x => x.Id == request.ShopUniqueId)
             ?? throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
@@ -74,21 +74,23 @@ public class EventContentHandler : ProtocolHandlerBase
             ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsUniqueId} not found");
 
         var purchaseHistory = await ShopManager.EnsurePurchasable(
-            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+            db, account, request.ShopUniqueId, shopExcel, purchaseCount);
 
+        // Indexed to the shortest of the three columns: a ragged goods row threw IndexOutOfRange, which the client
+        // only sees as the generic failure popup.
         var consumeParcels = new List<ParcelResult>();
-        for (int i = 0; i < (goodsExcel.ConsumeParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShortestColumn(goodsExcel.ConsumeParcelType?.Count, goodsExcel.ConsumeParcelId?.Count, goodsExcel.ConsumeParcelAmount?.Count); i++)
             consumeParcels.Add(new ParcelResult(
                 goodsExcel.ConsumeParcelType![i],
                 goodsExcel.ConsumeParcelId![i],
-                goodsExcel.ConsumeParcelAmount![i] * request.PurchaseCount));
+                goodsExcel.ConsumeParcelAmount![i] * purchaseCount));
 
         var rewardParcels = new List<ParcelResult>();
-        for (int i = 0; i < (goodsExcel.ParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShortestColumn(goodsExcel.ParcelType?.Count, goodsExcel.ParcelId?.Count, goodsExcel.ParcelAmount?.Count); i++)
             rewardParcels.Add(new ParcelResult(
                 goodsExcel.ParcelType![i],
                 goodsExcel.ParcelId![i],
-                goodsExcel.ParcelAmount![i] * request.PurchaseCount));
+                goodsExcel.ParcelAmount![i] * purchaseCount));
 
         if (consumeParcels.Count > 0)
             await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
@@ -101,7 +103,7 @@ public class EventContentHandler : ProtocolHandlerBase
 
         response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper);
 
-        purchaseHistory.PurchaseCount += request.PurchaseCount;
+        purchaseHistory.PurchaseCount += purchaseCount;
 
         response.ShopProductDB = new ShopProductDB
         {
@@ -140,6 +142,9 @@ public class EventContentHandler : ProtocolHandlerBase
             SalePeriodTo = ""
         })
         .ToList();
+
+    private static int ShortestColumn(int? a, int? b, int? c)
+        => Math.Min(a ?? 0, Math.Min(b ?? 0, c ?? 0));
 
     [ProtocolHandler(Protocol.EventContent_ReceiveStageTotalReward)]
     public async Task<EventContentReceiveStageTotalRewardResponse> ReceiveStageTotalReward(

@@ -437,7 +437,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        ValidatePurchaseCount(request.PurchaseCount);
+        var purchaseCount = NormalizePurchaseCount(request.PurchaseCount);
 
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
         if (shopExcel == null)
@@ -448,35 +448,15 @@ public class ShopHandler : ProtocolHandlerBase
             throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsId} not found");
 
         var purchaseHistory = await ShopManager.EnsurePurchasable(
-            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+            db, account, request.ShopUniqueId, shopExcel, purchaseCount);
 
-        var consumeParcelTypes = goodsExcel.ConsumeParcelType ?? [];
-        var consumeParcelIds = goodsExcel.ConsumeParcelId ?? [];
-        var consumeParcelAmounts = goodsExcel.ConsumeParcelAmount ?? [];
-
-        var rewardParcelTypes = goodsExcel.ParcelType ?? [];
-        var rewardParcelIds = goodsExcel.ParcelId ?? [];
-        var rewardParcelAmounts = goodsExcel.ParcelAmount ?? [];
-
-        var consumeParcels = new List<ParcelInfo>();
-        for (int i = 0; i < consumeParcelTypes.Count; i++)
-        {
-            consumeParcels.Add(new ParcelInfo
-            {
-                Key = new ParcelKeyPair { Type = consumeParcelTypes[i], Id = consumeParcelIds[i] },
-                Amount = consumeParcelAmounts[i] * request.PurchaseCount
-            });
-        }
-
-        var rewardParcels = new List<ParcelInfo>();
-        for (int i = 0; i < rewardParcelTypes.Count; i++)
-        {
-            rewardParcels.Add(new ParcelInfo
-            {
-                Key = new ParcelKeyPair { Type = rewardParcelTypes[i], Id = rewardParcelIds[i] },
-                Amount = rewardParcelAmounts[i] * request.PurchaseCount
-            });
-        }
+        // A goods row whose id/amount columns are shorter than its type column used to throw IndexOutOfRange out of
+        // these loops, which the client only ever sees as the generic failure popup (Shop_BuyRefreshMerchandise
+        // already indexes defensively for the same reason).
+        var consumeParcels = BuildParcels(
+            goodsExcel.ConsumeParcelType, goodsExcel.ConsumeParcelId, goodsExcel.ConsumeParcelAmount, purchaseCount);
+        var rewardParcels = BuildParcels(
+            goodsExcel.ParcelType, goodsExcel.ParcelId, goodsExcel.ParcelAmount, purchaseCount);
 
         if (consumeParcels.Count > 0)
         {
@@ -497,7 +477,7 @@ public class ShopHandler : ProtocolHandlerBase
             response.AccountCurrencyDB = accountCurrency.ToMap(_mapper);
         }
 
-        purchaseHistory.PurchaseCount += request.PurchaseCount;
+        purchaseHistory.PurchaseCount += purchaseCount;
 
         response.ShopProductDB = new ShopProductDB
         {
@@ -516,15 +496,47 @@ public class ShopHandler : ProtocolHandlerBase
         return response;
     }
 
-    // PurchaseCount arrives from the client and multiplies both the consume and the reward. A non-positive count inverts the consume into a grant (a -30-gem cost is credited, not debited), and a huge one overflows the int64 multiply back into negative territory, so the bound has to be two-sided.
+    // PurchaseCount arrives from the client and multiplies both the consume and the reward. A negative count inverts the consume into a grant (a -30-gem cost is credited, not debited), and a huge one overflows the int64 multiply back into negative territory, so the bound has to be two-sided.
     // The ceiling is far above any real shop's PurchaseCountLimit; per-shop limits are enforced separately in ShopManager.EnsurePurchasable.
     internal const long MaxPurchaseCountPerRequest = 10_000;
 
-    internal static void ValidatePurchaseCount(long purchaseCount)
+    /// <summary>
+    /// The count to actually charge and grant. An absent count deserializes to 0, and rejecting that made
+    /// single-unit buys fail with ShopInvalidCostOrReward while the same item bought in bulk went through;
+    /// a buy request means at least one. Negative and overflow-sized counts are still refused.
+    /// </summary>
+    internal static long NormalizePurchaseCount(long purchaseCount)
     {
-        if (purchaseCount is <= 0 or > MaxPurchaseCountPerRequest)
+        if (purchaseCount is < 0 or > MaxPurchaseCountPerRequest)
             throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
                 $"Invalid purchase count {purchaseCount}");
+
+        if (purchaseCount > 0)
+            return purchaseCount;
+
+        // Logged rather than silently coerced: if this line never appears in a play session, the 10009 popups on
+        // single-unit buys come from somewhere else and this reading was wrong.
+        Serilog.Log.Warning("Shop purchase arrived with no PurchaseCount; charging one unit");
+        return 1;
+    }
+
+    /// <summary>Parcels for one goods row, scaled by the purchase count. Columns are indexed to the shortest of the three so a ragged excel row degrades instead of throwing.</summary>
+    private static List<ParcelInfo> BuildParcels(
+        List<ParcelType>? types, List<long>? ids, List<long>? amounts, long purchaseCount)
+    {
+        var count = Math.Min(types?.Count ?? 0, Math.Min(ids?.Count ?? 0, amounts?.Count ?? 0));
+
+        var parcels = new List<ParcelInfo>(count);
+        for (int i = 0; i < count; i++)
+        {
+            parcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = types![i], Id = ids![i] },
+                Amount = amounts![i] * purchaseCount
+            });
+        }
+
+        return parcels;
     }
 
     [ProtocolHandler(Protocol.Shop_BuyRefreshMerchandise)]
@@ -639,7 +651,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        ValidatePurchaseCount(request.PurchaseCount);
+        var purchaseCount = NormalizePurchaseCount(request.PurchaseCount);
 
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
         if (shopExcel == null)
@@ -650,27 +662,12 @@ public class ShopHandler : ProtocolHandlerBase
             throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsUniqueId} not found");
 
         var purchaseHistory = await ShopManager.EnsurePurchasable(
-            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+            db, account, request.ShopUniqueId, shopExcel, purchaseCount);
 
-        var consumeParcels = new List<ParcelInfo>();
-        for (int i = 0; i < (goodsExcel.ConsumeParcelType ?? []).Count; i++)
-        {
-            consumeParcels.Add(new ParcelInfo
-            {
-                Key = new ParcelKeyPair { Type = goodsExcel.ConsumeParcelType[i], Id = goodsExcel.ConsumeParcelId[i] },
-                Amount = goodsExcel.ConsumeParcelAmount[i] * request.PurchaseCount
-            });
-        }
-
-        var rewardParcels = new List<ParcelInfo>();
-        for (int i = 0; i < (goodsExcel.ParcelType ?? []).Count; i++)
-        {
-            rewardParcels.Add(new ParcelInfo
-            {
-                Key = new ParcelKeyPair { Type = goodsExcel.ParcelType[i], Id = goodsExcel.ParcelId[i] },
-                Amount = goodsExcel.ParcelAmount[i] * request.PurchaseCount
-            });
-        }
+        var consumeParcels = BuildParcels(
+            goodsExcel.ConsumeParcelType, goodsExcel.ConsumeParcelId, goodsExcel.ConsumeParcelAmount, purchaseCount);
+        var rewardParcels = BuildParcels(
+            goodsExcel.ParcelType, goodsExcel.ParcelId, goodsExcel.ParcelAmount, purchaseCount);
 
         var consumeResolver = await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
 
@@ -686,7 +683,7 @@ public class ShopHandler : ProtocolHandlerBase
         parcelResultDB.AcquiredItems = rewardParcels;
         response.ParcelResultDB = parcelResultDB;
 
-        purchaseHistory.PurchaseCount += request.PurchaseCount;
+        purchaseHistory.PurchaseCount += purchaseCount;
 
         response.ShopProductDB = new ShopProductDB
         {
@@ -722,7 +719,7 @@ public class ShopHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        ValidatePurchaseCount(request.PurchaseCount);
+        var purchaseCount = NormalizePurchaseCount(request.PurchaseCount);
 
         // Failures are Error packets, never empty successes - official rejects with a bare {Protocol:-1, ErrorCode, ServerTimeTicks} envelope (captured on the AP-cap rejection).
         var shopExcel = _excelService.GetTable<ShopExcelT>().FirstOrDefault(x => x.Id == request.ShopUniqueId);
@@ -741,7 +738,7 @@ public class ShopHandler : ProtocolHandlerBase
             : (long)CurrencyTypes.Gem;
         var costAmount = (goodsExcel.ConsumeParcelAmount != null && goodsExcel.ConsumeParcelAmount.Count > 0 
             ? goodsExcel.ConsumeParcelAmount[0] 
-            : 0) * request.PurchaseCount;
+            : 0) * purchaseCount;
 
         var costCurrency = costParcelType == ParcelType.Currency ? (CurrencyTypes)costParcelId : CurrencyTypes.Gem;
         
@@ -761,11 +758,11 @@ public class ShopHandler : ProtocolHandlerBase
             && rewardParcelId == (long)CurrencyTypes.ActionPoint
             && rewardPerCount is > 0 and <= 999
                 ? rewardPerCount
-                : 120) * request.PurchaseCount;
+                : 120) * purchaseCount;
         
         // The AP shop is capped at 20 purchases per game day (PurchaseCountLimit in the excel, confirmed on the wire); tracked per reset window so the counter rolls over at 04:00.
         var purchaseHistory = await ShopManager.EnsurePurchasable(
-            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+            db, account, request.ShopUniqueId, shopExcel, purchaseCount);
 
         var accountCurrency = db.GetAccountCurrencies(account.ServerId).FirstOrDefault();
         if (accountCurrency == null)
@@ -793,7 +790,7 @@ public class ShopHandler : ProtocolHandlerBase
         accountCurrency.CurrencyDict[rewardCurrency] += rewardAmount;
         accountCurrency.UpdateTimeDict[rewardCurrency] = account.GameSettings.ServerDateTime();
 
-        purchaseHistory.PurchaseCount += request.PurchaseCount;
+        purchaseHistory.PurchaseCount += purchaseCount;
 
         await db.SaveChangesAsync();
 
@@ -829,9 +826,13 @@ public class ShopHandler : ProtocolHandlerBase
         };
 
         var buyApMissions = _missionService.UpdateMissionProgress(
-            db, account, MissionCompleteConditionType.Reset_ShopBuyActionPointCount, request.PurchaseCount);
+            db, account, MissionCompleteConditionType.Reset_ShopBuyActionPointCount, purchaseCount);
         if (buyApMissions.Count > 0)
             response.MissionProgressDBs = buyApMissions;
+
+        // UpdateMissionProgress only stages the rows; the SaveChanges above already ran, so without this the
+        // client is told the mission moved and the next Mission_List says it never did.
+        await db.SaveChangesAsync();
 
         return response;
     }

@@ -81,17 +81,27 @@ public class MomoTalkHandler : ProtocolHandlerBase
             var character = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
             if (character == null) return response;
 
+            // LastReadMessageGroupId is 0 the first time a student is opened, and storing that leaves them with a
+            // conversation that can never start, so fall back to their first unlocked group.
+            var openingGroup = request.LastReadMessageGroupId > 0
+                ? request.LastReadMessageGroupId
+                : MomoTalkService.OpeningGroup(_academyMessengers, character.UniqueId, character.FavorRank);
+
             momotalkOutline = new MomoTalkOutLineDBServer
             {
                 AccountServerId = account.ServerId,
                 CharacterDBId = request.CharacterDBId,
                 CharacterId = character.UniqueId,
-                LatestMessageGroupId = request.LastReadMessageGroupId,
+                LatestMessageGroupId = openingGroup,
                 LastUpdateDate = account.GameSettings.ServerDateTime()
             };
             db.MomoTalkOutLines.Add(momotalkOutline);
             // Not saved here - the SaveChanges at the end of the handler bundles it.
         }
+
+        var favorRank = db.Characters
+            .FirstOrDefault(c => c.AccountServerId == account.ServerId
+                && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
 
         long nextGroupId = 0;
         
@@ -146,13 +156,10 @@ public class MomoTalkHandler : ProtocolHandlerBase
             var nextGroupEntry = _academyMessengers
                 .FirstOrDefault(x => x.MessageGroupId == nextGroupId);
             if (nextGroupEntry != null
-                && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp)
+                && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp
+                && favorRank < nextGroupEntry.ConditionValue)
             {
-                var favorRank = db.Characters
-                    .FirstOrDefault(c => c.AccountServerId == account.ServerId
-                        && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
-                if (favorRank < nextGroupEntry.ConditionValue)
-                    nextGroupId = 0;
+                nextGroupId = 0;
             }
         }
 
@@ -188,6 +195,9 @@ public class MomoTalkHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        MomoTalkService.SyncOutlines(db, account, _academyMessengers);
+        await db.SaveChangesAsync();
+
         var outlines = db.GetAccountMomoTalkOutLines(account.ServerId).ToList();
 
         response.MomoTalkOutLineDBs = _mapper.Map<List<MomoTalkOutLineDB>>(outlines);
@@ -208,23 +218,28 @@ public class MomoTalkHandler : ProtocolHandlerBase
         response.FavorScheduleRecords = MomoTalkService.GetAllFavorSchedules(outlines);
         response.ParcelResultDB = new();
 
-        var schedule = _academyFavorSchedules.GetScheduleById(request.ScheduleId);
-        if (schedule == null)
-            return response;
+        // Every one of these used to return an empty success, which the client reads as "reward accepted" while
+        // nothing was granted and nothing was spent. They are real refusals and have to reach the client as errors.
+        var schedule = _academyFavorSchedules.GetScheduleById(request.ScheduleId)
+            ?? throw new WebAPIException(WebAPIErrorCode.AcademyScheduleTableNotFound,
+                $"Favor schedule {request.ScheduleId} not found");
 
-        var targetOutline = outlines.FirstOrDefault(x => x.CharacterId == schedule.CharacterId);
-        if (targetOutline == null)
-            return response;
+        var targetOutline = outlines.FirstOrDefault(x => x.CharacterId == schedule.CharacterId)
+            ?? throw new WebAPIException(WebAPIErrorCode.AcademyRewardCharacterNotFound,
+                $"No MomoTalk outline for character {schedule.CharacterId}");
 
         if (targetOutline.ScheduleIds.Contains(request.ScheduleId))
-            return response;
+            throw new WebAPIException(WebAPIErrorCode.AcademyAlreadyAttendedFavorSchedule,
+                $"Favor schedule {request.ScheduleId} already attended");
 
         var accountCurrency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
-        if (accountCurrency == null)
-            return response;
-
-        if (!accountCurrency.CurrencyDict.TryGetValue(CurrencyTypes.AcademyTicket, out var currentTicket) || currentTicket <= 0)
-            return response;
+        if (accountCurrency == null
+            || !accountCurrency.CurrencyDict.TryGetValue(CurrencyTypes.AcademyTicket, out var currentTicket)
+            || currentTicket <= 0)
+        {
+            throw new WebAPIException(WebAPIErrorCode.AcademyTicketZero,
+                "No AcademyTicket available for a favor schedule");
+        }
 
         var parcelResults = new List<ParcelResult>
         {
