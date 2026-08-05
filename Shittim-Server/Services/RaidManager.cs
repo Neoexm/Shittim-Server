@@ -120,6 +120,11 @@ public class RaidManager
                 raidLobby.NextSeasonStartDate = serverTime.AddMonths(1);
                 raidLobby.NextSeasonEndDate = serverTime.AddMonths(1).AddDays(7);
                 raidLobby.NextSettlementEndDate = serverTime.AddMonths(1).AddDays(8);
+                raidLobby.ReceiveRewardIds = targetSeason.SeasonRewardId;
+                raidLobby.PlayableHighestDifficulty = new Dictionary<string, Difficulty>()
+                {
+                    { targetSeason.OpenRaidBossGroup.FirstOrDefault(), Difficulty.Lunatic }
+                };
             }
             raidLobby.BestRankingPoint = account.ContentInfo.RaidDataInfo.BestRankingPoint;
             raidLobby.TotalRankingPoint = account.ContentInfo.RaidDataInfo.TotalRankingPoint;

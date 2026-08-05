@@ -52,7 +52,12 @@ export default {
                 const ok = await confirmDialog({ title: `${t.title} → season ${s.seasonId}`, confirmLabel: 'Apply season',
                   message: `Set ${acc.nickname}'s ${t.title} to season ${s.seasonId}? Pending battles in this mode will be closed.` });
                 if (!ok) return;
-                try { await api.command(uid, `setseason ${t.key} ${s.seasonId}`); toast(`${t.title} set to season ${s.seasonId}`, 'good'); notifyRestart(); }
+                try {
+                  // the bridge answers 200 even when the command bailed ("Season ID does not exist", "Invalid type!"), so trust the command's own confirmation line rather than the status code
+                  const out = String((await api.command(uid, `setseason ${t.key} ${s.seasonId}`))?.output || '');
+                  if (!out.includes(`set to ${s.seasonId}`)) { toast(out.trim().split('\n').pop() || 'Season unchanged', 'bad'); return; }
+                  toast(`${t.title} set to season ${s.seasonId}`, 'good'); notifyRestart();
+                }
                 catch (err) { toast(err.message, 'bad'); }
               });
               tr.lastElementChild.appendChild(apply);

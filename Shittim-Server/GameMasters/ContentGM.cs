@@ -397,6 +397,18 @@ namespace Shittim.GameMasters
                     { targetSeason.OpenRaidBossGroup02, Difficulty.Lunatic },
                     { targetSeason.OpenRaidBossGroup03, Difficulty.Lunatic }
                 };
+                eliminateRaidLobby.OpenedBossGroups =
+                [
+                    targetSeason.OpenRaidBossGroup01,
+                    targetSeason.OpenRaidBossGroup02,
+                    targetSeason.OpenRaidBossGroup03
+                ];
+                eliminateRaidLobby.BestRankingPointPerBossGroup = new Dictionary<string, long>
+                {
+                    { targetSeason.OpenRaidBossGroup01, 0 },
+                    { targetSeason.OpenRaidBossGroup02, 0 },
+                    { targetSeason.OpenRaidBossGroup03, 0 }
+                };
                 eliminateRaidLobby.SeasonStartDate = serverTime.AddHours(-3);
                 eliminateRaidLobby.SeasonEndDate = serverTime.AddDays(4);
                 eliminateRaidLobby.SettlementEndDate = serverTime.AddDays(5);

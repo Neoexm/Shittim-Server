@@ -134,6 +134,25 @@ public class EliminateRaidManager
                 raidLobby.NextSeasonStartDate = serverTime.AddMonths(1);
                 raidLobby.NextSeasonEndDate = serverTime.AddMonths(1).AddDays(7);
                 raidLobby.NextSettlementEndDate = serverTime.AddMonths(1).AddDays(8);
+                raidLobby.ReceiveRewardIds = targetSeason.SeasonRewardId;
+                raidLobby.PlayableHighestDifficulty = new()
+                {
+                    { targetSeason.OpenRaidBossGroup01, Difficulty.Lunatic },
+                    { targetSeason.OpenRaidBossGroup02, Difficulty.Lunatic },
+                    { targetSeason.OpenRaidBossGroup03, Difficulty.Lunatic }
+                };
+                raidLobby.OpenedBossGroups =
+                [
+                    targetSeason.OpenRaidBossGroup01,
+                    targetSeason.OpenRaidBossGroup02,
+                    targetSeason.OpenRaidBossGroup03
+                ];
+                raidLobby.BestRankingPointPerBossGroup = new Dictionary<string, long>
+                {
+                    { targetSeason.OpenRaidBossGroup01, 0 },
+                    { targetSeason.OpenRaidBossGroup02, 0 },
+                    { targetSeason.OpenRaidBossGroup03, 0 }
+                };
             }
             raidLobby.BestRankingPoint = account.ContentInfo.EliminateRaidDataInfo.BestRankingPoint;
             raidLobby.TotalRankingPoint = account.ContentInfo.EliminateRaidDataInfo.TotalRankingPoint;
