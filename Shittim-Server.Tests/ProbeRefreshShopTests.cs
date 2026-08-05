@@ -7,8 +7,35 @@ namespace Shittim_Server.Tests;
 
 public class ProbeRefreshShopTests
 {
+    // ShopRefreshExcel only carries a GoodsId; the cost and the reward both come from GoodsExcel. A row whose GoodsId does not resolve builds a shop slot that sells nothing, which is what a mismatched excel dump looks like from the client side.
     [Fact]
-    public void Dump()
+    public void EveryRefreshRowResolvesToAGoodsRow()
+    {
+        var excels = Excels();
+        var refresh = excels.GetTable<ShopRefreshExcelT>();
+        var goodsIds = excels.GetTable<GoodsExcelT>().Select(x => x.Id).ToHashSet();
+
+        var unresolved = refresh.Where(x => !goodsIds.Contains(x.GoodsId)).ToList();
+
+        var sb = new StringBuilder();
+        foreach (var r in unresolved.Take(20))
+            sb.AppendLine($"  refresh {r.Id} cat={r.CategoryType} group={r.RefreshGroup} goods={r.GoodsId}");
+
+        Assert.True(unresolved.Count == 0, $"{unresolved.Count} of {refresh.Count} ShopRefreshExcel rows have an unresolved GoodsId\n{sb}");
+    }
+
+    [Fact]
+    public void RefreshRowsCoverTheFourRefreshableCategories()
+    {
+        var refresh = Excels().GetTable<ShopRefreshExcelT>();
+        var categories = refresh.Select(x => x.CategoryType).Distinct().OrderBy(x => (int)x);
+
+        Assert.Equal(
+            [ShopCategoryType.General, ShopCategoryType.Arena, ShopCategoryType.GemDaily, ShopCategoryType.GemWeekly],
+            categories);
+    }
+
+    private static ExcelTableService Excels()
     {
         var dir = AppContext.BaseDirectory;
         while (dir != null && !Directory.Exists(Path.Combine(dir, "Shittim-Server")))
@@ -18,32 +45,9 @@ public class ProbeRefreshShopTests
         {
             Path.Combine(dir!, "Shittim-Server", "Resources", "Dumped"),
             Path.Combine(dir!, "Shittim-Server", "bin", "Debug", "net10.0", "Resources", "Dumped"),
+            Path.Combine(dir!, "Shittim-Server", "bin", "Release", "net10.0", "Resources", "Dumped"),
         }.First(Directory.Exists);
 
-        var excels = new ExcelTableService();
-        var refresh = excels.GetTable<ShopRefreshExcelT>();
-        var shops = excels.GetTable<ShopExcelT>();
-        var goods = excels.GetTable<GoodsExcelT>();
-        var goodsIds = goods.Select(x => x.Id).ToHashSet();
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"ShopRefreshExcel rows: {refresh.Count}, unresolved GoodsId: {refresh.Count(x => !goodsIds.Contains(x.GoodsId))}");
-        foreach (var g in refresh.GroupBy(x => x.CategoryType))
-            sb.AppendLine($"refresh category {g.Key}: {g.Count()} rows, id range {g.Min(x => x.Id)}..{g.Max(x => x.Id)}");
-
-        var shopIds = shops.Select(x => x.Id).ToHashSet();
-        var refreshIds = refresh.Select(x => x.Id).ToHashSet();
-        sb.AppendLine($"refresh ids also in ShopExcel: {refreshIds.Count(shopIds.Contains)}");
-
-        foreach (var g in shops.GroupBy(x => x.CategoryType).OrderBy(x => (int)x.Key))
-            sb.AppendLine($"shop category {g.Key}: {g.Count()} rows");
-
-        foreach (var r in refresh.Take(4))
-        {
-            var g = goods.FirstOrDefault(x => x.Id == r.GoodsId);
-            sb.AppendLine($"refresh {r.Id} cat={r.CategoryType} group={r.RefreshGroup} prob={r.Prob} goods={r.GoodsId} consume=[{string.Join(",", (g?.ConsumeParcelType ?? new()).Zip(g?.ConsumeParcelId ?? new(), (t, i) => $"{t}:{i}").Zip(g?.ConsumeParcelAmount ?? new(), (p, a) => $"{p}x{a}"))}] reward=[{string.Join(",", (g?.ParcelType ?? new()).Zip(g?.ParcelId ?? new(), (t, i) => $"{t}:{i}").Zip(g?.ParcelAmount ?? new(), (p, a) => $"{p}x{a}"))}]");
-        }
-
-        Assert.Fail(sb.ToString());
+        return new ExcelTableService();
     }
 }
