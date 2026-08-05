@@ -12,7 +12,7 @@ namespace Shittim_Server.Services
             // BLoggedOn wants a live connection, and offline it returns false, which lands on the branch that builds a failed result object.
             new(
                 "steam.GetAuthToken.bypassBLoggedOn",
-                Hex("48 8B 15 AF D5 1B 03 48 89 F1 E8 97 68 FE F8 48 89 C6 31 C9"),
+                Hex("48 8B 15 67 D6 1B 03 48 89 F1 E8 77 82 FE F8 48 89 C6 31 C9"),
                 20,
                 Hex("E8 AD 35 01 00 84 C0"),
                 Hex("90 90 90 90 90 31 C0")),
@@ -20,15 +20,15 @@ namespace Shittim_Server.Services
             // that branch sets Code 70010006 and Message "GetAuthToken Failed - SteamUser() is offline.", so zero the code and move both stores off Message (+18) onto AuthToken (+20). Message is only read back when Code is non-zero, and inface hands AuthToken straight on as the external ticket without looking at it. Reusing that literal rather than a nicer one is deliberate: il2cpp pins string literals per method and it is the only one this method already pins.
             new(
                 "steam.GetAuthToken.tokenFromMessageLiteral",
-                Hex("48 8B 0D F3 EC 0C 03 E8 C6 8E BA F6 48 85 C0 0F 84 8B 00 00 00 48 89 C7 48 89 C1 31 D2 E8 E0 FE EB FF"),
+                Hex("48 8B 0D 8B ED 0C 03 E8 96 ED BA F6 48 85 C0 0F 84 8B 00 00 00 48 89 C7 48 89 C1 31 D2 E8 E0 FE EB FF"),
                 34,
-                Hex("C7 47 10 96 44 2C 04 48 8B 15 0A 73 20 03 48 89 F9 48 83 C1 18 48 89 57 18"),
-                Hex("C7 47 10 00 00 00 00 48 8B 15 0A 73 20 03 48 89 F9 48 83 C1 20 48 89 57 20")),
+                Hex("C7 47 10 96 44 2C 04 48 8B 15 E2 73 20 03 48 89 F9 48 83 C1 18 48 89 57 18"),
+                Hex("C7 47 10 00 00 00 00 48 8B 15 E2 73 20 03 48 89 F9 48 83 C1 20 48 89 57 20")),
 
             // the cash shop will not draw until Steam quotes prices, and RequestPrices needs a live connection, so offline the callback reports failure and GetPurchasableProduct answers 70012005 with no products at all. skip the failure branch and let it carry on to LoadItemDefinitions.
             new(
                 "steam.GetPurchasableProduct.bypassPriceFailure",
-                Hex("48 8B 0D 3F C3 0C 03 83 B9 E0 00 00 00 00 75 05 E8 49 E8 B8 F6 48 89 F9 31 D2 E8 CF F7 E9 FF 84 DB"),
+                Hex("48 8B 0D D7 C3 0C 03 83 B9 E0 00 00 00 00 75 05 E8 19 47 B9 F6 48 89 F9 31 D2 E8 CF F7 E9 FF 84 DB"),
                 33,
                 Hex("74 69"),
                 Hex("90 90")),
@@ -44,7 +44,7 @@ namespace Shittim_Server.Services
             // GetEntitlementsAsJsonArray reaches RequestPrices through a second display class of its own, so with only GetPurchasableProduct patched the shop still throws a 70012005 notice over the lobby.
             new(
                 "steam.GetEntitlementsAsJsonArray.bypassPriceFailure",
-                Hex("48 8B 0D 5F B1 0C 03 83 B9 E0 00 00 00 00 75 05 E8 69 D6 B8 F6 48 89 F9 31 D2 E8 EF E5 E9 FF 84 DB"),
+                Hex("48 8B 0D F7 B1 0C 03 83 B9 E0 00 00 00 00 75 05 E8 39 35 B9 F6 48 89 F9 31 D2 E8 EF E5 E9 FF 84 DB"),
                 33,
                 Hex("74 69"),
                 Hex("90 90")),
@@ -52,9 +52,17 @@ namespace Shittim_Server.Services
             // that leaves 70013004 from the GetAllItems leg: OnSteamInventoryResultReady only builds the details list when the Steam callback reports k_EResultOK, so offline it stays null. every failure path still carries Array.Empty in r12, so taking the branch unconditionally yields an empty list rather than null and the entitlements result comes back with a zero Code.
             new(
                 "steam.OnSteamInventoryResultReady.detailsWhenResultFailed",
-                Hex("49 83 C7 10 49 C7 46 10 00 00 00 00 4C 89 F9 31 D2 E8 DD A3 BA F6 83 FB 01"),
+                Hex("49 83 C7 10 49 C7 46 10 00 00 00 00 4C 89 F9 31 D2 E8 AD 02 BB F6 83 FB 01"),
                 25,
                 Hex("75 38"),
+                Hex("90 90")),
+
+            // none of the above is reached with the adapter itself down rather than Steam merely put into offline mode: Application.internetReachability reads NotReachable and UIPatchDownload's enter-game precheck opens popup_message_network_error over the title screen before a single request goes out. it is the only read of internetReachability in the whole assembly, and loopback stays up with every adapter disabled, so dropping the branch lets the flow carry on to the server config it fetches from us.
+            new(
+                "patchDownload.PreCheckForEnterGame.ignoreUnreachable",
+                Hex("48 8B 15 E1 01 E1 0B 48 8B 0D AA 83 E5 0B E8 C5 88 C4 01 48 89 C7 31 C9 E8 8B 8A 10 09 85 C0"),
+                31,
+                Hex("74 3D"),
                 Hex("90 90"))
         ];
 
@@ -258,11 +266,7 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(configuredPath))
                 return Path.IsPathRooted(configuredPath) ? configuredPath : Path.GetFullPath(configuredPath);
 
-            var located = SteamGameLocator.FindGameFile("GameAssembly.dll");
-            if (!string.IsNullOrWhiteSpace(located))
-                return located;
-
-            return @"F:\SteamLibrary\steamapps\common\BlueArchive\GameAssembly.dll";
+            return SteamGameLocator.FindGameFile("GameAssembly.dll") ?? "";
         }
 
         private string GetStatePath()
