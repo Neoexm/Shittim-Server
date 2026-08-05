@@ -21,40 +21,48 @@ public struct SystemMailExcel : IFlatbufferObject
   public SystemMailExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Schale.FlatData.MailType MailType { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.MailType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.MailType.System; } }
-  public long ExpiredDay { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string Sender { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public bool IsProductMail { get { int o = __p.__offset(6); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsVariableExpiredDay { get { int o = __p.__offset(8); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long ExpiredDay { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string Sender { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSenderBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<byte> GetSenderBytes() { return __p.__vector_as_span<byte>(12, 1); }
 #else
-  public ArraySegment<byte>? GetSenderBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetSenderBytes() { return __p.__vector_as_arraysegment(12); }
 #endif
-  public byte[] GetSenderArray() { return __p.__vector_as_array<byte>(8); }
-  public string Comment { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSenderArray() { return __p.__vector_as_array<byte>(12); }
+  public string Comment { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCommentBytes() { return __p.__vector_as_span<byte>(10, 1); }
+  public Span<byte> GetCommentBytes() { return __p.__vector_as_span<byte>(14, 1); }
 #else
-  public ArraySegment<byte>? GetCommentBytes() { return __p.__vector_as_arraysegment(10); }
+  public ArraySegment<byte>? GetCommentBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
-  public byte[] GetCommentArray() { return __p.__vector_as_array<byte>(10); }
+  public byte[] GetCommentArray() { return __p.__vector_as_array<byte>(14); }
 
   public static Offset<Schale.FlatData.SystemMailExcel> CreateSystemMailExcel(FlatBufferBuilder builder,
       Schale.FlatData.MailType MailType = Schale.FlatData.MailType.System,
+      bool IsProductMail = false,
+      bool IsVariableExpiredDay = false,
       long ExpiredDay = 0,
       StringOffset SenderOffset = default(StringOffset),
       StringOffset CommentOffset = default(StringOffset)) {
-    builder.StartTable(4);
+    builder.StartTable(6);
     SystemMailExcel.AddExpiredDay(builder, ExpiredDay);
     SystemMailExcel.AddComment(builder, CommentOffset);
     SystemMailExcel.AddSender(builder, SenderOffset);
     SystemMailExcel.AddMailType(builder, MailType);
+    SystemMailExcel.AddIsVariableExpiredDay(builder, IsVariableExpiredDay);
+    SystemMailExcel.AddIsProductMail(builder, IsProductMail);
     return SystemMailExcel.EndSystemMailExcel(builder);
   }
 
-  public static void StartSystemMailExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
+  public static void StartSystemMailExcel(FlatBufferBuilder builder) { builder.StartTable(6); }
   public static void AddMailType(FlatBufferBuilder builder, Schale.FlatData.MailType mailType) { builder.AddInt(0, (int)mailType, 0); }
-  public static void AddExpiredDay(FlatBufferBuilder builder, long expiredDay) { builder.AddLong(1, expiredDay, 0); }
-  public static void AddSender(FlatBufferBuilder builder, StringOffset senderOffset) { builder.AddOffset(2, senderOffset.Value, 0); }
-  public static void AddComment(FlatBufferBuilder builder, StringOffset commentOffset) { builder.AddOffset(3, commentOffset.Value, 0); }
+  public static void AddIsProductMail(FlatBufferBuilder builder, bool isProductMail) { builder.AddBool(1, isProductMail, false); }
+  public static void AddIsVariableExpiredDay(FlatBufferBuilder builder, bool isVariableExpiredDay) { builder.AddBool(2, isVariableExpiredDay, false); }
+  public static void AddExpiredDay(FlatBufferBuilder builder, long expiredDay) { builder.AddLong(3, expiredDay, 0); }
+  public static void AddSender(FlatBufferBuilder builder, StringOffset senderOffset) { builder.AddOffset(4, senderOffset.Value, 0); }
+  public static void AddComment(FlatBufferBuilder builder, StringOffset commentOffset) { builder.AddOffset(5, commentOffset.Value, 0); }
   public static Offset<Schale.FlatData.SystemMailExcel> EndSystemMailExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.SystemMailExcel>(o);
@@ -67,6 +75,8 @@ public struct SystemMailExcel : IFlatbufferObject
   public void UnPackTo(SystemMailExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("SystemMail");
     _o.MailType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MailType, key) : this.MailType;
+    _o.IsProductMail = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsProductMail, key) : this.IsProductMail;
+    _o.IsVariableExpiredDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsVariableExpiredDay, key) : this.IsVariableExpiredDay;
     _o.ExpiredDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpiredDay, key) : this.ExpiredDay;
     _o.Sender = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Sender, key) : this.Sender;
     _o.Comment = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Comment, key) : this.Comment;
@@ -78,6 +88,8 @@ public struct SystemMailExcel : IFlatbufferObject
     return CreateSystemMailExcel(
       builder,
       _o.MailType,
+      _o.IsProductMail,
+      _o.IsVariableExpiredDay,
       _o.ExpiredDay,
       _Sender,
       _Comment);
@@ -87,12 +99,16 @@ public struct SystemMailExcel : IFlatbufferObject
 public class SystemMailExcelT
 {
   public Schale.FlatData.MailType MailType { get; set; }
+  public bool IsProductMail { get; set; }
+  public bool IsVariableExpiredDay { get; set; }
   public long ExpiredDay { get; set; }
   public string Sender { get; set; }
   public string Comment { get; set; }
 
   public SystemMailExcelT() {
     this.MailType = Schale.FlatData.MailType.System;
+    this.IsProductMail = false;
+    this.IsVariableExpiredDay = false;
     this.ExpiredDay = 0;
     this.Sender = null;
     this.Comment = null;
@@ -106,9 +122,11 @@ static public class SystemMailExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*MailType*/, 4 /*Schale.FlatData.MailType*/, 4, false)
-      && verifier.VerifyField(tablePos, 6 /*ExpiredDay*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 8 /*Sender*/, false)
-      && verifier.VerifyString(tablePos, 10 /*Comment*/, false)
+      && verifier.VerifyField(tablePos, 6 /*IsProductMail*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 8 /*IsVariableExpiredDay*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 10 /*ExpiredDay*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 12 /*Sender*/, false)
+      && verifier.VerifyString(tablePos, 14 /*Comment*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

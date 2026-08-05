@@ -46,7 +46,7 @@ public struct EchelonConstraintExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.EchelonConstraintExcel> CreateEchelonConstraintExcel(FlatBufferBuilder builder,
       long GroupId = 0,
       bool IsWhiteList = false,
-      VectorOffset characterIdOffset = default(VectorOffset),
+      VectorOffset CharacterIdOffset = default(VectorOffset),
       VectorOffset PersonalityIdOffset = default(VectorOffset),
       Schale.FlatData.WeaponType WeaponType = Schale.FlatData.WeaponType.None,
       Schale.FlatData.School School = Schale.FlatData.School.None,
@@ -59,7 +59,7 @@ public struct EchelonConstraintExcel : IFlatbufferObject
     EchelonConstraintExcel.AddSchool(builder, School);
     EchelonConstraintExcel.AddWeaponType(builder, WeaponType);
     EchelonConstraintExcel.AddPersonalityId(builder, PersonalityIdOffset);
-    EchelonConstraintExcel.AddCharacterId(builder, characterIdOffset);
+    EchelonConstraintExcel.AddCharacterId(builder, CharacterIdOffset);
     EchelonConstraintExcel.AddIsWhiteList(builder, IsWhiteList);
     return EchelonConstraintExcel.EndEchelonConstraintExcel(builder);
   }
@@ -107,10 +107,10 @@ public struct EchelonConstraintExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EchelonConstraintExcel> Pack(FlatBufferBuilder builder, EchelonConstraintExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EchelonConstraintExcel>);
-    var _characterId = default(VectorOffset);
+    var _CharacterId = default(VectorOffset);
     if (_o.CharacterId != null) {
-      var __characterId = _o.CharacterId.ToArray();
-      _characterId = CreateCharacterIdVector(builder, __characterId);
+      var __CharacterId = _o.CharacterId.ToArray();
+      _CharacterId = CreateCharacterIdVector(builder, __CharacterId);
     }
     var _PersonalityId = default(VectorOffset);
     if (_o.PersonalityId != null) {
@@ -121,7 +121,7 @@ public struct EchelonConstraintExcel : IFlatbufferObject
       builder,
       _o.GroupId,
       _o.IsWhiteList,
-      _characterId,
+      _CharacterId,
       _PersonalityId,
       _o.WeaponType,
       _o.School,

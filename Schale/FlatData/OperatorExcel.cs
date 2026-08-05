@@ -57,6 +57,7 @@ public struct OperatorExcel : IFlatbufferObject
 #endif
   public uint[] GetVoiceIdArray() { return __p.__vector_as_array<uint>(24); }
   public bool OperatorWaitQueue { get { int o = __p.__offset(26); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.CharacterVoiceOverridePriority CharacterVoiceOverridePriority { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.CharacterVoiceOverridePriority)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.CharacterVoiceOverridePriority.None; } }
 
   public static Offset<Schale.FlatData.OperatorExcel> CreateOperatorExcel(FlatBufferBuilder builder,
       long UniqueId = 0,
@@ -70,9 +71,11 @@ public struct OperatorExcel : IFlatbufferObject
       StringOffset PortraitPathOffset = default(StringOffset),
       StringOffset TextLocalizeKeyOffset = default(StringOffset),
       VectorOffset VoiceIdOffset = default(VectorOffset),
-      bool OperatorWaitQueue = false) {
-    builder.StartTable(12);
+      bool OperatorWaitQueue = false,
+      Schale.FlatData.CharacterVoiceOverridePriority CharacterVoiceOverridePriority = Schale.FlatData.CharacterVoiceOverridePriority.None) {
+    builder.StartTable(13);
     OperatorExcel.AddUniqueId(builder, UniqueId);
+    OperatorExcel.AddCharacterVoiceOverridePriority(builder, CharacterVoiceOverridePriority);
     OperatorExcel.AddVoiceId(builder, VoiceIdOffset);
     OperatorExcel.AddTextLocalizeKey(builder, TextLocalizeKeyOffset);
     OperatorExcel.AddPortraitPath(builder, PortraitPathOffset);
@@ -87,7 +90,7 @@ public struct OperatorExcel : IFlatbufferObject
     return OperatorExcel.EndOperatorExcel(builder);
   }
 
-  public static void StartOperatorExcel(FlatBufferBuilder builder) { builder.StartTable(12); }
+  public static void StartOperatorExcel(FlatBufferBuilder builder) { builder.StartTable(13); }
   public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
   public static void AddGroupId(FlatBufferBuilder builder, StringOffset groupIdOffset) { builder.AddOffset(1, groupIdOffset.Value, 0); }
   public static void AddOperatorCondition(FlatBufferBuilder builder, Schale.FlatData.OperatorCondition operatorCondition) { builder.AddInt(2, (int)operatorCondition, 0); }
@@ -105,6 +108,7 @@ public struct OperatorExcel : IFlatbufferObject
   public static VectorOffset CreateVoiceIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<uint>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartVoiceIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddOperatorWaitQueue(FlatBufferBuilder builder, bool operatorWaitQueue) { builder.AddBool(11, operatorWaitQueue, false); }
+  public static void AddCharacterVoiceOverridePriority(FlatBufferBuilder builder, Schale.FlatData.CharacterVoiceOverridePriority characterVoiceOverridePriority) { builder.AddInt(12, (int)characterVoiceOverridePriority, 0); }
   public static Offset<Schale.FlatData.OperatorExcel> EndOperatorExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.OperatorExcel>(o);
@@ -129,6 +133,7 @@ public struct OperatorExcel : IFlatbufferObject
     _o.VoiceId = new List<uint>();
     for (var _j = 0; _j < this.VoiceIdLength; ++_j) {_o.VoiceId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.VoiceId(_j), key) : this.VoiceId(_j));}
     _o.OperatorWaitQueue = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OperatorWaitQueue, key) : this.OperatorWaitQueue;
+    _o.CharacterVoiceOverridePriority = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterVoiceOverridePriority, key) : this.CharacterVoiceOverridePriority;
   }
   public static Offset<Schale.FlatData.OperatorExcel> Pack(FlatBufferBuilder builder, OperatorExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.OperatorExcel>);
@@ -153,7 +158,8 @@ public struct OperatorExcel : IFlatbufferObject
       _PortraitPath,
       _TextLocalizeKey,
       _VoiceId,
-      _o.OperatorWaitQueue);
+      _o.OperatorWaitQueue,
+      _o.CharacterVoiceOverridePriority);
   }
 }
 
@@ -171,6 +177,7 @@ public class OperatorExcelT
   public string TextLocalizeKey { get; set; }
   public List<uint> VoiceId { get; set; }
   public bool OperatorWaitQueue { get; set; }
+  public Schale.FlatData.CharacterVoiceOverridePriority CharacterVoiceOverridePriority { get; set; }
 
   public OperatorExcelT() {
     this.UniqueId = 0;
@@ -185,6 +192,7 @@ public class OperatorExcelT
     this.TextLocalizeKey = null;
     this.VoiceId = null;
     this.OperatorWaitQueue = false;
+    this.CharacterVoiceOverridePriority = Schale.FlatData.CharacterVoiceOverridePriority.None;
   }
 }
 
@@ -206,6 +214,7 @@ static public class OperatorExcelVerify
       && verifier.VerifyString(tablePos, 22 /*TextLocalizeKey*/, false)
       && verifier.VerifyVectorOfData(tablePos, 24 /*VoiceId*/, 4 /*uint*/, false)
       && verifier.VerifyField(tablePos, 26 /*OperatorWaitQueue*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 28 /*CharacterVoiceOverridePriority*/, 4 /*Schale.FlatData.CharacterVoiceOverridePriority*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

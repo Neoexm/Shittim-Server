@@ -23,40 +23,42 @@ public struct ContentsShortcutExcel : IFlatbufferObject
   public long UniqueId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.ContentType ContentType { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.ContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ContentType.None; } }
   public long EventContentId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ScenarioModeVolume { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ScenarioModeChapter { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string ShortcutOpenTime { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.ScenarioModeTypes ScenarioModeType { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.ScenarioModeTypes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ScenarioModeTypes.None; } }
+  public long ScenarioModeVolume { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ScenarioModeChapter { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string ShortcutOpenTime { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetShortcutOpenTimeBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetShortcutOpenTimeBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetShortcutOpenTimeBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetShortcutOpenTimeBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetShortcutOpenTimeArray() { return __p.__vector_as_array<byte>(14); }
-  public string ShortcutCloseTime { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetShortcutOpenTimeArray() { return __p.__vector_as_array<byte>(16); }
+  public string ShortcutCloseTime { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetShortcutCloseTimeBytes() { return __p.__vector_as_span<byte>(16, 1); }
+  public Span<byte> GetShortcutCloseTimeBytes() { return __p.__vector_as_span<byte>(18, 1); }
 #else
-  public ArraySegment<byte>? GetShortcutCloseTimeBytes() { return __p.__vector_as_arraysegment(16); }
+  public ArraySegment<byte>? GetShortcutCloseTimeBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public byte[] GetShortcutCloseTimeArray() { return __p.__vector_as_array<byte>(16); }
-  public long ConditionContentId { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.StageDifficulty ConquestMapDifficulty { get { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.StageDifficulty)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StageDifficulty.None; } }
-  public int ConquestStepIndex { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long ShortcutContentId { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string ShortcutUIName(int j) { int o = __p.__offset(26); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int ShortcutUINameLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public string Localize { get { int o = __p.__offset(28); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetShortcutCloseTimeArray() { return __p.__vector_as_array<byte>(18); }
+  public long ConditionContentId { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.StageDifficulty ConquestMapDifficulty { get { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.StageDifficulty)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StageDifficulty.None; } }
+  public int ConquestStepIndex { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long ShortcutContentId { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string ShortcutUIName(int j) { int o = __p.__offset(28); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int ShortcutUINameLength { get { int o = __p.__offset(28); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public string Localize { get { int o = __p.__offset(30); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeBytes() { return __p.__vector_as_span<byte>(28, 1); }
+  public Span<byte> GetLocalizeBytes() { return __p.__vector_as_span<byte>(30, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeBytes() { return __p.__vector_as_arraysegment(28); }
+  public ArraySegment<byte>? GetLocalizeBytes() { return __p.__vector_as_arraysegment(30); }
 #endif
-  public byte[] GetLocalizeArray() { return __p.__vector_as_array<byte>(28); }
+  public byte[] GetLocalizeArray() { return __p.__vector_as_array<byte>(30); }
 
   public static Offset<Schale.FlatData.ContentsShortcutExcel> CreateContentsShortcutExcel(FlatBufferBuilder builder,
       long UniqueId = 0,
       Schale.FlatData.ContentType ContentType = Schale.FlatData.ContentType.None,
       long EventContentId = 0,
+      Schale.FlatData.ScenarioModeTypes ScenarioModeType = Schale.FlatData.ScenarioModeTypes.None,
       long ScenarioModeVolume = 0,
       long ScenarioModeChapter = 0,
       StringOffset ShortcutOpenTimeOffset = default(StringOffset),
@@ -67,7 +69,7 @@ public struct ContentsShortcutExcel : IFlatbufferObject
       long ShortcutContentId = 0,
       VectorOffset ShortcutUINameOffset = default(VectorOffset),
       StringOffset LocalizeOffset = default(StringOffset)) {
-    builder.StartTable(13);
+    builder.StartTable(14);
     ContentsShortcutExcel.AddShortcutContentId(builder, ShortcutContentId);
     ContentsShortcutExcel.AddConditionContentId(builder, ConditionContentId);
     ContentsShortcutExcel.AddScenarioModeChapter(builder, ScenarioModeChapter);
@@ -80,29 +82,31 @@ public struct ContentsShortcutExcel : IFlatbufferObject
     ContentsShortcutExcel.AddConquestMapDifficulty(builder, ConquestMapDifficulty);
     ContentsShortcutExcel.AddShortcutCloseTime(builder, ShortcutCloseTimeOffset);
     ContentsShortcutExcel.AddShortcutOpenTime(builder, ShortcutOpenTimeOffset);
+    ContentsShortcutExcel.AddScenarioModeType(builder, ScenarioModeType);
     ContentsShortcutExcel.AddContentType(builder, ContentType);
     return ContentsShortcutExcel.EndContentsShortcutExcel(builder);
   }
 
-  public static void StartContentsShortcutExcel(FlatBufferBuilder builder) { builder.StartTable(13); }
+  public static void StartContentsShortcutExcel(FlatBufferBuilder builder) { builder.StartTable(14); }
   public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
   public static void AddContentType(FlatBufferBuilder builder, Schale.FlatData.ContentType contentType) { builder.AddInt(1, (int)contentType, 0); }
   public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(2, eventContentId, 0); }
-  public static void AddScenarioModeVolume(FlatBufferBuilder builder, long scenarioModeVolume) { builder.AddLong(3, scenarioModeVolume, 0); }
-  public static void AddScenarioModeChapter(FlatBufferBuilder builder, long scenarioModeChapter) { builder.AddLong(4, scenarioModeChapter, 0); }
-  public static void AddShortcutOpenTime(FlatBufferBuilder builder, StringOffset shortcutOpenTimeOffset) { builder.AddOffset(5, shortcutOpenTimeOffset.Value, 0); }
-  public static void AddShortcutCloseTime(FlatBufferBuilder builder, StringOffset shortcutCloseTimeOffset) { builder.AddOffset(6, shortcutCloseTimeOffset.Value, 0); }
-  public static void AddConditionContentId(FlatBufferBuilder builder, long conditionContentId) { builder.AddLong(7, conditionContentId, 0); }
-  public static void AddConquestMapDifficulty(FlatBufferBuilder builder, Schale.FlatData.StageDifficulty conquestMapDifficulty) { builder.AddInt(8, (int)conquestMapDifficulty, 0); }
-  public static void AddConquestStepIndex(FlatBufferBuilder builder, int conquestStepIndex) { builder.AddInt(9, conquestStepIndex, 0); }
-  public static void AddShortcutContentId(FlatBufferBuilder builder, long shortcutContentId) { builder.AddLong(10, shortcutContentId, 0); }
-  public static void AddShortcutUIName(FlatBufferBuilder builder, VectorOffset shortcutUINameOffset) { builder.AddOffset(11, shortcutUINameOffset.Value, 0); }
+  public static void AddScenarioModeType(FlatBufferBuilder builder, Schale.FlatData.ScenarioModeTypes scenarioModeType) { builder.AddInt(3, (int)scenarioModeType, 0); }
+  public static void AddScenarioModeVolume(FlatBufferBuilder builder, long scenarioModeVolume) { builder.AddLong(4, scenarioModeVolume, 0); }
+  public static void AddScenarioModeChapter(FlatBufferBuilder builder, long scenarioModeChapter) { builder.AddLong(5, scenarioModeChapter, 0); }
+  public static void AddShortcutOpenTime(FlatBufferBuilder builder, StringOffset shortcutOpenTimeOffset) { builder.AddOffset(6, shortcutOpenTimeOffset.Value, 0); }
+  public static void AddShortcutCloseTime(FlatBufferBuilder builder, StringOffset shortcutCloseTimeOffset) { builder.AddOffset(7, shortcutCloseTimeOffset.Value, 0); }
+  public static void AddConditionContentId(FlatBufferBuilder builder, long conditionContentId) { builder.AddLong(8, conditionContentId, 0); }
+  public static void AddConquestMapDifficulty(FlatBufferBuilder builder, Schale.FlatData.StageDifficulty conquestMapDifficulty) { builder.AddInt(9, (int)conquestMapDifficulty, 0); }
+  public static void AddConquestStepIndex(FlatBufferBuilder builder, int conquestStepIndex) { builder.AddInt(10, conquestStepIndex, 0); }
+  public static void AddShortcutContentId(FlatBufferBuilder builder, long shortcutContentId) { builder.AddLong(11, shortcutContentId, 0); }
+  public static void AddShortcutUIName(FlatBufferBuilder builder, VectorOffset shortcutUINameOffset) { builder.AddOffset(12, shortcutUINameOffset.Value, 0); }
   public static VectorOffset CreateShortcutUINameVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static VectorOffset CreateShortcutUINameVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateShortcutUINameVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateShortcutUINameVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartShortcutUINameVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddLocalize(FlatBufferBuilder builder, StringOffset localizeOffset) { builder.AddOffset(12, localizeOffset.Value, 0); }
+  public static void AddLocalize(FlatBufferBuilder builder, StringOffset localizeOffset) { builder.AddOffset(13, localizeOffset.Value, 0); }
   public static Offset<Schale.FlatData.ContentsShortcutExcel> EndContentsShortcutExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ContentsShortcutExcel>(o);
@@ -117,6 +121,7 @@ public struct ContentsShortcutExcel : IFlatbufferObject
     _o.UniqueId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UniqueId, key) : this.UniqueId;
     _o.ContentType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ContentType, key) : this.ContentType;
     _o.EventContentId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentId, key) : this.EventContentId;
+    _o.ScenarioModeType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioModeType, key) : this.ScenarioModeType;
     _o.ScenarioModeVolume = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioModeVolume, key) : this.ScenarioModeVolume;
     _o.ScenarioModeChapter = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioModeChapter, key) : this.ScenarioModeChapter;
     _o.ShortcutOpenTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutOpenTime, key) : this.ShortcutOpenTime;
@@ -145,6 +150,7 @@ public struct ContentsShortcutExcel : IFlatbufferObject
       _o.UniqueId,
       _o.ContentType,
       _o.EventContentId,
+      _o.ScenarioModeType,
       _o.ScenarioModeVolume,
       _o.ScenarioModeChapter,
       _ShortcutOpenTime,
@@ -163,6 +169,7 @@ public class ContentsShortcutExcelT
   public long UniqueId { get; set; }
   public Schale.FlatData.ContentType ContentType { get; set; }
   public long EventContentId { get; set; }
+  public Schale.FlatData.ScenarioModeTypes ScenarioModeType { get; set; }
   public long ScenarioModeVolume { get; set; }
   public long ScenarioModeChapter { get; set; }
   public string ShortcutOpenTime { get; set; }
@@ -178,6 +185,7 @@ public class ContentsShortcutExcelT
     this.UniqueId = 0;
     this.ContentType = Schale.FlatData.ContentType.None;
     this.EventContentId = 0;
+    this.ScenarioModeType = Schale.FlatData.ScenarioModeTypes.None;
     this.ScenarioModeVolume = 0;
     this.ScenarioModeChapter = 0;
     this.ShortcutOpenTime = null;
@@ -200,16 +208,17 @@ static public class ContentsShortcutExcelVerify
       && verifier.VerifyField(tablePos, 4 /*UniqueId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*ContentType*/, 4 /*Schale.FlatData.ContentType*/, 4, false)
       && verifier.VerifyField(tablePos, 8 /*EventContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 10 /*ScenarioModeVolume*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 12 /*ScenarioModeChapter*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 14 /*ShortcutOpenTime*/, false)
-      && verifier.VerifyString(tablePos, 16 /*ShortcutCloseTime*/, false)
-      && verifier.VerifyField(tablePos, 18 /*ConditionContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 20 /*ConquestMapDifficulty*/, 4 /*Schale.FlatData.StageDifficulty*/, 4, false)
-      && verifier.VerifyField(tablePos, 22 /*ConquestStepIndex*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 24 /*ShortcutContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 26 /*ShortcutUIName*/, false)
-      && verifier.VerifyString(tablePos, 28 /*Localize*/, false)
+      && verifier.VerifyField(tablePos, 10 /*ScenarioModeType*/, 4 /*Schale.FlatData.ScenarioModeTypes*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*ScenarioModeVolume*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 14 /*ScenarioModeChapter*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 16 /*ShortcutOpenTime*/, false)
+      && verifier.VerifyString(tablePos, 18 /*ShortcutCloseTime*/, false)
+      && verifier.VerifyField(tablePos, 20 /*ConditionContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*ConquestMapDifficulty*/, 4 /*Schale.FlatData.StageDifficulty*/, 4, false)
+      && verifier.VerifyField(tablePos, 24 /*ConquestStepIndex*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 26 /*ShortcutContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 28 /*ShortcutUIName*/, false)
+      && verifier.VerifyString(tablePos, 30 /*Localize*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

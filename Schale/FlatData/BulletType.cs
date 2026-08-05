@@ -14,6 +14,7 @@ public enum BulletType : int
   Mystic = 4,
   None = 5,
   Sonic = 6,
+  Chemical = 7,
 };
 
 

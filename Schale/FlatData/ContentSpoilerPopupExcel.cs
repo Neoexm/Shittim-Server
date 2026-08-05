@@ -21,43 +21,31 @@ public struct ContentSpoilerPopupExcel : IFlatbufferObject
   public ContentSpoilerPopupExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Schale.FlatData.ContentType ContentType { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.ContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ContentType.None; } }
-  public string SpoilerPopupTitle { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetSpoilerPopupTitleBytes() { return __p.__vector_as_span<byte>(6, 1); }
-#else
-  public ArraySegment<byte>? GetSpoilerPopupTitleBytes() { return __p.__vector_as_arraysegment(6); }
-#endif
-  public byte[] GetSpoilerPopupTitleArray() { return __p.__vector_as_array<byte>(6); }
-  public string SpoilerPopupDescription { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetSpoilerPopupDescriptionBytes() { return __p.__vector_as_span<byte>(8, 1); }
-#else
-  public ArraySegment<byte>? GetSpoilerPopupDescriptionBytes() { return __p.__vector_as_arraysegment(8); }
-#endif
-  public byte[] GetSpoilerPopupDescriptionArray() { return __p.__vector_as_array<byte>(8); }
-  public bool IsWarningPopUp { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public uint SpoilerPopupTitle { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public uint SpoilerPopupDescription { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public Schale.FlatData.SpoilerPopupType PopupType { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.SpoilerPopupType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.SpoilerPopupType.None; } }
   public long ConditionScenarioModeId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ContentSpoilerPopupExcel> CreateContentSpoilerPopupExcel(FlatBufferBuilder builder,
       Schale.FlatData.ContentType ContentType = Schale.FlatData.ContentType.None,
-      StringOffset SpoilerPopupTitleOffset = default(StringOffset),
-      StringOffset SpoilerPopupDescriptionOffset = default(StringOffset),
-      bool IsWarningPopUp = false,
+      uint SpoilerPopupTitle = 0,
+      uint SpoilerPopupDescription = 0,
+      Schale.FlatData.SpoilerPopupType PopupType = Schale.FlatData.SpoilerPopupType.None,
       long ConditionScenarioModeId = 0) {
     builder.StartTable(5);
     ContentSpoilerPopupExcel.AddConditionScenarioModeId(builder, ConditionScenarioModeId);
-    ContentSpoilerPopupExcel.AddSpoilerPopupDescription(builder, SpoilerPopupDescriptionOffset);
-    ContentSpoilerPopupExcel.AddSpoilerPopupTitle(builder, SpoilerPopupTitleOffset);
+    ContentSpoilerPopupExcel.AddPopupType(builder, PopupType);
+    ContentSpoilerPopupExcel.AddSpoilerPopupDescription(builder, SpoilerPopupDescription);
+    ContentSpoilerPopupExcel.AddSpoilerPopupTitle(builder, SpoilerPopupTitle);
     ContentSpoilerPopupExcel.AddContentType(builder, ContentType);
-    ContentSpoilerPopupExcel.AddIsWarningPopUp(builder, IsWarningPopUp);
     return ContentSpoilerPopupExcel.EndContentSpoilerPopupExcel(builder);
   }
 
   public static void StartContentSpoilerPopupExcel(FlatBufferBuilder builder) { builder.StartTable(5); }
   public static void AddContentType(FlatBufferBuilder builder, Schale.FlatData.ContentType contentType) { builder.AddInt(0, (int)contentType, 0); }
-  public static void AddSpoilerPopupTitle(FlatBufferBuilder builder, StringOffset spoilerPopupTitleOffset) { builder.AddOffset(1, spoilerPopupTitleOffset.Value, 0); }
-  public static void AddSpoilerPopupDescription(FlatBufferBuilder builder, StringOffset spoilerPopupDescriptionOffset) { builder.AddOffset(2, spoilerPopupDescriptionOffset.Value, 0); }
-  public static void AddIsWarningPopUp(FlatBufferBuilder builder, bool isWarningPopUp) { builder.AddBool(3, isWarningPopUp, false); }
+  public static void AddSpoilerPopupTitle(FlatBufferBuilder builder, uint spoilerPopupTitle) { builder.AddUint(1, spoilerPopupTitle, 0); }
+  public static void AddSpoilerPopupDescription(FlatBufferBuilder builder, uint spoilerPopupDescription) { builder.AddUint(2, spoilerPopupDescription, 0); }
+  public static void AddPopupType(FlatBufferBuilder builder, Schale.FlatData.SpoilerPopupType popupType) { builder.AddInt(3, (int)popupType, 0); }
   public static void AddConditionScenarioModeId(FlatBufferBuilder builder, long conditionScenarioModeId) { builder.AddLong(4, conditionScenarioModeId, 0); }
   public static Offset<Schale.FlatData.ContentSpoilerPopupExcel> EndContentSpoilerPopupExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
@@ -73,19 +61,17 @@ public struct ContentSpoilerPopupExcel : IFlatbufferObject
     _o.ContentType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ContentType, key) : this.ContentType;
     _o.SpoilerPopupTitle = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SpoilerPopupTitle, key) : this.SpoilerPopupTitle;
     _o.SpoilerPopupDescription = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SpoilerPopupDescription, key) : this.SpoilerPopupDescription;
-    _o.IsWarningPopUp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsWarningPopUp, key) : this.IsWarningPopUp;
+    _o.PopupType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PopupType, key) : this.PopupType;
     _o.ConditionScenarioModeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ConditionScenarioModeId, key) : this.ConditionScenarioModeId;
   }
   public static Offset<Schale.FlatData.ContentSpoilerPopupExcel> Pack(FlatBufferBuilder builder, ContentSpoilerPopupExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ContentSpoilerPopupExcel>);
-    var _SpoilerPopupTitle = _o.SpoilerPopupTitle == null ? default(StringOffset) : builder.CreateString(_o.SpoilerPopupTitle);
-    var _SpoilerPopupDescription = _o.SpoilerPopupDescription == null ? default(StringOffset) : builder.CreateString(_o.SpoilerPopupDescription);
     return CreateContentSpoilerPopupExcel(
       builder,
       _o.ContentType,
-      _SpoilerPopupTitle,
-      _SpoilerPopupDescription,
-      _o.IsWarningPopUp,
+      _o.SpoilerPopupTitle,
+      _o.SpoilerPopupDescription,
+      _o.PopupType,
       _o.ConditionScenarioModeId);
   }
 }
@@ -93,16 +79,16 @@ public struct ContentSpoilerPopupExcel : IFlatbufferObject
 public class ContentSpoilerPopupExcelT
 {
   public Schale.FlatData.ContentType ContentType { get; set; }
-  public string SpoilerPopupTitle { get; set; }
-  public string SpoilerPopupDescription { get; set; }
-  public bool IsWarningPopUp { get; set; }
+  public uint SpoilerPopupTitle { get; set; }
+  public uint SpoilerPopupDescription { get; set; }
+  public Schale.FlatData.SpoilerPopupType PopupType { get; set; }
   public long ConditionScenarioModeId { get; set; }
 
   public ContentSpoilerPopupExcelT() {
     this.ContentType = Schale.FlatData.ContentType.None;
-    this.SpoilerPopupTitle = null;
-    this.SpoilerPopupDescription = null;
-    this.IsWarningPopUp = false;
+    this.SpoilerPopupTitle = 0;
+    this.SpoilerPopupDescription = 0;
+    this.PopupType = Schale.FlatData.SpoilerPopupType.None;
     this.ConditionScenarioModeId = 0;
   }
 }
@@ -114,9 +100,9 @@ static public class ContentSpoilerPopupExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*ContentType*/, 4 /*Schale.FlatData.ContentType*/, 4, false)
-      && verifier.VerifyString(tablePos, 6 /*SpoilerPopupTitle*/, false)
-      && verifier.VerifyString(tablePos, 8 /*SpoilerPopupDescription*/, false)
-      && verifier.VerifyField(tablePos, 10 /*IsWarningPopUp*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 6 /*SpoilerPopupTitle*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*SpoilerPopupDescription*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*PopupType*/, 4 /*Schale.FlatData.SpoilerPopupType*/, 4, false)
       && verifier.VerifyField(tablePos, 12 /*ConditionScenarioModeId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }

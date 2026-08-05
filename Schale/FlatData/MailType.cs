@@ -38,6 +38,11 @@ public enum MailType : int
   ExpiryBattlePassItem = 28,
   FreeProductReward = 29,
   ProductGooglePointReward = 30,
+  PaymentCenterProduct = 31,
+  PaymentCenterMonthly = 32,
+  PaymentCenterBattlePass = 33,
+  PaymentCenterDailyRecord = 34,
+  ExpiryProductDailyRecordItem = 35,
 };
 
 

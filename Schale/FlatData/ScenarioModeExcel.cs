@@ -156,7 +156,7 @@ public struct ScenarioModeExcel : IFlatbufferObject
       int RecommendLevel = 0,
       StringOffset EventIconParcelPathOffset = default(StringOffset),
       uint EventBannerTitle = 0,
-      bool lof = false,
+      bool Lof = false,
       Schale.FlatData.StageTopography StageTopography = Schale.FlatData.StageTopography.Street,
       long FixedEchelonId = 0,
       StringOffset CompleteReportEventNameOffset = default(StringOffset),
@@ -200,7 +200,7 @@ public struct ScenarioModeExcel : IFlatbufferObject
     ScenarioModeExcel.AddExposedTime(builder, ExposedTimeOffset);
     ScenarioModeExcel.AddSubType(builder, SubType);
     ScenarioModeExcel.AddModeType(builder, ModeType);
-    ScenarioModeExcel.AddLof(builder, lof);
+    ScenarioModeExcel.AddLof(builder, Lof);
     ScenarioModeExcel.AddIsScenarioSpecialReward(builder, IsScenarioSpecialReward);
     ScenarioModeExcel.AddIsDefeatBattle(builder, IsDefeatBattle);
     ScenarioModeExcel.AddIsContinue(builder, IsContinue);

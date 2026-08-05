@@ -80,24 +80,24 @@ public struct Video_GlobalExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.Video_GlobalExcel> CreateVideo_GlobalExcel(FlatBufferBuilder builder,
       long VideoId = 0,
-      StringOffset VideoPathKrOffset = default(StringOffset),
-      StringOffset VideoTeenPathKrOffset = default(StringOffset),
-      StringOffset VideoPathThOffset = default(StringOffset),
-      StringOffset VideoTeenPathThOffset = default(StringOffset),
-      StringOffset VideoPathTwOffset = default(StringOffset),
-      StringOffset VideoTeenPathTwOffset = default(StringOffset),
-      StringOffset VideoPathEnOffset = default(StringOffset),
-      StringOffset VideoTeenPathEnOffset = default(StringOffset)) {
+      StringOffset VideoPath_krOffset = default(StringOffset),
+      StringOffset VideoTeenPath_krOffset = default(StringOffset),
+      StringOffset VideoPath_thOffset = default(StringOffset),
+      StringOffset VideoTeenPath_thOffset = default(StringOffset),
+      StringOffset VideoPath_twOffset = default(StringOffset),
+      StringOffset VideoTeenPath_twOffset = default(StringOffset),
+      StringOffset VideoPath_enOffset = default(StringOffset),
+      StringOffset VideoTeenPath_enOffset = default(StringOffset)) {
     builder.StartTable(9);
     Video_GlobalExcel.AddVideoId(builder, VideoId);
-    Video_GlobalExcel.AddVideoTeenPathEn(builder, VideoTeenPathEnOffset);
-    Video_GlobalExcel.AddVideoPathEn(builder, VideoPathEnOffset);
-    Video_GlobalExcel.AddVideoTeenPathTw(builder, VideoTeenPathTwOffset);
-    Video_GlobalExcel.AddVideoPathTw(builder, VideoPathTwOffset);
-    Video_GlobalExcel.AddVideoTeenPathTh(builder, VideoTeenPathThOffset);
-    Video_GlobalExcel.AddVideoPathTh(builder, VideoPathThOffset);
-    Video_GlobalExcel.AddVideoTeenPathKr(builder, VideoTeenPathKrOffset);
-    Video_GlobalExcel.AddVideoPathKr(builder, VideoPathKrOffset);
+    Video_GlobalExcel.AddVideoTeenPathEn(builder, VideoTeenPath_enOffset);
+    Video_GlobalExcel.AddVideoPathEn(builder, VideoPath_enOffset);
+    Video_GlobalExcel.AddVideoTeenPathTw(builder, VideoTeenPath_twOffset);
+    Video_GlobalExcel.AddVideoPathTw(builder, VideoPath_twOffset);
+    Video_GlobalExcel.AddVideoTeenPathTh(builder, VideoTeenPath_thOffset);
+    Video_GlobalExcel.AddVideoPathTh(builder, VideoPath_thOffset);
+    Video_GlobalExcel.AddVideoTeenPathKr(builder, VideoTeenPath_krOffset);
+    Video_GlobalExcel.AddVideoPathKr(builder, VideoPath_krOffset);
     return Video_GlobalExcel.EndVideo_GlobalExcel(builder);
   }
 
@@ -134,25 +134,25 @@ public struct Video_GlobalExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.Video_GlobalExcel> Pack(FlatBufferBuilder builder, Video_GlobalExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.Video_GlobalExcel>);
-    var _VideoPathKr = _o.VideoPathKr == null ? default(StringOffset) : builder.CreateString(_o.VideoPathKr);
-    var _VideoTeenPathKr = _o.VideoTeenPathKr == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathKr);
-    var _VideoPathTh = _o.VideoPathTh == null ? default(StringOffset) : builder.CreateString(_o.VideoPathTh);
-    var _VideoTeenPathTh = _o.VideoTeenPathTh == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathTh);
-    var _VideoPathTw = _o.VideoPathTw == null ? default(StringOffset) : builder.CreateString(_o.VideoPathTw);
-    var _VideoTeenPathTw = _o.VideoTeenPathTw == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathTw);
-    var _VideoPathEn = _o.VideoPathEn == null ? default(StringOffset) : builder.CreateString(_o.VideoPathEn);
-    var _VideoTeenPathEn = _o.VideoTeenPathEn == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathEn);
+    var _VideoPath_kr = _o.VideoPathKr == null ? default(StringOffset) : builder.CreateString(_o.VideoPathKr);
+    var _VideoTeenPath_kr = _o.VideoTeenPathKr == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathKr);
+    var _VideoPath_th = _o.VideoPathTh == null ? default(StringOffset) : builder.CreateString(_o.VideoPathTh);
+    var _VideoTeenPath_th = _o.VideoTeenPathTh == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathTh);
+    var _VideoPath_tw = _o.VideoPathTw == null ? default(StringOffset) : builder.CreateString(_o.VideoPathTw);
+    var _VideoTeenPath_tw = _o.VideoTeenPathTw == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathTw);
+    var _VideoPath_en = _o.VideoPathEn == null ? default(StringOffset) : builder.CreateString(_o.VideoPathEn);
+    var _VideoTeenPath_en = _o.VideoTeenPathEn == null ? default(StringOffset) : builder.CreateString(_o.VideoTeenPathEn);
     return CreateVideo_GlobalExcel(
       builder,
       _o.VideoId,
-      _VideoPathKr,
-      _VideoTeenPathKr,
-      _VideoPathTh,
-      _VideoTeenPathTh,
-      _VideoPathTw,
-      _VideoTeenPathTw,
-      _VideoPathEn,
-      _VideoTeenPathEn);
+      _VideoPath_kr,
+      _VideoTeenPath_kr,
+      _VideoPath_th,
+      _VideoTeenPath_th,
+      _VideoPath_tw,
+      _VideoTeenPath_tw,
+      _VideoPath_en,
+      _VideoTeenPath_en);
   }
 }
 

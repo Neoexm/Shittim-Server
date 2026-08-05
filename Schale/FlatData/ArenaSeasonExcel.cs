@@ -37,14 +37,17 @@ public struct ArenaSeasonExcel : IFlatbufferObject
   public byte[] GetSeasonEndDateArray() { return __p.__vector_as_array<byte>(8); }
   public long SeasonGroupLimit { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long PrevSeasonId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long InformationGroupId { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ArenaSeasonExcel> CreateArenaSeasonExcel(FlatBufferBuilder builder,
       long UniqueId = 0,
       StringOffset SeasonStartDateOffset = default(StringOffset),
       StringOffset SeasonEndDateOffset = default(StringOffset),
       long SeasonGroupLimit = 0,
-      long PrevSeasonId = 0) {
-    builder.StartTable(5);
+      long PrevSeasonId = 0,
+      long InformationGroupId = 0) {
+    builder.StartTable(6);
+    ArenaSeasonExcel.AddInformationGroupId(builder, InformationGroupId);
     ArenaSeasonExcel.AddPrevSeasonId(builder, PrevSeasonId);
     ArenaSeasonExcel.AddSeasonGroupLimit(builder, SeasonGroupLimit);
     ArenaSeasonExcel.AddUniqueId(builder, UniqueId);
@@ -53,12 +56,13 @@ public struct ArenaSeasonExcel : IFlatbufferObject
     return ArenaSeasonExcel.EndArenaSeasonExcel(builder);
   }
 
-  public static void StartArenaSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(5); }
+  public static void StartArenaSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(6); }
   public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
   public static void AddSeasonStartDate(FlatBufferBuilder builder, StringOffset seasonStartDateOffset) { builder.AddOffset(1, seasonStartDateOffset.Value, 0); }
   public static void AddSeasonEndDate(FlatBufferBuilder builder, StringOffset seasonEndDateOffset) { builder.AddOffset(2, seasonEndDateOffset.Value, 0); }
   public static void AddSeasonGroupLimit(FlatBufferBuilder builder, long seasonGroupLimit) { builder.AddLong(3, seasonGroupLimit, 0); }
   public static void AddPrevSeasonId(FlatBufferBuilder builder, long prevSeasonId) { builder.AddLong(4, prevSeasonId, 0); }
+  public static void AddInformationGroupId(FlatBufferBuilder builder, long informationGroupId) { builder.AddLong(5, informationGroupId, 0); }
   public static Offset<Schale.FlatData.ArenaSeasonExcel> EndArenaSeasonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ArenaSeasonExcel>(o);
@@ -75,6 +79,7 @@ public struct ArenaSeasonExcel : IFlatbufferObject
     _o.SeasonEndDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonEndDate, key) : this.SeasonEndDate;
     _o.SeasonGroupLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonGroupLimit, key) : this.SeasonGroupLimit;
     _o.PrevSeasonId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PrevSeasonId, key) : this.PrevSeasonId;
+    _o.InformationGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.InformationGroupId, key) : this.InformationGroupId;
   }
   public static Offset<Schale.FlatData.ArenaSeasonExcel> Pack(FlatBufferBuilder builder, ArenaSeasonExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ArenaSeasonExcel>);
@@ -86,7 +91,8 @@ public struct ArenaSeasonExcel : IFlatbufferObject
       _SeasonStartDate,
       _SeasonEndDate,
       _o.SeasonGroupLimit,
-      _o.PrevSeasonId);
+      _o.PrevSeasonId,
+      _o.InformationGroupId);
   }
 }
 
@@ -97,6 +103,7 @@ public class ArenaSeasonExcelT
   public string SeasonEndDate { get; set; }
   public long SeasonGroupLimit { get; set; }
   public long PrevSeasonId { get; set; }
+  public long InformationGroupId { get; set; }
 
   public ArenaSeasonExcelT() {
     this.UniqueId = 0;
@@ -104,6 +111,7 @@ public class ArenaSeasonExcelT
     this.SeasonEndDate = null;
     this.SeasonGroupLimit = 0;
     this.PrevSeasonId = 0;
+    this.InformationGroupId = 0;
   }
 }
 
@@ -118,6 +126,7 @@ static public class ArenaSeasonExcelVerify
       && verifier.VerifyString(tablePos, 8 /*SeasonEndDate*/, false)
       && verifier.VerifyField(tablePos, 10 /*SeasonGroupLimit*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 12 /*PrevSeasonId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 14 /*InformationGroupId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

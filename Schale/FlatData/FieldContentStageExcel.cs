@@ -82,7 +82,7 @@ public struct FieldContentStageExcel : IFlatbufferObject
       long FixedEchelonId = 0,
       bool SkipFormationSettings = false,
       bool DailyLastPlay = false,
-      VectorOffset starGoalOffset = default(VectorOffset),
+      VectorOffset StarGoalOffset = default(VectorOffset),
       VectorOffset StarGoalAmountOffset = default(VectorOffset)) {
     builder.StartTable(21);
     FieldContentStageExcel.AddFixedEchelonId(builder, FixedEchelonId);
@@ -96,7 +96,7 @@ public struct FieldContentStageExcel : IFlatbufferObject
     FieldContentStageExcel.AddSeasonId(builder, SeasonId);
     FieldContentStageExcel.AddId(builder, Id);
     FieldContentStageExcel.AddStarGoalAmount(builder, StarGoalAmountOffset);
-    FieldContentStageExcel.AddStarGoal(builder, starGoalOffset);
+    FieldContentStageExcel.AddStarGoal(builder, StarGoalOffset);
     FieldContentStageExcel.AddRecommandLevel(builder, RecommandLevel);
     FieldContentStageExcel.AddStageTopography(builder, StageTopography);
     FieldContentStageExcel.AddStageEnterCostAmount(builder, StageEnterCostAmount);
@@ -179,10 +179,10 @@ public struct FieldContentStageExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.FieldContentStageExcel> Pack(FlatBufferBuilder builder, FieldContentStageExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.FieldContentStageExcel>);
     var _Name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
-    var _starGoal = default(VectorOffset);
+    var _StarGoal = default(VectorOffset);
     if (_o.StarGoal != null) {
-      var __starGoal = _o.StarGoal.ToArray();
-      _starGoal = CreateStarGoalVector(builder, __starGoal);
+      var __StarGoal = _o.StarGoal.ToArray();
+      _StarGoal = CreateStarGoalVector(builder, __StarGoal);
     }
     var _StarGoalAmount = default(VectorOffset);
     if (_o.StarGoalAmount != null) {
@@ -210,7 +210,7 @@ public struct FieldContentStageExcel : IFlatbufferObject
       _o.FixedEchelonId,
       _o.SkipFormationSettings,
       _o.DailyLastPlay,
-      _starGoal,
+      _StarGoal,
       _StarGoalAmount);
   }
 }

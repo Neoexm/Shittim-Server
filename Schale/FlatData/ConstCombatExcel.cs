@@ -177,20 +177,22 @@ public struct ConstCombatExcel : IFlatbufferObject
   public int ExcessiveTouchCheckCount { get { int o = __p.__offset(204); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public int CampaignAlertPopupLevelGap { get { int o = __p.__offset(206); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public int MoveCorrectionSkipRatio { get { int o = __p.__offset(208); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public float ObstacleColliderHeightJumpable { get { int o = __p.__offset(210); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ObstacleColliderHeightNotJumpable { get { int o = __p.__offset(212); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
 
   public static Offset<Schale.FlatData.ConstCombatExcel> CreateConstCombatExcel(FlatBufferBuilder builder,
       int SkillHandCount = 0,
       int DyingTime = 0,
       int BuffIconBlinkTime = 0,
-      bool ShowBufficonEXSkill = false,
-      bool ShowBufficonPassiveSkill = false,
-      bool ShowBufficonExtraPassiveSkill = false,
-      bool ShowBufficonLeaderSkill = false,
-      bool ShowBufficonGroundPassiveSkill = false,
+      bool ShowBufficon_EXSkill = false,
+      bool ShowBufficon_PassiveSkill = false,
+      bool ShowBufficon_ExtraPassiveSkill = false,
+      bool ShowBufficon_LeaderSkill = false,
+      bool ShowBufficon_GroundPassiveSkill = false,
       StringOffset SuppliesConditionStringIdOffset = default(StringOffset),
-      float PublicSpeechBubbleOffsetX = 0.0f,
-      float PublicSpeechBubbleOffsetY = 0.0f,
-      float PublicSpeechBubbleOffsetZ = 0.0f,
+      float PublicSpeechBubbleOffset_X = 0.0f,
+      float PublicSpeechBubbleOffset_Y = 0.0f,
+      float PublicSpeechBubbleOffset_Z = 0.0f,
       int ShowRaidListCount = 0,
       long MaxRaidTicketCount = 0,
       long MaxRaidBossSkillSlot = 0,
@@ -240,25 +242,25 @@ public struct ConstCombatExcel : IFlatbufferObject
       long SummonedTeleportDistance = 0,
       int ArenaMinimumClearTime = 0,
       long WORLDBOSSBATTLELITTLE = 0,
-      long WORLDBOSSBATTLELITTLETw = 0,
-      long WORLDBOSSBATTLELITTLEAsia = 0,
-      long WORLDBOSSBATTLELITTLENa = 0,
-      long WORLDBOSSBATTLELITTLEGlobal = 0,
+      long WORLDBOSSBATTLELITTLE_Tw = 0,
+      long WORLDBOSSBATTLELITTLE_Asia = 0,
+      long WORLDBOSSBATTLELITTLE_Na = 0,
+      long WORLDBOSSBATTLELITTLE_Global = 0,
       long WORLDBOSSBATTLEMIDDLE = 0,
-      long WORLDBOSSBATTLEMIDDLETw = 0,
-      long WORLDBOSSBATTLEMIDDLEAsia = 0,
-      long WORLDBOSSBATTLEMIDDLENa = 0,
-      long WORLDBOSSBATTLEMIDDLEGlobal = 0,
+      long WORLDBOSSBATTLEMIDDLE_Tw = 0,
+      long WORLDBOSSBATTLEMIDDLE_Asia = 0,
+      long WORLDBOSSBATTLEMIDDLE_Na = 0,
+      long WORLDBOSSBATTLEMIDDLE_Global = 0,
       long WORLDBOSSBATTLEHIGH = 0,
-      long WORLDBOSSBATTLEHIGHTw = 0,
-      long WORLDBOSSBATTLEHIGHAsia = 0,
-      long WORLDBOSSBATTLEHIGHNa = 0,
-      long WORLDBOSSBATTLEHIGHGlobal = 0,
+      long WORLDBOSSBATTLEHIGH_Tw = 0,
+      long WORLDBOSSBATTLEHIGH_Asia = 0,
+      long WORLDBOSSBATTLEHIGH_Na = 0,
+      long WORLDBOSSBATTLEHIGH_Global = 0,
       long WORLDBOSSBATTLEVERYHIGH = 0,
-      long WORLDBOSSBATTLEVERYHIGHTw = 0,
-      long WORLDBOSSBATTLEVERYHIGHAsia = 0,
-      long WORLDBOSSBATTLEVERYHIGHNa = 0,
-      long WORLDBOSSBATTLEVERYHIGHGlobal = 0,
+      long WORLDBOSSBATTLEVERYHIGH_Tw = 0,
+      long WORLDBOSSBATTLEVERYHIGH_Asia = 0,
+      long WORLDBOSSBATTLEVERYHIGH_Na = 0,
+      long WORLDBOSSBATTLEVERYHIGH_Global = 0,
       long WorldRaidAutoSyncTermSecond = 0,
       long WorldRaidBossHpDecreaseTerm = 0,
       long WorldRaidBossParcelReactionDelay = 0,
@@ -281,8 +283,10 @@ public struct ConstCombatExcel : IFlatbufferObject
       float ExcessiveTouchCheckTime = 0.0f,
       int ExcessiveTouchCheckCount = 0,
       int CampaignAlertPopupLevelGap = 0,
-      int MoveCorrectionSkipRatio = 0) {
-    builder.StartTable(103);
+      int MoveCorrectionSkipRatio = 0,
+      float ObstacleColliderHeightJumpable = 0.0f,
+      float ObstacleColliderHeightNotJumpable = 0.0f) {
+    builder.StartTable(105);
     ConstCombatExcel.AddEchelonExtensionOverloadCostRegenRatio(builder, EchelonExtensionOverloadCostRegenRatio);
     ConstCombatExcel.AddEchelonOverloadCostRegenRatio(builder, EchelonOverloadCostRegenRatio);
     ConstCombatExcel.AddEchelonExtensionCostRegenRatio(builder, EchelonExtensionCostRegenRatio);
@@ -295,25 +299,25 @@ public struct ConstCombatExcel : IFlatbufferObject
     ConstCombatExcel.AddWorldRaidBossParcelReactionDelay(builder, WorldRaidBossParcelReactionDelay);
     ConstCombatExcel.AddWorldRaidBossHpDecreaseTerm(builder, WorldRaidBossHpDecreaseTerm);
     ConstCombatExcel.AddWorldRaidAutoSyncTermSecond(builder, WorldRaidAutoSyncTermSecond);
-    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHGlobal(builder, WORLDBOSSBATTLEVERYHIGHGlobal);
-    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHNa(builder, WORLDBOSSBATTLEVERYHIGHNa);
-    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHAsia(builder, WORLDBOSSBATTLEVERYHIGHAsia);
-    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHTw(builder, WORLDBOSSBATTLEVERYHIGHTw);
+    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHGlobal(builder, WORLDBOSSBATTLEVERYHIGH_Global);
+    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHNa(builder, WORLDBOSSBATTLEVERYHIGH_Na);
+    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHAsia(builder, WORLDBOSSBATTLEVERYHIGH_Asia);
+    ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGHTw(builder, WORLDBOSSBATTLEVERYHIGH_Tw);
     ConstCombatExcel.AddWORLDBOSSBATTLEVERYHIGH(builder, WORLDBOSSBATTLEVERYHIGH);
-    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHGlobal(builder, WORLDBOSSBATTLEHIGHGlobal);
-    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHNa(builder, WORLDBOSSBATTLEHIGHNa);
-    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHAsia(builder, WORLDBOSSBATTLEHIGHAsia);
-    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHTw(builder, WORLDBOSSBATTLEHIGHTw);
+    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHGlobal(builder, WORLDBOSSBATTLEHIGH_Global);
+    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHNa(builder, WORLDBOSSBATTLEHIGH_Na);
+    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHAsia(builder, WORLDBOSSBATTLEHIGH_Asia);
+    ConstCombatExcel.AddWORLDBOSSBATTLEHIGHTw(builder, WORLDBOSSBATTLEHIGH_Tw);
     ConstCombatExcel.AddWORLDBOSSBATTLEHIGH(builder, WORLDBOSSBATTLEHIGH);
-    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLEGlobal(builder, WORLDBOSSBATTLEMIDDLEGlobal);
-    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLENa(builder, WORLDBOSSBATTLEMIDDLENa);
-    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLEAsia(builder, WORLDBOSSBATTLEMIDDLEAsia);
-    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLETw(builder, WORLDBOSSBATTLEMIDDLETw);
+    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLEGlobal(builder, WORLDBOSSBATTLEMIDDLE_Global);
+    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLENa(builder, WORLDBOSSBATTLEMIDDLE_Na);
+    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLEAsia(builder, WORLDBOSSBATTLEMIDDLE_Asia);
+    ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLETw(builder, WORLDBOSSBATTLEMIDDLE_Tw);
     ConstCombatExcel.AddWORLDBOSSBATTLEMIDDLE(builder, WORLDBOSSBATTLEMIDDLE);
-    ConstCombatExcel.AddWORLDBOSSBATTLELITTLEGlobal(builder, WORLDBOSSBATTLELITTLEGlobal);
-    ConstCombatExcel.AddWORLDBOSSBATTLELITTLENa(builder, WORLDBOSSBATTLELITTLENa);
-    ConstCombatExcel.AddWORLDBOSSBATTLELITTLEAsia(builder, WORLDBOSSBATTLELITTLEAsia);
-    ConstCombatExcel.AddWORLDBOSSBATTLELITTLETw(builder, WORLDBOSSBATTLELITTLETw);
+    ConstCombatExcel.AddWORLDBOSSBATTLELITTLEGlobal(builder, WORLDBOSSBATTLELITTLE_Global);
+    ConstCombatExcel.AddWORLDBOSSBATTLELITTLENa(builder, WORLDBOSSBATTLELITTLE_Na);
+    ConstCombatExcel.AddWORLDBOSSBATTLELITTLEAsia(builder, WORLDBOSSBATTLELITTLE_Asia);
+    ConstCombatExcel.AddWORLDBOSSBATTLELITTLETw(builder, WORLDBOSSBATTLELITTLE_Tw);
     ConstCombatExcel.AddWORLDBOSSBATTLELITTLE(builder, WORLDBOSSBATTLELITTLE);
     ConstCombatExcel.AddSummonedTeleportDistance(builder, SummonedTeleportDistance);
     ConstCombatExcel.AddRandomAnimationOutput(builder, RandomAnimationOutput);
@@ -345,6 +349,8 @@ public struct ConstCombatExcel : IFlatbufferObject
     ConstCombatExcel.AddTimeLimitAlarm(builder, TimeLimitAlarm);
     ConstCombatExcel.AddMaxRaidBossSkillSlot(builder, MaxRaidBossSkillSlot);
     ConstCombatExcel.AddMaxRaidTicketCount(builder, MaxRaidTicketCount);
+    ConstCombatExcel.AddObstacleColliderHeightNotJumpable(builder, ObstacleColliderHeightNotJumpable);
+    ConstCombatExcel.AddObstacleColliderHeightJumpable(builder, ObstacleColliderHeightJumpable);
     ConstCombatExcel.AddMoveCorrectionSkipRatio(builder, MoveCorrectionSkipRatio);
     ConstCombatExcel.AddCampaignAlertPopupLevelGap(builder, CampaignAlertPopupLevelGap);
     ConstCombatExcel.AddExcessiveTouchCheckCount(builder, ExcessiveTouchCheckCount);
@@ -373,23 +379,23 @@ public struct ConstCombatExcel : IFlatbufferObject
     ConstCombatExcel.AddEngageWithSupporterTimelinePath(builder, EngageWithSupporterTimelinePathOffset);
     ConstCombatExcel.AddEngageTimelinePath(builder, EngageTimelinePathOffset);
     ConstCombatExcel.AddShowRaidListCount(builder, ShowRaidListCount);
-    ConstCombatExcel.AddPublicSpeechBubbleOffsetZ(builder, PublicSpeechBubbleOffsetZ);
-    ConstCombatExcel.AddPublicSpeechBubbleOffsetY(builder, PublicSpeechBubbleOffsetY);
-    ConstCombatExcel.AddPublicSpeechBubbleOffsetX(builder, PublicSpeechBubbleOffsetX);
+    ConstCombatExcel.AddPublicSpeechBubbleOffsetZ(builder, PublicSpeechBubbleOffset_Z);
+    ConstCombatExcel.AddPublicSpeechBubbleOffsetY(builder, PublicSpeechBubbleOffset_Y);
+    ConstCombatExcel.AddPublicSpeechBubbleOffsetX(builder, PublicSpeechBubbleOffset_X);
     ConstCombatExcel.AddSuppliesConditionStringId(builder, SuppliesConditionStringIdOffset);
     ConstCombatExcel.AddBuffIconBlinkTime(builder, BuffIconBlinkTime);
     ConstCombatExcel.AddDyingTime(builder, DyingTime);
     ConstCombatExcel.AddSkillHandCount(builder, SkillHandCount);
     ConstCombatExcel.AddUseInitialRangeForCoverMove(builder, UseInitialRangeForCoverMove);
-    ConstCombatExcel.AddShowBufficonGroundPassiveSkill(builder, ShowBufficonGroundPassiveSkill);
-    ConstCombatExcel.AddShowBufficonLeaderSkill(builder, ShowBufficonLeaderSkill);
-    ConstCombatExcel.AddShowBufficonExtraPassiveSkill(builder, ShowBufficonExtraPassiveSkill);
-    ConstCombatExcel.AddShowBufficonPassiveSkill(builder, ShowBufficonPassiveSkill);
-    ConstCombatExcel.AddShowBufficonEXSkill(builder, ShowBufficonEXSkill);
+    ConstCombatExcel.AddShowBufficonGroundPassiveSkill(builder, ShowBufficon_GroundPassiveSkill);
+    ConstCombatExcel.AddShowBufficonLeaderSkill(builder, ShowBufficon_LeaderSkill);
+    ConstCombatExcel.AddShowBufficonExtraPassiveSkill(builder, ShowBufficon_ExtraPassiveSkill);
+    ConstCombatExcel.AddShowBufficonPassiveSkill(builder, ShowBufficon_PassiveSkill);
+    ConstCombatExcel.AddShowBufficonEXSkill(builder, ShowBufficon_EXSkill);
     return ConstCombatExcel.EndConstCombatExcel(builder);
   }
 
-  public static void StartConstCombatExcel(FlatBufferBuilder builder) { builder.StartTable(103); }
+  public static void StartConstCombatExcel(FlatBufferBuilder builder) { builder.StartTable(105); }
   public static void AddSkillHandCount(FlatBufferBuilder builder, int skillHandCount) { builder.AddInt(0, skillHandCount, 0); }
   public static void AddDyingTime(FlatBufferBuilder builder, int dyingTime) { builder.AddInt(1, dyingTime, 0); }
   public static void AddBuffIconBlinkTime(FlatBufferBuilder builder, int buffIconBlinkTime) { builder.AddInt(2, buffIconBlinkTime, 0); }
@@ -493,6 +499,8 @@ public struct ConstCombatExcel : IFlatbufferObject
   public static void AddExcessiveTouchCheckCount(FlatBufferBuilder builder, int excessiveTouchCheckCount) { builder.AddInt(100, excessiveTouchCheckCount, 0); }
   public static void AddCampaignAlertPopupLevelGap(FlatBufferBuilder builder, int campaignAlertPopupLevelGap) { builder.AddInt(101, campaignAlertPopupLevelGap, 0); }
   public static void AddMoveCorrectionSkipRatio(FlatBufferBuilder builder, int moveCorrectionSkipRatio) { builder.AddInt(102, moveCorrectionSkipRatio, 0); }
+  public static void AddObstacleColliderHeightJumpable(FlatBufferBuilder builder, float obstacleColliderHeightJumpable) { builder.AddFloat(103, obstacleColliderHeightJumpable, 0.0f); }
+  public static void AddObstacleColliderHeightNotJumpable(FlatBufferBuilder builder, float obstacleColliderHeightNotJumpable) { builder.AddFloat(104, obstacleColliderHeightNotJumpable, 0.0f); }
   public static Offset<Schale.FlatData.ConstCombatExcel> EndConstCombatExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ConstCombatExcel>(o);
@@ -607,6 +615,8 @@ public struct ConstCombatExcel : IFlatbufferObject
     _o.ExcessiveTouchCheckCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExcessiveTouchCheckCount, key) : this.ExcessiveTouchCheckCount;
     _o.CampaignAlertPopupLevelGap = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CampaignAlertPopupLevelGap, key) : this.CampaignAlertPopupLevelGap;
     _o.MoveCorrectionSkipRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MoveCorrectionSkipRatio, key) : this.MoveCorrectionSkipRatio;
+    _o.ObstacleColliderHeightJumpable = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ObstacleColliderHeightJumpable, key) : this.ObstacleColliderHeightJumpable;
+    _o.ObstacleColliderHeightNotJumpable = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ObstacleColliderHeightNotJumpable, key) : this.ObstacleColliderHeightNotJumpable;
   }
   public static Offset<Schale.FlatData.ConstCombatExcel> Pack(FlatBufferBuilder builder, ConstCombatExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstCombatExcel>);
@@ -723,7 +733,9 @@ public struct ConstCombatExcel : IFlatbufferObject
       _o.ExcessiveTouchCheckTime,
       _o.ExcessiveTouchCheckCount,
       _o.CampaignAlertPopupLevelGap,
-      _o.MoveCorrectionSkipRatio);
+      _o.MoveCorrectionSkipRatio,
+      _o.ObstacleColliderHeightJumpable,
+      _o.ObstacleColliderHeightNotJumpable);
   }
 }
 
@@ -832,6 +844,8 @@ public class ConstCombatExcelT
   public int ExcessiveTouchCheckCount { get; set; }
   public int CampaignAlertPopupLevelGap { get; set; }
   public int MoveCorrectionSkipRatio { get; set; }
+  public float ObstacleColliderHeightJumpable { get; set; }
+  public float ObstacleColliderHeightNotJumpable { get; set; }
 
   public ConstCombatExcelT() {
     this.SkillHandCount = 0;
@@ -937,6 +951,8 @@ public class ConstCombatExcelT
     this.ExcessiveTouchCheckCount = 0;
     this.CampaignAlertPopupLevelGap = 0;
     this.MoveCorrectionSkipRatio = 0;
+    this.ObstacleColliderHeightJumpable = 0.0f;
+    this.ObstacleColliderHeightNotJumpable = 0.0f;
   }
 }
 
@@ -1049,6 +1065,8 @@ static public class ConstCombatExcelVerify
       && verifier.VerifyField(tablePos, 204 /*ExcessiveTouchCheckCount*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 206 /*CampaignAlertPopupLevelGap*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 208 /*MoveCorrectionSkipRatio*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 210 /*ObstacleColliderHeightJumpable*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 212 /*ObstacleColliderHeightNotJumpable*/, 4 /*float*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

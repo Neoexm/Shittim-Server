@@ -26,14 +26,14 @@ public class AttendanceService
         _excelService = excelService;
     }
 
-    // Official only advertises books whose window is open, whose level gate the account passes, and whose AccountType matches the account's state - a Normal account never sees the Comeback/Newbie variants. Over-advertising desynchronises the client's claim loop into resubmitting already-claimed books (error 9000 on the wire).
+    // Official only advertises books whose window is open, whose level gate the account passes, and whose TargetGroup matches the account's state - a Normal account never sees the Comeback/Newbie variants. Over-advertising desynchronises the client's claim loop into resubmitting already-claimed books (error 9000 on the wire).
     private List<AttendanceExcelT> OpenBooks(AccountDBServer account, DateTime now)
     {
         return _excelService.GetTable<AttendanceExcelT>()
             .Where(x => TryParse(x.StartDate) is { } start && start <= now
                 && TryParse(x.EndDate) is { } end && now < end
                 && account.Level >= x.AccountLevelLimit
-                && (x.AccountType == AccountState.WaitingSignIn || x.AccountType == account.State))
+                && (x.TargetGroup == TargetGroup.WaitingSignIn || (int)x.TargetGroup == (int)account.State))
             .ToList();
     }
 

@@ -157,10 +157,10 @@ public struct FurnitureExcel : IFlatbufferObject
       long EventCollectionId = 0,
       long FurnitureBubbleOffsetX = 0,
       long FurnitureBubbleOffsetY = 0,
-      VectorOffset CafeCharacterStateReqOffset = default(VectorOffset),
-      VectorOffset CafeCharacterStateAddOffset = default(VectorOffset),
-      VectorOffset CafeCharacterStateMakeOffset = default(VectorOffset),
-      VectorOffset CafeCharacterStateOnlyOffset = default(VectorOffset),
+      VectorOffset CafeCharacterState_ReqOffset = default(VectorOffset),
+      VectorOffset CafeCharacterState_AddOffset = default(VectorOffset),
+      VectorOffset CafeCharacterState_MakeOffset = default(VectorOffset),
+      VectorOffset CafeCharacterState_OnlyOffset = default(VectorOffset),
       bool HideCraftShortcut = false) {
     builder.StartTable(43);
     FurnitureExcel.AddFurnitureBubbleOffsetY(builder, FurnitureBubbleOffsetY);
@@ -179,10 +179,10 @@ public struct FurnitureExcel : IFlatbufferObject
     FurnitureExcel.AddStackableMax(builder, StackableMax);
     FurnitureExcel.AddTier(builder, Tier);
     FurnitureExcel.AddId(builder, Id);
-    FurnitureExcel.AddCafeCharacterStateOnly(builder, CafeCharacterStateOnlyOffset);
-    FurnitureExcel.AddCafeCharacterStateMake(builder, CafeCharacterStateMakeOffset);
-    FurnitureExcel.AddCafeCharacterStateAdd(builder, CafeCharacterStateAddOffset);
-    FurnitureExcel.AddCafeCharacterStateReq(builder, CafeCharacterStateReqOffset);
+    FurnitureExcel.AddCafeCharacterStateOnly(builder, CafeCharacterState_OnlyOffset);
+    FurnitureExcel.AddCafeCharacterStateMake(builder, CafeCharacterState_MakeOffset);
+    FurnitureExcel.AddCafeCharacterStateAdd(builder, CafeCharacterState_AddOffset);
+    FurnitureExcel.AddCafeCharacterStateReq(builder, CafeCharacterState_ReqOffset);
     FurnitureExcel.AddFurnitureFunctionParameter(builder, FurnitureFunctionParameterOffset);
     FurnitureExcel.AddFurnitureFunctionType(builder, FurnitureFunctionType);
     FurnitureExcel.AddTags(builder, TagsOffset);
@@ -362,29 +362,29 @@ public struct FurnitureExcel : IFlatbufferObject
       var __FurnitureFunctionParameter = _o.FurnitureFunctionParameter.ToArray();
       _FurnitureFunctionParameter = CreateFurnitureFunctionParameterVector(builder, __FurnitureFunctionParameter);
     }
-    var _CafeCharacterStateReq = default(VectorOffset);
+    var _CafeCharacterState_Req = default(VectorOffset);
     if (_o.CafeCharacterStateReq != null) {
-      var __CafeCharacterStateReq = new StringOffset[_o.CafeCharacterStateReq.Count];
-      for (var _j = 0; _j < __CafeCharacterStateReq.Length; ++_j) { __CafeCharacterStateReq[_j] = builder.CreateString(_o.CafeCharacterStateReq[_j]); }
-      _CafeCharacterStateReq = CreateCafeCharacterStateReqVector(builder, __CafeCharacterStateReq);
+      var __CafeCharacterState_Req = new StringOffset[_o.CafeCharacterStateReq.Count];
+      for (var _j = 0; _j < __CafeCharacterState_Req.Length; ++_j) { __CafeCharacterState_Req[_j] = builder.CreateString(_o.CafeCharacterStateReq[_j]); }
+      _CafeCharacterState_Req = CreateCafeCharacterStateReqVector(builder, __CafeCharacterState_Req);
     }
-    var _CafeCharacterStateAdd = default(VectorOffset);
+    var _CafeCharacterState_Add = default(VectorOffset);
     if (_o.CafeCharacterStateAdd != null) {
-      var __CafeCharacterStateAdd = new StringOffset[_o.CafeCharacterStateAdd.Count];
-      for (var _j = 0; _j < __CafeCharacterStateAdd.Length; ++_j) { __CafeCharacterStateAdd[_j] = builder.CreateString(_o.CafeCharacterStateAdd[_j]); }
-      _CafeCharacterStateAdd = CreateCafeCharacterStateAddVector(builder, __CafeCharacterStateAdd);
+      var __CafeCharacterState_Add = new StringOffset[_o.CafeCharacterStateAdd.Count];
+      for (var _j = 0; _j < __CafeCharacterState_Add.Length; ++_j) { __CafeCharacterState_Add[_j] = builder.CreateString(_o.CafeCharacterStateAdd[_j]); }
+      _CafeCharacterState_Add = CreateCafeCharacterStateAddVector(builder, __CafeCharacterState_Add);
     }
-    var _CafeCharacterStateMake = default(VectorOffset);
+    var _CafeCharacterState_Make = default(VectorOffset);
     if (_o.CafeCharacterStateMake != null) {
-      var __CafeCharacterStateMake = new StringOffset[_o.CafeCharacterStateMake.Count];
-      for (var _j = 0; _j < __CafeCharacterStateMake.Length; ++_j) { __CafeCharacterStateMake[_j] = builder.CreateString(_o.CafeCharacterStateMake[_j]); }
-      _CafeCharacterStateMake = CreateCafeCharacterStateMakeVector(builder, __CafeCharacterStateMake);
+      var __CafeCharacterState_Make = new StringOffset[_o.CafeCharacterStateMake.Count];
+      for (var _j = 0; _j < __CafeCharacterState_Make.Length; ++_j) { __CafeCharacterState_Make[_j] = builder.CreateString(_o.CafeCharacterStateMake[_j]); }
+      _CafeCharacterState_Make = CreateCafeCharacterStateMakeVector(builder, __CafeCharacterState_Make);
     }
-    var _CafeCharacterStateOnly = default(VectorOffset);
+    var _CafeCharacterState_Only = default(VectorOffset);
     if (_o.CafeCharacterStateOnly != null) {
-      var __CafeCharacterStateOnly = new StringOffset[_o.CafeCharacterStateOnly.Count];
-      for (var _j = 0; _j < __CafeCharacterStateOnly.Length; ++_j) { __CafeCharacterStateOnly[_j] = builder.CreateString(_o.CafeCharacterStateOnly[_j]); }
-      _CafeCharacterStateOnly = CreateCafeCharacterStateOnlyVector(builder, __CafeCharacterStateOnly);
+      var __CafeCharacterState_Only = new StringOffset[_o.CafeCharacterStateOnly.Count];
+      for (var _j = 0; _j < __CafeCharacterState_Only.Length; ++_j) { __CafeCharacterState_Only[_j] = builder.CreateString(_o.CafeCharacterStateOnly[_j]); }
+      _CafeCharacterState_Only = CreateCafeCharacterStateOnlyVector(builder, __CafeCharacterState_Only);
     }
     return CreateFurnitureExcel(
       builder,
@@ -426,10 +426,10 @@ public struct FurnitureExcel : IFlatbufferObject
       _o.EventCollectionId,
       _o.FurnitureBubbleOffsetX,
       _o.FurnitureBubbleOffsetY,
-      _CafeCharacterStateReq,
-      _CafeCharacterStateAdd,
-      _CafeCharacterStateMake,
-      _CafeCharacterStateOnly,
+      _CafeCharacterState_Req,
+      _CafeCharacterState_Add,
+      _CafeCharacterState_Make,
+      _CafeCharacterState_Only,
       _o.HideCraftShortcut);
   }
 }

@@ -23,22 +23,26 @@ public struct LocalizeCharProfileChangeExcel : IFlatbufferObject
   public long CharacterId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ScenarioModeId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ChangeCharacterID { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool OverrideClub { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
 
   public static Offset<Schale.FlatData.LocalizeCharProfileChangeExcel> CreateLocalizeCharProfileChangeExcel(FlatBufferBuilder builder,
       long CharacterId = 0,
       long ScenarioModeId = 0,
-      long ChangeCharacterID = 0) {
-    builder.StartTable(3);
+      long ChangeCharacterID = 0,
+      bool OverrideClub = false) {
+    builder.StartTable(4);
     LocalizeCharProfileChangeExcel.AddChangeCharacterID(builder, ChangeCharacterID);
     LocalizeCharProfileChangeExcel.AddScenarioModeId(builder, ScenarioModeId);
     LocalizeCharProfileChangeExcel.AddCharacterId(builder, CharacterId);
+    LocalizeCharProfileChangeExcel.AddOverrideClub(builder, OverrideClub);
     return LocalizeCharProfileChangeExcel.EndLocalizeCharProfileChangeExcel(builder);
   }
 
-  public static void StartLocalizeCharProfileChangeExcel(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void StartLocalizeCharProfileChangeExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddCharacterId(FlatBufferBuilder builder, long characterId) { builder.AddLong(0, characterId, 0); }
   public static void AddScenarioModeId(FlatBufferBuilder builder, long scenarioModeId) { builder.AddLong(1, scenarioModeId, 0); }
   public static void AddChangeCharacterID(FlatBufferBuilder builder, long changeCharacterID) { builder.AddLong(2, changeCharacterID, 0); }
+  public static void AddOverrideClub(FlatBufferBuilder builder, bool overrideClub) { builder.AddBool(3, overrideClub, false); }
   public static Offset<Schale.FlatData.LocalizeCharProfileChangeExcel> EndLocalizeCharProfileChangeExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.LocalizeCharProfileChangeExcel>(o);
@@ -53,6 +57,7 @@ public struct LocalizeCharProfileChangeExcel : IFlatbufferObject
     _o.CharacterId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterId, key) : this.CharacterId;
     _o.ScenarioModeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioModeId, key) : this.ScenarioModeId;
     _o.ChangeCharacterID = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ChangeCharacterID, key) : this.ChangeCharacterID;
+    _o.OverrideClub = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OverrideClub, key) : this.OverrideClub;
   }
   public static Offset<Schale.FlatData.LocalizeCharProfileChangeExcel> Pack(FlatBufferBuilder builder, LocalizeCharProfileChangeExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.LocalizeCharProfileChangeExcel>);
@@ -60,7 +65,8 @@ public struct LocalizeCharProfileChangeExcel : IFlatbufferObject
       builder,
       _o.CharacterId,
       _o.ScenarioModeId,
-      _o.ChangeCharacterID);
+      _o.ChangeCharacterID,
+      _o.OverrideClub);
   }
 }
 
@@ -69,11 +75,13 @@ public class LocalizeCharProfileChangeExcelT
   public long CharacterId { get; set; }
   public long ScenarioModeId { get; set; }
   public long ChangeCharacterID { get; set; }
+  public bool OverrideClub { get; set; }
 
   public LocalizeCharProfileChangeExcelT() {
     this.CharacterId = 0;
     this.ScenarioModeId = 0;
     this.ChangeCharacterID = 0;
+    this.OverrideClub = false;
   }
 }
 
@@ -86,6 +94,7 @@ static public class LocalizeCharProfileChangeExcelVerify
       && verifier.VerifyField(tablePos, 4 /*CharacterId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*ScenarioModeId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 8 /*ChangeCharacterID*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*OverrideClub*/, 1 /*bool*/, 1, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

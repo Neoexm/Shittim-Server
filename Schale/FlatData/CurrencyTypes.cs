@@ -35,7 +35,6 @@ public enum CurrencyTypes : int
   EliminateTicketB = 25,
   EliminateTicketC = 26,
   EliminateTicketD = 27,
-  // v1.90 client additions (official CurrencyDict serializes these names after EliminateTicketD).
   CafeSummonTicket1 = 28,
   CafeSummonTicket2 = 29,
   Max = 30,

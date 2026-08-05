@@ -96,27 +96,27 @@ public struct FieldInteractionExcel : IFlatbufferObject
       long FieldDateId = 0,
       bool ShowEmoji = false,
       StringOffset KeywordLocalizeOffset = default(StringOffset),
-      VectorOffset interactionTypeOffset = default(VectorOffset),
+      VectorOffset InteractionTypeOffset = default(VectorOffset),
       VectorOffset InteractionIdOffset = default(VectorOffset),
       Schale.FlatData.FieldConditionClass ConditionClass = Schale.FlatData.FieldConditionClass.AndOr,
       VectorOffset ConditionClassParametersOffset = default(VectorOffset),
       bool OnceOnly = false,
-      VectorOffset conditionIndexOffset = default(VectorOffset),
-      VectorOffset conditionTypeOffset = default(VectorOffset),
+      VectorOffset ConditionIndexOffset = default(VectorOffset),
+      VectorOffset ConditionTypeOffset = default(VectorOffset),
       VectorOffset ConditionIdOffset = default(VectorOffset),
-      VectorOffset negateConditionOffset = default(VectorOffset)) {
+      VectorOffset NegateConditionOffset = default(VectorOffset)) {
     builder.StartTable(14);
     FieldInteractionExcel.AddFieldDateId(builder, FieldDateId);
     FieldInteractionExcel.AddUniqueId(builder, UniqueId);
     FieldInteractionExcel.AddFieldSeasonId(builder, FieldSeasonId);
-    FieldInteractionExcel.AddNegateCondition(builder, negateConditionOffset);
+    FieldInteractionExcel.AddNegateCondition(builder, NegateConditionOffset);
     FieldInteractionExcel.AddConditionId(builder, ConditionIdOffset);
-    FieldInteractionExcel.AddConditionType(builder, conditionTypeOffset);
-    FieldInteractionExcel.AddConditionIndex(builder, conditionIndexOffset);
+    FieldInteractionExcel.AddConditionType(builder, ConditionTypeOffset);
+    FieldInteractionExcel.AddConditionIndex(builder, ConditionIndexOffset);
     FieldInteractionExcel.AddConditionClassParameters(builder, ConditionClassParametersOffset);
     FieldInteractionExcel.AddConditionClass(builder, ConditionClass);
     FieldInteractionExcel.AddInteractionId(builder, InteractionIdOffset);
-    FieldInteractionExcel.AddInteractionType(builder, interactionTypeOffset);
+    FieldInteractionExcel.AddInteractionType(builder, InteractionTypeOffset);
     FieldInteractionExcel.AddKeywordLocalize(builder, KeywordLocalizeOffset);
     FieldInteractionExcel.AddOnceOnly(builder, OnceOnly);
     FieldInteractionExcel.AddShowEmoji(builder, ShowEmoji);
@@ -209,10 +209,10 @@ public struct FieldInteractionExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.FieldInteractionExcel> Pack(FlatBufferBuilder builder, FieldInteractionExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.FieldInteractionExcel>);
     var _KeywordLocalize = _o.KeywordLocalize == null ? default(StringOffset) : builder.CreateString(_o.KeywordLocalize);
-    var _interactionType = default(VectorOffset);
+    var _InteractionType = default(VectorOffset);
     if (_o.InteractionType != null) {
-      var __interactionType = _o.InteractionType.ToArray();
-      _interactionType = CreateInteractionTypeVector(builder, __interactionType);
+      var __InteractionType = _o.InteractionType.ToArray();
+      _InteractionType = CreateInteractionTypeVector(builder, __InteractionType);
     }
     var _InteractionId = default(VectorOffset);
     if (_o.InteractionId != null) {
@@ -224,25 +224,25 @@ public struct FieldInteractionExcel : IFlatbufferObject
       var __ConditionClassParameters = _o.ConditionClassParameters.ToArray();
       _ConditionClassParameters = CreateConditionClassParametersVector(builder, __ConditionClassParameters);
     }
-    var _conditionIndex = default(VectorOffset);
+    var _ConditionIndex = default(VectorOffset);
     if (_o.ConditionIndex != null) {
-      var __conditionIndex = _o.ConditionIndex.ToArray();
-      _conditionIndex = CreateConditionIndexVector(builder, __conditionIndex);
+      var __ConditionIndex = _o.ConditionIndex.ToArray();
+      _ConditionIndex = CreateConditionIndexVector(builder, __ConditionIndex);
     }
-    var _conditionType = default(VectorOffset);
+    var _ConditionType = default(VectorOffset);
     if (_o.ConditionType != null) {
-      var __conditionType = _o.ConditionType.ToArray();
-      _conditionType = CreateConditionTypeVector(builder, __conditionType);
+      var __ConditionType = _o.ConditionType.ToArray();
+      _ConditionType = CreateConditionTypeVector(builder, __ConditionType);
     }
     var _ConditionId = default(VectorOffset);
     if (_o.ConditionId != null) {
       var __ConditionId = _o.ConditionId.ToArray();
       _ConditionId = CreateConditionIdVector(builder, __ConditionId);
     }
-    var _negateCondition = default(VectorOffset);
+    var _NegateCondition = default(VectorOffset);
     if (_o.NegateCondition != null) {
-      var __negateCondition = _o.NegateCondition.ToArray();
-      _negateCondition = CreateNegateConditionVector(builder, __negateCondition);
+      var __NegateCondition = _o.NegateCondition.ToArray();
+      _NegateCondition = CreateNegateConditionVector(builder, __NegateCondition);
     }
     return CreateFieldInteractionExcel(
       builder,
@@ -251,15 +251,15 @@ public struct FieldInteractionExcel : IFlatbufferObject
       _o.FieldDateId,
       _o.ShowEmoji,
       _KeywordLocalize,
-      _interactionType,
+      _InteractionType,
       _InteractionId,
       _o.ConditionClass,
       _ConditionClassParameters,
       _o.OnceOnly,
-      _conditionIndex,
-      _conditionType,
+      _ConditionIndex,
+      _ConditionType,
       _ConditionId,
-      _negateCondition);
+      _NegateCondition);
   }
 }
 

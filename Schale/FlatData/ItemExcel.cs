@@ -84,6 +84,8 @@ public struct ItemExcel : IFlatbufferObject
   public int ExpirationNotifyDateIn { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public long ShortcutTypeId { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.GachaTicketType GachaTicket { get { int o = __p.__offset(66); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GachaTicketType.None; } }
+  public long AlertPopupId { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ShiftingCraftRecipe { get { int o = __p.__offset(70); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ItemExcel> CreateItemExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -117,8 +119,12 @@ public struct ItemExcel : IFlatbufferObject
       StringOffset ExpirationDateTimeOffset = default(StringOffset),
       int ExpirationNotifyDateIn = 0,
       long ShortcutTypeId = 0,
-      Schale.FlatData.GachaTicketType GachaTicket = Schale.FlatData.GachaTicketType.None) {
-    builder.StartTable(32);
+      Schale.FlatData.GachaTicketType GachaTicket = Schale.FlatData.GachaTicketType.None,
+      long AlertPopupId = 0,
+      long ShiftingCraftRecipe = 0) {
+    builder.StartTable(34);
+    ItemExcel.AddShiftingCraftRecipe(builder, ShiftingCraftRecipe);
+    ItemExcel.AddAlertPopupId(builder, AlertPopupId);
     ItemExcel.AddShortcutTypeId(builder, ShortcutTypeId);
     ItemExcel.AddShiftingCraftQuality(builder, ShiftingCraftQuality);
     ItemExcel.AddCraftQualityTier2(builder, CraftQualityTier2);
@@ -154,7 +160,7 @@ public struct ItemExcel : IFlatbufferObject
     return ItemExcel.EndItemExcel(builder);
   }
 
-  public static void StartItemExcel(FlatBufferBuilder builder) { builder.StartTable(32); }
+  public static void StartItemExcel(FlatBufferBuilder builder) { builder.StartTable(34); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddGroupId(FlatBufferBuilder builder, long groupId) { builder.AddLong(1, groupId, 0); }
   public static void AddRarity(FlatBufferBuilder builder, Schale.FlatData.Rarity rarity) { builder.AddInt(2, (int)rarity, 0); }
@@ -197,6 +203,8 @@ public struct ItemExcel : IFlatbufferObject
   public static void AddExpirationNotifyDateIn(FlatBufferBuilder builder, int expirationNotifyDateIn) { builder.AddInt(29, expirationNotifyDateIn, 0); }
   public static void AddShortcutTypeId(FlatBufferBuilder builder, long shortcutTypeId) { builder.AddLong(30, shortcutTypeId, 0); }
   public static void AddGachaTicket(FlatBufferBuilder builder, Schale.FlatData.GachaTicketType gachaTicket) { builder.AddInt(31, (int)gachaTicket, 0); }
+  public static void AddAlertPopupId(FlatBufferBuilder builder, long alertPopupId) { builder.AddLong(32, alertPopupId, 0); }
+  public static void AddShiftingCraftRecipe(FlatBufferBuilder builder, long shiftingCraftRecipe) { builder.AddLong(33, shiftingCraftRecipe, 0); }
   public static Offset<Schale.FlatData.ItemExcel> EndItemExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ItemExcel>(o);
@@ -242,6 +250,8 @@ public struct ItemExcel : IFlatbufferObject
     _o.ExpirationNotifyDateIn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpirationNotifyDateIn, key) : this.ExpirationNotifyDateIn;
     _o.ShortcutTypeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutTypeId, key) : this.ShortcutTypeId;
     _o.GachaTicket = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GachaTicket, key) : this.GachaTicket;
+    _o.AlertPopupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AlertPopupId, key) : this.AlertPopupId;
+    _o.ShiftingCraftRecipe = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShiftingCraftRecipe, key) : this.ShiftingCraftRecipe;
   }
   public static Offset<Schale.FlatData.ItemExcel> Pack(FlatBufferBuilder builder, ItemExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ItemExcel>);
@@ -291,7 +301,9 @@ public struct ItemExcel : IFlatbufferObject
       _ExpirationDateTime,
       _o.ExpirationNotifyDateIn,
       _o.ShortcutTypeId,
-      _o.GachaTicket);
+      _o.GachaTicket,
+      _o.AlertPopupId,
+      _o.ShiftingCraftRecipe);
   }
 }
 
@@ -329,6 +341,8 @@ public class ItemExcelT
   public int ExpirationNotifyDateIn { get; set; }
   public long ShortcutTypeId { get; set; }
   public Schale.FlatData.GachaTicketType GachaTicket { get; set; }
+  public long AlertPopupId { get; set; }
+  public long ShiftingCraftRecipe { get; set; }
 
   public ItemExcelT() {
     this.Id = 0;
@@ -363,6 +377,8 @@ public class ItemExcelT
     this.ExpirationNotifyDateIn = 0;
     this.ShortcutTypeId = 0;
     this.GachaTicket = Schale.FlatData.GachaTicketType.None;
+    this.AlertPopupId = 0;
+    this.ShiftingCraftRecipe = 0;
   }
 }
 
@@ -404,6 +420,8 @@ static public class ItemExcelVerify
       && verifier.VerifyField(tablePos, 62 /*ExpirationNotifyDateIn*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 64 /*ShortcutTypeId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 66 /*GachaTicket*/, 4 /*Schale.FlatData.GachaTicketType*/, 4, false)
+      && verifier.VerifyField(tablePos, 68 /*AlertPopupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 70 /*ShiftingCraftRecipe*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

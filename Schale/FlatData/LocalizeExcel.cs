@@ -59,7 +59,7 @@ public struct LocalizeExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.LocalizeExcel> CreateLocalizeExcel(FlatBufferBuilder builder,
       uint Key = 0,
-      StringOffset krOffset = default(StringOffset),
+      StringOffset KrOffset = default(StringOffset),
       StringOffset JpOffset = default(StringOffset),
       StringOffset ThOffset = default(StringOffset),
       StringOffset TwOffset = default(StringOffset),
@@ -69,7 +69,7 @@ public struct LocalizeExcel : IFlatbufferObject
     LocalizeExcel.AddTw(builder, TwOffset);
     LocalizeExcel.AddTh(builder, ThOffset);
     LocalizeExcel.AddJp(builder, JpOffset);
-    LocalizeExcel.AddKr(builder, krOffset);
+    LocalizeExcel.AddKr(builder, KrOffset);
     LocalizeExcel.AddKey(builder, Key);
     return LocalizeExcel.EndLocalizeExcel(builder);
   }
@@ -101,7 +101,7 @@ public struct LocalizeExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.LocalizeExcel> Pack(FlatBufferBuilder builder, LocalizeExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.LocalizeExcel>);
-    var _kr = _o.Kr == null ? default(StringOffset) : builder.CreateString(_o.Kr);
+    var _Kr = _o.Kr == null ? default(StringOffset) : builder.CreateString(_o.Kr);
     var _Jp = _o.Jp == null ? default(StringOffset) : builder.CreateString(_o.Jp);
     var _Th = _o.Th == null ? default(StringOffset) : builder.CreateString(_o.Th);
     var _Tw = _o.Tw == null ? default(StringOffset) : builder.CreateString(_o.Tw);
@@ -109,7 +109,7 @@ public struct LocalizeExcel : IFlatbufferObject
     return CreateLocalizeExcel(
       builder,
       _o.Key,
-      _kr,
+      _Kr,
       _Jp,
       _Th,
       _Tw,

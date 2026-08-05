@@ -16,6 +16,7 @@ public enum TutorialFailureContentType : int
   Conquest = 6,
   EliminateRaid = 7,
   MultiFloorRaid = 8,
+  InteractiveWorldRaid = 9,
 };
 
 

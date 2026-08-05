@@ -35,14 +35,14 @@ public struct CheatCodeListExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.CheatCodeListExcel> CreateCheatCodeListExcel(FlatBufferBuilder builder,
       long Id = 0,
-      VectorOffset cheatCodeOffset = default(VectorOffset),
-      VectorOffset inputTitleOffset = default(VectorOffset),
+      VectorOffset CheatCodeOffset = default(VectorOffset),
+      VectorOffset InputTitleOffset = default(VectorOffset),
       StringOffset DescOffset = default(StringOffset)) {
     builder.StartTable(4);
     CheatCodeListExcel.AddId(builder, Id);
     CheatCodeListExcel.AddDesc(builder, DescOffset);
-    CheatCodeListExcel.AddInputTitle(builder, inputTitleOffset);
-    CheatCodeListExcel.AddCheatCode(builder, cheatCodeOffset);
+    CheatCodeListExcel.AddInputTitle(builder, InputTitleOffset);
+    CheatCodeListExcel.AddCheatCode(builder, CheatCodeOffset);
     return CheatCodeListExcel.EndCheatCodeListExcel(builder);
   }
 
@@ -81,24 +81,24 @@ public struct CheatCodeListExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.CheatCodeListExcel> Pack(FlatBufferBuilder builder, CheatCodeListExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CheatCodeListExcel>);
-    var _cheatCode = default(VectorOffset);
+    var _CheatCode = default(VectorOffset);
     if (_o.CheatCode != null) {
-      var __cheatCode = new StringOffset[_o.CheatCode.Count];
-      for (var _j = 0; _j < __cheatCode.Length; ++_j) { __cheatCode[_j] = builder.CreateString(_o.CheatCode[_j]); }
-      _cheatCode = CreateCheatCodeVector(builder, __cheatCode);
+      var __CheatCode = new StringOffset[_o.CheatCode.Count];
+      for (var _j = 0; _j < __CheatCode.Length; ++_j) { __CheatCode[_j] = builder.CreateString(_o.CheatCode[_j]); }
+      _CheatCode = CreateCheatCodeVector(builder, __CheatCode);
     }
-    var _inputTitle = default(VectorOffset);
+    var _InputTitle = default(VectorOffset);
     if (_o.InputTitle != null) {
-      var __inputTitle = new StringOffset[_o.InputTitle.Count];
-      for (var _j = 0; _j < __inputTitle.Length; ++_j) { __inputTitle[_j] = builder.CreateString(_o.InputTitle[_j]); }
-      _inputTitle = CreateInputTitleVector(builder, __inputTitle);
+      var __InputTitle = new StringOffset[_o.InputTitle.Count];
+      for (var _j = 0; _j < __InputTitle.Length; ++_j) { __InputTitle[_j] = builder.CreateString(_o.InputTitle[_j]); }
+      _InputTitle = CreateInputTitleVector(builder, __InputTitle);
     }
     var _Desc = _o.Desc == null ? default(StringOffset) : builder.CreateString(_o.Desc);
     return CreateCheatCodeListExcel(
       builder,
       _o.Id,
-      _cheatCode,
-      _inputTitle,
+      _CheatCode,
+      _InputTitle,
       _Desc);
   }
 }

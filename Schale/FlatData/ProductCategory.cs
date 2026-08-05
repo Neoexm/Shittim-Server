@@ -15,6 +15,7 @@ public enum ProductCategory : int
   TimeLimit = 5,
   BattlePass = 6,
   GooglePoint = 7,
+  DailyRecord = 8,
 };
 
 

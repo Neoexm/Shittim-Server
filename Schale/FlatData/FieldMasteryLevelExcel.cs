@@ -56,7 +56,7 @@ public struct FieldMasteryLevelExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.FieldMasteryLevelExcel> CreateFieldMasteryLevelExcel(FlatBufferBuilder builder,
       int Level = 0,
-      VectorOffset idOffset = default(VectorOffset),
+      VectorOffset IdOffset = default(VectorOffset),
       VectorOffset ExpOffset = default(VectorOffset),
       VectorOffset TotalExpOffset = default(VectorOffset),
       VectorOffset RewardIdOffset = default(VectorOffset)) {
@@ -64,7 +64,7 @@ public struct FieldMasteryLevelExcel : IFlatbufferObject
     FieldMasteryLevelExcel.AddRewardId(builder, RewardIdOffset);
     FieldMasteryLevelExcel.AddTotalExp(builder, TotalExpOffset);
     FieldMasteryLevelExcel.AddExp(builder, ExpOffset);
-    FieldMasteryLevelExcel.AddId(builder, idOffset);
+    FieldMasteryLevelExcel.AddId(builder, IdOffset);
     FieldMasteryLevelExcel.AddLevel(builder, Level);
     return FieldMasteryLevelExcel.EndFieldMasteryLevelExcel(builder);
   }
@@ -118,10 +118,10 @@ public struct FieldMasteryLevelExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.FieldMasteryLevelExcel> Pack(FlatBufferBuilder builder, FieldMasteryLevelExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.FieldMasteryLevelExcel>);
-    var _id = default(VectorOffset);
+    var _Id = default(VectorOffset);
     if (_o.Id != null) {
-      var __id = _o.Id.ToArray();
-      _id = CreateIdVector(builder, __id);
+      var __Id = _o.Id.ToArray();
+      _Id = CreateIdVector(builder, __Id);
     }
     var _Exp = default(VectorOffset);
     if (_o.Exp != null) {
@@ -141,7 +141,7 @@ public struct FieldMasteryLevelExcel : IFlatbufferObject
     return CreateFieldMasteryLevelExcel(
       builder,
       _o.Level,
-      _id,
+      _Id,
       _Exp,
       _TotalExp,
       _RewardId);

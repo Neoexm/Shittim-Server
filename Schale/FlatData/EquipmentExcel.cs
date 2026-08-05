@@ -65,6 +65,7 @@ public struct EquipmentExcel : IFlatbufferObject
 #endif
   public Schale.FlatData.ShopCategoryType[] GetShopCategoryArray() { int o = __p.__offset(38); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ShopCategoryType[] a = new Schale.FlatData.ShopCategoryType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(p + i * 4); } return a; }
   public long ShortcutTypeId { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RedirectItemId { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.EquipmentExcel> CreateEquipmentExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -85,8 +86,10 @@ public struct EquipmentExcel : IFlatbufferObject
       long CraftQualityTier2 = 0,
       long ShiftingCraftQuality = 0,
       VectorOffset ShopCategoryOffset = default(VectorOffset),
-      long ShortcutTypeId = 0) {
-    builder.StartTable(19);
+      long ShortcutTypeId = 0,
+      long RedirectItemId = 0) {
+    builder.StartTable(20);
+    EquipmentExcel.AddRedirectItemId(builder, RedirectItemId);
     EquipmentExcel.AddShortcutTypeId(builder, ShortcutTypeId);
     EquipmentExcel.AddShiftingCraftQuality(builder, ShiftingCraftQuality);
     EquipmentExcel.AddCraftQualityTier2(builder, CraftQualityTier2);
@@ -109,7 +112,7 @@ public struct EquipmentExcel : IFlatbufferObject
     return EquipmentExcel.EndEquipmentExcel(builder);
   }
 
-  public static void StartEquipmentExcel(FlatBufferBuilder builder) { builder.StartTable(19); }
+  public static void StartEquipmentExcel(FlatBufferBuilder builder) { builder.StartTable(20); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddEquipmentCategory(FlatBufferBuilder builder, Schale.FlatData.EquipmentCategory equipmentCategory) { builder.AddInt(1, (int)equipmentCategory, 0); }
   public static void AddRarity(FlatBufferBuilder builder, Schale.FlatData.Rarity rarity) { builder.AddInt(2, (int)rarity, 0); }
@@ -139,6 +142,7 @@ public struct EquipmentExcel : IFlatbufferObject
   public static VectorOffset CreateShopCategoryVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.ShopCategoryType>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartShopCategoryVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddShortcutTypeId(FlatBufferBuilder builder, long shortcutTypeId) { builder.AddLong(18, shortcutTypeId, 0); }
+  public static void AddRedirectItemId(FlatBufferBuilder builder, long redirectItemId) { builder.AddLong(19, redirectItemId, 0); }
   public static Offset<Schale.FlatData.EquipmentExcel> EndEquipmentExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.EquipmentExcel>(o);
@@ -171,6 +175,7 @@ public struct EquipmentExcel : IFlatbufferObject
     _o.ShopCategory = new List<Schale.FlatData.ShopCategoryType>();
     for (var _j = 0; _j < this.ShopCategoryLength; ++_j) {_o.ShopCategory.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShopCategory(_j), key) : this.ShopCategory(_j));}
     _o.ShortcutTypeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutTypeId, key) : this.ShortcutTypeId;
+    _o.RedirectItemId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RedirectItemId, key) : this.RedirectItemId;
   }
   public static Offset<Schale.FlatData.EquipmentExcel> Pack(FlatBufferBuilder builder, EquipmentExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EquipmentExcel>);
@@ -206,7 +211,8 @@ public struct EquipmentExcel : IFlatbufferObject
       _o.CraftQualityTier2,
       _o.ShiftingCraftQuality,
       _ShopCategory,
-      _o.ShortcutTypeId);
+      _o.ShortcutTypeId,
+      _o.RedirectItemId);
   }
 }
 
@@ -231,6 +237,7 @@ public class EquipmentExcelT
   public long ShiftingCraftQuality { get; set; }
   public List<Schale.FlatData.ShopCategoryType> ShopCategory { get; set; }
   public long ShortcutTypeId { get; set; }
+  public long RedirectItemId { get; set; }
 
   public EquipmentExcelT() {
     this.Id = 0;
@@ -252,6 +259,7 @@ public class EquipmentExcelT
     this.ShiftingCraftQuality = 0;
     this.ShopCategory = null;
     this.ShortcutTypeId = 0;
+    this.RedirectItemId = 0;
   }
 }
 
@@ -280,6 +288,7 @@ static public class EquipmentExcelVerify
       && verifier.VerifyField(tablePos, 36 /*ShiftingCraftQuality*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 38 /*ShopCategory*/, 4 /*Schale.FlatData.ShopCategoryType*/, false)
       && verifier.VerifyField(tablePos, 40 /*ShortcutTypeId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 42 /*RedirectItemId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

@@ -20,35 +20,37 @@ public struct ArenaMapExcel : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ArenaMapExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public long UniqueId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long TerrainType { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string TerrainTypeLocalizeKey { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long ArenaSeasonId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long UniqueId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long TerrainType { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string TerrainTypeLocalizeKey { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTerrainTypeLocalizeKeyBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<byte> GetTerrainTypeLocalizeKeyBytes() { return __p.__vector_as_span<byte>(10, 1); }
 #else
-  public ArraySegment<byte>? GetTerrainTypeLocalizeKeyBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetTerrainTypeLocalizeKeyBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public byte[] GetTerrainTypeLocalizeKeyArray() { return __p.__vector_as_array<byte>(8); }
-  public string ImagePath { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetTerrainTypeLocalizeKeyArray() { return __p.__vector_as_array<byte>(10); }
+  public string ImagePath { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetImagePathBytes() { return __p.__vector_as_span<byte>(10, 1); }
+  public Span<byte> GetImagePathBytes() { return __p.__vector_as_span<byte>(12, 1); }
 #else
-  public ArraySegment<byte>? GetImagePathBytes() { return __p.__vector_as_arraysegment(10); }
+  public ArraySegment<byte>? GetImagePathBytes() { return __p.__vector_as_arraysegment(12); }
 #endif
-  public byte[] GetImagePathArray() { return __p.__vector_as_array<byte>(10); }
-  public long GroundGroupId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string GroundGroupNameLocalizeKey { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetImagePathArray() { return __p.__vector_as_array<byte>(12); }
+  public long GroundGroupId { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string GroundGroupNameLocalizeKey { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetGroundGroupNameLocalizeKeyBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetGroundGroupNameLocalizeKeyBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetGroundGroupNameLocalizeKeyBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetGroundGroupNameLocalizeKeyBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetGroundGroupNameLocalizeKeyArray() { return __p.__vector_as_array<byte>(14); }
-  public long StartRank { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EndRank { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GroundId { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public byte[] GetGroundGroupNameLocalizeKeyArray() { return __p.__vector_as_array<byte>(16); }
+  public long StartRank { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EndRank { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GroundId { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ArenaMapExcel> CreateArenaMapExcel(FlatBufferBuilder builder,
+      long ArenaSeasonId = 0,
       long UniqueId = 0,
       long TerrainType = 0,
       StringOffset TerrainTypeLocalizeKeyOffset = default(StringOffset),
@@ -58,29 +60,31 @@ public struct ArenaMapExcel : IFlatbufferObject
       long StartRank = 0,
       long EndRank = 0,
       long GroundId = 0) {
-    builder.StartTable(9);
+    builder.StartTable(10);
     ArenaMapExcel.AddGroundId(builder, GroundId);
     ArenaMapExcel.AddEndRank(builder, EndRank);
     ArenaMapExcel.AddStartRank(builder, StartRank);
     ArenaMapExcel.AddGroundGroupId(builder, GroundGroupId);
     ArenaMapExcel.AddTerrainType(builder, TerrainType);
     ArenaMapExcel.AddUniqueId(builder, UniqueId);
+    ArenaMapExcel.AddArenaSeasonId(builder, ArenaSeasonId);
     ArenaMapExcel.AddGroundGroupNameLocalizeKey(builder, GroundGroupNameLocalizeKeyOffset);
     ArenaMapExcel.AddImagePath(builder, ImagePathOffset);
     ArenaMapExcel.AddTerrainTypeLocalizeKey(builder, TerrainTypeLocalizeKeyOffset);
     return ArenaMapExcel.EndArenaMapExcel(builder);
   }
 
-  public static void StartArenaMapExcel(FlatBufferBuilder builder) { builder.StartTable(9); }
-  public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
-  public static void AddTerrainType(FlatBufferBuilder builder, long terrainType) { builder.AddLong(1, terrainType, 0); }
-  public static void AddTerrainTypeLocalizeKey(FlatBufferBuilder builder, StringOffset terrainTypeLocalizeKeyOffset) { builder.AddOffset(2, terrainTypeLocalizeKeyOffset.Value, 0); }
-  public static void AddImagePath(FlatBufferBuilder builder, StringOffset imagePathOffset) { builder.AddOffset(3, imagePathOffset.Value, 0); }
-  public static void AddGroundGroupId(FlatBufferBuilder builder, long groundGroupId) { builder.AddLong(4, groundGroupId, 0); }
-  public static void AddGroundGroupNameLocalizeKey(FlatBufferBuilder builder, StringOffset groundGroupNameLocalizeKeyOffset) { builder.AddOffset(5, groundGroupNameLocalizeKeyOffset.Value, 0); }
-  public static void AddStartRank(FlatBufferBuilder builder, long startRank) { builder.AddLong(6, startRank, 0); }
-  public static void AddEndRank(FlatBufferBuilder builder, long endRank) { builder.AddLong(7, endRank, 0); }
-  public static void AddGroundId(FlatBufferBuilder builder, long groundId) { builder.AddLong(8, groundId, 0); }
+  public static void StartArenaMapExcel(FlatBufferBuilder builder) { builder.StartTable(10); }
+  public static void AddArenaSeasonId(FlatBufferBuilder builder, long arenaSeasonId) { builder.AddLong(0, arenaSeasonId, 0); }
+  public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(1, uniqueId, 0); }
+  public static void AddTerrainType(FlatBufferBuilder builder, long terrainType) { builder.AddLong(2, terrainType, 0); }
+  public static void AddTerrainTypeLocalizeKey(FlatBufferBuilder builder, StringOffset terrainTypeLocalizeKeyOffset) { builder.AddOffset(3, terrainTypeLocalizeKeyOffset.Value, 0); }
+  public static void AddImagePath(FlatBufferBuilder builder, StringOffset imagePathOffset) { builder.AddOffset(4, imagePathOffset.Value, 0); }
+  public static void AddGroundGroupId(FlatBufferBuilder builder, long groundGroupId) { builder.AddLong(5, groundGroupId, 0); }
+  public static void AddGroundGroupNameLocalizeKey(FlatBufferBuilder builder, StringOffset groundGroupNameLocalizeKeyOffset) { builder.AddOffset(6, groundGroupNameLocalizeKeyOffset.Value, 0); }
+  public static void AddStartRank(FlatBufferBuilder builder, long startRank) { builder.AddLong(7, startRank, 0); }
+  public static void AddEndRank(FlatBufferBuilder builder, long endRank) { builder.AddLong(8, endRank, 0); }
+  public static void AddGroundId(FlatBufferBuilder builder, long groundId) { builder.AddLong(9, groundId, 0); }
   public static Offset<Schale.FlatData.ArenaMapExcel> EndArenaMapExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ArenaMapExcel>(o);
@@ -92,6 +96,7 @@ public struct ArenaMapExcel : IFlatbufferObject
   }
   public void UnPackTo(ArenaMapExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("ArenaMap");
+    _o.ArenaSeasonId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ArenaSeasonId, key) : this.ArenaSeasonId;
     _o.UniqueId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UniqueId, key) : this.UniqueId;
     _o.TerrainType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TerrainType, key) : this.TerrainType;
     _o.TerrainTypeLocalizeKey = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TerrainTypeLocalizeKey, key) : this.TerrainTypeLocalizeKey;
@@ -109,6 +114,7 @@ public struct ArenaMapExcel : IFlatbufferObject
     var _GroundGroupNameLocalizeKey = _o.GroundGroupNameLocalizeKey == null ? default(StringOffset) : builder.CreateString(_o.GroundGroupNameLocalizeKey);
     return CreateArenaMapExcel(
       builder,
+      _o.ArenaSeasonId,
       _o.UniqueId,
       _o.TerrainType,
       _TerrainTypeLocalizeKey,
@@ -123,6 +129,7 @@ public struct ArenaMapExcel : IFlatbufferObject
 
 public class ArenaMapExcelT
 {
+  public long ArenaSeasonId { get; set; }
   public long UniqueId { get; set; }
   public long TerrainType { get; set; }
   public string TerrainTypeLocalizeKey { get; set; }
@@ -134,6 +141,7 @@ public class ArenaMapExcelT
   public long GroundId { get; set; }
 
   public ArenaMapExcelT() {
+    this.ArenaSeasonId = 0;
     this.UniqueId = 0;
     this.TerrainType = 0;
     this.TerrainTypeLocalizeKey = null;
@@ -152,15 +160,16 @@ static public class ArenaMapExcelVerify
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
     return verifier.VerifyTableStart(tablePos)
-      && verifier.VerifyField(tablePos, 4 /*UniqueId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 6 /*TerrainType*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 8 /*TerrainTypeLocalizeKey*/, false)
-      && verifier.VerifyString(tablePos, 10 /*ImagePath*/, false)
-      && verifier.VerifyField(tablePos, 12 /*GroundGroupId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 14 /*GroundGroupNameLocalizeKey*/, false)
-      && verifier.VerifyField(tablePos, 16 /*StartRank*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 18 /*EndRank*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 20 /*GroundId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 4 /*ArenaSeasonId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 6 /*UniqueId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 8 /*TerrainType*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 10 /*TerrainTypeLocalizeKey*/, false)
+      && verifier.VerifyString(tablePos, 12 /*ImagePath*/, false)
+      && verifier.VerifyField(tablePos, 14 /*GroundGroupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 16 /*GroundGroupNameLocalizeKey*/, false)
+      && verifier.VerifyField(tablePos, 18 /*StartRank*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 20 /*EndRank*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*GroundId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

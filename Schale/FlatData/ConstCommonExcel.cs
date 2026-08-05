@@ -20,8 +20,524 @@ public struct ConstCommonExcel : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ConstCommonExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
+  public int CampaignMainStageMaxRank { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CampaignMainStageBestRecord { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int HardAdventurePlayCountRecoverDailyNumber { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int HardStageCount { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int TacticRankClearTime { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long BaseTimeScale { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int GachaPercentage { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long AcademyFavorZoneId { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int CafePresetSlotCount { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CafeMonologueIntervalMillisec { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CafeMonologueDefaultDuration { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CafeBubbleIdleDurationMilliSec { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int FindGiftTimeLimit { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeAutoChargePeriodInMsc { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeProductionDecimalPosition { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeSetGroupApplyCount { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int WeekDungeonFindGiftRewardLimitCount { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int StageFailedCurrencyRefundRate { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int EnterDeposit { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AccountMaxLevel { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MainSquadExpBonus { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int SupportSquadExpBonus { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AccountExpRatio { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MissionToastLifeTime { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExpItemInsertLimit { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExpItemInsertAccelTime { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharacterLvUpCoefficient { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int EquipmentLvUpCoefficient { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExpEquipInsertLimit { get { int o = __p.__offset(60); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int EquipLvUpCoefficient { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NicknameLength { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftDuration(int j) { int o = __p.__offset(66); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int CraftDurationLength { get { int o = __p.__offset(66); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<int> GetCraftDurationBytes() { return __p.__vector_as_span<int>(66, 4); }
+#else
+  public ArraySegment<byte>? GetCraftDurationBytes() { return __p.__vector_as_arraysegment(66); }
+#endif
+  public int[] GetCraftDurationArray() { return __p.__vector_as_array<int>(66); }
+  public int CraftLimitTime { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ShiftingCraftDuration(int j) { int o = __p.__offset(70); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int ShiftingCraftDurationLength { get { int o = __p.__offset(70); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<int> GetShiftingCraftDurationBytes() { return __p.__vector_as_span<int>(70, 4); }
+#else
+  public ArraySegment<byte>? GetShiftingCraftDurationBytes() { return __p.__vector_as_arraysegment(70); }
+#endif
+  public int[] GetShiftingCraftDurationArray() { return __p.__vector_as_array<int>(70); }
+  public int ShiftingCraftTicketConsumeAmount { get { int o = __p.__offset(72); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ShiftingCraftSlotMaxCapacity { get { int o = __p.__offset(74); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftTicketItemUniqueId { get { int o = __p.__offset(76); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftTicketConsumeAmount { get { int o = __p.__offset(78); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.ParcelType AcademyEnterCostType { get { int o = __p.__offset(80); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long AcademyEnterCostId { get { int o = __p.__offset(82); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int AcademyTicketCost { get { int o = __p.__offset(84); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MassangerMessageExpireDay { get { int o = __p.__offset(86); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftLeafNodeGenerateLv1Count { get { int o = __p.__offset(88); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftLeafNodeGenerateLv2Count { get { int o = __p.__offset(90); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int TutorialGachaShopId { get { int o = __p.__offset(92); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int BeforehandGachaShopId { get { int o = __p.__offset(94); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int TutorialGachaGoodsId { get { int o = __p.__offset(96); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int EquipmentSlotOpenLevel(int j) { int o = __p.__offset(98); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int EquipmentSlotOpenLevelLength { get { int o = __p.__offset(98); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<int> GetEquipmentSlotOpenLevelBytes() { return __p.__vector_as_span<int>(98, 4); }
+#else
+  public ArraySegment<byte>? GetEquipmentSlotOpenLevelBytes() { return __p.__vector_as_arraysegment(98); }
+#endif
+  public int[] GetEquipmentSlotOpenLevelArray() { return __p.__vector_as_array<int>(98); }
+  public long JoinOrCreateClanCoolTimeFromHour { get { int o = __p.__offset(100); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClanMaxMember { get { int o = __p.__offset(102); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClanSearchResultCount { get { int o = __p.__offset(104); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClanMaxApplicant { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClanRejoinCoolTimeFromSecond { get { int o = __p.__offset(108); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int ClanWordBalloonMaxCharacter { get { int o = __p.__offset(110); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CallNameRenameCoolTimeFromHour { get { int o = __p.__offset(112); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CallNameMinimumLength { get { int o = __p.__offset(114); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CallNameMaximumLength { get { int o = __p.__offset(116); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LobbyToScreenModeWaitTime { get { int o = __p.__offset(118); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ScreenshotToLobbyButtonHideDelay { get { int o = __p.__offset(120); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PrologueScenarioID01 { get { int o = __p.__offset(122); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PrologueScenarioID02 { get { int o = __p.__offset(124); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long TutorialHardStage11 { get { int o = __p.__offset(126); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long TutorialSpeedButtonStage { get { int o = __p.__offset(128); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long TutorialCharacterDefaultCount { get { int o = __p.__offset(130); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ShopCategoryType TutorialShopCategoryType { get { int o = __p.__offset(132); return o != 0 ? (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ShopCategoryType.General; } }
+  public long AdventureStrategyPlayTimeLimitInSeconds { get { int o = __p.__offset(134); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WeekDungoenTacticPlayTimeLimitInSeconds { get { int o = __p.__offset(136); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RaidTacticPlayTimeLimitInSeconds { get { int o = __p.__offset(138); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RaidOpponentListAmount { get { int o = __p.__offset(140); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftBaseGoldRequired(int j) { int o = __p.__offset(142); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int CraftBaseGoldRequiredLength { get { int o = __p.__offset(142); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<long> GetCraftBaseGoldRequiredBytes() { return __p.__vector_as_span<long>(142, 8); }
+#else
+  public ArraySegment<byte>? GetCraftBaseGoldRequiredBytes() { return __p.__vector_as_arraysegment(142); }
+#endif
+  public long[] GetCraftBaseGoldRequiredArray() { return __p.__vector_as_array<long>(142); }
+  public int PostExpiredDayAttendance { get { int o = __p.__offset(144); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PostExpiredDayInventoryOverflow { get { int o = __p.__offset(146); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PostExpiredDayGameManager { get { int o = __p.__offset(148); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string UILabelCharacterWrap { get { int o = __p.__offset(150); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetUILabelCharacterWrapBytes() { return __p.__vector_as_span<byte>(150, 1); }
+#else
+  public ArraySegment<byte>? GetUILabelCharacterWrapBytes() { return __p.__vector_as_arraysegment(150); }
+#endif
+  public byte[] GetUILabelCharacterWrapArray() { return __p.__vector_as_array<byte>(150); }
+  public float RequestTimeOut { get { int o = __p.__offset(152); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int MailStorageSoftCap { get { int o = __p.__offset(154); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MailStorageHardCap { get { int o = __p.__offset(156); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeckStorageSize { get { int o = __p.__offset(158); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeckNoStarViewCount { get { int o = __p.__offset(160); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeck1StarViewCount { get { int o = __p.__offset(162); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeck2StarViewCount { get { int o = __p.__offset(164); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeck3StarViewCount { get { int o = __p.__offset(166); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExSkillLevelMax { get { int o = __p.__offset(168); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PublicSkillLevelMax { get { int o = __p.__offset(170); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PassiveSkillLevelMax { get { int o = __p.__offset(172); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExtraPassiveSkillLevelMax { get { int o = __p.__offset(174); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AccountCommentMaxLength { get { int o = __p.__offset(176); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeSummonCoolTimeFromHour { get { int o = __p.__offset(178); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long LimitedStageDailyClearCount { get { int o = __p.__offset(180); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LimitedStageEntryTimeLimit { get { int o = __p.__offset(182); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LimitedStageEntryTimeBuffer { get { int o = __p.__offset(184); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LimitedStagePointAmount { get { int o = __p.__offset(186); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LimitedStagePointPerApMin { get { int o = __p.__offset(188); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LimitedStagePointPerApMax { get { int o = __p.__offset(190); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int AccountLinkReward { get { int o = __p.__offset(192); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MonthlyProductCheckDays { get { int o = __p.__offset(194); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int WeaponLvUpCoefficient { get { int o = __p.__offset(196); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ShowRaidMyListCount { get { int o = __p.__offset(198); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.ParcelType RaidEnterCostType { get { int o = __p.__offset(200); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long RaidEnterCostId { get { int o = __p.__offset(202); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RaidTicketCost { get { int o = __p.__offset(204); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string TimeAttackDungeonScenarioId { get { int o = __p.__offset(206); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetTimeAttackDungeonScenarioIdBytes() { return __p.__vector_as_span<byte>(206, 1); }
+#else
+  public ArraySegment<byte>? GetTimeAttackDungeonScenarioIdBytes() { return __p.__vector_as_arraysegment(206); }
+#endif
+  public byte[] GetTimeAttackDungeonScenarioIdArray() { return __p.__vector_as_array<byte>(206); }
+  public int TimeAttackDungoenPlayCountPerTicket { get { int o = __p.__offset(208); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.ParcelType TimeAttackDungeonEnterCostType { get { int o = __p.__offset(210); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long TimeAttackDungeonEnterCostId { get { int o = __p.__offset(212); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long TimeAttackDungeonEnterCost { get { int o = __p.__offset(214); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClanLeaderTransferLastLoginLimit { get { int o = __p.__offset(216); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int MonthlyProductRepurchasePopupLimit { get { int o = __p.__offset(218); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.Tag CommonFavorItemTags(int j) { int o = __p.__offset(220); return o != 0 ? (Schale.FlatData.Tag)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.Tag)0; }
+  public int CommonFavorItemTagsLength { get { int o = __p.__offset(220); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<Schale.FlatData.Tag> GetCommonFavorItemTagsBytes() { return __p.__vector_as_span<Schale.FlatData.Tag>(220, 4); }
+#else
+  public ArraySegment<byte>? GetCommonFavorItemTagsBytes() { return __p.__vector_as_arraysegment(220); }
+#endif
+  public Schale.FlatData.Tag[] GetCommonFavorItemTagsArray() { int o = __p.__offset(220); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
+  public long MaxApMasterCoinPerWeek { get { int o = __p.__offset(222); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftOpenExpTier1 { get { int o = __p.__offset(224); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftOpenExpTier2 { get { int o = __p.__offset(226); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftOpenExpTier3 { get { int o = __p.__offset(228); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CharacterEquipmentGearSlot { get { int o = __p.__offset(230); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int BirthDayDDay { get { int o = __p.__offset(232); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RecommendedFriendsLvDifferenceLimit { get { int o = __p.__offset(234); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int DDosDetectCount { get { int o = __p.__offset(236); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int DDosCheckIntervalInSeconds { get { int o = __p.__offset(238); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MaxFriendsCount { get { int o = __p.__offset(240); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MaxFriendsRequest { get { int o = __p.__offset(242); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FriendsSearchRequestCount { get { int o = __p.__offset(244); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FriendsMaxApplicant { get { int o = __p.__offset(246); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long IdCardDefaultCharacterId { get { int o = __p.__offset(248); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long IdCardDefaultBgId { get { int o = __p.__offset(250); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WorldRaidGemEnterCost { get { int o = __p.__offset(252); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WorldRaidGemEnterAmout { get { int o = __p.__offset(254); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long FriendIdCardCommentMaxLength { get { int o = __p.__offset(256); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int FormationPresetNumberOfEchelonTab { get { int o = __p.__offset(258); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetNumberOfEchelon { get { int o = __p.__offset(260); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetRecentNumberOfEchelon { get { int o = __p.__offset(262); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetEchelonTabTextLength { get { int o = __p.__offset(264); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetEchelonSlotTextLength { get { int o = __p.__offset(266); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharProfileRowIntervalKr { get { int o = __p.__offset(268); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CallnameLengthEn { get { int o = __p.__offset(270); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CallnameLengthKr { get { int o = __p.__offset(272); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NicknameLengthKr { get { int o = __p.__offset(274); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClanNameLength { get { int o = __p.__offset(276); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafePresetEditNameLength { get { int o = __p.__offset(278); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetEchelonTabTextLengthKr { get { int o = __p.__offset(280); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int FormationPresetEchelonSlotTextLengthKr { get { int o = __p.__offset(282); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharProfileRowIntervalJp { get { int o = __p.__offset(284); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharProfilePopupRowIntervalKr { get { int o = __p.__offset(286); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharProfilePopupRowIntervalJp { get { int o = __p.__offset(288); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int BeforehandGachaCount { get { int o = __p.__offset(290); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long LowMemorySizeGL { get { int o = __p.__offset(292); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int BeforehandGachaGroupId { get { int o = __p.__offset(294); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RenewalDisplayOrderDay { get { int o = __p.__offset(296); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long EmblemDefaultId { get { int o = __p.__offset(298); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string BirthdayMailStartDate { get { int o = __p.__offset(300); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetBirthdayMailStartDateBytes() { return __p.__vector_as_span<byte>(300, 1); }
+#else
+  public ArraySegment<byte>? GetBirthdayMailStartDateBytes() { return __p.__vector_as_arraysegment(300); }
+#endif
+  public byte[] GetBirthdayMailStartDateArray() { return __p.__vector_as_array<byte>(300); }
+  public int BirthdayMailRemainDate { get { int o = __p.__offset(302); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.ParcelType BirthdayMailParcelType { get { int o = __p.__offset(304); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long BirthdayMailParcelId { get { int o = __p.__offset(306); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int BirthdayMailParcelAmount { get { int o = __p.__offset(308); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeckAverageDeckCount { get { int o = __p.__offset(310); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeckWorldRaidSaveConditionCoefficient { get { int o = __p.__offset(312); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ClearDeckShowCount { get { int o = __p.__offset(314); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CharacterMaxLevel { get { int o = __p.__offset(316); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PotentialBonusStatMaxLevelMaxHP { get { int o = __p.__offset(318); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PotentialBonusStatMaxLevelAttackPower { get { int o = __p.__offset(320); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PotentialBonusStatMaxLevelHealPower { get { int o = __p.__offset(322); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PotentialOpenConditionCharacterLevel { get { int o = __p.__offset(324); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AssistStrangerMinLevel { get { int o = __p.__offset(326); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public float ClanChattingNoticeCautionDelay { get { int o = __p.__offset(328); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float CallNameWaitTimeGL { get { int o = __p.__offset(330); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int AssistStrangerMaxLevel { get { int o = __p.__offset(332); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MaxBlockedUserCount { get { int o = __p.__offset(334); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CafeRandomVisitMinComfortBonus { get { int o = __p.__offset(336); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int CafeRandomVisitMinLastLogin { get { int o = __p.__offset(338); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeTravelSyncIntervalByMillisec { get { int o = __p.__offset(340); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage1 { get { int o = __p.__offset(342); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage2 { get { int o = __p.__offset(344); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage3 { get { int o = __p.__offset(346); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage4 { get { int o = __p.__offset(348); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage5 { get { int o = __p.__offset(350); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage6 { get { int o = __p.__offset(352); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int RankBracketPercentage7 { get { int o = __p.__offset(354); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExpiryBattlePassItemReceiveDay { get { int o = __p.__offset(356); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long BattlePassFlavorTextIdleDurationMilliSec { get { int o = __p.__offset(358); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int BattlePassEndImminentDay { get { int o = __p.__offset(360); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string BattlePassExpIconPath { get { int o = __p.__offset(362); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetBattlePassExpIconPathBytes() { return __p.__vector_as_span<byte>(362, 1); }
+#else
+  public ArraySegment<byte>? GetBattlePassExpIconPathBytes() { return __p.__vector_as_arraysegment(362); }
+#endif
+  public byte[] GetBattlePassExpIconPathArray() { return __p.__vector_as_array<byte>(362); }
+  public float CafeCameraDragThreshold { get { int o = __p.__offset(364); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int CafeSummonTicketBuyLimitForValidate { get { int o = __p.__offset(366); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int BattlePassNotifyDateGL { get { int o = __p.__offset(368); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int PurchaseMailExpiredDayGL { get { int o = __p.__offset(370); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string ReviewEventDateGL { get { int o = __p.__offset(372); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetReviewEventDateGLBytes() { return __p.__vector_as_span<byte>(372, 1); }
+#else
+  public ArraySegment<byte>? GetReviewEventDateGLBytes() { return __p.__vector_as_arraysegment(372); }
+#endif
+  public byte[] GetReviewEventDateGLArray() { return __p.__vector_as_array<byte>(372); }
+  public long ReviewEventStageIDGL { get { int o = __p.__offset(374); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ReviewEventCharIDGL { get { int o = __p.__offset(376); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int AutoCraftPresetCountLimit { get { int o = __p.__offset(378); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AutoCraftNodeSelectCount { get { int o = __p.__offset(380); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CraftPresetNameMaxLength { get { int o = __p.__offset(382); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long SelectionWaitTime { get { int o = __p.__offset(384); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RewardWaitTime { get { int o = __p.__offset(386); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EpisodeContinueWaitTime { get { int o = __p.__offset(388); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public float ScenarioAutoDelayMillisecLong { get { int o = __p.__offset(390); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ScenarioAutoDelayMillisec { get { int o = __p.__offset(392); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ScenarioAutoDelayMillisecShort { get { int o = __p.__offset(394); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ScenarioAutoDelayMillisecVeryShort { get { int o = __p.__offset(396); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int PcBuildEnterInformation { get { int o = __p.__offset(398); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ComebackUserStandardDay { get { int o = __p.__offset(400); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ComebackUserLogSaveDay { get { int o = __p.__offset(402); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ComeBackActivateCooldown { get { int o = __p.__offset(404); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int CafeCopyPresetSlotCount { get { int o = __p.__offset(406); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ExpiryProductDailyRecordItemReceiveDay { get { int o = __p.__offset(408); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NewbieUserStandardDay { get { int o = __p.__offset(410); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int NewbieStateHoldDay { get { int o = __p.__offset(412); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string QRIconUrlDev { get { int o = __p.__offset(414); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetQRIconUrlDevBytes() { return __p.__vector_as_span<byte>(414, 1); }
+#else
+  public ArraySegment<byte>? GetQRIconUrlDevBytes() { return __p.__vector_as_arraysegment(414); }
+#endif
+  public byte[] GetQRIconUrlDevArray() { return __p.__vector_as_array<byte>(414); }
+  public string QRIconUrlLive { get { int o = __p.__offset(416); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetQRIconUrlLiveBytes() { return __p.__vector_as_span<byte>(416, 1); }
+#else
+  public ArraySegment<byte>? GetQRIconUrlLiveBytes() { return __p.__vector_as_arraysegment(416); }
+#endif
+  public byte[] GetQRIconUrlLiveArray() { return __p.__vector_as_array<byte>(416); }
 
-  public static void StartConstCommonExcel(FlatBufferBuilder builder) { builder.StartTable(0); }
+  public static void StartConstCommonExcel(FlatBufferBuilder builder) { builder.StartTable(207); }
+  public static void AddCampaignMainStageMaxRank(FlatBufferBuilder builder, int campaignMainStageMaxRank) { builder.AddInt(0, campaignMainStageMaxRank, 0); }
+  public static void AddCampaignMainStageBestRecord(FlatBufferBuilder builder, int campaignMainStageBestRecord) { builder.AddInt(1, campaignMainStageBestRecord, 0); }
+  public static void AddHardAdventurePlayCountRecoverDailyNumber(FlatBufferBuilder builder, int hardAdventurePlayCountRecoverDailyNumber) { builder.AddInt(2, hardAdventurePlayCountRecoverDailyNumber, 0); }
+  public static void AddHardStageCount(FlatBufferBuilder builder, int hardStageCount) { builder.AddInt(3, hardStageCount, 0); }
+  public static void AddTacticRankClearTime(FlatBufferBuilder builder, int tacticRankClearTime) { builder.AddInt(4, tacticRankClearTime, 0); }
+  public static void AddBaseTimeScale(FlatBufferBuilder builder, long baseTimeScale) { builder.AddLong(5, baseTimeScale, 0); }
+  public static void AddGachaPercentage(FlatBufferBuilder builder, int gachaPercentage) { builder.AddInt(6, gachaPercentage, 0); }
+  public static void AddAcademyFavorZoneId(FlatBufferBuilder builder, long academyFavorZoneId) { builder.AddLong(7, academyFavorZoneId, 0); }
+  public static void AddCafePresetSlotCount(FlatBufferBuilder builder, int cafePresetSlotCount) { builder.AddInt(8, cafePresetSlotCount, 0); }
+  public static void AddCafeMonologueIntervalMillisec(FlatBufferBuilder builder, long cafeMonologueIntervalMillisec) { builder.AddLong(9, cafeMonologueIntervalMillisec, 0); }
+  public static void AddCafeMonologueDefaultDuration(FlatBufferBuilder builder, long cafeMonologueDefaultDuration) { builder.AddLong(10, cafeMonologueDefaultDuration, 0); }
+  public static void AddCafeBubbleIdleDurationMilliSec(FlatBufferBuilder builder, long cafeBubbleIdleDurationMilliSec) { builder.AddLong(11, cafeBubbleIdleDurationMilliSec, 0); }
+  public static void AddFindGiftTimeLimit(FlatBufferBuilder builder, int findGiftTimeLimit) { builder.AddInt(12, findGiftTimeLimit, 0); }
+  public static void AddCafeAutoChargePeriodInMsc(FlatBufferBuilder builder, int cafeAutoChargePeriodInMsc) { builder.AddInt(13, cafeAutoChargePeriodInMsc, 0); }
+  public static void AddCafeProductionDecimalPosition(FlatBufferBuilder builder, int cafeProductionDecimalPosition) { builder.AddInt(14, cafeProductionDecimalPosition, 0); }
+  public static void AddCafeSetGroupApplyCount(FlatBufferBuilder builder, int cafeSetGroupApplyCount) { builder.AddInt(15, cafeSetGroupApplyCount, 0); }
+  public static void AddWeekDungeonFindGiftRewardLimitCount(FlatBufferBuilder builder, int weekDungeonFindGiftRewardLimitCount) { builder.AddInt(16, weekDungeonFindGiftRewardLimitCount, 0); }
+  public static void AddStageFailedCurrencyRefundRate(FlatBufferBuilder builder, int stageFailedCurrencyRefundRate) { builder.AddInt(17, stageFailedCurrencyRefundRate, 0); }
+  public static void AddEnterDeposit(FlatBufferBuilder builder, int enterDeposit) { builder.AddInt(18, enterDeposit, 0); }
+  public static void AddAccountMaxLevel(FlatBufferBuilder builder, int accountMaxLevel) { builder.AddInt(19, accountMaxLevel, 0); }
+  public static void AddMainSquadExpBonus(FlatBufferBuilder builder, int mainSquadExpBonus) { builder.AddInt(20, mainSquadExpBonus, 0); }
+  public static void AddSupportSquadExpBonus(FlatBufferBuilder builder, int supportSquadExpBonus) { builder.AddInt(21, supportSquadExpBonus, 0); }
+  public static void AddAccountExpRatio(FlatBufferBuilder builder, int accountExpRatio) { builder.AddInt(22, accountExpRatio, 0); }
+  public static void AddMissionToastLifeTime(FlatBufferBuilder builder, int missionToastLifeTime) { builder.AddInt(23, missionToastLifeTime, 0); }
+  public static void AddExpItemInsertLimit(FlatBufferBuilder builder, int expItemInsertLimit) { builder.AddInt(24, expItemInsertLimit, 0); }
+  public static void AddExpItemInsertAccelTime(FlatBufferBuilder builder, int expItemInsertAccelTime) { builder.AddInt(25, expItemInsertAccelTime, 0); }
+  public static void AddCharacterLvUpCoefficient(FlatBufferBuilder builder, int characterLvUpCoefficient) { builder.AddInt(26, characterLvUpCoefficient, 0); }
+  public static void AddEquipmentLvUpCoefficient(FlatBufferBuilder builder, int equipmentLvUpCoefficient) { builder.AddInt(27, equipmentLvUpCoefficient, 0); }
+  public static void AddExpEquipInsertLimit(FlatBufferBuilder builder, int expEquipInsertLimit) { builder.AddInt(28, expEquipInsertLimit, 0); }
+  public static void AddEquipLvUpCoefficient(FlatBufferBuilder builder, int equipLvUpCoefficient) { builder.AddInt(29, equipLvUpCoefficient, 0); }
+  public static void AddNicknameLength(FlatBufferBuilder builder, int nicknameLength) { builder.AddInt(30, nicknameLength, 0); }
+  public static void AddCraftDuration(FlatBufferBuilder builder, VectorOffset craftDurationOffset) { builder.AddOffset(31, craftDurationOffset.Value, 0); }
+  public static VectorOffset CreateCraftDurationVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCraftDurationVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCraftDurationVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCraftDurationVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartCraftDurationVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddCraftLimitTime(FlatBufferBuilder builder, int craftLimitTime) { builder.AddInt(32, craftLimitTime, 0); }
+  public static void AddShiftingCraftDuration(FlatBufferBuilder builder, VectorOffset shiftingCraftDurationOffset) { builder.AddOffset(33, shiftingCraftDurationOffset.Value, 0); }
+  public static VectorOffset CreateShiftingCraftDurationVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateShiftingCraftDurationVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateShiftingCraftDurationVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateShiftingCraftDurationVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartShiftingCraftDurationVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddShiftingCraftTicketConsumeAmount(FlatBufferBuilder builder, int shiftingCraftTicketConsumeAmount) { builder.AddInt(34, shiftingCraftTicketConsumeAmount, 0); }
+  public static void AddShiftingCraftSlotMaxCapacity(FlatBufferBuilder builder, int shiftingCraftSlotMaxCapacity) { builder.AddInt(35, shiftingCraftSlotMaxCapacity, 0); }
+  public static void AddCraftTicketItemUniqueId(FlatBufferBuilder builder, int craftTicketItemUniqueId) { builder.AddInt(36, craftTicketItemUniqueId, 0); }
+  public static void AddCraftTicketConsumeAmount(FlatBufferBuilder builder, int craftTicketConsumeAmount) { builder.AddInt(37, craftTicketConsumeAmount, 0); }
+  public static void AddAcademyEnterCostType(FlatBufferBuilder builder, Schale.FlatData.ParcelType academyEnterCostType) { builder.AddInt(38, (int)academyEnterCostType, 0); }
+  public static void AddAcademyEnterCostId(FlatBufferBuilder builder, long academyEnterCostId) { builder.AddLong(39, academyEnterCostId, 0); }
+  public static void AddAcademyTicketCost(FlatBufferBuilder builder, int academyTicketCost) { builder.AddInt(40, academyTicketCost, 0); }
+  public static void AddMassangerMessageExpireDay(FlatBufferBuilder builder, int massangerMessageExpireDay) { builder.AddInt(41, massangerMessageExpireDay, 0); }
+  public static void AddCraftLeafNodeGenerateLv1Count(FlatBufferBuilder builder, int craftLeafNodeGenerateLv1Count) { builder.AddInt(42, craftLeafNodeGenerateLv1Count, 0); }
+  public static void AddCraftLeafNodeGenerateLv2Count(FlatBufferBuilder builder, int craftLeafNodeGenerateLv2Count) { builder.AddInt(43, craftLeafNodeGenerateLv2Count, 0); }
+  public static void AddTutorialGachaShopId(FlatBufferBuilder builder, int tutorialGachaShopId) { builder.AddInt(44, tutorialGachaShopId, 0); }
+  public static void AddBeforehandGachaShopId(FlatBufferBuilder builder, int beforehandGachaShopId) { builder.AddInt(45, beforehandGachaShopId, 0); }
+  public static void AddTutorialGachaGoodsId(FlatBufferBuilder builder, int tutorialGachaGoodsId) { builder.AddInt(46, tutorialGachaGoodsId, 0); }
+  public static void AddEquipmentSlotOpenLevel(FlatBufferBuilder builder, VectorOffset equipmentSlotOpenLevelOffset) { builder.AddOffset(47, equipmentSlotOpenLevelOffset.Value, 0); }
+  public static VectorOffset CreateEquipmentSlotOpenLevelVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateEquipmentSlotOpenLevelVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateEquipmentSlotOpenLevelVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateEquipmentSlotOpenLevelVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartEquipmentSlotOpenLevelVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddJoinOrCreateClanCoolTimeFromHour(FlatBufferBuilder builder, long joinOrCreateClanCoolTimeFromHour) { builder.AddLong(48, joinOrCreateClanCoolTimeFromHour, 0); }
+  public static void AddClanMaxMember(FlatBufferBuilder builder, long clanMaxMember) { builder.AddLong(49, clanMaxMember, 0); }
+  public static void AddClanSearchResultCount(FlatBufferBuilder builder, long clanSearchResultCount) { builder.AddLong(50, clanSearchResultCount, 0); }
+  public static void AddClanMaxApplicant(FlatBufferBuilder builder, long clanMaxApplicant) { builder.AddLong(51, clanMaxApplicant, 0); }
+  public static void AddClanRejoinCoolTimeFromSecond(FlatBufferBuilder builder, long clanRejoinCoolTimeFromSecond) { builder.AddLong(52, clanRejoinCoolTimeFromSecond, 0); }
+  public static void AddClanWordBalloonMaxCharacter(FlatBufferBuilder builder, int clanWordBalloonMaxCharacter) { builder.AddInt(53, clanWordBalloonMaxCharacter, 0); }
+  public static void AddCallNameRenameCoolTimeFromHour(FlatBufferBuilder builder, long callNameRenameCoolTimeFromHour) { builder.AddLong(54, callNameRenameCoolTimeFromHour, 0); }
+  public static void AddCallNameMinimumLength(FlatBufferBuilder builder, long callNameMinimumLength) { builder.AddLong(55, callNameMinimumLength, 0); }
+  public static void AddCallNameMaximumLength(FlatBufferBuilder builder, long callNameMaximumLength) { builder.AddLong(56, callNameMaximumLength, 0); }
+  public static void AddLobbyToScreenModeWaitTime(FlatBufferBuilder builder, long lobbyToScreenModeWaitTime) { builder.AddLong(57, lobbyToScreenModeWaitTime, 0); }
+  public static void AddScreenshotToLobbyButtonHideDelay(FlatBufferBuilder builder, long screenshotToLobbyButtonHideDelay) { builder.AddLong(58, screenshotToLobbyButtonHideDelay, 0); }
+  public static void AddPrologueScenarioID01(FlatBufferBuilder builder, long prologueScenarioID01) { builder.AddLong(59, prologueScenarioID01, 0); }
+  public static void AddPrologueScenarioID02(FlatBufferBuilder builder, long prologueScenarioID02) { builder.AddLong(60, prologueScenarioID02, 0); }
+  public static void AddTutorialHardStage11(FlatBufferBuilder builder, long tutorialHardStage11) { builder.AddLong(61, tutorialHardStage11, 0); }
+  public static void AddTutorialSpeedButtonStage(FlatBufferBuilder builder, long tutorialSpeedButtonStage) { builder.AddLong(62, tutorialSpeedButtonStage, 0); }
+  public static void AddTutorialCharacterDefaultCount(FlatBufferBuilder builder, long tutorialCharacterDefaultCount) { builder.AddLong(63, tutorialCharacterDefaultCount, 0); }
+  public static void AddTutorialShopCategoryType(FlatBufferBuilder builder, Schale.FlatData.ShopCategoryType tutorialShopCategoryType) { builder.AddInt(64, (int)tutorialShopCategoryType, 0); }
+  public static void AddAdventureStrategyPlayTimeLimitInSeconds(FlatBufferBuilder builder, long adventureStrategyPlayTimeLimitInSeconds) { builder.AddLong(65, adventureStrategyPlayTimeLimitInSeconds, 0); }
+  public static void AddWeekDungoenTacticPlayTimeLimitInSeconds(FlatBufferBuilder builder, long weekDungoenTacticPlayTimeLimitInSeconds) { builder.AddLong(66, weekDungoenTacticPlayTimeLimitInSeconds, 0); }
+  public static void AddRaidTacticPlayTimeLimitInSeconds(FlatBufferBuilder builder, long raidTacticPlayTimeLimitInSeconds) { builder.AddLong(67, raidTacticPlayTimeLimitInSeconds, 0); }
+  public static void AddRaidOpponentListAmount(FlatBufferBuilder builder, long raidOpponentListAmount) { builder.AddLong(68, raidOpponentListAmount, 0); }
+  public static void AddCraftBaseGoldRequired(FlatBufferBuilder builder, VectorOffset craftBaseGoldRequiredOffset) { builder.AddOffset(69, craftBaseGoldRequiredOffset.Value, 0); }
+  public static VectorOffset CreateCraftBaseGoldRequiredVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCraftBaseGoldRequiredVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCraftBaseGoldRequiredVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCraftBaseGoldRequiredVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartCraftBaseGoldRequiredVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddPostExpiredDayAttendance(FlatBufferBuilder builder, int postExpiredDayAttendance) { builder.AddInt(70, postExpiredDayAttendance, 0); }
+  public static void AddPostExpiredDayInventoryOverflow(FlatBufferBuilder builder, int postExpiredDayInventoryOverflow) { builder.AddInt(71, postExpiredDayInventoryOverflow, 0); }
+  public static void AddPostExpiredDayGameManager(FlatBufferBuilder builder, int postExpiredDayGameManager) { builder.AddInt(72, postExpiredDayGameManager, 0); }
+  public static void AddUILabelCharacterWrap(FlatBufferBuilder builder, StringOffset uILabelCharacterWrapOffset) { builder.AddOffset(73, uILabelCharacterWrapOffset.Value, 0); }
+  public static void AddRequestTimeOut(FlatBufferBuilder builder, float requestTimeOut) { builder.AddFloat(74, requestTimeOut, 0.0f); }
+  public static void AddMailStorageSoftCap(FlatBufferBuilder builder, int mailStorageSoftCap) { builder.AddInt(75, mailStorageSoftCap, 0); }
+  public static void AddMailStorageHardCap(FlatBufferBuilder builder, int mailStorageHardCap) { builder.AddInt(76, mailStorageHardCap, 0); }
+  public static void AddClearDeckStorageSize(FlatBufferBuilder builder, int clearDeckStorageSize) { builder.AddInt(77, clearDeckStorageSize, 0); }
+  public static void AddClearDeckNoStarViewCount(FlatBufferBuilder builder, int clearDeckNoStarViewCount) { builder.AddInt(78, clearDeckNoStarViewCount, 0); }
+  public static void AddClearDeck1StarViewCount(FlatBufferBuilder builder, int clearDeck1StarViewCount) { builder.AddInt(79, clearDeck1StarViewCount, 0); }
+  public static void AddClearDeck2StarViewCount(FlatBufferBuilder builder, int clearDeck2StarViewCount) { builder.AddInt(80, clearDeck2StarViewCount, 0); }
+  public static void AddClearDeck3StarViewCount(FlatBufferBuilder builder, int clearDeck3StarViewCount) { builder.AddInt(81, clearDeck3StarViewCount, 0); }
+  public static void AddExSkillLevelMax(FlatBufferBuilder builder, int exSkillLevelMax) { builder.AddInt(82, exSkillLevelMax, 0); }
+  public static void AddPublicSkillLevelMax(FlatBufferBuilder builder, int publicSkillLevelMax) { builder.AddInt(83, publicSkillLevelMax, 0); }
+  public static void AddPassiveSkillLevelMax(FlatBufferBuilder builder, int passiveSkillLevelMax) { builder.AddInt(84, passiveSkillLevelMax, 0); }
+  public static void AddExtraPassiveSkillLevelMax(FlatBufferBuilder builder, int extraPassiveSkillLevelMax) { builder.AddInt(85, extraPassiveSkillLevelMax, 0); }
+  public static void AddAccountCommentMaxLength(FlatBufferBuilder builder, int accountCommentMaxLength) { builder.AddInt(86, accountCommentMaxLength, 0); }
+  public static void AddCafeSummonCoolTimeFromHour(FlatBufferBuilder builder, int cafeSummonCoolTimeFromHour) { builder.AddInt(87, cafeSummonCoolTimeFromHour, 0); }
+  public static void AddLimitedStageDailyClearCount(FlatBufferBuilder builder, long limitedStageDailyClearCount) { builder.AddLong(88, limitedStageDailyClearCount, 0); }
+  public static void AddLimitedStageEntryTimeLimit(FlatBufferBuilder builder, long limitedStageEntryTimeLimit) { builder.AddLong(89, limitedStageEntryTimeLimit, 0); }
+  public static void AddLimitedStageEntryTimeBuffer(FlatBufferBuilder builder, long limitedStageEntryTimeBuffer) { builder.AddLong(90, limitedStageEntryTimeBuffer, 0); }
+  public static void AddLimitedStagePointAmount(FlatBufferBuilder builder, long limitedStagePointAmount) { builder.AddLong(91, limitedStagePointAmount, 0); }
+  public static void AddLimitedStagePointPerApMin(FlatBufferBuilder builder, long limitedStagePointPerApMin) { builder.AddLong(92, limitedStagePointPerApMin, 0); }
+  public static void AddLimitedStagePointPerApMax(FlatBufferBuilder builder, long limitedStagePointPerApMax) { builder.AddLong(93, limitedStagePointPerApMax, 0); }
+  public static void AddAccountLinkReward(FlatBufferBuilder builder, int accountLinkReward) { builder.AddInt(94, accountLinkReward, 0); }
+  public static void AddMonthlyProductCheckDays(FlatBufferBuilder builder, int monthlyProductCheckDays) { builder.AddInt(95, monthlyProductCheckDays, 0); }
+  public static void AddWeaponLvUpCoefficient(FlatBufferBuilder builder, int weaponLvUpCoefficient) { builder.AddInt(96, weaponLvUpCoefficient, 0); }
+  public static void AddShowRaidMyListCount(FlatBufferBuilder builder, int showRaidMyListCount) { builder.AddInt(97, showRaidMyListCount, 0); }
+  public static void AddRaidEnterCostType(FlatBufferBuilder builder, Schale.FlatData.ParcelType raidEnterCostType) { builder.AddInt(98, (int)raidEnterCostType, 0); }
+  public static void AddRaidEnterCostId(FlatBufferBuilder builder, long raidEnterCostId) { builder.AddLong(99, raidEnterCostId, 0); }
+  public static void AddRaidTicketCost(FlatBufferBuilder builder, long raidTicketCost) { builder.AddLong(100, raidTicketCost, 0); }
+  public static void AddTimeAttackDungeonScenarioId(FlatBufferBuilder builder, StringOffset timeAttackDungeonScenarioIdOffset) { builder.AddOffset(101, timeAttackDungeonScenarioIdOffset.Value, 0); }
+  public static void AddTimeAttackDungoenPlayCountPerTicket(FlatBufferBuilder builder, int timeAttackDungoenPlayCountPerTicket) { builder.AddInt(102, timeAttackDungoenPlayCountPerTicket, 0); }
+  public static void AddTimeAttackDungeonEnterCostType(FlatBufferBuilder builder, Schale.FlatData.ParcelType timeAttackDungeonEnterCostType) { builder.AddInt(103, (int)timeAttackDungeonEnterCostType, 0); }
+  public static void AddTimeAttackDungeonEnterCostId(FlatBufferBuilder builder, long timeAttackDungeonEnterCostId) { builder.AddLong(104, timeAttackDungeonEnterCostId, 0); }
+  public static void AddTimeAttackDungeonEnterCost(FlatBufferBuilder builder, long timeAttackDungeonEnterCost) { builder.AddLong(105, timeAttackDungeonEnterCost, 0); }
+  public static void AddClanLeaderTransferLastLoginLimit(FlatBufferBuilder builder, long clanLeaderTransferLastLoginLimit) { builder.AddLong(106, clanLeaderTransferLastLoginLimit, 0); }
+  public static void AddMonthlyProductRepurchasePopupLimit(FlatBufferBuilder builder, int monthlyProductRepurchasePopupLimit) { builder.AddInt(107, monthlyProductRepurchasePopupLimit, 0); }
+  public static void AddCommonFavorItemTags(FlatBufferBuilder builder, VectorOffset commonFavorItemTagsOffset) { builder.AddOffset(108, commonFavorItemTagsOffset.Value, 0); }
+  public static VectorOffset CreateCommonFavorItemTagsVector(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateCommonFavorItemTagsVectorBlock(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCommonFavorItemTagsVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.Tag> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateCommonFavorItemTagsVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.Tag>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartCommonFavorItemTagsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddMaxApMasterCoinPerWeek(FlatBufferBuilder builder, long maxApMasterCoinPerWeek) { builder.AddLong(109, maxApMasterCoinPerWeek, 0); }
+  public static void AddCraftOpenExpTier1(FlatBufferBuilder builder, long craftOpenExpTier1) { builder.AddLong(110, craftOpenExpTier1, 0); }
+  public static void AddCraftOpenExpTier2(FlatBufferBuilder builder, long craftOpenExpTier2) { builder.AddLong(111, craftOpenExpTier2, 0); }
+  public static void AddCraftOpenExpTier3(FlatBufferBuilder builder, long craftOpenExpTier3) { builder.AddLong(112, craftOpenExpTier3, 0); }
+  public static void AddCharacterEquipmentGearSlot(FlatBufferBuilder builder, long characterEquipmentGearSlot) { builder.AddLong(113, characterEquipmentGearSlot, 0); }
+  public static void AddBirthDayDDay(FlatBufferBuilder builder, int birthDayDDay) { builder.AddInt(114, birthDayDDay, 0); }
+  public static void AddRecommendedFriendsLvDifferenceLimit(FlatBufferBuilder builder, int recommendedFriendsLvDifferenceLimit) { builder.AddInt(115, recommendedFriendsLvDifferenceLimit, 0); }
+  public static void AddDDosDetectCount(FlatBufferBuilder builder, int dDosDetectCount) { builder.AddInt(116, dDosDetectCount, 0); }
+  public static void AddDDosCheckIntervalInSeconds(FlatBufferBuilder builder, int dDosCheckIntervalInSeconds) { builder.AddInt(117, dDosCheckIntervalInSeconds, 0); }
+  public static void AddMaxFriendsCount(FlatBufferBuilder builder, int maxFriendsCount) { builder.AddInt(118, maxFriendsCount, 0); }
+  public static void AddMaxFriendsRequest(FlatBufferBuilder builder, int maxFriendsRequest) { builder.AddInt(119, maxFriendsRequest, 0); }
+  public static void AddFriendsSearchRequestCount(FlatBufferBuilder builder, int friendsSearchRequestCount) { builder.AddInt(120, friendsSearchRequestCount, 0); }
+  public static void AddFriendsMaxApplicant(FlatBufferBuilder builder, int friendsMaxApplicant) { builder.AddInt(121, friendsMaxApplicant, 0); }
+  public static void AddIdCardDefaultCharacterId(FlatBufferBuilder builder, long idCardDefaultCharacterId) { builder.AddLong(122, idCardDefaultCharacterId, 0); }
+  public static void AddIdCardDefaultBgId(FlatBufferBuilder builder, long idCardDefaultBgId) { builder.AddLong(123, idCardDefaultBgId, 0); }
+  public static void AddWorldRaidGemEnterCost(FlatBufferBuilder builder, long worldRaidGemEnterCost) { builder.AddLong(124, worldRaidGemEnterCost, 0); }
+  public static void AddWorldRaidGemEnterAmout(FlatBufferBuilder builder, long worldRaidGemEnterAmout) { builder.AddLong(125, worldRaidGemEnterAmout, 0); }
+  public static void AddFriendIdCardCommentMaxLength(FlatBufferBuilder builder, long friendIdCardCommentMaxLength) { builder.AddLong(126, friendIdCardCommentMaxLength, 0); }
+  public static void AddFormationPresetNumberOfEchelonTab(FlatBufferBuilder builder, int formationPresetNumberOfEchelonTab) { builder.AddInt(127, formationPresetNumberOfEchelonTab, 0); }
+  public static void AddFormationPresetNumberOfEchelon(FlatBufferBuilder builder, int formationPresetNumberOfEchelon) { builder.AddInt(128, formationPresetNumberOfEchelon, 0); }
+  public static void AddFormationPresetRecentNumberOfEchelon(FlatBufferBuilder builder, int formationPresetRecentNumberOfEchelon) { builder.AddInt(129, formationPresetRecentNumberOfEchelon, 0); }
+  public static void AddFormationPresetEchelonTabTextLength(FlatBufferBuilder builder, int formationPresetEchelonTabTextLength) { builder.AddInt(130, formationPresetEchelonTabTextLength, 0); }
+  public static void AddFormationPresetEchelonSlotTextLength(FlatBufferBuilder builder, int formationPresetEchelonSlotTextLength) { builder.AddInt(131, formationPresetEchelonSlotTextLength, 0); }
+  public static void AddCharProfileRowIntervalKr(FlatBufferBuilder builder, int charProfileRowIntervalKr) { builder.AddInt(132, charProfileRowIntervalKr, 0); }
+  public static void AddCallnameLengthEn(FlatBufferBuilder builder, int callnameLengthEn) { builder.AddInt(133, callnameLengthEn, 0); }
+  public static void AddCallnameLengthKr(FlatBufferBuilder builder, int callnameLengthKr) { builder.AddInt(134, callnameLengthKr, 0); }
+  public static void AddNicknameLengthKr(FlatBufferBuilder builder, int nicknameLengthKr) { builder.AddInt(135, nicknameLengthKr, 0); }
+  public static void AddClanNameLength(FlatBufferBuilder builder, int clanNameLength) { builder.AddInt(136, clanNameLength, 0); }
+  public static void AddCafePresetEditNameLength(FlatBufferBuilder builder, int cafePresetEditNameLength) { builder.AddInt(137, cafePresetEditNameLength, 0); }
+  public static void AddFormationPresetEchelonTabTextLengthKr(FlatBufferBuilder builder, int formationPresetEchelonTabTextLengthKr) { builder.AddInt(138, formationPresetEchelonTabTextLengthKr, 0); }
+  public static void AddFormationPresetEchelonSlotTextLengthKr(FlatBufferBuilder builder, int formationPresetEchelonSlotTextLengthKr) { builder.AddInt(139, formationPresetEchelonSlotTextLengthKr, 0); }
+  public static void AddCharProfileRowIntervalJp(FlatBufferBuilder builder, int charProfileRowIntervalJp) { builder.AddInt(140, charProfileRowIntervalJp, 0); }
+  public static void AddCharProfilePopupRowIntervalKr(FlatBufferBuilder builder, int charProfilePopupRowIntervalKr) { builder.AddInt(141, charProfilePopupRowIntervalKr, 0); }
+  public static void AddCharProfilePopupRowIntervalJp(FlatBufferBuilder builder, int charProfilePopupRowIntervalJp) { builder.AddInt(142, charProfilePopupRowIntervalJp, 0); }
+  public static void AddBeforehandGachaCount(FlatBufferBuilder builder, int beforehandGachaCount) { builder.AddInt(143, beforehandGachaCount, 0); }
+  public static void AddLowMemorySizeGL(FlatBufferBuilder builder, long lowMemorySizeGL) { builder.AddLong(144, lowMemorySizeGL, 0); }
+  public static void AddBeforehandGachaGroupId(FlatBufferBuilder builder, int beforehandGachaGroupId) { builder.AddInt(145, beforehandGachaGroupId, 0); }
+  public static void AddRenewalDisplayOrderDay(FlatBufferBuilder builder, int renewalDisplayOrderDay) { builder.AddInt(146, renewalDisplayOrderDay, 0); }
+  public static void AddEmblemDefaultId(FlatBufferBuilder builder, long emblemDefaultId) { builder.AddLong(147, emblemDefaultId, 0); }
+  public static void AddBirthdayMailStartDate(FlatBufferBuilder builder, StringOffset birthdayMailStartDateOffset) { builder.AddOffset(148, birthdayMailStartDateOffset.Value, 0); }
+  public static void AddBirthdayMailRemainDate(FlatBufferBuilder builder, int birthdayMailRemainDate) { builder.AddInt(149, birthdayMailRemainDate, 0); }
+  public static void AddBirthdayMailParcelType(FlatBufferBuilder builder, Schale.FlatData.ParcelType birthdayMailParcelType) { builder.AddInt(150, (int)birthdayMailParcelType, 0); }
+  public static void AddBirthdayMailParcelId(FlatBufferBuilder builder, long birthdayMailParcelId) { builder.AddLong(151, birthdayMailParcelId, 0); }
+  public static void AddBirthdayMailParcelAmount(FlatBufferBuilder builder, int birthdayMailParcelAmount) { builder.AddInt(152, birthdayMailParcelAmount, 0); }
+  public static void AddClearDeckAverageDeckCount(FlatBufferBuilder builder, int clearDeckAverageDeckCount) { builder.AddInt(153, clearDeckAverageDeckCount, 0); }
+  public static void AddClearDeckWorldRaidSaveConditionCoefficient(FlatBufferBuilder builder, int clearDeckWorldRaidSaveConditionCoefficient) { builder.AddInt(154, clearDeckWorldRaidSaveConditionCoefficient, 0); }
+  public static void AddClearDeckShowCount(FlatBufferBuilder builder, int clearDeckShowCount) { builder.AddInt(155, clearDeckShowCount, 0); }
+  public static void AddCharacterMaxLevel(FlatBufferBuilder builder, int characterMaxLevel) { builder.AddInt(156, characterMaxLevel, 0); }
+  public static void AddPotentialBonusStatMaxLevelMaxHP(FlatBufferBuilder builder, int potentialBonusStatMaxLevelMaxHP) { builder.AddInt(157, potentialBonusStatMaxLevelMaxHP, 0); }
+  public static void AddPotentialBonusStatMaxLevelAttackPower(FlatBufferBuilder builder, int potentialBonusStatMaxLevelAttackPower) { builder.AddInt(158, potentialBonusStatMaxLevelAttackPower, 0); }
+  public static void AddPotentialBonusStatMaxLevelHealPower(FlatBufferBuilder builder, int potentialBonusStatMaxLevelHealPower) { builder.AddInt(159, potentialBonusStatMaxLevelHealPower, 0); }
+  public static void AddPotentialOpenConditionCharacterLevel(FlatBufferBuilder builder, int potentialOpenConditionCharacterLevel) { builder.AddInt(160, potentialOpenConditionCharacterLevel, 0); }
+  public static void AddAssistStrangerMinLevel(FlatBufferBuilder builder, int assistStrangerMinLevel) { builder.AddInt(161, assistStrangerMinLevel, 0); }
+  public static void AddClanChattingNoticeCautionDelay(FlatBufferBuilder builder, float clanChattingNoticeCautionDelay) { builder.AddFloat(162, clanChattingNoticeCautionDelay, 0.0f); }
+  public static void AddCallNameWaitTimeGL(FlatBufferBuilder builder, float callNameWaitTimeGL) { builder.AddFloat(163, callNameWaitTimeGL, 0.0f); }
+  public static void AddAssistStrangerMaxLevel(FlatBufferBuilder builder, int assistStrangerMaxLevel) { builder.AddInt(164, assistStrangerMaxLevel, 0); }
+  public static void AddMaxBlockedUserCount(FlatBufferBuilder builder, int maxBlockedUserCount) { builder.AddInt(165, maxBlockedUserCount, 0); }
+  public static void AddCafeRandomVisitMinComfortBonus(FlatBufferBuilder builder, long cafeRandomVisitMinComfortBonus) { builder.AddLong(166, cafeRandomVisitMinComfortBonus, 0); }
+  public static void AddCafeRandomVisitMinLastLogin(FlatBufferBuilder builder, int cafeRandomVisitMinLastLogin) { builder.AddInt(167, cafeRandomVisitMinLastLogin, 0); }
+  public static void AddCafeTravelSyncIntervalByMillisec(FlatBufferBuilder builder, int cafeTravelSyncIntervalByMillisec) { builder.AddInt(168, cafeTravelSyncIntervalByMillisec, 0); }
+  public static void AddRankBracketPercentage1(FlatBufferBuilder builder, int rankBracketPercentage1) { builder.AddInt(169, rankBracketPercentage1, 0); }
+  public static void AddRankBracketPercentage2(FlatBufferBuilder builder, int rankBracketPercentage2) { builder.AddInt(170, rankBracketPercentage2, 0); }
+  public static void AddRankBracketPercentage3(FlatBufferBuilder builder, int rankBracketPercentage3) { builder.AddInt(171, rankBracketPercentage3, 0); }
+  public static void AddRankBracketPercentage4(FlatBufferBuilder builder, int rankBracketPercentage4) { builder.AddInt(172, rankBracketPercentage4, 0); }
+  public static void AddRankBracketPercentage5(FlatBufferBuilder builder, int rankBracketPercentage5) { builder.AddInt(173, rankBracketPercentage5, 0); }
+  public static void AddRankBracketPercentage6(FlatBufferBuilder builder, int rankBracketPercentage6) { builder.AddInt(174, rankBracketPercentage6, 0); }
+  public static void AddRankBracketPercentage7(FlatBufferBuilder builder, int rankBracketPercentage7) { builder.AddInt(175, rankBracketPercentage7, 0); }
+  public static void AddExpiryBattlePassItemReceiveDay(FlatBufferBuilder builder, int expiryBattlePassItemReceiveDay) { builder.AddInt(176, expiryBattlePassItemReceiveDay, 0); }
+  public static void AddBattlePassFlavorTextIdleDurationMilliSec(FlatBufferBuilder builder, long battlePassFlavorTextIdleDurationMilliSec) { builder.AddLong(177, battlePassFlavorTextIdleDurationMilliSec, 0); }
+  public static void AddBattlePassEndImminentDay(FlatBufferBuilder builder, int battlePassEndImminentDay) { builder.AddInt(178, battlePassEndImminentDay, 0); }
+  public static void AddBattlePassExpIconPath(FlatBufferBuilder builder, StringOffset battlePassExpIconPathOffset) { builder.AddOffset(179, battlePassExpIconPathOffset.Value, 0); }
+  public static void AddCafeCameraDragThreshold(FlatBufferBuilder builder, float cafeCameraDragThreshold) { builder.AddFloat(180, cafeCameraDragThreshold, 0.0f); }
+  public static void AddCafeSummonTicketBuyLimitForValidate(FlatBufferBuilder builder, int cafeSummonTicketBuyLimitForValidate) { builder.AddInt(181, cafeSummonTicketBuyLimitForValidate, 0); }
+  public static void AddBattlePassNotifyDateGL(FlatBufferBuilder builder, int battlePassNotifyDateGL) { builder.AddInt(182, battlePassNotifyDateGL, 0); }
+  public static void AddPurchaseMailExpiredDayGL(FlatBufferBuilder builder, int purchaseMailExpiredDayGL) { builder.AddInt(183, purchaseMailExpiredDayGL, 0); }
+  public static void AddReviewEventDateGL(FlatBufferBuilder builder, StringOffset reviewEventDateGLOffset) { builder.AddOffset(184, reviewEventDateGLOffset.Value, 0); }
+  public static void AddReviewEventStageIDGL(FlatBufferBuilder builder, long reviewEventStageIDGL) { builder.AddLong(185, reviewEventStageIDGL, 0); }
+  public static void AddReviewEventCharIDGL(FlatBufferBuilder builder, long reviewEventCharIDGL) { builder.AddLong(186, reviewEventCharIDGL, 0); }
+  public static void AddAutoCraftPresetCountLimit(FlatBufferBuilder builder, int autoCraftPresetCountLimit) { builder.AddInt(187, autoCraftPresetCountLimit, 0); }
+  public static void AddAutoCraftNodeSelectCount(FlatBufferBuilder builder, int autoCraftNodeSelectCount) { builder.AddInt(188, autoCraftNodeSelectCount, 0); }
+  public static void AddCraftPresetNameMaxLength(FlatBufferBuilder builder, int craftPresetNameMaxLength) { builder.AddInt(189, craftPresetNameMaxLength, 0); }
+  public static void AddSelectionWaitTime(FlatBufferBuilder builder, long selectionWaitTime) { builder.AddLong(190, selectionWaitTime, 0); }
+  public static void AddRewardWaitTime(FlatBufferBuilder builder, long rewardWaitTime) { builder.AddLong(191, rewardWaitTime, 0); }
+  public static void AddEpisodeContinueWaitTime(FlatBufferBuilder builder, long episodeContinueWaitTime) { builder.AddLong(192, episodeContinueWaitTime, 0); }
+  public static void AddScenarioAutoDelayMillisecLong(FlatBufferBuilder builder, float scenarioAutoDelayMillisecLong) { builder.AddFloat(193, scenarioAutoDelayMillisecLong, 0.0f); }
+  public static void AddScenarioAutoDelayMillisec(FlatBufferBuilder builder, float scenarioAutoDelayMillisec) { builder.AddFloat(194, scenarioAutoDelayMillisec, 0.0f); }
+  public static void AddScenarioAutoDelayMillisecShort(FlatBufferBuilder builder, float scenarioAutoDelayMillisecShort) { builder.AddFloat(195, scenarioAutoDelayMillisecShort, 0.0f); }
+  public static void AddScenarioAutoDelayMillisecVeryShort(FlatBufferBuilder builder, float scenarioAutoDelayMillisecVeryShort) { builder.AddFloat(196, scenarioAutoDelayMillisecVeryShort, 0.0f); }
+  public static void AddPcBuildEnterInformation(FlatBufferBuilder builder, int pcBuildEnterInformation) { builder.AddInt(197, pcBuildEnterInformation, 0); }
+  public static void AddComebackUserStandardDay(FlatBufferBuilder builder, int comebackUserStandardDay) { builder.AddInt(198, comebackUserStandardDay, 0); }
+  public static void AddComebackUserLogSaveDay(FlatBufferBuilder builder, int comebackUserLogSaveDay) { builder.AddInt(199, comebackUserLogSaveDay, 0); }
+  public static void AddComeBackActivateCooldown(FlatBufferBuilder builder, int comeBackActivateCooldown) { builder.AddInt(200, comeBackActivateCooldown, 0); }
+  public static void AddCafeCopyPresetSlotCount(FlatBufferBuilder builder, int cafeCopyPresetSlotCount) { builder.AddInt(201, cafeCopyPresetSlotCount, 0); }
+  public static void AddExpiryProductDailyRecordItemReceiveDay(FlatBufferBuilder builder, int expiryProductDailyRecordItemReceiveDay) { builder.AddInt(202, expiryProductDailyRecordItemReceiveDay, 0); }
+  public static void AddNewbieUserStandardDay(FlatBufferBuilder builder, int newbieUserStandardDay) { builder.AddInt(203, newbieUserStandardDay, 0); }
+  public static void AddNewbieStateHoldDay(FlatBufferBuilder builder, int newbieStateHoldDay) { builder.AddInt(204, newbieStateHoldDay, 0); }
+  public static void AddQRIconUrlDev(FlatBufferBuilder builder, StringOffset qRIconUrlDevOffset) { builder.AddOffset(205, qRIconUrlDevOffset.Value, 0); }
+  public static void AddQRIconUrlLive(FlatBufferBuilder builder, StringOffset qRIconUrlLiveOffset) { builder.AddOffset(206, qRIconUrlLiveOffset.Value, 0); }
   public static Offset<Schale.FlatData.ConstCommonExcel> EndConstCommonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ConstCommonExcel>(o);
@@ -33,18 +549,883 @@ public struct ConstCommonExcel : IFlatbufferObject
   }
   public void UnPackTo(ConstCommonExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("ConstCommon");
+    _o.CampaignMainStageMaxRank = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CampaignMainStageMaxRank, key) : this.CampaignMainStageMaxRank;
+    _o.CampaignMainStageBestRecord = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CampaignMainStageBestRecord, key) : this.CampaignMainStageBestRecord;
+    _o.HardAdventurePlayCountRecoverDailyNumber = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HardAdventurePlayCountRecoverDailyNumber, key) : this.HardAdventurePlayCountRecoverDailyNumber;
+    _o.HardStageCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HardStageCount, key) : this.HardStageCount;
+    _o.TacticRankClearTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TacticRankClearTime, key) : this.TacticRankClearTime;
+    _o.BaseTimeScale = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BaseTimeScale, key) : this.BaseTimeScale;
+    _o.GachaPercentage = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GachaPercentage, key) : this.GachaPercentage;
+    _o.AcademyFavorZoneId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AcademyFavorZoneId, key) : this.AcademyFavorZoneId;
+    _o.CafePresetSlotCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafePresetSlotCount, key) : this.CafePresetSlotCount;
+    _o.CafeMonologueIntervalMillisec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeMonologueIntervalMillisec, key) : this.CafeMonologueIntervalMillisec;
+    _o.CafeMonologueDefaultDuration = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeMonologueDefaultDuration, key) : this.CafeMonologueDefaultDuration;
+    _o.CafeBubbleIdleDurationMilliSec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeBubbleIdleDurationMilliSec, key) : this.CafeBubbleIdleDurationMilliSec;
+    _o.FindGiftTimeLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FindGiftTimeLimit, key) : this.FindGiftTimeLimit;
+    _o.CafeAutoChargePeriodInMsc = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeAutoChargePeriodInMsc, key) : this.CafeAutoChargePeriodInMsc;
+    _o.CafeProductionDecimalPosition = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeProductionDecimalPosition, key) : this.CafeProductionDecimalPosition;
+    _o.CafeSetGroupApplyCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeSetGroupApplyCount, key) : this.CafeSetGroupApplyCount;
+    _o.WeekDungeonFindGiftRewardLimitCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WeekDungeonFindGiftRewardLimitCount, key) : this.WeekDungeonFindGiftRewardLimitCount;
+    _o.StageFailedCurrencyRefundRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.StageFailedCurrencyRefundRate, key) : this.StageFailedCurrencyRefundRate;
+    _o.EnterDeposit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnterDeposit, key) : this.EnterDeposit;
+    _o.AccountMaxLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountMaxLevel, key) : this.AccountMaxLevel;
+    _o.MainSquadExpBonus = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MainSquadExpBonus, key) : this.MainSquadExpBonus;
+    _o.SupportSquadExpBonus = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SupportSquadExpBonus, key) : this.SupportSquadExpBonus;
+    _o.AccountExpRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountExpRatio, key) : this.AccountExpRatio;
+    _o.MissionToastLifeTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MissionToastLifeTime, key) : this.MissionToastLifeTime;
+    _o.ExpItemInsertLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpItemInsertLimit, key) : this.ExpItemInsertLimit;
+    _o.ExpItemInsertAccelTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpItemInsertAccelTime, key) : this.ExpItemInsertAccelTime;
+    _o.CharacterLvUpCoefficient = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterLvUpCoefficient, key) : this.CharacterLvUpCoefficient;
+    _o.EquipmentLvUpCoefficient = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EquipmentLvUpCoefficient, key) : this.EquipmentLvUpCoefficient;
+    _o.ExpEquipInsertLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpEquipInsertLimit, key) : this.ExpEquipInsertLimit;
+    _o.EquipLvUpCoefficient = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EquipLvUpCoefficient, key) : this.EquipLvUpCoefficient;
+    _o.NicknameLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NicknameLength, key) : this.NicknameLength;
+    _o.CraftDuration = new List<int>();
+    for (var _j = 0; _j < this.CraftDurationLength; ++_j) {_o.CraftDuration.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftDuration(_j), key) : this.CraftDuration(_j));}
+    _o.CraftLimitTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftLimitTime, key) : this.CraftLimitTime;
+    _o.ShiftingCraftDuration = new List<int>();
+    for (var _j = 0; _j < this.ShiftingCraftDurationLength; ++_j) {_o.ShiftingCraftDuration.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShiftingCraftDuration(_j), key) : this.ShiftingCraftDuration(_j));}
+    _o.ShiftingCraftTicketConsumeAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShiftingCraftTicketConsumeAmount, key) : this.ShiftingCraftTicketConsumeAmount;
+    _o.ShiftingCraftSlotMaxCapacity = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShiftingCraftSlotMaxCapacity, key) : this.ShiftingCraftSlotMaxCapacity;
+    _o.CraftTicketItemUniqueId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftTicketItemUniqueId, key) : this.CraftTicketItemUniqueId;
+    _o.CraftTicketConsumeAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftTicketConsumeAmount, key) : this.CraftTicketConsumeAmount;
+    _o.AcademyEnterCostType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AcademyEnterCostType, key) : this.AcademyEnterCostType;
+    _o.AcademyEnterCostId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AcademyEnterCostId, key) : this.AcademyEnterCostId;
+    _o.AcademyTicketCost = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AcademyTicketCost, key) : this.AcademyTicketCost;
+    _o.MassangerMessageExpireDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MassangerMessageExpireDay, key) : this.MassangerMessageExpireDay;
+    _o.CraftLeafNodeGenerateLv1Count = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftLeafNodeGenerateLv1Count, key) : this.CraftLeafNodeGenerateLv1Count;
+    _o.CraftLeafNodeGenerateLv2Count = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftLeafNodeGenerateLv2Count, key) : this.CraftLeafNodeGenerateLv2Count;
+    _o.TutorialGachaShopId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialGachaShopId, key) : this.TutorialGachaShopId;
+    _o.BeforehandGachaShopId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BeforehandGachaShopId, key) : this.BeforehandGachaShopId;
+    _o.TutorialGachaGoodsId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialGachaGoodsId, key) : this.TutorialGachaGoodsId;
+    _o.EquipmentSlotOpenLevel = new List<int>();
+    for (var _j = 0; _j < this.EquipmentSlotOpenLevelLength; ++_j) {_o.EquipmentSlotOpenLevel.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EquipmentSlotOpenLevel(_j), key) : this.EquipmentSlotOpenLevel(_j));}
+    _o.JoinOrCreateClanCoolTimeFromHour = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.JoinOrCreateClanCoolTimeFromHour, key) : this.JoinOrCreateClanCoolTimeFromHour;
+    _o.ClanMaxMember = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanMaxMember, key) : this.ClanMaxMember;
+    _o.ClanSearchResultCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanSearchResultCount, key) : this.ClanSearchResultCount;
+    _o.ClanMaxApplicant = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanMaxApplicant, key) : this.ClanMaxApplicant;
+    _o.ClanRejoinCoolTimeFromSecond = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanRejoinCoolTimeFromSecond, key) : this.ClanRejoinCoolTimeFromSecond;
+    _o.ClanWordBalloonMaxCharacter = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanWordBalloonMaxCharacter, key) : this.ClanWordBalloonMaxCharacter;
+    _o.CallNameRenameCoolTimeFromHour = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallNameRenameCoolTimeFromHour, key) : this.CallNameRenameCoolTimeFromHour;
+    _o.CallNameMinimumLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallNameMinimumLength, key) : this.CallNameMinimumLength;
+    _o.CallNameMaximumLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallNameMaximumLength, key) : this.CallNameMaximumLength;
+    _o.LobbyToScreenModeWaitTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyToScreenModeWaitTime, key) : this.LobbyToScreenModeWaitTime;
+    _o.ScreenshotToLobbyButtonHideDelay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScreenshotToLobbyButtonHideDelay, key) : this.ScreenshotToLobbyButtonHideDelay;
+    _o.PrologueScenarioID01 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PrologueScenarioID01, key) : this.PrologueScenarioID01;
+    _o.PrologueScenarioID02 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PrologueScenarioID02, key) : this.PrologueScenarioID02;
+    _o.TutorialHardStage11 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialHardStage11, key) : this.TutorialHardStage11;
+    _o.TutorialSpeedButtonStage = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialSpeedButtonStage, key) : this.TutorialSpeedButtonStage;
+    _o.TutorialCharacterDefaultCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialCharacterDefaultCount, key) : this.TutorialCharacterDefaultCount;
+    _o.TutorialShopCategoryType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialShopCategoryType, key) : this.TutorialShopCategoryType;
+    _o.AdventureStrategyPlayTimeLimitInSeconds = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AdventureStrategyPlayTimeLimitInSeconds, key) : this.AdventureStrategyPlayTimeLimitInSeconds;
+    _o.WeekDungoenTacticPlayTimeLimitInSeconds = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WeekDungoenTacticPlayTimeLimitInSeconds, key) : this.WeekDungoenTacticPlayTimeLimitInSeconds;
+    _o.RaidTacticPlayTimeLimitInSeconds = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidTacticPlayTimeLimitInSeconds, key) : this.RaidTacticPlayTimeLimitInSeconds;
+    _o.RaidOpponentListAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidOpponentListAmount, key) : this.RaidOpponentListAmount;
+    _o.CraftBaseGoldRequired = new List<long>();
+    for (var _j = 0; _j < this.CraftBaseGoldRequiredLength; ++_j) {_o.CraftBaseGoldRequired.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftBaseGoldRequired(_j), key) : this.CraftBaseGoldRequired(_j));}
+    _o.PostExpiredDayAttendance = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PostExpiredDayAttendance, key) : this.PostExpiredDayAttendance;
+    _o.PostExpiredDayInventoryOverflow = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PostExpiredDayInventoryOverflow, key) : this.PostExpiredDayInventoryOverflow;
+    _o.PostExpiredDayGameManager = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PostExpiredDayGameManager, key) : this.PostExpiredDayGameManager;
+    _o.UILabelCharacterWrap = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UILabelCharacterWrap, key) : this.UILabelCharacterWrap;
+    _o.RequestTimeOut = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RequestTimeOut, key) : this.RequestTimeOut;
+    _o.MailStorageSoftCap = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MailStorageSoftCap, key) : this.MailStorageSoftCap;
+    _o.MailStorageHardCap = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MailStorageHardCap, key) : this.MailStorageHardCap;
+    _o.ClearDeckStorageSize = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckStorageSize, key) : this.ClearDeckStorageSize;
+    _o.ClearDeckNoStarViewCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckNoStarViewCount, key) : this.ClearDeckNoStarViewCount;
+    _o.ClearDeck1StarViewCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeck1StarViewCount, key) : this.ClearDeck1StarViewCount;
+    _o.ClearDeck2StarViewCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeck2StarViewCount, key) : this.ClearDeck2StarViewCount;
+    _o.ClearDeck3StarViewCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeck3StarViewCount, key) : this.ClearDeck3StarViewCount;
+    _o.ExSkillLevelMax = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExSkillLevelMax, key) : this.ExSkillLevelMax;
+    _o.PublicSkillLevelMax = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PublicSkillLevelMax, key) : this.PublicSkillLevelMax;
+    _o.PassiveSkillLevelMax = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PassiveSkillLevelMax, key) : this.PassiveSkillLevelMax;
+    _o.ExtraPassiveSkillLevelMax = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExtraPassiveSkillLevelMax, key) : this.ExtraPassiveSkillLevelMax;
+    _o.AccountCommentMaxLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountCommentMaxLength, key) : this.AccountCommentMaxLength;
+    _o.CafeSummonCoolTimeFromHour = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeSummonCoolTimeFromHour, key) : this.CafeSummonCoolTimeFromHour;
+    _o.LimitedStageDailyClearCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStageDailyClearCount, key) : this.LimitedStageDailyClearCount;
+    _o.LimitedStageEntryTimeLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStageEntryTimeLimit, key) : this.LimitedStageEntryTimeLimit;
+    _o.LimitedStageEntryTimeBuffer = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStageEntryTimeBuffer, key) : this.LimitedStageEntryTimeBuffer;
+    _o.LimitedStagePointAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStagePointAmount, key) : this.LimitedStagePointAmount;
+    _o.LimitedStagePointPerApMin = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStagePointPerApMin, key) : this.LimitedStagePointPerApMin;
+    _o.LimitedStagePointPerApMax = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LimitedStagePointPerApMax, key) : this.LimitedStagePointPerApMax;
+    _o.AccountLinkReward = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLinkReward, key) : this.AccountLinkReward;
+    _o.MonthlyProductCheckDays = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MonthlyProductCheckDays, key) : this.MonthlyProductCheckDays;
+    _o.WeaponLvUpCoefficient = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WeaponLvUpCoefficient, key) : this.WeaponLvUpCoefficient;
+    _o.ShowRaidMyListCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShowRaidMyListCount, key) : this.ShowRaidMyListCount;
+    _o.RaidEnterCostType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidEnterCostType, key) : this.RaidEnterCostType;
+    _o.RaidEnterCostId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidEnterCostId, key) : this.RaidEnterCostId;
+    _o.RaidTicketCost = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RaidTicketCost, key) : this.RaidTicketCost;
+    _o.TimeAttackDungeonScenarioId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TimeAttackDungeonScenarioId, key) : this.TimeAttackDungeonScenarioId;
+    _o.TimeAttackDungoenPlayCountPerTicket = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TimeAttackDungoenPlayCountPerTicket, key) : this.TimeAttackDungoenPlayCountPerTicket;
+    _o.TimeAttackDungeonEnterCostType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TimeAttackDungeonEnterCostType, key) : this.TimeAttackDungeonEnterCostType;
+    _o.TimeAttackDungeonEnterCostId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TimeAttackDungeonEnterCostId, key) : this.TimeAttackDungeonEnterCostId;
+    _o.TimeAttackDungeonEnterCost = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TimeAttackDungeonEnterCost, key) : this.TimeAttackDungeonEnterCost;
+    _o.ClanLeaderTransferLastLoginLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanLeaderTransferLastLoginLimit, key) : this.ClanLeaderTransferLastLoginLimit;
+    _o.MonthlyProductRepurchasePopupLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MonthlyProductRepurchasePopupLimit, key) : this.MonthlyProductRepurchasePopupLimit;
+    _o.CommonFavorItemTags = new List<Schale.FlatData.Tag>();
+    for (var _j = 0; _j < this.CommonFavorItemTagsLength; ++_j) {_o.CommonFavorItemTags.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CommonFavorItemTags(_j), key) : this.CommonFavorItemTags(_j));}
+    _o.MaxApMasterCoinPerWeek = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MaxApMasterCoinPerWeek, key) : this.MaxApMasterCoinPerWeek;
+    _o.CraftOpenExpTier1 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftOpenExpTier1, key) : this.CraftOpenExpTier1;
+    _o.CraftOpenExpTier2 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftOpenExpTier2, key) : this.CraftOpenExpTier2;
+    _o.CraftOpenExpTier3 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftOpenExpTier3, key) : this.CraftOpenExpTier3;
+    _o.CharacterEquipmentGearSlot = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterEquipmentGearSlot, key) : this.CharacterEquipmentGearSlot;
+    _o.BirthDayDDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthDayDDay, key) : this.BirthDayDDay;
+    _o.RecommendedFriendsLvDifferenceLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RecommendedFriendsLvDifferenceLimit, key) : this.RecommendedFriendsLvDifferenceLimit;
+    _o.DDosDetectCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DDosDetectCount, key) : this.DDosDetectCount;
+    _o.DDosCheckIntervalInSeconds = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DDosCheckIntervalInSeconds, key) : this.DDosCheckIntervalInSeconds;
+    _o.MaxFriendsCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MaxFriendsCount, key) : this.MaxFriendsCount;
+    _o.MaxFriendsRequest = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MaxFriendsRequest, key) : this.MaxFriendsRequest;
+    _o.FriendsSearchRequestCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FriendsSearchRequestCount, key) : this.FriendsSearchRequestCount;
+    _o.FriendsMaxApplicant = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FriendsMaxApplicant, key) : this.FriendsMaxApplicant;
+    _o.IdCardDefaultCharacterId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IdCardDefaultCharacterId, key) : this.IdCardDefaultCharacterId;
+    _o.IdCardDefaultBgId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IdCardDefaultBgId, key) : this.IdCardDefaultBgId;
+    _o.WorldRaidGemEnterCost = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WorldRaidGemEnterCost, key) : this.WorldRaidGemEnterCost;
+    _o.WorldRaidGemEnterAmout = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WorldRaidGemEnterAmout, key) : this.WorldRaidGemEnterAmout;
+    _o.FriendIdCardCommentMaxLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FriendIdCardCommentMaxLength, key) : this.FriendIdCardCommentMaxLength;
+    _o.FormationPresetNumberOfEchelonTab = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetNumberOfEchelonTab, key) : this.FormationPresetNumberOfEchelonTab;
+    _o.FormationPresetNumberOfEchelon = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetNumberOfEchelon, key) : this.FormationPresetNumberOfEchelon;
+    _o.FormationPresetRecentNumberOfEchelon = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetRecentNumberOfEchelon, key) : this.FormationPresetRecentNumberOfEchelon;
+    _o.FormationPresetEchelonTabTextLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetEchelonTabTextLength, key) : this.FormationPresetEchelonTabTextLength;
+    _o.FormationPresetEchelonSlotTextLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetEchelonSlotTextLength, key) : this.FormationPresetEchelonSlotTextLength;
+    _o.CharProfileRowIntervalKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharProfileRowIntervalKr, key) : this.CharProfileRowIntervalKr;
+    _o.CallnameLengthEn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallnameLengthEn, key) : this.CallnameLengthEn;
+    _o.CallnameLengthKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallnameLengthKr, key) : this.CallnameLengthKr;
+    _o.NicknameLengthKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NicknameLengthKr, key) : this.NicknameLengthKr;
+    _o.ClanNameLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanNameLength, key) : this.ClanNameLength;
+    _o.CafePresetEditNameLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafePresetEditNameLength, key) : this.CafePresetEditNameLength;
+    _o.FormationPresetEchelonTabTextLengthKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetEchelonTabTextLengthKr, key) : this.FormationPresetEchelonTabTextLengthKr;
+    _o.FormationPresetEchelonSlotTextLengthKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FormationPresetEchelonSlotTextLengthKr, key) : this.FormationPresetEchelonSlotTextLengthKr;
+    _o.CharProfileRowIntervalJp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharProfileRowIntervalJp, key) : this.CharProfileRowIntervalJp;
+    _o.CharProfilePopupRowIntervalKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharProfilePopupRowIntervalKr, key) : this.CharProfilePopupRowIntervalKr;
+    _o.CharProfilePopupRowIntervalJp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharProfilePopupRowIntervalJp, key) : this.CharProfilePopupRowIntervalJp;
+    _o.BeforehandGachaCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BeforehandGachaCount, key) : this.BeforehandGachaCount;
+    _o.LowMemorySizeGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LowMemorySizeGL, key) : this.LowMemorySizeGL;
+    _o.BeforehandGachaGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BeforehandGachaGroupId, key) : this.BeforehandGachaGroupId;
+    _o.RenewalDisplayOrderDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RenewalDisplayOrderDay, key) : this.RenewalDisplayOrderDay;
+    _o.EmblemDefaultId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EmblemDefaultId, key) : this.EmblemDefaultId;
+    _o.BirthdayMailStartDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthdayMailStartDate, key) : this.BirthdayMailStartDate;
+    _o.BirthdayMailRemainDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthdayMailRemainDate, key) : this.BirthdayMailRemainDate;
+    _o.BirthdayMailParcelType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthdayMailParcelType, key) : this.BirthdayMailParcelType;
+    _o.BirthdayMailParcelId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthdayMailParcelId, key) : this.BirthdayMailParcelId;
+    _o.BirthdayMailParcelAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BirthdayMailParcelAmount, key) : this.BirthdayMailParcelAmount;
+    _o.ClearDeckAverageDeckCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckAverageDeckCount, key) : this.ClearDeckAverageDeckCount;
+    _o.ClearDeckWorldRaidSaveConditionCoefficient = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckWorldRaidSaveConditionCoefficient, key) : this.ClearDeckWorldRaidSaveConditionCoefficient;
+    _o.ClearDeckShowCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckShowCount, key) : this.ClearDeckShowCount;
+    _o.CharacterMaxLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterMaxLevel, key) : this.CharacterMaxLevel;
+    _o.PotentialBonusStatMaxLevelMaxHP = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PotentialBonusStatMaxLevelMaxHP, key) : this.PotentialBonusStatMaxLevelMaxHP;
+    _o.PotentialBonusStatMaxLevelAttackPower = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PotentialBonusStatMaxLevelAttackPower, key) : this.PotentialBonusStatMaxLevelAttackPower;
+    _o.PotentialBonusStatMaxLevelHealPower = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PotentialBonusStatMaxLevelHealPower, key) : this.PotentialBonusStatMaxLevelHealPower;
+    _o.PotentialOpenConditionCharacterLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PotentialOpenConditionCharacterLevel, key) : this.PotentialOpenConditionCharacterLevel;
+    _o.AssistStrangerMinLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AssistStrangerMinLevel, key) : this.AssistStrangerMinLevel;
+    _o.ClanChattingNoticeCautionDelay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClanChattingNoticeCautionDelay, key) : this.ClanChattingNoticeCautionDelay;
+    _o.CallNameWaitTimeGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CallNameWaitTimeGL, key) : this.CallNameWaitTimeGL;
+    _o.AssistStrangerMaxLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AssistStrangerMaxLevel, key) : this.AssistStrangerMaxLevel;
+    _o.MaxBlockedUserCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MaxBlockedUserCount, key) : this.MaxBlockedUserCount;
+    _o.CafeRandomVisitMinComfortBonus = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeRandomVisitMinComfortBonus, key) : this.CafeRandomVisitMinComfortBonus;
+    _o.CafeRandomVisitMinLastLogin = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeRandomVisitMinLastLogin, key) : this.CafeRandomVisitMinLastLogin;
+    _o.CafeTravelSyncIntervalByMillisec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeTravelSyncIntervalByMillisec, key) : this.CafeTravelSyncIntervalByMillisec;
+    _o.RankBracketPercentage1 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage1, key) : this.RankBracketPercentage1;
+    _o.RankBracketPercentage2 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage2, key) : this.RankBracketPercentage2;
+    _o.RankBracketPercentage3 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage3, key) : this.RankBracketPercentage3;
+    _o.RankBracketPercentage4 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage4, key) : this.RankBracketPercentage4;
+    _o.RankBracketPercentage5 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage5, key) : this.RankBracketPercentage5;
+    _o.RankBracketPercentage6 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage6, key) : this.RankBracketPercentage6;
+    _o.RankBracketPercentage7 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RankBracketPercentage7, key) : this.RankBracketPercentage7;
+    _o.ExpiryBattlePassItemReceiveDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpiryBattlePassItemReceiveDay, key) : this.ExpiryBattlePassItemReceiveDay;
+    _o.BattlePassFlavorTextIdleDurationMilliSec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BattlePassFlavorTextIdleDurationMilliSec, key) : this.BattlePassFlavorTextIdleDurationMilliSec;
+    _o.BattlePassEndImminentDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BattlePassEndImminentDay, key) : this.BattlePassEndImminentDay;
+    _o.BattlePassExpIconPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BattlePassExpIconPath, key) : this.BattlePassExpIconPath;
+    _o.CafeCameraDragThreshold = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeCameraDragThreshold, key) : this.CafeCameraDragThreshold;
+    _o.CafeSummonTicketBuyLimitForValidate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeSummonTicketBuyLimitForValidate, key) : this.CafeSummonTicketBuyLimitForValidate;
+    _o.BattlePassNotifyDateGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BattlePassNotifyDateGL, key) : this.BattlePassNotifyDateGL;
+    _o.PurchaseMailExpiredDayGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PurchaseMailExpiredDayGL, key) : this.PurchaseMailExpiredDayGL;
+    _o.ReviewEventDateGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReviewEventDateGL, key) : this.ReviewEventDateGL;
+    _o.ReviewEventStageIDGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReviewEventStageIDGL, key) : this.ReviewEventStageIDGL;
+    _o.ReviewEventCharIDGL = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReviewEventCharIDGL, key) : this.ReviewEventCharIDGL;
+    _o.AutoCraftPresetCountLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AutoCraftPresetCountLimit, key) : this.AutoCraftPresetCountLimit;
+    _o.AutoCraftNodeSelectCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AutoCraftNodeSelectCount, key) : this.AutoCraftNodeSelectCount;
+    _o.CraftPresetNameMaxLength = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftPresetNameMaxLength, key) : this.CraftPresetNameMaxLength;
+    _o.SelectionWaitTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SelectionWaitTime, key) : this.SelectionWaitTime;
+    _o.RewardWaitTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardWaitTime, key) : this.RewardWaitTime;
+    _o.EpisodeContinueWaitTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EpisodeContinueWaitTime, key) : this.EpisodeContinueWaitTime;
+    _o.ScenarioAutoDelayMillisecLong = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioAutoDelayMillisecLong, key) : this.ScenarioAutoDelayMillisecLong;
+    _o.ScenarioAutoDelayMillisec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioAutoDelayMillisec, key) : this.ScenarioAutoDelayMillisec;
+    _o.ScenarioAutoDelayMillisecShort = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioAutoDelayMillisecShort, key) : this.ScenarioAutoDelayMillisecShort;
+    _o.ScenarioAutoDelayMillisecVeryShort = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioAutoDelayMillisecVeryShort, key) : this.ScenarioAutoDelayMillisecVeryShort;
+    _o.PcBuildEnterInformation = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PcBuildEnterInformation, key) : this.PcBuildEnterInformation;
+    _o.ComebackUserStandardDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ComebackUserStandardDay, key) : this.ComebackUserStandardDay;
+    _o.ComebackUserLogSaveDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ComebackUserLogSaveDay, key) : this.ComebackUserLogSaveDay;
+    _o.ComeBackActivateCooldown = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ComeBackActivateCooldown, key) : this.ComeBackActivateCooldown;
+    _o.CafeCopyPresetSlotCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CafeCopyPresetSlotCount, key) : this.CafeCopyPresetSlotCount;
+    _o.ExpiryProductDailyRecordItemReceiveDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpiryProductDailyRecordItemReceiveDay, key) : this.ExpiryProductDailyRecordItemReceiveDay;
+    _o.NewbieUserStandardDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NewbieUserStandardDay, key) : this.NewbieUserStandardDay;
+    _o.NewbieStateHoldDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NewbieStateHoldDay, key) : this.NewbieStateHoldDay;
+    _o.QRIconUrlDev = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.QRIconUrlDev, key) : this.QRIconUrlDev;
+    _o.QRIconUrlLive = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.QRIconUrlLive, key) : this.QRIconUrlLive;
   }
   public static Offset<Schale.FlatData.ConstCommonExcel> Pack(FlatBufferBuilder builder, ConstCommonExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstCommonExcel>);
+    var _CraftDuration = default(VectorOffset);
+    if (_o.CraftDuration != null) {
+      var __CraftDuration = _o.CraftDuration.ToArray();
+      _CraftDuration = CreateCraftDurationVector(builder, __CraftDuration);
+    }
+    var _ShiftingCraftDuration = default(VectorOffset);
+    if (_o.ShiftingCraftDuration != null) {
+      var __ShiftingCraftDuration = _o.ShiftingCraftDuration.ToArray();
+      _ShiftingCraftDuration = CreateShiftingCraftDurationVector(builder, __ShiftingCraftDuration);
+    }
+    var _EquipmentSlotOpenLevel = default(VectorOffset);
+    if (_o.EquipmentSlotOpenLevel != null) {
+      var __EquipmentSlotOpenLevel = _o.EquipmentSlotOpenLevel.ToArray();
+      _EquipmentSlotOpenLevel = CreateEquipmentSlotOpenLevelVector(builder, __EquipmentSlotOpenLevel);
+    }
+    var _CraftBaseGoldRequired = default(VectorOffset);
+    if (_o.CraftBaseGoldRequired != null) {
+      var __CraftBaseGoldRequired = _o.CraftBaseGoldRequired.ToArray();
+      _CraftBaseGoldRequired = CreateCraftBaseGoldRequiredVector(builder, __CraftBaseGoldRequired);
+    }
+    var _UILabelCharacterWrap = _o.UILabelCharacterWrap == null ? default(StringOffset) : builder.CreateString(_o.UILabelCharacterWrap);
+    var _TimeAttackDungeonScenarioId = _o.TimeAttackDungeonScenarioId == null ? default(StringOffset) : builder.CreateString(_o.TimeAttackDungeonScenarioId);
+    var _CommonFavorItemTags = default(VectorOffset);
+    if (_o.CommonFavorItemTags != null) {
+      var __CommonFavorItemTags = _o.CommonFavorItemTags.ToArray();
+      _CommonFavorItemTags = CreateCommonFavorItemTagsVector(builder, __CommonFavorItemTags);
+    }
+    var _BirthdayMailStartDate = _o.BirthdayMailStartDate == null ? default(StringOffset) : builder.CreateString(_o.BirthdayMailStartDate);
+    var _BattlePassExpIconPath = _o.BattlePassExpIconPath == null ? default(StringOffset) : builder.CreateString(_o.BattlePassExpIconPath);
+    var _ReviewEventDateGL = _o.ReviewEventDateGL == null ? default(StringOffset) : builder.CreateString(_o.ReviewEventDateGL);
+    var _QRIconUrlDev = _o.QRIconUrlDev == null ? default(StringOffset) : builder.CreateString(_o.QRIconUrlDev);
+    var _QRIconUrlLive = _o.QRIconUrlLive == null ? default(StringOffset) : builder.CreateString(_o.QRIconUrlLive);
     StartConstCommonExcel(builder);
+    AddCampaignMainStageMaxRank(builder, _o.CampaignMainStageMaxRank);
+    AddCampaignMainStageBestRecord(builder, _o.CampaignMainStageBestRecord);
+    AddHardAdventurePlayCountRecoverDailyNumber(builder, _o.HardAdventurePlayCountRecoverDailyNumber);
+    AddHardStageCount(builder, _o.HardStageCount);
+    AddTacticRankClearTime(builder, _o.TacticRankClearTime);
+    AddBaseTimeScale(builder, _o.BaseTimeScale);
+    AddGachaPercentage(builder, _o.GachaPercentage);
+    AddAcademyFavorZoneId(builder, _o.AcademyFavorZoneId);
+    AddCafePresetSlotCount(builder, _o.CafePresetSlotCount);
+    AddCafeMonologueIntervalMillisec(builder, _o.CafeMonologueIntervalMillisec);
+    AddCafeMonologueDefaultDuration(builder, _o.CafeMonologueDefaultDuration);
+    AddCafeBubbleIdleDurationMilliSec(builder, _o.CafeBubbleIdleDurationMilliSec);
+    AddFindGiftTimeLimit(builder, _o.FindGiftTimeLimit);
+    AddCafeAutoChargePeriodInMsc(builder, _o.CafeAutoChargePeriodInMsc);
+    AddCafeProductionDecimalPosition(builder, _o.CafeProductionDecimalPosition);
+    AddCafeSetGroupApplyCount(builder, _o.CafeSetGroupApplyCount);
+    AddWeekDungeonFindGiftRewardLimitCount(builder, _o.WeekDungeonFindGiftRewardLimitCount);
+    AddStageFailedCurrencyRefundRate(builder, _o.StageFailedCurrencyRefundRate);
+    AddEnterDeposit(builder, _o.EnterDeposit);
+    AddAccountMaxLevel(builder, _o.AccountMaxLevel);
+    AddMainSquadExpBonus(builder, _o.MainSquadExpBonus);
+    AddSupportSquadExpBonus(builder, _o.SupportSquadExpBonus);
+    AddAccountExpRatio(builder, _o.AccountExpRatio);
+    AddMissionToastLifeTime(builder, _o.MissionToastLifeTime);
+    AddExpItemInsertLimit(builder, _o.ExpItemInsertLimit);
+    AddExpItemInsertAccelTime(builder, _o.ExpItemInsertAccelTime);
+    AddCharacterLvUpCoefficient(builder, _o.CharacterLvUpCoefficient);
+    AddEquipmentLvUpCoefficient(builder, _o.EquipmentLvUpCoefficient);
+    AddExpEquipInsertLimit(builder, _o.ExpEquipInsertLimit);
+    AddEquipLvUpCoefficient(builder, _o.EquipLvUpCoefficient);
+    AddNicknameLength(builder, _o.NicknameLength);
+    AddCraftDuration(builder, _CraftDuration);
+    AddCraftLimitTime(builder, _o.CraftLimitTime);
+    AddShiftingCraftDuration(builder, _ShiftingCraftDuration);
+    AddShiftingCraftTicketConsumeAmount(builder, _o.ShiftingCraftTicketConsumeAmount);
+    AddShiftingCraftSlotMaxCapacity(builder, _o.ShiftingCraftSlotMaxCapacity);
+    AddCraftTicketItemUniqueId(builder, _o.CraftTicketItemUniqueId);
+    AddCraftTicketConsumeAmount(builder, _o.CraftTicketConsumeAmount);
+    AddAcademyEnterCostType(builder, _o.AcademyEnterCostType);
+    AddAcademyEnterCostId(builder, _o.AcademyEnterCostId);
+    AddAcademyTicketCost(builder, _o.AcademyTicketCost);
+    AddMassangerMessageExpireDay(builder, _o.MassangerMessageExpireDay);
+    AddCraftLeafNodeGenerateLv1Count(builder, _o.CraftLeafNodeGenerateLv1Count);
+    AddCraftLeafNodeGenerateLv2Count(builder, _o.CraftLeafNodeGenerateLv2Count);
+    AddTutorialGachaShopId(builder, _o.TutorialGachaShopId);
+    AddBeforehandGachaShopId(builder, _o.BeforehandGachaShopId);
+    AddTutorialGachaGoodsId(builder, _o.TutorialGachaGoodsId);
+    AddEquipmentSlotOpenLevel(builder, _EquipmentSlotOpenLevel);
+    AddJoinOrCreateClanCoolTimeFromHour(builder, _o.JoinOrCreateClanCoolTimeFromHour);
+    AddClanMaxMember(builder, _o.ClanMaxMember);
+    AddClanSearchResultCount(builder, _o.ClanSearchResultCount);
+    AddClanMaxApplicant(builder, _o.ClanMaxApplicant);
+    AddClanRejoinCoolTimeFromSecond(builder, _o.ClanRejoinCoolTimeFromSecond);
+    AddClanWordBalloonMaxCharacter(builder, _o.ClanWordBalloonMaxCharacter);
+    AddCallNameRenameCoolTimeFromHour(builder, _o.CallNameRenameCoolTimeFromHour);
+    AddCallNameMinimumLength(builder, _o.CallNameMinimumLength);
+    AddCallNameMaximumLength(builder, _o.CallNameMaximumLength);
+    AddLobbyToScreenModeWaitTime(builder, _o.LobbyToScreenModeWaitTime);
+    AddScreenshotToLobbyButtonHideDelay(builder, _o.ScreenshotToLobbyButtonHideDelay);
+    AddPrologueScenarioID01(builder, _o.PrologueScenarioID01);
+    AddPrologueScenarioID02(builder, _o.PrologueScenarioID02);
+    AddTutorialHardStage11(builder, _o.TutorialHardStage11);
+    AddTutorialSpeedButtonStage(builder, _o.TutorialSpeedButtonStage);
+    AddTutorialCharacterDefaultCount(builder, _o.TutorialCharacterDefaultCount);
+    AddTutorialShopCategoryType(builder, _o.TutorialShopCategoryType);
+    AddAdventureStrategyPlayTimeLimitInSeconds(builder, _o.AdventureStrategyPlayTimeLimitInSeconds);
+    AddWeekDungoenTacticPlayTimeLimitInSeconds(builder, _o.WeekDungoenTacticPlayTimeLimitInSeconds);
+    AddRaidTacticPlayTimeLimitInSeconds(builder, _o.RaidTacticPlayTimeLimitInSeconds);
+    AddRaidOpponentListAmount(builder, _o.RaidOpponentListAmount);
+    AddCraftBaseGoldRequired(builder, _CraftBaseGoldRequired);
+    AddPostExpiredDayAttendance(builder, _o.PostExpiredDayAttendance);
+    AddPostExpiredDayInventoryOverflow(builder, _o.PostExpiredDayInventoryOverflow);
+    AddPostExpiredDayGameManager(builder, _o.PostExpiredDayGameManager);
+    AddUILabelCharacterWrap(builder, _UILabelCharacterWrap);
+    AddRequestTimeOut(builder, _o.RequestTimeOut);
+    AddMailStorageSoftCap(builder, _o.MailStorageSoftCap);
+    AddMailStorageHardCap(builder, _o.MailStorageHardCap);
+    AddClearDeckStorageSize(builder, _o.ClearDeckStorageSize);
+    AddClearDeckNoStarViewCount(builder, _o.ClearDeckNoStarViewCount);
+    AddClearDeck1StarViewCount(builder, _o.ClearDeck1StarViewCount);
+    AddClearDeck2StarViewCount(builder, _o.ClearDeck2StarViewCount);
+    AddClearDeck3StarViewCount(builder, _o.ClearDeck3StarViewCount);
+    AddExSkillLevelMax(builder, _o.ExSkillLevelMax);
+    AddPublicSkillLevelMax(builder, _o.PublicSkillLevelMax);
+    AddPassiveSkillLevelMax(builder, _o.PassiveSkillLevelMax);
+    AddExtraPassiveSkillLevelMax(builder, _o.ExtraPassiveSkillLevelMax);
+    AddAccountCommentMaxLength(builder, _o.AccountCommentMaxLength);
+    AddCafeSummonCoolTimeFromHour(builder, _o.CafeSummonCoolTimeFromHour);
+    AddLimitedStageDailyClearCount(builder, _o.LimitedStageDailyClearCount);
+    AddLimitedStageEntryTimeLimit(builder, _o.LimitedStageEntryTimeLimit);
+    AddLimitedStageEntryTimeBuffer(builder, _o.LimitedStageEntryTimeBuffer);
+    AddLimitedStagePointAmount(builder, _o.LimitedStagePointAmount);
+    AddLimitedStagePointPerApMin(builder, _o.LimitedStagePointPerApMin);
+    AddLimitedStagePointPerApMax(builder, _o.LimitedStagePointPerApMax);
+    AddAccountLinkReward(builder, _o.AccountLinkReward);
+    AddMonthlyProductCheckDays(builder, _o.MonthlyProductCheckDays);
+    AddWeaponLvUpCoefficient(builder, _o.WeaponLvUpCoefficient);
+    AddShowRaidMyListCount(builder, _o.ShowRaidMyListCount);
+    AddRaidEnterCostType(builder, _o.RaidEnterCostType);
+    AddRaidEnterCostId(builder, _o.RaidEnterCostId);
+    AddRaidTicketCost(builder, _o.RaidTicketCost);
+    AddTimeAttackDungeonScenarioId(builder, _TimeAttackDungeonScenarioId);
+    AddTimeAttackDungoenPlayCountPerTicket(builder, _o.TimeAttackDungoenPlayCountPerTicket);
+    AddTimeAttackDungeonEnterCostType(builder, _o.TimeAttackDungeonEnterCostType);
+    AddTimeAttackDungeonEnterCostId(builder, _o.TimeAttackDungeonEnterCostId);
+    AddTimeAttackDungeonEnterCost(builder, _o.TimeAttackDungeonEnterCost);
+    AddClanLeaderTransferLastLoginLimit(builder, _o.ClanLeaderTransferLastLoginLimit);
+    AddMonthlyProductRepurchasePopupLimit(builder, _o.MonthlyProductRepurchasePopupLimit);
+    AddCommonFavorItemTags(builder, _CommonFavorItemTags);
+    AddMaxApMasterCoinPerWeek(builder, _o.MaxApMasterCoinPerWeek);
+    AddCraftOpenExpTier1(builder, _o.CraftOpenExpTier1);
+    AddCraftOpenExpTier2(builder, _o.CraftOpenExpTier2);
+    AddCraftOpenExpTier3(builder, _o.CraftOpenExpTier3);
+    AddCharacterEquipmentGearSlot(builder, _o.CharacterEquipmentGearSlot);
+    AddBirthDayDDay(builder, _o.BirthDayDDay);
+    AddRecommendedFriendsLvDifferenceLimit(builder, _o.RecommendedFriendsLvDifferenceLimit);
+    AddDDosDetectCount(builder, _o.DDosDetectCount);
+    AddDDosCheckIntervalInSeconds(builder, _o.DDosCheckIntervalInSeconds);
+    AddMaxFriendsCount(builder, _o.MaxFriendsCount);
+    AddMaxFriendsRequest(builder, _o.MaxFriendsRequest);
+    AddFriendsSearchRequestCount(builder, _o.FriendsSearchRequestCount);
+    AddFriendsMaxApplicant(builder, _o.FriendsMaxApplicant);
+    AddIdCardDefaultCharacterId(builder, _o.IdCardDefaultCharacterId);
+    AddIdCardDefaultBgId(builder, _o.IdCardDefaultBgId);
+    AddWorldRaidGemEnterCost(builder, _o.WorldRaidGemEnterCost);
+    AddWorldRaidGemEnterAmout(builder, _o.WorldRaidGemEnterAmout);
+    AddFriendIdCardCommentMaxLength(builder, _o.FriendIdCardCommentMaxLength);
+    AddFormationPresetNumberOfEchelonTab(builder, _o.FormationPresetNumberOfEchelonTab);
+    AddFormationPresetNumberOfEchelon(builder, _o.FormationPresetNumberOfEchelon);
+    AddFormationPresetRecentNumberOfEchelon(builder, _o.FormationPresetRecentNumberOfEchelon);
+    AddFormationPresetEchelonTabTextLength(builder, _o.FormationPresetEchelonTabTextLength);
+    AddFormationPresetEchelonSlotTextLength(builder, _o.FormationPresetEchelonSlotTextLength);
+    AddCharProfileRowIntervalKr(builder, _o.CharProfileRowIntervalKr);
+    AddCallnameLengthEn(builder, _o.CallnameLengthEn);
+    AddCallnameLengthKr(builder, _o.CallnameLengthKr);
+    AddNicknameLengthKr(builder, _o.NicknameLengthKr);
+    AddClanNameLength(builder, _o.ClanNameLength);
+    AddCafePresetEditNameLength(builder, _o.CafePresetEditNameLength);
+    AddFormationPresetEchelonTabTextLengthKr(builder, _o.FormationPresetEchelonTabTextLengthKr);
+    AddFormationPresetEchelonSlotTextLengthKr(builder, _o.FormationPresetEchelonSlotTextLengthKr);
+    AddCharProfileRowIntervalJp(builder, _o.CharProfileRowIntervalJp);
+    AddCharProfilePopupRowIntervalKr(builder, _o.CharProfilePopupRowIntervalKr);
+    AddCharProfilePopupRowIntervalJp(builder, _o.CharProfilePopupRowIntervalJp);
+    AddBeforehandGachaCount(builder, _o.BeforehandGachaCount);
+    AddLowMemorySizeGL(builder, _o.LowMemorySizeGL);
+    AddBeforehandGachaGroupId(builder, _o.BeforehandGachaGroupId);
+    AddRenewalDisplayOrderDay(builder, _o.RenewalDisplayOrderDay);
+    AddEmblemDefaultId(builder, _o.EmblemDefaultId);
+    AddBirthdayMailStartDate(builder, _BirthdayMailStartDate);
+    AddBirthdayMailRemainDate(builder, _o.BirthdayMailRemainDate);
+    AddBirthdayMailParcelType(builder, _o.BirthdayMailParcelType);
+    AddBirthdayMailParcelId(builder, _o.BirthdayMailParcelId);
+    AddBirthdayMailParcelAmount(builder, _o.BirthdayMailParcelAmount);
+    AddClearDeckAverageDeckCount(builder, _o.ClearDeckAverageDeckCount);
+    AddClearDeckWorldRaidSaveConditionCoefficient(builder, _o.ClearDeckWorldRaidSaveConditionCoefficient);
+    AddClearDeckShowCount(builder, _o.ClearDeckShowCount);
+    AddCharacterMaxLevel(builder, _o.CharacterMaxLevel);
+    AddPotentialBonusStatMaxLevelMaxHP(builder, _o.PotentialBonusStatMaxLevelMaxHP);
+    AddPotentialBonusStatMaxLevelAttackPower(builder, _o.PotentialBonusStatMaxLevelAttackPower);
+    AddPotentialBonusStatMaxLevelHealPower(builder, _o.PotentialBonusStatMaxLevelHealPower);
+    AddPotentialOpenConditionCharacterLevel(builder, _o.PotentialOpenConditionCharacterLevel);
+    AddAssistStrangerMinLevel(builder, _o.AssistStrangerMinLevel);
+    AddClanChattingNoticeCautionDelay(builder, _o.ClanChattingNoticeCautionDelay);
+    AddCallNameWaitTimeGL(builder, _o.CallNameWaitTimeGL);
+    AddAssistStrangerMaxLevel(builder, _o.AssistStrangerMaxLevel);
+    AddMaxBlockedUserCount(builder, _o.MaxBlockedUserCount);
+    AddCafeRandomVisitMinComfortBonus(builder, _o.CafeRandomVisitMinComfortBonus);
+    AddCafeRandomVisitMinLastLogin(builder, _o.CafeRandomVisitMinLastLogin);
+    AddCafeTravelSyncIntervalByMillisec(builder, _o.CafeTravelSyncIntervalByMillisec);
+    AddRankBracketPercentage1(builder, _o.RankBracketPercentage1);
+    AddRankBracketPercentage2(builder, _o.RankBracketPercentage2);
+    AddRankBracketPercentage3(builder, _o.RankBracketPercentage3);
+    AddRankBracketPercentage4(builder, _o.RankBracketPercentage4);
+    AddRankBracketPercentage5(builder, _o.RankBracketPercentage5);
+    AddRankBracketPercentage6(builder, _o.RankBracketPercentage6);
+    AddRankBracketPercentage7(builder, _o.RankBracketPercentage7);
+    AddExpiryBattlePassItemReceiveDay(builder, _o.ExpiryBattlePassItemReceiveDay);
+    AddBattlePassFlavorTextIdleDurationMilliSec(builder, _o.BattlePassFlavorTextIdleDurationMilliSec);
+    AddBattlePassEndImminentDay(builder, _o.BattlePassEndImminentDay);
+    AddBattlePassExpIconPath(builder, _BattlePassExpIconPath);
+    AddCafeCameraDragThreshold(builder, _o.CafeCameraDragThreshold);
+    AddCafeSummonTicketBuyLimitForValidate(builder, _o.CafeSummonTicketBuyLimitForValidate);
+    AddBattlePassNotifyDateGL(builder, _o.BattlePassNotifyDateGL);
+    AddPurchaseMailExpiredDayGL(builder, _o.PurchaseMailExpiredDayGL);
+    AddReviewEventDateGL(builder, _ReviewEventDateGL);
+    AddReviewEventStageIDGL(builder, _o.ReviewEventStageIDGL);
+    AddReviewEventCharIDGL(builder, _o.ReviewEventCharIDGL);
+    AddAutoCraftPresetCountLimit(builder, _o.AutoCraftPresetCountLimit);
+    AddAutoCraftNodeSelectCount(builder, _o.AutoCraftNodeSelectCount);
+    AddCraftPresetNameMaxLength(builder, _o.CraftPresetNameMaxLength);
+    AddSelectionWaitTime(builder, _o.SelectionWaitTime);
+    AddRewardWaitTime(builder, _o.RewardWaitTime);
+    AddEpisodeContinueWaitTime(builder, _o.EpisodeContinueWaitTime);
+    AddScenarioAutoDelayMillisecLong(builder, _o.ScenarioAutoDelayMillisecLong);
+    AddScenarioAutoDelayMillisec(builder, _o.ScenarioAutoDelayMillisec);
+    AddScenarioAutoDelayMillisecShort(builder, _o.ScenarioAutoDelayMillisecShort);
+    AddScenarioAutoDelayMillisecVeryShort(builder, _o.ScenarioAutoDelayMillisecVeryShort);
+    AddPcBuildEnterInformation(builder, _o.PcBuildEnterInformation);
+    AddComebackUserStandardDay(builder, _o.ComebackUserStandardDay);
+    AddComebackUserLogSaveDay(builder, _o.ComebackUserLogSaveDay);
+    AddComeBackActivateCooldown(builder, _o.ComeBackActivateCooldown);
+    AddCafeCopyPresetSlotCount(builder, _o.CafeCopyPresetSlotCount);
+    AddExpiryProductDailyRecordItemReceiveDay(builder, _o.ExpiryProductDailyRecordItemReceiveDay);
+    AddNewbieUserStandardDay(builder, _o.NewbieUserStandardDay);
+    AddNewbieStateHoldDay(builder, _o.NewbieStateHoldDay);
+    AddQRIconUrlDev(builder, _QRIconUrlDev);
+    AddQRIconUrlLive(builder, _QRIconUrlLive);
     return EndConstCommonExcel(builder);
   }
 }
 
 public class ConstCommonExcelT
 {
+  public int CampaignMainStageMaxRank { get; set; }
+  public int CampaignMainStageBestRecord { get; set; }
+  public int HardAdventurePlayCountRecoverDailyNumber { get; set; }
+  public int HardStageCount { get; set; }
+  public int TacticRankClearTime { get; set; }
+  public long BaseTimeScale { get; set; }
+  public int GachaPercentage { get; set; }
+  public long AcademyFavorZoneId { get; set; }
+  public int CafePresetSlotCount { get; set; }
+  public long CafeMonologueIntervalMillisec { get; set; }
+  public long CafeMonologueDefaultDuration { get; set; }
+  public long CafeBubbleIdleDurationMilliSec { get; set; }
+  public int FindGiftTimeLimit { get; set; }
+  public int CafeAutoChargePeriodInMsc { get; set; }
+  public int CafeProductionDecimalPosition { get; set; }
+  public int CafeSetGroupApplyCount { get; set; }
+  public int WeekDungeonFindGiftRewardLimitCount { get; set; }
+  public int StageFailedCurrencyRefundRate { get; set; }
+  public int EnterDeposit { get; set; }
+  public int AccountMaxLevel { get; set; }
+  public int MainSquadExpBonus { get; set; }
+  public int SupportSquadExpBonus { get; set; }
+  public int AccountExpRatio { get; set; }
+  public int MissionToastLifeTime { get; set; }
+  public int ExpItemInsertLimit { get; set; }
+  public int ExpItemInsertAccelTime { get; set; }
+  public int CharacterLvUpCoefficient { get; set; }
+  public int EquipmentLvUpCoefficient { get; set; }
+  public int ExpEquipInsertLimit { get; set; }
+  public int EquipLvUpCoefficient { get; set; }
+  public int NicknameLength { get; set; }
+  public List<int> CraftDuration { get; set; }
+  public int CraftLimitTime { get; set; }
+  public List<int> ShiftingCraftDuration { get; set; }
+  public int ShiftingCraftTicketConsumeAmount { get; set; }
+  public int ShiftingCraftSlotMaxCapacity { get; set; }
+  public int CraftTicketItemUniqueId { get; set; }
+  public int CraftTicketConsumeAmount { get; set; }
+  public Schale.FlatData.ParcelType AcademyEnterCostType { get; set; }
+  public long AcademyEnterCostId { get; set; }
+  public int AcademyTicketCost { get; set; }
+  public int MassangerMessageExpireDay { get; set; }
+  public int CraftLeafNodeGenerateLv1Count { get; set; }
+  public int CraftLeafNodeGenerateLv2Count { get; set; }
+  public int TutorialGachaShopId { get; set; }
+  public int BeforehandGachaShopId { get; set; }
+  public int TutorialGachaGoodsId { get; set; }
+  public List<int> EquipmentSlotOpenLevel { get; set; }
+  public long JoinOrCreateClanCoolTimeFromHour { get; set; }
+  public long ClanMaxMember { get; set; }
+  public long ClanSearchResultCount { get; set; }
+  public long ClanMaxApplicant { get; set; }
+  public long ClanRejoinCoolTimeFromSecond { get; set; }
+  public int ClanWordBalloonMaxCharacter { get; set; }
+  public long CallNameRenameCoolTimeFromHour { get; set; }
+  public long CallNameMinimumLength { get; set; }
+  public long CallNameMaximumLength { get; set; }
+  public long LobbyToScreenModeWaitTime { get; set; }
+  public long ScreenshotToLobbyButtonHideDelay { get; set; }
+  public long PrologueScenarioID01 { get; set; }
+  public long PrologueScenarioID02 { get; set; }
+  public long TutorialHardStage11 { get; set; }
+  public long TutorialSpeedButtonStage { get; set; }
+  public long TutorialCharacterDefaultCount { get; set; }
+  public Schale.FlatData.ShopCategoryType TutorialShopCategoryType { get; set; }
+  public long AdventureStrategyPlayTimeLimitInSeconds { get; set; }
+  public long WeekDungoenTacticPlayTimeLimitInSeconds { get; set; }
+  public long RaidTacticPlayTimeLimitInSeconds { get; set; }
+  public long RaidOpponentListAmount { get; set; }
+  public List<long> CraftBaseGoldRequired { get; set; }
+  public int PostExpiredDayAttendance { get; set; }
+  public int PostExpiredDayInventoryOverflow { get; set; }
+  public int PostExpiredDayGameManager { get; set; }
+  public string UILabelCharacterWrap { get; set; }
+  public float RequestTimeOut { get; set; }
+  public int MailStorageSoftCap { get; set; }
+  public int MailStorageHardCap { get; set; }
+  public int ClearDeckStorageSize { get; set; }
+  public int ClearDeckNoStarViewCount { get; set; }
+  public int ClearDeck1StarViewCount { get; set; }
+  public int ClearDeck2StarViewCount { get; set; }
+  public int ClearDeck3StarViewCount { get; set; }
+  public int ExSkillLevelMax { get; set; }
+  public int PublicSkillLevelMax { get; set; }
+  public int PassiveSkillLevelMax { get; set; }
+  public int ExtraPassiveSkillLevelMax { get; set; }
+  public int AccountCommentMaxLength { get; set; }
+  public int CafeSummonCoolTimeFromHour { get; set; }
+  public long LimitedStageDailyClearCount { get; set; }
+  public long LimitedStageEntryTimeLimit { get; set; }
+  public long LimitedStageEntryTimeBuffer { get; set; }
+  public long LimitedStagePointAmount { get; set; }
+  public long LimitedStagePointPerApMin { get; set; }
+  public long LimitedStagePointPerApMax { get; set; }
+  public int AccountLinkReward { get; set; }
+  public int MonthlyProductCheckDays { get; set; }
+  public int WeaponLvUpCoefficient { get; set; }
+  public int ShowRaidMyListCount { get; set; }
+  public Schale.FlatData.ParcelType RaidEnterCostType { get; set; }
+  public long RaidEnterCostId { get; set; }
+  public long RaidTicketCost { get; set; }
+  public string TimeAttackDungeonScenarioId { get; set; }
+  public int TimeAttackDungoenPlayCountPerTicket { get; set; }
+  public Schale.FlatData.ParcelType TimeAttackDungeonEnterCostType { get; set; }
+  public long TimeAttackDungeonEnterCostId { get; set; }
+  public long TimeAttackDungeonEnterCost { get; set; }
+  public long ClanLeaderTransferLastLoginLimit { get; set; }
+  public int MonthlyProductRepurchasePopupLimit { get; set; }
+  public List<Schale.FlatData.Tag> CommonFavorItemTags { get; set; }
+  public long MaxApMasterCoinPerWeek { get; set; }
+  public long CraftOpenExpTier1 { get; set; }
+  public long CraftOpenExpTier2 { get; set; }
+  public long CraftOpenExpTier3 { get; set; }
+  public long CharacterEquipmentGearSlot { get; set; }
+  public int BirthDayDDay { get; set; }
+  public int RecommendedFriendsLvDifferenceLimit { get; set; }
+  public int DDosDetectCount { get; set; }
+  public int DDosCheckIntervalInSeconds { get; set; }
+  public int MaxFriendsCount { get; set; }
+  public int MaxFriendsRequest { get; set; }
+  public int FriendsSearchRequestCount { get; set; }
+  public int FriendsMaxApplicant { get; set; }
+  public long IdCardDefaultCharacterId { get; set; }
+  public long IdCardDefaultBgId { get; set; }
+  public long WorldRaidGemEnterCost { get; set; }
+  public long WorldRaidGemEnterAmout { get; set; }
+  public long FriendIdCardCommentMaxLength { get; set; }
+  public int FormationPresetNumberOfEchelonTab { get; set; }
+  public int FormationPresetNumberOfEchelon { get; set; }
+  public int FormationPresetRecentNumberOfEchelon { get; set; }
+  public int FormationPresetEchelonTabTextLength { get; set; }
+  public int FormationPresetEchelonSlotTextLength { get; set; }
+  public int CharProfileRowIntervalKr { get; set; }
+  public int CallnameLengthEn { get; set; }
+  public int CallnameLengthKr { get; set; }
+  public int NicknameLengthKr { get; set; }
+  public int ClanNameLength { get; set; }
+  public int CafePresetEditNameLength { get; set; }
+  public int FormationPresetEchelonTabTextLengthKr { get; set; }
+  public int FormationPresetEchelonSlotTextLengthKr { get; set; }
+  public int CharProfileRowIntervalJp { get; set; }
+  public int CharProfilePopupRowIntervalKr { get; set; }
+  public int CharProfilePopupRowIntervalJp { get; set; }
+  public int BeforehandGachaCount { get; set; }
+  public long LowMemorySizeGL { get; set; }
+  public int BeforehandGachaGroupId { get; set; }
+  public int RenewalDisplayOrderDay { get; set; }
+  public long EmblemDefaultId { get; set; }
+  public string BirthdayMailStartDate { get; set; }
+  public int BirthdayMailRemainDate { get; set; }
+  public Schale.FlatData.ParcelType BirthdayMailParcelType { get; set; }
+  public long BirthdayMailParcelId { get; set; }
+  public int BirthdayMailParcelAmount { get; set; }
+  public int ClearDeckAverageDeckCount { get; set; }
+  public int ClearDeckWorldRaidSaveConditionCoefficient { get; set; }
+  public int ClearDeckShowCount { get; set; }
+  public int CharacterMaxLevel { get; set; }
+  public int PotentialBonusStatMaxLevelMaxHP { get; set; }
+  public int PotentialBonusStatMaxLevelAttackPower { get; set; }
+  public int PotentialBonusStatMaxLevelHealPower { get; set; }
+  public int PotentialOpenConditionCharacterLevel { get; set; }
+  public int AssistStrangerMinLevel { get; set; }
+  public float ClanChattingNoticeCautionDelay { get; set; }
+  public float CallNameWaitTimeGL { get; set; }
+  public int AssistStrangerMaxLevel { get; set; }
+  public int MaxBlockedUserCount { get; set; }
+  public long CafeRandomVisitMinComfortBonus { get; set; }
+  public int CafeRandomVisitMinLastLogin { get; set; }
+  public int CafeTravelSyncIntervalByMillisec { get; set; }
+  public int RankBracketPercentage1 { get; set; }
+  public int RankBracketPercentage2 { get; set; }
+  public int RankBracketPercentage3 { get; set; }
+  public int RankBracketPercentage4 { get; set; }
+  public int RankBracketPercentage5 { get; set; }
+  public int RankBracketPercentage6 { get; set; }
+  public int RankBracketPercentage7 { get; set; }
+  public int ExpiryBattlePassItemReceiveDay { get; set; }
+  public long BattlePassFlavorTextIdleDurationMilliSec { get; set; }
+  public int BattlePassEndImminentDay { get; set; }
+  public string BattlePassExpIconPath { get; set; }
+  public float CafeCameraDragThreshold { get; set; }
+  public int CafeSummonTicketBuyLimitForValidate { get; set; }
+  public int BattlePassNotifyDateGL { get; set; }
+  public int PurchaseMailExpiredDayGL { get; set; }
+  public string ReviewEventDateGL { get; set; }
+  public long ReviewEventStageIDGL { get; set; }
+  public long ReviewEventCharIDGL { get; set; }
+  public int AutoCraftPresetCountLimit { get; set; }
+  public int AutoCraftNodeSelectCount { get; set; }
+  public int CraftPresetNameMaxLength { get; set; }
+  public long SelectionWaitTime { get; set; }
+  public long RewardWaitTime { get; set; }
+  public long EpisodeContinueWaitTime { get; set; }
+  public float ScenarioAutoDelayMillisecLong { get; set; }
+  public float ScenarioAutoDelayMillisec { get; set; }
+  public float ScenarioAutoDelayMillisecShort { get; set; }
+  public float ScenarioAutoDelayMillisecVeryShort { get; set; }
+  public int PcBuildEnterInformation { get; set; }
+  public int ComebackUserStandardDay { get; set; }
+  public int ComebackUserLogSaveDay { get; set; }
+  public int ComeBackActivateCooldown { get; set; }
+  public int CafeCopyPresetSlotCount { get; set; }
+  public int ExpiryProductDailyRecordItemReceiveDay { get; set; }
+  public int NewbieUserStandardDay { get; set; }
+  public int NewbieStateHoldDay { get; set; }
+  public string QRIconUrlDev { get; set; }
+  public string QRIconUrlLive { get; set; }
 
   public ConstCommonExcelT() {
+    this.CampaignMainStageMaxRank = 0;
+    this.CampaignMainStageBestRecord = 0;
+    this.HardAdventurePlayCountRecoverDailyNumber = 0;
+    this.HardStageCount = 0;
+    this.TacticRankClearTime = 0;
+    this.BaseTimeScale = 0;
+    this.GachaPercentage = 0;
+    this.AcademyFavorZoneId = 0;
+    this.CafePresetSlotCount = 0;
+    this.CafeMonologueIntervalMillisec = 0;
+    this.CafeMonologueDefaultDuration = 0;
+    this.CafeBubbleIdleDurationMilliSec = 0;
+    this.FindGiftTimeLimit = 0;
+    this.CafeAutoChargePeriodInMsc = 0;
+    this.CafeProductionDecimalPosition = 0;
+    this.CafeSetGroupApplyCount = 0;
+    this.WeekDungeonFindGiftRewardLimitCount = 0;
+    this.StageFailedCurrencyRefundRate = 0;
+    this.EnterDeposit = 0;
+    this.AccountMaxLevel = 0;
+    this.MainSquadExpBonus = 0;
+    this.SupportSquadExpBonus = 0;
+    this.AccountExpRatio = 0;
+    this.MissionToastLifeTime = 0;
+    this.ExpItemInsertLimit = 0;
+    this.ExpItemInsertAccelTime = 0;
+    this.CharacterLvUpCoefficient = 0;
+    this.EquipmentLvUpCoefficient = 0;
+    this.ExpEquipInsertLimit = 0;
+    this.EquipLvUpCoefficient = 0;
+    this.NicknameLength = 0;
+    this.CraftDuration = null;
+    this.CraftLimitTime = 0;
+    this.ShiftingCraftDuration = null;
+    this.ShiftingCraftTicketConsumeAmount = 0;
+    this.ShiftingCraftSlotMaxCapacity = 0;
+    this.CraftTicketItemUniqueId = 0;
+    this.CraftTicketConsumeAmount = 0;
+    this.AcademyEnterCostType = Schale.FlatData.ParcelType.None;
+    this.AcademyEnterCostId = 0;
+    this.AcademyTicketCost = 0;
+    this.MassangerMessageExpireDay = 0;
+    this.CraftLeafNodeGenerateLv1Count = 0;
+    this.CraftLeafNodeGenerateLv2Count = 0;
+    this.TutorialGachaShopId = 0;
+    this.BeforehandGachaShopId = 0;
+    this.TutorialGachaGoodsId = 0;
+    this.EquipmentSlotOpenLevel = null;
+    this.JoinOrCreateClanCoolTimeFromHour = 0;
+    this.ClanMaxMember = 0;
+    this.ClanSearchResultCount = 0;
+    this.ClanMaxApplicant = 0;
+    this.ClanRejoinCoolTimeFromSecond = 0;
+    this.ClanWordBalloonMaxCharacter = 0;
+    this.CallNameRenameCoolTimeFromHour = 0;
+    this.CallNameMinimumLength = 0;
+    this.CallNameMaximumLength = 0;
+    this.LobbyToScreenModeWaitTime = 0;
+    this.ScreenshotToLobbyButtonHideDelay = 0;
+    this.PrologueScenarioID01 = 0;
+    this.PrologueScenarioID02 = 0;
+    this.TutorialHardStage11 = 0;
+    this.TutorialSpeedButtonStage = 0;
+    this.TutorialCharacterDefaultCount = 0;
+    this.TutorialShopCategoryType = Schale.FlatData.ShopCategoryType.General;
+    this.AdventureStrategyPlayTimeLimitInSeconds = 0;
+    this.WeekDungoenTacticPlayTimeLimitInSeconds = 0;
+    this.RaidTacticPlayTimeLimitInSeconds = 0;
+    this.RaidOpponentListAmount = 0;
+    this.CraftBaseGoldRequired = null;
+    this.PostExpiredDayAttendance = 0;
+    this.PostExpiredDayInventoryOverflow = 0;
+    this.PostExpiredDayGameManager = 0;
+    this.UILabelCharacterWrap = null;
+    this.RequestTimeOut = 0.0f;
+    this.MailStorageSoftCap = 0;
+    this.MailStorageHardCap = 0;
+    this.ClearDeckStorageSize = 0;
+    this.ClearDeckNoStarViewCount = 0;
+    this.ClearDeck1StarViewCount = 0;
+    this.ClearDeck2StarViewCount = 0;
+    this.ClearDeck3StarViewCount = 0;
+    this.ExSkillLevelMax = 0;
+    this.PublicSkillLevelMax = 0;
+    this.PassiveSkillLevelMax = 0;
+    this.ExtraPassiveSkillLevelMax = 0;
+    this.AccountCommentMaxLength = 0;
+    this.CafeSummonCoolTimeFromHour = 0;
+    this.LimitedStageDailyClearCount = 0;
+    this.LimitedStageEntryTimeLimit = 0;
+    this.LimitedStageEntryTimeBuffer = 0;
+    this.LimitedStagePointAmount = 0;
+    this.LimitedStagePointPerApMin = 0;
+    this.LimitedStagePointPerApMax = 0;
+    this.AccountLinkReward = 0;
+    this.MonthlyProductCheckDays = 0;
+    this.WeaponLvUpCoefficient = 0;
+    this.ShowRaidMyListCount = 0;
+    this.RaidEnterCostType = Schale.FlatData.ParcelType.None;
+    this.RaidEnterCostId = 0;
+    this.RaidTicketCost = 0;
+    this.TimeAttackDungeonScenarioId = null;
+    this.TimeAttackDungoenPlayCountPerTicket = 0;
+    this.TimeAttackDungeonEnterCostType = Schale.FlatData.ParcelType.None;
+    this.TimeAttackDungeonEnterCostId = 0;
+    this.TimeAttackDungeonEnterCost = 0;
+    this.ClanLeaderTransferLastLoginLimit = 0;
+    this.MonthlyProductRepurchasePopupLimit = 0;
+    this.CommonFavorItemTags = null;
+    this.MaxApMasterCoinPerWeek = 0;
+    this.CraftOpenExpTier1 = 0;
+    this.CraftOpenExpTier2 = 0;
+    this.CraftOpenExpTier3 = 0;
+    this.CharacterEquipmentGearSlot = 0;
+    this.BirthDayDDay = 0;
+    this.RecommendedFriendsLvDifferenceLimit = 0;
+    this.DDosDetectCount = 0;
+    this.DDosCheckIntervalInSeconds = 0;
+    this.MaxFriendsCount = 0;
+    this.MaxFriendsRequest = 0;
+    this.FriendsSearchRequestCount = 0;
+    this.FriendsMaxApplicant = 0;
+    this.IdCardDefaultCharacterId = 0;
+    this.IdCardDefaultBgId = 0;
+    this.WorldRaidGemEnterCost = 0;
+    this.WorldRaidGemEnterAmout = 0;
+    this.FriendIdCardCommentMaxLength = 0;
+    this.FormationPresetNumberOfEchelonTab = 0;
+    this.FormationPresetNumberOfEchelon = 0;
+    this.FormationPresetRecentNumberOfEchelon = 0;
+    this.FormationPresetEchelonTabTextLength = 0;
+    this.FormationPresetEchelonSlotTextLength = 0;
+    this.CharProfileRowIntervalKr = 0;
+    this.CallnameLengthEn = 0;
+    this.CallnameLengthKr = 0;
+    this.NicknameLengthKr = 0;
+    this.ClanNameLength = 0;
+    this.CafePresetEditNameLength = 0;
+    this.FormationPresetEchelonTabTextLengthKr = 0;
+    this.FormationPresetEchelonSlotTextLengthKr = 0;
+    this.CharProfileRowIntervalJp = 0;
+    this.CharProfilePopupRowIntervalKr = 0;
+    this.CharProfilePopupRowIntervalJp = 0;
+    this.BeforehandGachaCount = 0;
+    this.LowMemorySizeGL = 0;
+    this.BeforehandGachaGroupId = 0;
+    this.RenewalDisplayOrderDay = 0;
+    this.EmblemDefaultId = 0;
+    this.BirthdayMailStartDate = null;
+    this.BirthdayMailRemainDate = 0;
+    this.BirthdayMailParcelType = Schale.FlatData.ParcelType.None;
+    this.BirthdayMailParcelId = 0;
+    this.BirthdayMailParcelAmount = 0;
+    this.ClearDeckAverageDeckCount = 0;
+    this.ClearDeckWorldRaidSaveConditionCoefficient = 0;
+    this.ClearDeckShowCount = 0;
+    this.CharacterMaxLevel = 0;
+    this.PotentialBonusStatMaxLevelMaxHP = 0;
+    this.PotentialBonusStatMaxLevelAttackPower = 0;
+    this.PotentialBonusStatMaxLevelHealPower = 0;
+    this.PotentialOpenConditionCharacterLevel = 0;
+    this.AssistStrangerMinLevel = 0;
+    this.ClanChattingNoticeCautionDelay = 0.0f;
+    this.CallNameWaitTimeGL = 0.0f;
+    this.AssistStrangerMaxLevel = 0;
+    this.MaxBlockedUserCount = 0;
+    this.CafeRandomVisitMinComfortBonus = 0;
+    this.CafeRandomVisitMinLastLogin = 0;
+    this.CafeTravelSyncIntervalByMillisec = 0;
+    this.RankBracketPercentage1 = 0;
+    this.RankBracketPercentage2 = 0;
+    this.RankBracketPercentage3 = 0;
+    this.RankBracketPercentage4 = 0;
+    this.RankBracketPercentage5 = 0;
+    this.RankBracketPercentage6 = 0;
+    this.RankBracketPercentage7 = 0;
+    this.ExpiryBattlePassItemReceiveDay = 0;
+    this.BattlePassFlavorTextIdleDurationMilliSec = 0;
+    this.BattlePassEndImminentDay = 0;
+    this.BattlePassExpIconPath = null;
+    this.CafeCameraDragThreshold = 0.0f;
+    this.CafeSummonTicketBuyLimitForValidate = 0;
+    this.BattlePassNotifyDateGL = 0;
+    this.PurchaseMailExpiredDayGL = 0;
+    this.ReviewEventDateGL = null;
+    this.ReviewEventStageIDGL = 0;
+    this.ReviewEventCharIDGL = 0;
+    this.AutoCraftPresetCountLimit = 0;
+    this.AutoCraftNodeSelectCount = 0;
+    this.CraftPresetNameMaxLength = 0;
+    this.SelectionWaitTime = 0;
+    this.RewardWaitTime = 0;
+    this.EpisodeContinueWaitTime = 0;
+    this.ScenarioAutoDelayMillisecLong = 0.0f;
+    this.ScenarioAutoDelayMillisec = 0.0f;
+    this.ScenarioAutoDelayMillisecShort = 0.0f;
+    this.ScenarioAutoDelayMillisecVeryShort = 0.0f;
+    this.PcBuildEnterInformation = 0;
+    this.ComebackUserStandardDay = 0;
+    this.ComebackUserLogSaveDay = 0;
+    this.ComeBackActivateCooldown = 0;
+    this.CafeCopyPresetSlotCount = 0;
+    this.ExpiryProductDailyRecordItemReceiveDay = 0;
+    this.NewbieUserStandardDay = 0;
+    this.NewbieStateHoldDay = 0;
+    this.QRIconUrlDev = null;
+    this.QRIconUrlLive = null;
   }
 }
 
@@ -54,6 +1435,213 @@ static public class ConstCommonExcelVerify
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
     return verifier.VerifyTableStart(tablePos)
+      && verifier.VerifyField(tablePos, 4 /*CampaignMainStageMaxRank*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 6 /*CampaignMainStageBestRecord*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*HardAdventurePlayCountRecoverDailyNumber*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*HardStageCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*TacticRankClearTime*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*BaseTimeScale*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 16 /*GachaPercentage*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 18 /*AcademyFavorZoneId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 20 /*CafePresetSlotCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 22 /*CafeMonologueIntervalMillisec*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 24 /*CafeMonologueDefaultDuration*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 26 /*CafeBubbleIdleDurationMilliSec*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*FindGiftTimeLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 30 /*CafeAutoChargePeriodInMsc*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 32 /*CafeProductionDecimalPosition*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 34 /*CafeSetGroupApplyCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 36 /*WeekDungeonFindGiftRewardLimitCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 38 /*StageFailedCurrencyRefundRate*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*EnterDeposit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 42 /*AccountMaxLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 44 /*MainSquadExpBonus*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 46 /*SupportSquadExpBonus*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 48 /*AccountExpRatio*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 50 /*MissionToastLifeTime*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 52 /*ExpItemInsertLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 54 /*ExpItemInsertAccelTime*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 56 /*CharacterLvUpCoefficient*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 58 /*EquipmentLvUpCoefficient*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 60 /*ExpEquipInsertLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 62 /*EquipLvUpCoefficient*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 64 /*NicknameLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 66 /*CraftDuration*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 68 /*CraftLimitTime*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 70 /*ShiftingCraftDuration*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 72 /*ShiftingCraftTicketConsumeAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 74 /*ShiftingCraftSlotMaxCapacity*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 76 /*CraftTicketItemUniqueId*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 78 /*CraftTicketConsumeAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 80 /*AcademyEnterCostType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 82 /*AcademyEnterCostId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 84 /*AcademyTicketCost*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 86 /*MassangerMessageExpireDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 88 /*CraftLeafNodeGenerateLv1Count*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 90 /*CraftLeafNodeGenerateLv2Count*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 92 /*TutorialGachaShopId*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 94 /*BeforehandGachaShopId*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 96 /*TutorialGachaGoodsId*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 98 /*EquipmentSlotOpenLevel*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 100 /*JoinOrCreateClanCoolTimeFromHour*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 102 /*ClanMaxMember*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 104 /*ClanSearchResultCount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 106 /*ClanMaxApplicant*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 108 /*ClanRejoinCoolTimeFromSecond*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 110 /*ClanWordBalloonMaxCharacter*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 112 /*CallNameRenameCoolTimeFromHour*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 114 /*CallNameMinimumLength*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 116 /*CallNameMaximumLength*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 118 /*LobbyToScreenModeWaitTime*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 120 /*ScreenshotToLobbyButtonHideDelay*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 122 /*PrologueScenarioID01*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 124 /*PrologueScenarioID02*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 126 /*TutorialHardStage11*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 128 /*TutorialSpeedButtonStage*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 130 /*TutorialCharacterDefaultCount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 132 /*TutorialShopCategoryType*/, 4 /*Schale.FlatData.ShopCategoryType*/, 4, false)
+      && verifier.VerifyField(tablePos, 134 /*AdventureStrategyPlayTimeLimitInSeconds*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 136 /*WeekDungoenTacticPlayTimeLimitInSeconds*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 138 /*RaidTacticPlayTimeLimitInSeconds*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 140 /*RaidOpponentListAmount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 142 /*CraftBaseGoldRequired*/, 8 /*long*/, false)
+      && verifier.VerifyField(tablePos, 144 /*PostExpiredDayAttendance*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 146 /*PostExpiredDayInventoryOverflow*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 148 /*PostExpiredDayGameManager*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 150 /*UILabelCharacterWrap*/, false)
+      && verifier.VerifyField(tablePos, 152 /*RequestTimeOut*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 154 /*MailStorageSoftCap*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 156 /*MailStorageHardCap*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 158 /*ClearDeckStorageSize*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 160 /*ClearDeckNoStarViewCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 162 /*ClearDeck1StarViewCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 164 /*ClearDeck2StarViewCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 166 /*ClearDeck3StarViewCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 168 /*ExSkillLevelMax*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 170 /*PublicSkillLevelMax*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 172 /*PassiveSkillLevelMax*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 174 /*ExtraPassiveSkillLevelMax*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 176 /*AccountCommentMaxLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 178 /*CafeSummonCoolTimeFromHour*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 180 /*LimitedStageDailyClearCount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 182 /*LimitedStageEntryTimeLimit*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 184 /*LimitedStageEntryTimeBuffer*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 186 /*LimitedStagePointAmount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 188 /*LimitedStagePointPerApMin*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 190 /*LimitedStagePointPerApMax*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 192 /*AccountLinkReward*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 194 /*MonthlyProductCheckDays*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 196 /*WeaponLvUpCoefficient*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 198 /*ShowRaidMyListCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 200 /*RaidEnterCostType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 202 /*RaidEnterCostId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 204 /*RaidTicketCost*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 206 /*TimeAttackDungeonScenarioId*/, false)
+      && verifier.VerifyField(tablePos, 208 /*TimeAttackDungoenPlayCountPerTicket*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 210 /*TimeAttackDungeonEnterCostType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 212 /*TimeAttackDungeonEnterCostId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 214 /*TimeAttackDungeonEnterCost*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 216 /*ClanLeaderTransferLastLoginLimit*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 218 /*MonthlyProductRepurchasePopupLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 220 /*CommonFavorItemTags*/, 4 /*Schale.FlatData.Tag*/, false)
+      && verifier.VerifyField(tablePos, 222 /*MaxApMasterCoinPerWeek*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 224 /*CraftOpenExpTier1*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 226 /*CraftOpenExpTier2*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 228 /*CraftOpenExpTier3*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 230 /*CharacterEquipmentGearSlot*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 232 /*BirthDayDDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 234 /*RecommendedFriendsLvDifferenceLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 236 /*DDosDetectCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 238 /*DDosCheckIntervalInSeconds*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 240 /*MaxFriendsCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 242 /*MaxFriendsRequest*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 244 /*FriendsSearchRequestCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 246 /*FriendsMaxApplicant*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 248 /*IdCardDefaultCharacterId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 250 /*IdCardDefaultBgId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 252 /*WorldRaidGemEnterCost*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 254 /*WorldRaidGemEnterAmout*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 256 /*FriendIdCardCommentMaxLength*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 258 /*FormationPresetNumberOfEchelonTab*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 260 /*FormationPresetNumberOfEchelon*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 262 /*FormationPresetRecentNumberOfEchelon*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 264 /*FormationPresetEchelonTabTextLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 266 /*FormationPresetEchelonSlotTextLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 268 /*CharProfileRowIntervalKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 270 /*CallnameLengthEn*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 272 /*CallnameLengthKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 274 /*NicknameLengthKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 276 /*ClanNameLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 278 /*CafePresetEditNameLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 280 /*FormationPresetEchelonTabTextLengthKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 282 /*FormationPresetEchelonSlotTextLengthKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 284 /*CharProfileRowIntervalJp*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 286 /*CharProfilePopupRowIntervalKr*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 288 /*CharProfilePopupRowIntervalJp*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 290 /*BeforehandGachaCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 292 /*LowMemorySizeGL*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 294 /*BeforehandGachaGroupId*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 296 /*RenewalDisplayOrderDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 298 /*EmblemDefaultId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 300 /*BirthdayMailStartDate*/, false)
+      && verifier.VerifyField(tablePos, 302 /*BirthdayMailRemainDate*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 304 /*BirthdayMailParcelType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 306 /*BirthdayMailParcelId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 308 /*BirthdayMailParcelAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 310 /*ClearDeckAverageDeckCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 312 /*ClearDeckWorldRaidSaveConditionCoefficient*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 314 /*ClearDeckShowCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 316 /*CharacterMaxLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 318 /*PotentialBonusStatMaxLevelMaxHP*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 320 /*PotentialBonusStatMaxLevelAttackPower*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 322 /*PotentialBonusStatMaxLevelHealPower*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 324 /*PotentialOpenConditionCharacterLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 326 /*AssistStrangerMinLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 328 /*ClanChattingNoticeCautionDelay*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 330 /*CallNameWaitTimeGL*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 332 /*AssistStrangerMaxLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 334 /*MaxBlockedUserCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 336 /*CafeRandomVisitMinComfortBonus*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 338 /*CafeRandomVisitMinLastLogin*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 340 /*CafeTravelSyncIntervalByMillisec*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 342 /*RankBracketPercentage1*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 344 /*RankBracketPercentage2*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 346 /*RankBracketPercentage3*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 348 /*RankBracketPercentage4*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 350 /*RankBracketPercentage5*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 352 /*RankBracketPercentage6*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 354 /*RankBracketPercentage7*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 356 /*ExpiryBattlePassItemReceiveDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 358 /*BattlePassFlavorTextIdleDurationMilliSec*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 360 /*BattlePassEndImminentDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 362 /*BattlePassExpIconPath*/, false)
+      && verifier.VerifyField(tablePos, 364 /*CafeCameraDragThreshold*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 366 /*CafeSummonTicketBuyLimitForValidate*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 368 /*BattlePassNotifyDateGL*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 370 /*PurchaseMailExpiredDayGL*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 372 /*ReviewEventDateGL*/, false)
+      && verifier.VerifyField(tablePos, 374 /*ReviewEventStageIDGL*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 376 /*ReviewEventCharIDGL*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 378 /*AutoCraftPresetCountLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 380 /*AutoCraftNodeSelectCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 382 /*CraftPresetNameMaxLength*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 384 /*SelectionWaitTime*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 386 /*RewardWaitTime*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 388 /*EpisodeContinueWaitTime*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 390 /*ScenarioAutoDelayMillisecLong*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 392 /*ScenarioAutoDelayMillisec*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 394 /*ScenarioAutoDelayMillisecShort*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 396 /*ScenarioAutoDelayMillisecVeryShort*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 398 /*PcBuildEnterInformation*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 400 /*ComebackUserStandardDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 402 /*ComebackUserLogSaveDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 404 /*ComeBackActivateCooldown*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 406 /*CafeCopyPresetSlotCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 408 /*ExpiryProductDailyRecordItemReceiveDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 410 /*NewbieUserStandardDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 412 /*NewbieStateHoldDay*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 414 /*QRIconUrlDev*/, false)
+      && verifier.VerifyString(tablePos, 416 /*QRIconUrlLive*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

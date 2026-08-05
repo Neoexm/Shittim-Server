@@ -67,14 +67,14 @@ public struct EliminateRaidRankingRewardExcel : IFlatbufferObject
       long Id = 0,
       long RankStart = 0,
       long RankEnd = 0,
-      long RankStartTw = 0,
-      long RankEndTw = 0,
-      long RankStartAsia = 0,
-      long RankEndAsia = 0,
-      long RankStartNa = 0,
-      long RankEndNa = 0,
-      long RankStartGlobal = 0,
-      long RankEndGlobal = 0,
+      long RankStart_Tw = 0,
+      long RankEnd_Tw = 0,
+      long RankStart_Asia = 0,
+      long RankEnd_Asia = 0,
+      long RankStart_Na = 0,
+      long RankEnd_Na = 0,
+      long RankStart_Global = 0,
+      long RankEnd_Global = 0,
       long PercentRankStart = 0,
       long PercentRankEnd = 0,
       int Tier = 0,
@@ -85,14 +85,14 @@ public struct EliminateRaidRankingRewardExcel : IFlatbufferObject
     builder.StartTable(19);
     EliminateRaidRankingRewardExcel.AddPercentRankEnd(builder, PercentRankEnd);
     EliminateRaidRankingRewardExcel.AddPercentRankStart(builder, PercentRankStart);
-    EliminateRaidRankingRewardExcel.AddRankEndGlobal(builder, RankEndGlobal);
-    EliminateRaidRankingRewardExcel.AddRankStartGlobal(builder, RankStartGlobal);
-    EliminateRaidRankingRewardExcel.AddRankEndNa(builder, RankEndNa);
-    EliminateRaidRankingRewardExcel.AddRankStartNa(builder, RankStartNa);
-    EliminateRaidRankingRewardExcel.AddRankEndAsia(builder, RankEndAsia);
-    EliminateRaidRankingRewardExcel.AddRankStartAsia(builder, RankStartAsia);
-    EliminateRaidRankingRewardExcel.AddRankEndTw(builder, RankEndTw);
-    EliminateRaidRankingRewardExcel.AddRankStartTw(builder, RankStartTw);
+    EliminateRaidRankingRewardExcel.AddRankEndGlobal(builder, RankEnd_Global);
+    EliminateRaidRankingRewardExcel.AddRankStartGlobal(builder, RankStart_Global);
+    EliminateRaidRankingRewardExcel.AddRankEndNa(builder, RankEnd_Na);
+    EliminateRaidRankingRewardExcel.AddRankStartNa(builder, RankStart_Na);
+    EliminateRaidRankingRewardExcel.AddRankEndAsia(builder, RankEnd_Asia);
+    EliminateRaidRankingRewardExcel.AddRankStartAsia(builder, RankStart_Asia);
+    EliminateRaidRankingRewardExcel.AddRankEndTw(builder, RankEnd_Tw);
+    EliminateRaidRankingRewardExcel.AddRankStartTw(builder, RankStart_Tw);
     EliminateRaidRankingRewardExcel.AddRankEnd(builder, RankEnd);
     EliminateRaidRankingRewardExcel.AddRankStart(builder, RankStart);
     EliminateRaidRankingRewardExcel.AddId(builder, Id);

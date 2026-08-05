@@ -125,11 +125,11 @@ public struct EmblemExcel : IFlatbufferObject
       StringOffset EmblemIconPathOffset = default(StringOffset),
       int EmblemIconNumControl = 0,
       StringOffset EmblemIconBGPathOffset = default(StringOffset),
-      StringOffset EmblemBGPathJpOffset = default(StringOffset),
-      StringOffset EmblemBGPathKrOffset = default(StringOffset),
-      StringOffset EmblemBGPathThOffset = default(StringOffset),
-      StringOffset EmblemBGPathTwOffset = default(StringOffset),
-      StringOffset EmblemBGPathEnOffset = default(StringOffset),
+      StringOffset EmblemBGPath_JpOffset = default(StringOffset),
+      StringOffset EmblemBGPath_KrOffset = default(StringOffset),
+      StringOffset EmblemBGPath_ThOffset = default(StringOffset),
+      StringOffset EmblemBGPath_TwOffset = default(StringOffset),
+      StringOffset EmblemBGPath_EnOffset = default(StringOffset),
       StringOffset EmblemEffectPathOffset = default(StringOffset),
       Schale.FlatData.EmblemDisplayType DisplayType = Schale.FlatData.EmblemDisplayType.Always,
       StringOffset DisplayStartDateOffset = default(StringOffset),
@@ -150,11 +150,11 @@ public struct EmblemExcel : IFlatbufferObject
     EmblemExcel.AddDisplayStartDate(builder, DisplayStartDateOffset);
     EmblemExcel.AddDisplayType(builder, DisplayType);
     EmblemExcel.AddEmblemEffectPath(builder, EmblemEffectPathOffset);
-    EmblemExcel.AddEmblemBGPathEn(builder, EmblemBGPathEnOffset);
-    EmblemExcel.AddEmblemBGPathTw(builder, EmblemBGPathTwOffset);
-    EmblemExcel.AddEmblemBGPathTh(builder, EmblemBGPathThOffset);
-    EmblemExcel.AddEmblemBGPathKr(builder, EmblemBGPathKrOffset);
-    EmblemExcel.AddEmblemBGPathJp(builder, EmblemBGPathJpOffset);
+    EmblemExcel.AddEmblemBGPathEn(builder, EmblemBGPath_EnOffset);
+    EmblemExcel.AddEmblemBGPathTw(builder, EmblemBGPath_TwOffset);
+    EmblemExcel.AddEmblemBGPathTh(builder, EmblemBGPath_ThOffset);
+    EmblemExcel.AddEmblemBGPathKr(builder, EmblemBGPath_KrOffset);
+    EmblemExcel.AddEmblemBGPathJp(builder, EmblemBGPath_JpOffset);
     EmblemExcel.AddEmblemIconBGPath(builder, EmblemIconBGPathOffset);
     EmblemExcel.AddEmblemIconNumControl(builder, EmblemIconNumControl);
     EmblemExcel.AddEmblemIconPath(builder, EmblemIconPathOffset);
@@ -235,11 +235,11 @@ public struct EmblemExcel : IFlatbufferObject
     var _IconPath = _o.IconPath == null ? default(StringOffset) : builder.CreateString(_o.IconPath);
     var _EmblemIconPath = _o.EmblemIconPath == null ? default(StringOffset) : builder.CreateString(_o.EmblemIconPath);
     var _EmblemIconBGPath = _o.EmblemIconBGPath == null ? default(StringOffset) : builder.CreateString(_o.EmblemIconBGPath);
-    var _EmblemBGPathJp = _o.EmblemBGPathJp == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathJp);
-    var _EmblemBGPathKr = _o.EmblemBGPathKr == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathKr);
-    var _EmblemBGPathTh = _o.EmblemBGPathTh == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathTh);
-    var _EmblemBGPathTw = _o.EmblemBGPathTw == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathTw);
-    var _EmblemBGPathEn = _o.EmblemBGPathEn == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathEn);
+    var _EmblemBGPath_Jp = _o.EmblemBGPathJp == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathJp);
+    var _EmblemBGPath_Kr = _o.EmblemBGPathKr == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathKr);
+    var _EmblemBGPath_Th = _o.EmblemBGPathTh == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathTh);
+    var _EmblemBGPath_Tw = _o.EmblemBGPathTw == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathTw);
+    var _EmblemBGPath_En = _o.EmblemBGPathEn == null ? default(StringOffset) : builder.CreateString(_o.EmblemBGPathEn);
     var _EmblemEffectPath = _o.EmblemEffectPath == null ? default(StringOffset) : builder.CreateString(_o.EmblemEffectPath);
     var _DisplayStartDate = _o.DisplayStartDate == null ? default(StringOffset) : builder.CreateString(_o.DisplayStartDate);
     var _DisplayEndDate = _o.DisplayEndDate == null ? default(StringOffset) : builder.CreateString(_o.DisplayEndDate);
@@ -257,11 +257,11 @@ public struct EmblemExcel : IFlatbufferObject
       _EmblemIconPath,
       _o.EmblemIconNumControl,
       _EmblemIconBGPath,
-      _EmblemBGPathJp,
-      _EmblemBGPathKr,
-      _EmblemBGPathTh,
-      _EmblemBGPathTw,
-      _EmblemBGPathEn,
+      _EmblemBGPath_Jp,
+      _EmblemBGPath_Kr,
+      _EmblemBGPath_Th,
+      _EmblemBGPath_Tw,
+      _EmblemBGPath_En,
       _EmblemEffectPath,
       _o.DisplayType,
       _DisplayStartDate,

@@ -27,9 +27,9 @@ public struct BlendInfo : IFlatbufferObject
   public static Offset<Schale.FlatData.BlendInfo> CreateBlendInfo(FlatBufferBuilder builder,
       int From = 0,
       int To = 0,
-      float blend = 0.0f) {
+      float Blend = 0.0f) {
     builder.StartTable(3);
-    BlendInfo.AddBlend(builder, blend);
+    BlendInfo.AddBlend(builder, Blend);
     BlendInfo.AddTo(builder, To);
     BlendInfo.AddFrom(builder, From);
     return BlendInfo.EndBlendInfo(builder);

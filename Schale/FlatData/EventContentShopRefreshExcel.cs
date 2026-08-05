@@ -36,6 +36,13 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
   public ArraySegment<byte>? GetBuyReportEventNameBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
   public byte[] GetBuyReportEventNameArray() { return __p.__vector_as_array<byte>(22); }
+  public string ProductUpdateTime { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetProductUpdateTimeBytes() { return __p.__vector_as_span<byte>(24, 1); }
+#else
+  public ArraySegment<byte>? GetProductUpdateTimeBytes() { return __p.__vector_as_arraysegment(24); }
+#endif
+  public byte[] GetProductUpdateTimeArray() { return __p.__vector_as_array<byte>(24); }
 
   public static Offset<Schale.FlatData.EventContentShopRefreshExcel> CreateEventContentShopRefreshExcel(FlatBufferBuilder builder,
       long EventContentId = 0,
@@ -47,12 +54,14 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
       Schale.FlatData.ShopCategoryType CategoryType = Schale.FlatData.ShopCategoryType.General,
       int RefreshGroup = 0,
       int Prob = 0,
-      StringOffset BuyReportEventNameOffset = default(StringOffset)) {
-    builder.StartTable(10);
+      StringOffset BuyReportEventNameOffset = default(StringOffset),
+      StringOffset ProductUpdateTimeOffset = default(StringOffset)) {
+    builder.StartTable(11);
     EventContentShopRefreshExcel.AddDisplayOrder(builder, DisplayOrder);
     EventContentShopRefreshExcel.AddGoodsId(builder, GoodsId);
     EventContentShopRefreshExcel.AddId(builder, Id);
     EventContentShopRefreshExcel.AddEventContentId(builder, EventContentId);
+    EventContentShopRefreshExcel.AddProductUpdateTime(builder, ProductUpdateTimeOffset);
     EventContentShopRefreshExcel.AddBuyReportEventName(builder, BuyReportEventNameOffset);
     EventContentShopRefreshExcel.AddProb(builder, Prob);
     EventContentShopRefreshExcel.AddRefreshGroup(builder, RefreshGroup);
@@ -62,7 +71,7 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
     return EventContentShopRefreshExcel.EndEventContentShopRefreshExcel(builder);
   }
 
-  public static void StartEventContentShopRefreshExcel(FlatBufferBuilder builder) { builder.StartTable(10); }
+  public static void StartEventContentShopRefreshExcel(FlatBufferBuilder builder) { builder.StartTable(11); }
   public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(0, eventContentId, 0); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(1, id, 0); }
   public static void AddLocalizeEtcId(FlatBufferBuilder builder, uint localizeEtcId) { builder.AddUint(2, localizeEtcId, 0); }
@@ -73,6 +82,7 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
   public static void AddRefreshGroup(FlatBufferBuilder builder, int refreshGroup) { builder.AddInt(7, refreshGroup, 0); }
   public static void AddProb(FlatBufferBuilder builder, int prob) { builder.AddInt(8, prob, 0); }
   public static void AddBuyReportEventName(FlatBufferBuilder builder, StringOffset buyReportEventNameOffset) { builder.AddOffset(9, buyReportEventNameOffset.Value, 0); }
+  public static void AddProductUpdateTime(FlatBufferBuilder builder, StringOffset productUpdateTimeOffset) { builder.AddOffset(10, productUpdateTimeOffset.Value, 0); }
   public static Offset<Schale.FlatData.EventContentShopRefreshExcel> EndEventContentShopRefreshExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.EventContentShopRefreshExcel>(o);
@@ -94,10 +104,12 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
     _o.RefreshGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RefreshGroup, key) : this.RefreshGroup;
     _o.Prob = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Prob, key) : this.Prob;
     _o.BuyReportEventName = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BuyReportEventName, key) : this.BuyReportEventName;
+    _o.ProductUpdateTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductUpdateTime, key) : this.ProductUpdateTime;
   }
   public static Offset<Schale.FlatData.EventContentShopRefreshExcel> Pack(FlatBufferBuilder builder, EventContentShopRefreshExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentShopRefreshExcel>);
     var _BuyReportEventName = _o.BuyReportEventName == null ? default(StringOffset) : builder.CreateString(_o.BuyReportEventName);
+    var _ProductUpdateTime = _o.ProductUpdateTime == null ? default(StringOffset) : builder.CreateString(_o.ProductUpdateTime);
     return CreateEventContentShopRefreshExcel(
       builder,
       _o.EventContentId,
@@ -109,7 +121,8 @@ public struct EventContentShopRefreshExcel : IFlatbufferObject
       _o.CategoryType,
       _o.RefreshGroup,
       _o.Prob,
-      _BuyReportEventName);
+      _BuyReportEventName,
+      _ProductUpdateTime);
   }
 }
 
@@ -125,6 +138,7 @@ public class EventContentShopRefreshExcelT
   public int RefreshGroup { get; set; }
   public int Prob { get; set; }
   public string BuyReportEventName { get; set; }
+  public string ProductUpdateTime { get; set; }
 
   public EventContentShopRefreshExcelT() {
     this.EventContentId = 0;
@@ -137,6 +151,7 @@ public class EventContentShopRefreshExcelT
     this.RefreshGroup = 0;
     this.Prob = 0;
     this.BuyReportEventName = null;
+    this.ProductUpdateTime = null;
   }
 }
 
@@ -156,6 +171,7 @@ static public class EventContentShopRefreshExcelVerify
       && verifier.VerifyField(tablePos, 18 /*RefreshGroup*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 20 /*Prob*/, 4 /*int*/, 4, false)
       && verifier.VerifyString(tablePos, 22 /*BuyReportEventName*/, false)
+      && verifier.VerifyString(tablePos, 24 /*ProductUpdateTime*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

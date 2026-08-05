@@ -38,9 +38,12 @@ public struct ObstacleStatExcel : IFlatbufferObject
   public long EnhanceHeavyArmorRate { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long EnhanceUnarmedRate { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long EnhanceElasticArmorRate { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnhanceStructureRate { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnhanceNormalArmorRate { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ReduceExDamagedRate { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnhanceCompositeArmorRate { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnhanceStructureRate { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnhanceNormalArmorRate { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ReduceExDamagedRate { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ReduceBasicsDamagedRate { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ReduceWeakDamagedRate { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ObstacleStatExcel> CreateObstacleStatExcel(FlatBufferBuilder builder,
       uint StringID = 0,
@@ -55,13 +58,19 @@ public struct ObstacleStatExcel : IFlatbufferObject
       long EnhanceHeavyArmorRate = 0,
       long EnhanceUnarmedRate = 0,
       long EnhanceElasticArmorRate = 0,
+      long EnhanceCompositeArmorRate = 0,
       long EnhanceStructureRate = 0,
       long EnhanceNormalArmorRate = 0,
-      long ReduceExDamagedRate = 0) {
-    builder.StartTable(15);
+      long ReduceExDamagedRate = 0,
+      long ReduceBasicsDamagedRate = 0,
+      long ReduceWeakDamagedRate = 0) {
+    builder.StartTable(18);
+    ObstacleStatExcel.AddReduceWeakDamagedRate(builder, ReduceWeakDamagedRate);
+    ObstacleStatExcel.AddReduceBasicsDamagedRate(builder, ReduceBasicsDamagedRate);
     ObstacleStatExcel.AddReduceExDamagedRate(builder, ReduceExDamagedRate);
     ObstacleStatExcel.AddEnhanceNormalArmorRate(builder, EnhanceNormalArmorRate);
     ObstacleStatExcel.AddEnhanceStructureRate(builder, EnhanceStructureRate);
+    ObstacleStatExcel.AddEnhanceCompositeArmorRate(builder, EnhanceCompositeArmorRate);
     ObstacleStatExcel.AddEnhanceElasticArmorRate(builder, EnhanceElasticArmorRate);
     ObstacleStatExcel.AddEnhanceUnarmedRate(builder, EnhanceUnarmedRate);
     ObstacleStatExcel.AddEnhanceHeavyArmorRate(builder, EnhanceHeavyArmorRate);
@@ -77,7 +86,7 @@ public struct ObstacleStatExcel : IFlatbufferObject
     return ObstacleStatExcel.EndObstacleStatExcel(builder);
   }
 
-  public static void StartObstacleStatExcel(FlatBufferBuilder builder) { builder.StartTable(15); }
+  public static void StartObstacleStatExcel(FlatBufferBuilder builder) { builder.StartTable(18); }
   public static void AddStringID(FlatBufferBuilder builder, uint stringID) { builder.AddUint(0, stringID, 0); }
   public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(1, nameOffset.Value, 0); }
   public static void AddMaxHP1(FlatBufferBuilder builder, long maxHP1) { builder.AddLong(2, maxHP1, 0); }
@@ -90,9 +99,12 @@ public struct ObstacleStatExcel : IFlatbufferObject
   public static void AddEnhanceHeavyArmorRate(FlatBufferBuilder builder, long enhanceHeavyArmorRate) { builder.AddLong(9, enhanceHeavyArmorRate, 0); }
   public static void AddEnhanceUnarmedRate(FlatBufferBuilder builder, long enhanceUnarmedRate) { builder.AddLong(10, enhanceUnarmedRate, 0); }
   public static void AddEnhanceElasticArmorRate(FlatBufferBuilder builder, long enhanceElasticArmorRate) { builder.AddLong(11, enhanceElasticArmorRate, 0); }
-  public static void AddEnhanceStructureRate(FlatBufferBuilder builder, long enhanceStructureRate) { builder.AddLong(12, enhanceStructureRate, 0); }
-  public static void AddEnhanceNormalArmorRate(FlatBufferBuilder builder, long enhanceNormalArmorRate) { builder.AddLong(13, enhanceNormalArmorRate, 0); }
-  public static void AddReduceExDamagedRate(FlatBufferBuilder builder, long reduceExDamagedRate) { builder.AddLong(14, reduceExDamagedRate, 0); }
+  public static void AddEnhanceCompositeArmorRate(FlatBufferBuilder builder, long enhanceCompositeArmorRate) { builder.AddLong(12, enhanceCompositeArmorRate, 0); }
+  public static void AddEnhanceStructureRate(FlatBufferBuilder builder, long enhanceStructureRate) { builder.AddLong(13, enhanceStructureRate, 0); }
+  public static void AddEnhanceNormalArmorRate(FlatBufferBuilder builder, long enhanceNormalArmorRate) { builder.AddLong(14, enhanceNormalArmorRate, 0); }
+  public static void AddReduceExDamagedRate(FlatBufferBuilder builder, long reduceExDamagedRate) { builder.AddLong(15, reduceExDamagedRate, 0); }
+  public static void AddReduceBasicsDamagedRate(FlatBufferBuilder builder, long reduceBasicsDamagedRate) { builder.AddLong(16, reduceBasicsDamagedRate, 0); }
+  public static void AddReduceWeakDamagedRate(FlatBufferBuilder builder, long reduceWeakDamagedRate) { builder.AddLong(17, reduceWeakDamagedRate, 0); }
   public static Offset<Schale.FlatData.ObstacleStatExcel> EndObstacleStatExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ObstacleStatExcel>(o);
@@ -116,9 +128,12 @@ public struct ObstacleStatExcel : IFlatbufferObject
     _o.EnhanceHeavyArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceHeavyArmorRate, key) : this.EnhanceHeavyArmorRate;
     _o.EnhanceUnarmedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceUnarmedRate, key) : this.EnhanceUnarmedRate;
     _o.EnhanceElasticArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceElasticArmorRate, key) : this.EnhanceElasticArmorRate;
+    _o.EnhanceCompositeArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceCompositeArmorRate, key) : this.EnhanceCompositeArmorRate;
     _o.EnhanceStructureRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceStructureRate, key) : this.EnhanceStructureRate;
     _o.EnhanceNormalArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceNormalArmorRate, key) : this.EnhanceNormalArmorRate;
     _o.ReduceExDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceExDamagedRate, key) : this.ReduceExDamagedRate;
+    _o.ReduceBasicsDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceBasicsDamagedRate, key) : this.ReduceBasicsDamagedRate;
+    _o.ReduceWeakDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceWeakDamagedRate, key) : this.ReduceWeakDamagedRate;
   }
   public static Offset<Schale.FlatData.ObstacleStatExcel> Pack(FlatBufferBuilder builder, ObstacleStatExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ObstacleStatExcel>);
@@ -137,9 +152,12 @@ public struct ObstacleStatExcel : IFlatbufferObject
       _o.EnhanceHeavyArmorRate,
       _o.EnhanceUnarmedRate,
       _o.EnhanceElasticArmorRate,
+      _o.EnhanceCompositeArmorRate,
       _o.EnhanceStructureRate,
       _o.EnhanceNormalArmorRate,
-      _o.ReduceExDamagedRate);
+      _o.ReduceExDamagedRate,
+      _o.ReduceBasicsDamagedRate,
+      _o.ReduceWeakDamagedRate);
   }
 }
 
@@ -157,9 +175,12 @@ public class ObstacleStatExcelT
   public long EnhanceHeavyArmorRate { get; set; }
   public long EnhanceUnarmedRate { get; set; }
   public long EnhanceElasticArmorRate { get; set; }
+  public long EnhanceCompositeArmorRate { get; set; }
   public long EnhanceStructureRate { get; set; }
   public long EnhanceNormalArmorRate { get; set; }
   public long ReduceExDamagedRate { get; set; }
+  public long ReduceBasicsDamagedRate { get; set; }
+  public long ReduceWeakDamagedRate { get; set; }
 
   public ObstacleStatExcelT() {
     this.StringID = 0;
@@ -174,9 +195,12 @@ public class ObstacleStatExcelT
     this.EnhanceHeavyArmorRate = 0;
     this.EnhanceUnarmedRate = 0;
     this.EnhanceElasticArmorRate = 0;
+    this.EnhanceCompositeArmorRate = 0;
     this.EnhanceStructureRate = 0;
     this.EnhanceNormalArmorRate = 0;
     this.ReduceExDamagedRate = 0;
+    this.ReduceBasicsDamagedRate = 0;
+    this.ReduceWeakDamagedRate = 0;
   }
 }
 
@@ -198,9 +222,12 @@ static public class ObstacleStatExcelVerify
       && verifier.VerifyField(tablePos, 22 /*EnhanceHeavyArmorRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 24 /*EnhanceUnarmedRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 26 /*EnhanceElasticArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 28 /*EnhanceStructureRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*EnhanceNormalArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 32 /*ReduceExDamagedRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*EnhanceCompositeArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 30 /*EnhanceStructureRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*EnhanceNormalArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 34 /*ReduceExDamagedRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 36 /*ReduceBasicsDamagedRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 38 /*ReduceWeakDamagedRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

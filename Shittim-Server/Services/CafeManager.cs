@@ -28,8 +28,7 @@ public class CafeManager
 
     private readonly List<FurnitureSubCategory> _nonInteriorSubCategories =
     [
-        // floor coverings ship as InteriorsSubCategory1 - no furniture in the dump uses SubCategory.Floor
-        FurnitureSubCategory.InteriorsSubCategory1,
+        FurnitureSubCategory.Floor,
         FurnitureSubCategory.Wallpaper,
         FurnitureSubCategory.Background
     ];

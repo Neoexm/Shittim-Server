@@ -40,12 +40,12 @@ public struct CharacterStatsDetailExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.CharacterStatsDetailExcel> CreateCharacterStatsDetailExcel(FlatBufferBuilder builder,
       long Id = 0,
-      VectorOffset detailShowStatsOffset = default(VectorOffset),
+      VectorOffset DetailShowStatsOffset = default(VectorOffset),
       VectorOffset IsStatsPercentOffset = default(VectorOffset)) {
     builder.StartTable(3);
     CharacterStatsDetailExcel.AddId(builder, Id);
     CharacterStatsDetailExcel.AddIsStatsPercent(builder, IsStatsPercentOffset);
-    CharacterStatsDetailExcel.AddDetailShowStats(builder, detailShowStatsOffset);
+    CharacterStatsDetailExcel.AddDetailShowStats(builder, DetailShowStatsOffset);
     return CharacterStatsDetailExcel.EndCharacterStatsDetailExcel(builder);
   }
 
@@ -82,10 +82,10 @@ public struct CharacterStatsDetailExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.CharacterStatsDetailExcel> Pack(FlatBufferBuilder builder, CharacterStatsDetailExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CharacterStatsDetailExcel>);
-    var _detailShowStats = default(VectorOffset);
+    var _DetailShowStats = default(VectorOffset);
     if (_o.DetailShowStats != null) {
-      var __detailShowStats = _o.DetailShowStats.ToArray();
-      _detailShowStats = CreateDetailShowStatsVector(builder, __detailShowStats);
+      var __DetailShowStats = _o.DetailShowStats.ToArray();
+      _DetailShowStats = CreateDetailShowStatsVector(builder, __DetailShowStats);
     }
     var _IsStatsPercent = default(VectorOffset);
     if (_o.IsStatsPercent != null) {
@@ -95,7 +95,7 @@ public struct CharacterStatsDetailExcel : IFlatbufferObject
     return CreateCharacterStatsDetailExcel(
       builder,
       _o.Id,
-      _detailShowStats,
+      _DetailShowStats,
       _IsStatsPercent);
   }
 }

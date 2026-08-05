@@ -22,57 +22,61 @@ public struct MiniGamePlayGuideExcel : IFlatbufferObject
 
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long EventContentId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool IsPcBuild { get { int o = __p.__offset(8); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public int DisplayOrder { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public string GuideTitle { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.EventContentType MiniGameType { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.EventContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EventContentType.Stage; } }
+  public bool IsPcBuild { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public int DisplayOrder { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string GuideTitle { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetGuideTitleBytes() { return __p.__vector_as_span<byte>(12, 1); }
+  public Span<byte> GetGuideTitleBytes() { return __p.__vector_as_span<byte>(14, 1); }
 #else
-  public ArraySegment<byte>? GetGuideTitleBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetGuideTitleBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
-  public byte[] GetGuideTitleArray() { return __p.__vector_as_array<byte>(12); }
-  public string GuideImagePath { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetGuideTitleArray() { return __p.__vector_as_array<byte>(14); }
+  public string GuideImagePath { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetGuideImagePathBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetGuideImagePathBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetGuideImagePathBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetGuideImagePathBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetGuideImagePathArray() { return __p.__vector_as_array<byte>(14); }
-  public string GuideText { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetGuideImagePathArray() { return __p.__vector_as_array<byte>(16); }
+  public string GuideText { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetGuideTextBytes() { return __p.__vector_as_span<byte>(16, 1); }
+  public Span<byte> GetGuideTextBytes() { return __p.__vector_as_span<byte>(18, 1); }
 #else
-  public ArraySegment<byte>? GetGuideTextBytes() { return __p.__vector_as_arraysegment(16); }
+  public ArraySegment<byte>? GetGuideTextBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public byte[] GetGuideTextArray() { return __p.__vector_as_array<byte>(16); }
+  public byte[] GetGuideTextArray() { return __p.__vector_as_array<byte>(18); }
 
   public static Offset<Schale.FlatData.MiniGamePlayGuideExcel> CreateMiniGamePlayGuideExcel(FlatBufferBuilder builder,
       long Id = 0,
       long EventContentId = 0,
+      Schale.FlatData.EventContentType MiniGameType = Schale.FlatData.EventContentType.Stage,
       bool IsPcBuild = false,
       int DisplayOrder = 0,
       StringOffset GuideTitleOffset = default(StringOffset),
       StringOffset GuideImagePathOffset = default(StringOffset),
       StringOffset GuideTextOffset = default(StringOffset)) {
-    builder.StartTable(7);
+    builder.StartTable(8);
     MiniGamePlayGuideExcel.AddEventContentId(builder, EventContentId);
     MiniGamePlayGuideExcel.AddId(builder, Id);
     MiniGamePlayGuideExcel.AddGuideText(builder, GuideTextOffset);
     MiniGamePlayGuideExcel.AddGuideImagePath(builder, GuideImagePathOffset);
     MiniGamePlayGuideExcel.AddGuideTitle(builder, GuideTitleOffset);
     MiniGamePlayGuideExcel.AddDisplayOrder(builder, DisplayOrder);
+    MiniGamePlayGuideExcel.AddMiniGameType(builder, MiniGameType);
     MiniGamePlayGuideExcel.AddIsPcBuild(builder, IsPcBuild);
     return MiniGamePlayGuideExcel.EndMiniGamePlayGuideExcel(builder);
   }
 
-  public static void StartMiniGamePlayGuideExcel(FlatBufferBuilder builder) { builder.StartTable(7); }
+  public static void StartMiniGamePlayGuideExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(1, eventContentId, 0); }
-  public static void AddIsPcBuild(FlatBufferBuilder builder, bool isPcBuild) { builder.AddBool(2, isPcBuild, false); }
-  public static void AddDisplayOrder(FlatBufferBuilder builder, int displayOrder) { builder.AddInt(3, displayOrder, 0); }
-  public static void AddGuideTitle(FlatBufferBuilder builder, StringOffset guideTitleOffset) { builder.AddOffset(4, guideTitleOffset.Value, 0); }
-  public static void AddGuideImagePath(FlatBufferBuilder builder, StringOffset guideImagePathOffset) { builder.AddOffset(5, guideImagePathOffset.Value, 0); }
-  public static void AddGuideText(FlatBufferBuilder builder, StringOffset guideTextOffset) { builder.AddOffset(6, guideTextOffset.Value, 0); }
+  public static void AddMiniGameType(FlatBufferBuilder builder, Schale.FlatData.EventContentType miniGameType) { builder.AddInt(2, (int)miniGameType, 0); }
+  public static void AddIsPcBuild(FlatBufferBuilder builder, bool isPcBuild) { builder.AddBool(3, isPcBuild, false); }
+  public static void AddDisplayOrder(FlatBufferBuilder builder, int displayOrder) { builder.AddInt(4, displayOrder, 0); }
+  public static void AddGuideTitle(FlatBufferBuilder builder, StringOffset guideTitleOffset) { builder.AddOffset(5, guideTitleOffset.Value, 0); }
+  public static void AddGuideImagePath(FlatBufferBuilder builder, StringOffset guideImagePathOffset) { builder.AddOffset(6, guideImagePathOffset.Value, 0); }
+  public static void AddGuideText(FlatBufferBuilder builder, StringOffset guideTextOffset) { builder.AddOffset(7, guideTextOffset.Value, 0); }
   public static Offset<Schale.FlatData.MiniGamePlayGuideExcel> EndMiniGamePlayGuideExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.MiniGamePlayGuideExcel>(o);
@@ -86,6 +90,7 @@ public struct MiniGamePlayGuideExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("MiniGamePlayGuide");
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
     _o.EventContentId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentId, key) : this.EventContentId;
+    _o.MiniGameType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MiniGameType, key) : this.MiniGameType;
     _o.IsPcBuild = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsPcBuild, key) : this.IsPcBuild;
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
     _o.GuideTitle = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GuideTitle, key) : this.GuideTitle;
@@ -101,6 +106,7 @@ public struct MiniGamePlayGuideExcel : IFlatbufferObject
       builder,
       _o.Id,
       _o.EventContentId,
+      _o.MiniGameType,
       _o.IsPcBuild,
       _o.DisplayOrder,
       _GuideTitle,
@@ -113,6 +119,7 @@ public class MiniGamePlayGuideExcelT
 {
   public long Id { get; set; }
   public long EventContentId { get; set; }
+  public Schale.FlatData.EventContentType MiniGameType { get; set; }
   public bool IsPcBuild { get; set; }
   public int DisplayOrder { get; set; }
   public string GuideTitle { get; set; }
@@ -122,6 +129,7 @@ public class MiniGamePlayGuideExcelT
   public MiniGamePlayGuideExcelT() {
     this.Id = 0;
     this.EventContentId = 0;
+    this.MiniGameType = Schale.FlatData.EventContentType.Stage;
     this.IsPcBuild = false;
     this.DisplayOrder = 0;
     this.GuideTitle = null;
@@ -138,11 +146,12 @@ static public class MiniGamePlayGuideExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*EventContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*IsPcBuild*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 10 /*DisplayOrder*/, 4 /*int*/, 4, false)
-      && verifier.VerifyString(tablePos, 12 /*GuideTitle*/, false)
-      && verifier.VerifyString(tablePos, 14 /*GuideImagePath*/, false)
-      && verifier.VerifyString(tablePos, 16 /*GuideText*/, false)
+      && verifier.VerifyField(tablePos, 8 /*MiniGameType*/, 4 /*Schale.FlatData.EventContentType*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*IsPcBuild*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 12 /*DisplayOrder*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 14 /*GuideTitle*/, false)
+      && verifier.VerifyString(tablePos, 16 /*GuideImagePath*/, false)
+      && verifier.VerifyString(tablePos, 18 /*GuideText*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

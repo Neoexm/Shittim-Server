@@ -62,7 +62,7 @@ public struct EventContentZoneExcel : IFlatbufferObject
       VectorOffset StudentVisitProbOffset = default(VectorOffset),
       long RewardGroupId = 0,
       VectorOffset TagsOffset = default(VectorOffset),
-      VectorOffset whiteListTagsOffset = default(VectorOffset)) {
+      VectorOffset WhiteListTagsOffset = default(VectorOffset)) {
     builder.StartTable(10);
     EventContentZoneExcel.AddRewardGroupId(builder, RewardGroupId);
     EventContentZoneExcel.AddEventPointForLocationRank(builder, EventPointForLocationRank);
@@ -70,7 +70,7 @@ public struct EventContentZoneExcel : IFlatbufferObject
     EventContentZoneExcel.AddLocationId(builder, LocationId);
     EventContentZoneExcel.AddOriginalZoneId(builder, OriginalZoneId);
     EventContentZoneExcel.AddId(builder, Id);
-    EventContentZoneExcel.AddWhiteListTags(builder, whiteListTagsOffset);
+    EventContentZoneExcel.AddWhiteListTags(builder, WhiteListTagsOffset);
     EventContentZoneExcel.AddTags(builder, TagsOffset);
     EventContentZoneExcel.AddStudentVisitProb(builder, StudentVisitProbOffset);
     EventContentZoneExcel.AddLocalizeEtcId(builder, LocalizeEtcId);
@@ -140,10 +140,10 @@ public struct EventContentZoneExcel : IFlatbufferObject
       var __Tags = _o.Tags.ToArray();
       _Tags = CreateTagsVector(builder, __Tags);
     }
-    var _whiteListTags = default(VectorOffset);
+    var _WhiteListTags = default(VectorOffset);
     if (_o.WhiteListTags != null) {
-      var __whiteListTags = _o.WhiteListTags.ToArray();
-      _whiteListTags = CreateWhiteListTagsVector(builder, __whiteListTags);
+      var __WhiteListTags = _o.WhiteListTags.ToArray();
+      _WhiteListTags = CreateWhiteListTagsVector(builder, __WhiteListTags);
     }
     return CreateEventContentZoneExcel(
       builder,
@@ -156,7 +156,7 @@ public struct EventContentZoneExcel : IFlatbufferObject
       _StudentVisitProb,
       _o.RewardGroupId,
       _Tags,
-      _whiteListTags);
+      _WhiteListTags);
   }
 }
 

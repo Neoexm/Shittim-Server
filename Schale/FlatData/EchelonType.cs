@@ -33,6 +33,7 @@ public enum EchelonType : int
   Field = 23,
   MultiFloorRaid = 24,
   MinigameDefense = 25,
+  PermanentRaid = 26,
 };
 
 

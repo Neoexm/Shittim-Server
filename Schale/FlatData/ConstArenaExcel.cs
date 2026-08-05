@@ -139,13 +139,13 @@ public struct ConstArenaExcel : IFlatbufferObject
       long TicketCost = 0,
       StringOffset DailyRewardResetTimeOffset = default(StringOffset),
       StringOffset OpenScenarioIdOffset = default(StringOffset),
-      VectorOffset characterSlotHideRankOffset = default(VectorOffset),
+      VectorOffset CharacterSlotHideRankOffset = default(VectorOffset),
       long MapSlotHideRank = 0,
       VectorOffset RelativeOpponentRankStartOffset = default(VectorOffset),
-      VectorOffset relativeOpponentRankEndOffset = default(VectorOffset),
+      VectorOffset RelativeOpponentRankEndOffset = default(VectorOffset),
       VectorOffset ModifiedStatTypeOffset = default(VectorOffset),
-      VectorOffset statMulFactorOffset = default(VectorOffset),
-      VectorOffset statSumFactorOffset = default(VectorOffset),
+      VectorOffset StatMulFactorOffset = default(VectorOffset),
+      VectorOffset StatSumFactorOffset = default(VectorOffset),
       VectorOffset NPCNameOffset = default(VectorOffset),
       long NPCMainCharacterCount = 0,
       long NPCSupportCharacterCount = 0,
@@ -186,12 +186,12 @@ public struct ConstArenaExcel : IFlatbufferObject
     ConstArenaExcel.AddShowSeasonChangeInfoStartTime(builder, ShowSeasonChangeInfoStartTimeOffset);
     ConstArenaExcel.AddHiddenCharacterImagePath(builder, HiddenCharacterImagePathOffset);
     ConstArenaExcel.AddNPCName(builder, NPCNameOffset);
-    ConstArenaExcel.AddStatSumFactor(builder, statSumFactorOffset);
-    ConstArenaExcel.AddStatMulFactor(builder, statMulFactorOffset);
+    ConstArenaExcel.AddStatSumFactor(builder, StatSumFactorOffset);
+    ConstArenaExcel.AddStatMulFactor(builder, StatMulFactorOffset);
     ConstArenaExcel.AddModifiedStatType(builder, ModifiedStatTypeOffset);
-    ConstArenaExcel.AddRelativeOpponentRankEnd(builder, relativeOpponentRankEndOffset);
+    ConstArenaExcel.AddRelativeOpponentRankEnd(builder, RelativeOpponentRankEndOffset);
     ConstArenaExcel.AddRelativeOpponentRankStart(builder, RelativeOpponentRankStartOffset);
-    ConstArenaExcel.AddCharacterSlotHideRank(builder, characterSlotHideRankOffset);
+    ConstArenaExcel.AddCharacterSlotHideRank(builder, CharacterSlotHideRankOffset);
     ConstArenaExcel.AddOpenScenarioId(builder, OpenScenarioIdOffset);
     ConstArenaExcel.AddDailyRewardResetTime(builder, DailyRewardResetTimeOffset);
     ConstArenaExcel.AddEnterCostType(builder, EnterCostType);
@@ -323,35 +323,35 @@ public struct ConstArenaExcel : IFlatbufferObject
     if (_o == null) return default(Offset<Schale.FlatData.ConstArenaExcel>);
     var _DailyRewardResetTime = _o.DailyRewardResetTime == null ? default(StringOffset) : builder.CreateString(_o.DailyRewardResetTime);
     var _OpenScenarioId = _o.OpenScenarioId == null ? default(StringOffset) : builder.CreateString(_o.OpenScenarioId);
-    var _characterSlotHideRank = default(VectorOffset);
+    var _CharacterSlotHideRank = default(VectorOffset);
     if (_o.CharacterSlotHideRank != null) {
-      var __characterSlotHideRank = _o.CharacterSlotHideRank.ToArray();
-      _characterSlotHideRank = CreateCharacterSlotHideRankVector(builder, __characterSlotHideRank);
+      var __CharacterSlotHideRank = _o.CharacterSlotHideRank.ToArray();
+      _CharacterSlotHideRank = CreateCharacterSlotHideRankVector(builder, __CharacterSlotHideRank);
     }
     var _RelativeOpponentRankStart = default(VectorOffset);
     if (_o.RelativeOpponentRankStart != null) {
       var __RelativeOpponentRankStart = _o.RelativeOpponentRankStart.ToArray();
       _RelativeOpponentRankStart = CreateRelativeOpponentRankStartVector(builder, __RelativeOpponentRankStart);
     }
-    var _relativeOpponentRankEnd = default(VectorOffset);
+    var _RelativeOpponentRankEnd = default(VectorOffset);
     if (_o.RelativeOpponentRankEnd != null) {
-      var __relativeOpponentRankEnd = _o.RelativeOpponentRankEnd.ToArray();
-      _relativeOpponentRankEnd = CreateRelativeOpponentRankEndVector(builder, __relativeOpponentRankEnd);
+      var __RelativeOpponentRankEnd = _o.RelativeOpponentRankEnd.ToArray();
+      _RelativeOpponentRankEnd = CreateRelativeOpponentRankEndVector(builder, __RelativeOpponentRankEnd);
     }
     var _ModifiedStatType = default(VectorOffset);
     if (_o.ModifiedStatType != null) {
       var __ModifiedStatType = _o.ModifiedStatType.ToArray();
       _ModifiedStatType = CreateModifiedStatTypeVector(builder, __ModifiedStatType);
     }
-    var _statMulFactor = default(VectorOffset);
+    var _StatMulFactor = default(VectorOffset);
     if (_o.StatMulFactor != null) {
-      var __statMulFactor = _o.StatMulFactor.ToArray();
-      _statMulFactor = CreateStatMulFactorVector(builder, __statMulFactor);
+      var __StatMulFactor = _o.StatMulFactor.ToArray();
+      _StatMulFactor = CreateStatMulFactorVector(builder, __StatMulFactor);
     }
-    var _statSumFactor = default(VectorOffset);
+    var _StatSumFactor = default(VectorOffset);
     if (_o.StatSumFactor != null) {
-      var __statSumFactor = _o.StatSumFactor.ToArray();
-      _statSumFactor = CreateStatSumFactorVector(builder, __statSumFactor);
+      var __StatSumFactor = _o.StatSumFactor.ToArray();
+      _StatSumFactor = CreateStatSumFactorVector(builder, __StatSumFactor);
     }
     var _NPCName = default(VectorOffset);
     if (_o.NPCName != null) {
@@ -375,13 +375,13 @@ public struct ConstArenaExcel : IFlatbufferObject
       _o.TicketCost,
       _DailyRewardResetTime,
       _OpenScenarioId,
-      _characterSlotHideRank,
+      _CharacterSlotHideRank,
       _o.MapSlotHideRank,
       _RelativeOpponentRankStart,
-      _relativeOpponentRankEnd,
+      _RelativeOpponentRankEnd,
       _ModifiedStatType,
-      _statMulFactor,
-      _statSumFactor,
+      _StatMulFactor,
+      _StatSumFactor,
       _NPCName,
       _o.NPCMainCharacterCount,
       _o.NPCSupportCharacterCount,

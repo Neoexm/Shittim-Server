@@ -76,8 +76,8 @@ public struct EventContentZoneVisitRewardExcel : IFlatbufferObject
       StringOffset DevNameOffset = default(StringOffset),
       long CharacterId = 0,
       StringOffset CharacterDevNameOffset = default(StringOffset),
-      VectorOffset visitRewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset visitRewardParcelIdOffset = default(VectorOffset),
+      VectorOffset VisitRewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset VisitRewardParcelIdOffset = default(VectorOffset),
       VectorOffset VisitRewardAmountOffset = default(VectorOffset),
       VectorOffset VisitRewardProbOffset = default(VectorOffset)) {
     builder.StartTable(9);
@@ -86,8 +86,8 @@ public struct EventContentZoneVisitRewardExcel : IFlatbufferObject
     EventContentZoneVisitRewardExcel.AddEventContentId(builder, EventContentId);
     EventContentZoneVisitRewardExcel.AddVisitRewardProb(builder, VisitRewardProbOffset);
     EventContentZoneVisitRewardExcel.AddVisitRewardAmount(builder, VisitRewardAmountOffset);
-    EventContentZoneVisitRewardExcel.AddVisitRewardParcelId(builder, visitRewardParcelIdOffset);
-    EventContentZoneVisitRewardExcel.AddVisitRewardParcelType(builder, visitRewardParcelTypeOffset);
+    EventContentZoneVisitRewardExcel.AddVisitRewardParcelId(builder, VisitRewardParcelIdOffset);
+    EventContentZoneVisitRewardExcel.AddVisitRewardParcelType(builder, VisitRewardParcelTypeOffset);
     EventContentZoneVisitRewardExcel.AddCharacterDevName(builder, CharacterDevNameOffset);
     EventContentZoneVisitRewardExcel.AddDevName(builder, DevNameOffset);
     return EventContentZoneVisitRewardExcel.EndEventContentZoneVisitRewardExcel(builder);
@@ -152,15 +152,15 @@ public struct EventContentZoneVisitRewardExcel : IFlatbufferObject
     if (_o == null) return default(Offset<Schale.FlatData.EventContentZoneVisitRewardExcel>);
     var _DevName = _o.DevName == null ? default(StringOffset) : builder.CreateString(_o.DevName);
     var _CharacterDevName = _o.CharacterDevName == null ? default(StringOffset) : builder.CreateString(_o.CharacterDevName);
-    var _visitRewardParcelType = default(VectorOffset);
+    var _VisitRewardParcelType = default(VectorOffset);
     if (_o.VisitRewardParcelType != null) {
-      var __visitRewardParcelType = _o.VisitRewardParcelType.ToArray();
-      _visitRewardParcelType = CreateVisitRewardParcelTypeVector(builder, __visitRewardParcelType);
+      var __VisitRewardParcelType = _o.VisitRewardParcelType.ToArray();
+      _VisitRewardParcelType = CreateVisitRewardParcelTypeVector(builder, __VisitRewardParcelType);
     }
-    var _visitRewardParcelId = default(VectorOffset);
+    var _VisitRewardParcelId = default(VectorOffset);
     if (_o.VisitRewardParcelId != null) {
-      var __visitRewardParcelId = _o.VisitRewardParcelId.ToArray();
-      _visitRewardParcelId = CreateVisitRewardParcelIdVector(builder, __visitRewardParcelId);
+      var __VisitRewardParcelId = _o.VisitRewardParcelId.ToArray();
+      _VisitRewardParcelId = CreateVisitRewardParcelIdVector(builder, __VisitRewardParcelId);
     }
     var _VisitRewardAmount = default(VectorOffset);
     if (_o.VisitRewardAmount != null) {
@@ -179,8 +179,8 @@ public struct EventContentZoneVisitRewardExcel : IFlatbufferObject
       _DevName,
       _o.CharacterId,
       _CharacterDevName,
-      _visitRewardParcelType,
-      _visitRewardParcelId,
+      _VisitRewardParcelType,
+      _VisitRewardParcelId,
       _VisitRewardAmount,
       _VisitRewardProb);
   }

@@ -51,7 +51,7 @@ public struct EventContentMissionExcel : IFlatbufferObject
   public ArraySegment<byte>? GetPreMissionIdBytes() { return __p.__vector_as_arraysegment(26); }
 #endif
   public long[] GetPreMissionIdArray() { return __p.__vector_as_array<long>(26); }
-  public Schale.FlatData.AccountState AccountType { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.AccountState)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.AccountState.WaitingSignIn; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public long AccountLevel { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public string ShortcutUI(int j) { int o = __p.__offset(32); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int ShortcutUILength { get { int o = __p.__offset(32); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -141,7 +141,7 @@ public struct EventContentMissionExcel : IFlatbufferObject
   public int[] GetConditionRewardAmountArray() { return __p.__vector_as_array<int>(62); }
 
   public static Offset<Schale.FlatData.EventContentMissionExcel> CreateEventContentMissionExcel(FlatBufferBuilder builder,
-      long id = 0,
+      long Id = 0,
       long EventContentId = 0,
       long GroupId = 0,
       StringOffset GroupNameOffset = default(StringOffset),
@@ -152,10 +152,10 @@ public struct EventContentMissionExcel : IFlatbufferObject
       StringOffset ToastImagePathOffset = default(StringOffset),
       bool ViewFlag = false,
       long DisplayOrder = 0,
-      VectorOffset preMissionIdOffset = default(VectorOffset),
-      Schale.FlatData.AccountState AccountType = Schale.FlatData.AccountState.WaitingSignIn,
+      VectorOffset PreMissionIdOffset = default(VectorOffset),
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       long AccountLevel = 0,
-      VectorOffset shortcutUIOffset = default(VectorOffset),
+      VectorOffset ShortcutUIOffset = default(VectorOffset),
       long ChallengeStageShortcut = 0,
       Schale.FlatData.MissionCompleteConditionType CompleteConditionType = Schale.FlatData.MissionCompleteConditionType.None,
       bool IsCompleteExtensionTime = false,
@@ -167,9 +167,9 @@ public struct EventContentMissionExcel : IFlatbufferObject
       long CompleteConditionMissionCount = 0,
       VectorOffset MissionRewardParcelTypeOffset = default(VectorOffset),
       VectorOffset MissionRewardParcelIdOffset = default(VectorOffset),
-      VectorOffset missionRewardAmountOffset = default(VectorOffset),
-      VectorOffset conditionRewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset conditionRewardParcelIdOffset = default(VectorOffset),
+      VectorOffset MissionRewardAmountOffset = default(VectorOffset),
+      VectorOffset ConditionRewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset ConditionRewardParcelIdOffset = default(VectorOffset),
       VectorOffset ConditionRewardAmountOffset = default(VectorOffset)) {
     builder.StartTable(30);
     EventContentMissionExcel.AddCompleteConditionMissionCount(builder, CompleteConditionMissionCount);
@@ -179,11 +179,11 @@ public struct EventContentMissionExcel : IFlatbufferObject
     EventContentMissionExcel.AddDisplayOrder(builder, DisplayOrder);
     EventContentMissionExcel.AddGroupId(builder, GroupId);
     EventContentMissionExcel.AddEventContentId(builder, EventContentId);
-    EventContentMissionExcel.AddId(builder, id);
+    EventContentMissionExcel.AddId(builder, Id);
     EventContentMissionExcel.AddConditionRewardAmount(builder, ConditionRewardAmountOffset);
-    EventContentMissionExcel.AddConditionRewardParcelId(builder, conditionRewardParcelIdOffset);
-    EventContentMissionExcel.AddConditionRewardParcelType(builder, conditionRewardParcelTypeOffset);
-    EventContentMissionExcel.AddMissionRewardAmount(builder, missionRewardAmountOffset);
+    EventContentMissionExcel.AddConditionRewardParcelId(builder, ConditionRewardParcelIdOffset);
+    EventContentMissionExcel.AddConditionRewardParcelType(builder, ConditionRewardParcelTypeOffset);
+    EventContentMissionExcel.AddMissionRewardAmount(builder, MissionRewardAmountOffset);
     EventContentMissionExcel.AddMissionRewardParcelId(builder, MissionRewardParcelIdOffset);
     EventContentMissionExcel.AddMissionRewardParcelType(builder, MissionRewardParcelTypeOffset);
     EventContentMissionExcel.AddCompleteConditionMissionId(builder, CompleteConditionMissionIdOffset);
@@ -191,9 +191,9 @@ public struct EventContentMissionExcel : IFlatbufferObject
     EventContentMissionExcel.AddCompleteConditionParameterTag(builder, CompleteConditionParameterTagOffset);
     EventContentMissionExcel.AddCompleteConditionParameter(builder, CompleteConditionParameterOffset);
     EventContentMissionExcel.AddCompleteConditionType(builder, CompleteConditionType);
-    EventContentMissionExcel.AddShortcutUI(builder, shortcutUIOffset);
-    EventContentMissionExcel.AddAccountType(builder, AccountType);
-    EventContentMissionExcel.AddPreMissionId(builder, preMissionIdOffset);
+    EventContentMissionExcel.AddShortcutUI(builder, ShortcutUIOffset);
+    EventContentMissionExcel.AddTargetGroup(builder, TargetGroup);
+    EventContentMissionExcel.AddPreMissionId(builder, PreMissionIdOffset);
     EventContentMissionExcel.AddToastImagePath(builder, ToastImagePathOffset);
     EventContentMissionExcel.AddToastDisplayType(builder, ToastDisplayType);
     EventContentMissionExcel.AddResetType(builder, ResetType);
@@ -223,7 +223,7 @@ public struct EventContentMissionExcel : IFlatbufferObject
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartPreMissionIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddAccountType(FlatBufferBuilder builder, Schale.FlatData.AccountState accountType) { builder.AddInt(12, (int)accountType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(12, (int)targetGroup, 0); }
   public static void AddAccountLevel(FlatBufferBuilder builder, long accountLevel) { builder.AddLong(13, accountLevel, 0); }
   public static void AddShortcutUI(FlatBufferBuilder builder, VectorOffset shortcutUIOffset) { builder.AddOffset(14, shortcutUIOffset.Value, 0); }
   public static VectorOffset CreateShortcutUIVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
@@ -315,7 +315,7 @@ public struct EventContentMissionExcel : IFlatbufferObject
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
     _o.PreMissionId = new List<long>();
     for (var _j = 0; _j < this.PreMissionIdLength; ++_j) {_o.PreMissionId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PreMissionId(_j), key) : this.PreMissionId(_j));}
-    _o.AccountType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountType, key) : this.AccountType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.AccountLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevel, key) : this.AccountLevel;
     _o.ShortcutUI = new List<string>();
     for (var _j = 0; _j < this.ShortcutUILength; ++_j) {_o.ShortcutUI.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutUI(_j), key) : this.ShortcutUI(_j));}
@@ -348,16 +348,16 @@ public struct EventContentMissionExcel : IFlatbufferObject
     if (_o == null) return default(Offset<Schale.FlatData.EventContentMissionExcel>);
     var _GroupName = _o.GroupName == null ? default(StringOffset) : builder.CreateString(_o.GroupName);
     var _ToastImagePath = _o.ToastImagePath == null ? default(StringOffset) : builder.CreateString(_o.ToastImagePath);
-    var _preMissionId = default(VectorOffset);
+    var _PreMissionId = default(VectorOffset);
     if (_o.PreMissionId != null) {
-      var __preMissionId = _o.PreMissionId.ToArray();
-      _preMissionId = CreatePreMissionIdVector(builder, __preMissionId);
+      var __PreMissionId = _o.PreMissionId.ToArray();
+      _PreMissionId = CreatePreMissionIdVector(builder, __PreMissionId);
     }
-    var _shortcutUI = default(VectorOffset);
+    var _ShortcutUI = default(VectorOffset);
     if (_o.ShortcutUI != null) {
-      var __shortcutUI = new StringOffset[_o.ShortcutUI.Count];
-      for (var _j = 0; _j < __shortcutUI.Length; ++_j) { __shortcutUI[_j] = builder.CreateString(_o.ShortcutUI[_j]); }
-      _shortcutUI = CreateShortcutUIVector(builder, __shortcutUI);
+      var __ShortcutUI = new StringOffset[_o.ShortcutUI.Count];
+      for (var _j = 0; _j < __ShortcutUI.Length; ++_j) { __ShortcutUI[_j] = builder.CreateString(_o.ShortcutUI[_j]); }
+      _ShortcutUI = CreateShortcutUIVector(builder, __ShortcutUI);
     }
     var _CompleteConditionParameter = default(VectorOffset);
     if (_o.CompleteConditionParameter != null) {
@@ -385,20 +385,20 @@ public struct EventContentMissionExcel : IFlatbufferObject
       var __MissionRewardParcelId = _o.MissionRewardParcelId.ToArray();
       _MissionRewardParcelId = CreateMissionRewardParcelIdVector(builder, __MissionRewardParcelId);
     }
-    var _missionRewardAmount = default(VectorOffset);
+    var _MissionRewardAmount = default(VectorOffset);
     if (_o.MissionRewardAmount != null) {
-      var __missionRewardAmount = _o.MissionRewardAmount.ToArray();
-      _missionRewardAmount = CreateMissionRewardAmountVector(builder, __missionRewardAmount);
+      var __MissionRewardAmount = _o.MissionRewardAmount.ToArray();
+      _MissionRewardAmount = CreateMissionRewardAmountVector(builder, __MissionRewardAmount);
     }
-    var _conditionRewardParcelType = default(VectorOffset);
+    var _ConditionRewardParcelType = default(VectorOffset);
     if (_o.ConditionRewardParcelType != null) {
-      var __conditionRewardParcelType = _o.ConditionRewardParcelType.ToArray();
-      _conditionRewardParcelType = CreateConditionRewardParcelTypeVector(builder, __conditionRewardParcelType);
+      var __ConditionRewardParcelType = _o.ConditionRewardParcelType.ToArray();
+      _ConditionRewardParcelType = CreateConditionRewardParcelTypeVector(builder, __ConditionRewardParcelType);
     }
-    var _conditionRewardParcelId = default(VectorOffset);
+    var _ConditionRewardParcelId = default(VectorOffset);
     if (_o.ConditionRewardParcelId != null) {
-      var __conditionRewardParcelId = _o.ConditionRewardParcelId.ToArray();
-      _conditionRewardParcelId = CreateConditionRewardParcelIdVector(builder, __conditionRewardParcelId);
+      var __ConditionRewardParcelId = _o.ConditionRewardParcelId.ToArray();
+      _ConditionRewardParcelId = CreateConditionRewardParcelIdVector(builder, __ConditionRewardParcelId);
     }
     var _ConditionRewardAmount = default(VectorOffset);
     if (_o.ConditionRewardAmount != null) {
@@ -418,10 +418,10 @@ public struct EventContentMissionExcel : IFlatbufferObject
       _ToastImagePath,
       _o.ViewFlag,
       _o.DisplayOrder,
-      _preMissionId,
-      _o.AccountType,
+      _PreMissionId,
+      _o.TargetGroup,
       _o.AccountLevel,
-      _shortcutUI,
+      _ShortcutUI,
       _o.ChallengeStageShortcut,
       _o.CompleteConditionType,
       _o.IsCompleteExtensionTime,
@@ -433,9 +433,9 @@ public struct EventContentMissionExcel : IFlatbufferObject
       _o.CompleteConditionMissionCount,
       _MissionRewardParcelType,
       _MissionRewardParcelId,
-      _missionRewardAmount,
-      _conditionRewardParcelType,
-      _conditionRewardParcelId,
+      _MissionRewardAmount,
+      _ConditionRewardParcelType,
+      _ConditionRewardParcelId,
       _ConditionRewardAmount);
   }
 }
@@ -454,7 +454,7 @@ public class EventContentMissionExcelT
   public bool ViewFlag { get; set; }
   public long DisplayOrder { get; set; }
   public List<long> PreMissionId { get; set; }
-  public Schale.FlatData.AccountState AccountType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public long AccountLevel { get; set; }
   public List<string> ShortcutUI { get; set; }
   public long ChallengeStageShortcut { get; set; }
@@ -486,7 +486,7 @@ public class EventContentMissionExcelT
     this.ViewFlag = false;
     this.DisplayOrder = 0;
     this.PreMissionId = null;
-    this.AccountType = Schale.FlatData.AccountState.WaitingSignIn;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.AccountLevel = 0;
     this.ShortcutUI = null;
     this.ChallengeStageShortcut = 0;
@@ -525,7 +525,7 @@ static public class EventContentMissionExcelVerify
       && verifier.VerifyField(tablePos, 22 /*ViewFlag*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 24 /*DisplayOrder*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 26 /*PreMissionId*/, 8 /*long*/, false)
-      && verifier.VerifyField(tablePos, 28 /*AccountType*/, 4 /*Schale.FlatData.AccountState*/, 4, false)
+      && verifier.VerifyField(tablePos, 28 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 30 /*AccountLevel*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfStrings(tablePos, 32 /*ShortcutUI*/, false)
       && verifier.VerifyField(tablePos, 34 /*ChallengeStageShortcut*/, 8 /*long*/, 8, false)

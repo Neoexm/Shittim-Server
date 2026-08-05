@@ -64,7 +64,7 @@ public struct EventContentFortuneGachaShopExcel : IFlatbufferObject
       int Prob = 0,
       int ProbModifyValue = 0,
       int ProbModifyLimit = 0,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
       VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
     builder.StartTable(12);
@@ -73,7 +73,7 @@ public struct EventContentFortuneGachaShopExcel : IFlatbufferObject
     EventContentFortuneGachaShopExcel.AddEventContentId(builder, EventContentId);
     EventContentFortuneGachaShopExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
     EventContentFortuneGachaShopExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
-    EventContentFortuneGachaShopExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
+    EventContentFortuneGachaShopExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     EventContentFortuneGachaShopExcel.AddProbModifyLimit(builder, ProbModifyLimit);
     EventContentFortuneGachaShopExcel.AddProbModifyValue(builder, ProbModifyValue);
     EventContentFortuneGachaShopExcel.AddProb(builder, Prob);
@@ -140,10 +140,10 @@ public struct EventContentFortuneGachaShopExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentFortuneGachaShopExcel> Pack(FlatBufferBuilder builder, EventContentFortuneGachaShopExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentFortuneGachaShopExcel>);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
     var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
@@ -166,7 +166,7 @@ public struct EventContentFortuneGachaShopExcel : IFlatbufferObject
       _o.Prob,
       _o.ProbModifyValue,
       _o.ProbModifyLimit,
-      _rewardParcelType,
+      _RewardParcelType,
       _RewardParcelId,
       _RewardParcelAmount);
   }

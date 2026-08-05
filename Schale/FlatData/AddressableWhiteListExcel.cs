@@ -28,12 +28,12 @@ public struct AddressableWhiteListExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.AddressableWhiteListExcel> CreateAddressableWhiteListExcel(FlatBufferBuilder builder,
       long Id = 0,
-      VectorOffset folderPathOffset = default(VectorOffset),
-      VectorOffset resourcePathOffset = default(VectorOffset)) {
+      VectorOffset FolderPathOffset = default(VectorOffset),
+      VectorOffset ResourcePathOffset = default(VectorOffset)) {
     builder.StartTable(3);
     AddressableWhiteListExcel.AddId(builder, Id);
-    AddressableWhiteListExcel.AddResourcePath(builder, resourcePathOffset);
-    AddressableWhiteListExcel.AddFolderPath(builder, folderPathOffset);
+    AddressableWhiteListExcel.AddResourcePath(builder, ResourcePathOffset);
+    AddressableWhiteListExcel.AddFolderPath(builder, FolderPathOffset);
     return AddressableWhiteListExcel.EndAddressableWhiteListExcel(builder);
   }
 
@@ -70,23 +70,23 @@ public struct AddressableWhiteListExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.AddressableWhiteListExcel> Pack(FlatBufferBuilder builder, AddressableWhiteListExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.AddressableWhiteListExcel>);
-    var _folderPath = default(VectorOffset);
+    var _FolderPath = default(VectorOffset);
     if (_o.FolderPath != null) {
-      var __folderPath = new StringOffset[_o.FolderPath.Count];
-      for (var _j = 0; _j < __folderPath.Length; ++_j) { __folderPath[_j] = builder.CreateString(_o.FolderPath[_j]); }
-      _folderPath = CreateFolderPathVector(builder, __folderPath);
+      var __FolderPath = new StringOffset[_o.FolderPath.Count];
+      for (var _j = 0; _j < __FolderPath.Length; ++_j) { __FolderPath[_j] = builder.CreateString(_o.FolderPath[_j]); }
+      _FolderPath = CreateFolderPathVector(builder, __FolderPath);
     }
-    var _resourcePath = default(VectorOffset);
+    var _ResourcePath = default(VectorOffset);
     if (_o.ResourcePath != null) {
-      var __resourcePath = new StringOffset[_o.ResourcePath.Count];
-      for (var _j = 0; _j < __resourcePath.Length; ++_j) { __resourcePath[_j] = builder.CreateString(_o.ResourcePath[_j]); }
-      _resourcePath = CreateResourcePathVector(builder, __resourcePath);
+      var __ResourcePath = new StringOffset[_o.ResourcePath.Count];
+      for (var _j = 0; _j < __ResourcePath.Length; ++_j) { __ResourcePath[_j] = builder.CreateString(_o.ResourcePath[_j]); }
+      _ResourcePath = CreateResourcePathVector(builder, __ResourcePath);
     }
     return CreateAddressableWhiteListExcel(
       builder,
       _o.Id,
-      _folderPath,
-      _resourcePath);
+      _FolderPath,
+      _ResourcePath);
   }
 }
 

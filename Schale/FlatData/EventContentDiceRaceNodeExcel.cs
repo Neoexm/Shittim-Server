@@ -54,15 +54,15 @@ public struct EventContentDiceRaceNodeExcel : IFlatbufferObject
       long NodeId = 0,
       Schale.FlatData.EventContentDiceRaceNodeType EventContentDiceRaceNodeType = Schale.FlatData.EventContentDiceRaceNodeType.StartNode,
       int MoveForwardTypeArg = 0,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset rewardParcelIdOffset = default(VectorOffset),
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardAmountOffset = default(VectorOffset)) {
     builder.StartTable(7);
     EventContentDiceRaceNodeExcel.AddNodeId(builder, NodeId);
     EventContentDiceRaceNodeExcel.AddEventContentId(builder, EventContentId);
     EventContentDiceRaceNodeExcel.AddRewardAmount(builder, RewardAmountOffset);
-    EventContentDiceRaceNodeExcel.AddRewardParcelId(builder, rewardParcelIdOffset);
-    EventContentDiceRaceNodeExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
+    EventContentDiceRaceNodeExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
+    EventContentDiceRaceNodeExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     EventContentDiceRaceNodeExcel.AddMoveForwardTypeArg(builder, MoveForwardTypeArg);
     EventContentDiceRaceNodeExcel.AddEventContentDiceRaceNodeType(builder, EventContentDiceRaceNodeType);
     return EventContentDiceRaceNodeExcel.EndEventContentDiceRaceNodeExcel(builder);
@@ -115,15 +115,15 @@ public struct EventContentDiceRaceNodeExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentDiceRaceNodeExcel> Pack(FlatBufferBuilder builder, EventContentDiceRaceNodeExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentDiceRaceNodeExcel>);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
-    var _rewardParcelId = default(VectorOffset);
+    var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
-      var __rewardParcelId = _o.RewardParcelId.ToArray();
-      _rewardParcelId = CreateRewardParcelIdVector(builder, __rewardParcelId);
+      var __RewardParcelId = _o.RewardParcelId.ToArray();
+      _RewardParcelId = CreateRewardParcelIdVector(builder, __RewardParcelId);
     }
     var _RewardAmount = default(VectorOffset);
     if (_o.RewardAmount != null) {
@@ -136,8 +136,8 @@ public struct EventContentDiceRaceNodeExcel : IFlatbufferObject
       _o.NodeId,
       _o.EventContentDiceRaceNodeType,
       _o.MoveForwardTypeArg,
-      _rewardParcelType,
-      _rewardParcelId,
+      _RewardParcelType,
+      _RewardParcelId,
       _RewardAmount);
   }
 }

@@ -131,13 +131,13 @@ public struct EventContentLocationRewardExcel : IFlatbufferObject
       long SecretStoneProb = 0,
       long ExtraFavorExp = 0,
       long ExtraFavorExpProb = 0,
-      VectorOffset extraRewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset ExtraRewardParcelTypeOffset = default(VectorOffset),
       VectorOffset ExtraRewardParcelIdOffset = default(VectorOffset),
-      VectorOffset extraRewardAmountOffset = default(VectorOffset),
-      VectorOffset extraRewardProbOffset = default(VectorOffset),
+      VectorOffset ExtraRewardAmountOffset = default(VectorOffset),
+      VectorOffset ExtraRewardProbOffset = default(VectorOffset),
       VectorOffset IsExtraRewardDisplayedOffset = default(VectorOffset),
       VectorOffset RewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset rewardParcelIdOffset = default(VectorOffset),
+      VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardAmountOffset = default(VectorOffset)) {
     builder.StartTable(21);
     EventContentLocationRewardExcel.AddExtraFavorExpProb(builder, ExtraFavorExpProb);
@@ -150,13 +150,13 @@ public struct EventContentLocationRewardExcel : IFlatbufferObject
     EventContentLocationRewardExcel.AddOrderInGroup(builder, OrderInGroup);
     EventContentLocationRewardExcel.AddScheduleGroupId(builder, ScheduleGroupId);
     EventContentLocationRewardExcel.AddRewardAmount(builder, RewardAmountOffset);
-    EventContentLocationRewardExcel.AddRewardParcelId(builder, rewardParcelIdOffset);
+    EventContentLocationRewardExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
     EventContentLocationRewardExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     EventContentLocationRewardExcel.AddIsExtraRewardDisplayed(builder, IsExtraRewardDisplayedOffset);
-    EventContentLocationRewardExcel.AddExtraRewardProb(builder, extraRewardProbOffset);
-    EventContentLocationRewardExcel.AddExtraRewardAmount(builder, extraRewardAmountOffset);
+    EventContentLocationRewardExcel.AddExtraRewardProb(builder, ExtraRewardProbOffset);
+    EventContentLocationRewardExcel.AddExtraRewardAmount(builder, ExtraRewardAmountOffset);
     EventContentLocationRewardExcel.AddExtraRewardParcelId(builder, ExtraRewardParcelIdOffset);
-    EventContentLocationRewardExcel.AddExtraRewardParcelType(builder, extraRewardParcelTypeOffset);
+    EventContentLocationRewardExcel.AddExtraRewardParcelType(builder, ExtraRewardParcelTypeOffset);
     EventContentLocationRewardExcel.AddLocalizeEtcId(builder, LocalizeEtcId);
     EventContentLocationRewardExcel.AddVoiceId(builder, VoiceIdOffset);
     EventContentLocationRewardExcel.AddProgressTexture(builder, ProgressTextureOffset);
@@ -282,25 +282,25 @@ public struct EventContentLocationRewardExcel : IFlatbufferObject
       var __VoiceId = _o.VoiceId.ToArray();
       _VoiceId = CreateVoiceIdVector(builder, __VoiceId);
     }
-    var _extraRewardParcelType = default(VectorOffset);
+    var _ExtraRewardParcelType = default(VectorOffset);
     if (_o.ExtraRewardParcelType != null) {
-      var __extraRewardParcelType = _o.ExtraRewardParcelType.ToArray();
-      _extraRewardParcelType = CreateExtraRewardParcelTypeVector(builder, __extraRewardParcelType);
+      var __ExtraRewardParcelType = _o.ExtraRewardParcelType.ToArray();
+      _ExtraRewardParcelType = CreateExtraRewardParcelTypeVector(builder, __ExtraRewardParcelType);
     }
     var _ExtraRewardParcelId = default(VectorOffset);
     if (_o.ExtraRewardParcelId != null) {
       var __ExtraRewardParcelId = _o.ExtraRewardParcelId.ToArray();
       _ExtraRewardParcelId = CreateExtraRewardParcelIdVector(builder, __ExtraRewardParcelId);
     }
-    var _extraRewardAmount = default(VectorOffset);
+    var _ExtraRewardAmount = default(VectorOffset);
     if (_o.ExtraRewardAmount != null) {
-      var __extraRewardAmount = _o.ExtraRewardAmount.ToArray();
-      _extraRewardAmount = CreateExtraRewardAmountVector(builder, __extraRewardAmount);
+      var __ExtraRewardAmount = _o.ExtraRewardAmount.ToArray();
+      _ExtraRewardAmount = CreateExtraRewardAmountVector(builder, __ExtraRewardAmount);
     }
-    var _extraRewardProb = default(VectorOffset);
+    var _ExtraRewardProb = default(VectorOffset);
     if (_o.ExtraRewardProb != null) {
-      var __extraRewardProb = _o.ExtraRewardProb.ToArray();
-      _extraRewardProb = CreateExtraRewardProbVector(builder, __extraRewardProb);
+      var __ExtraRewardProb = _o.ExtraRewardProb.ToArray();
+      _ExtraRewardProb = CreateExtraRewardProbVector(builder, __ExtraRewardProb);
     }
     var _IsExtraRewardDisplayed = default(VectorOffset);
     if (_o.IsExtraRewardDisplayed != null) {
@@ -312,10 +312,10 @@ public struct EventContentLocationRewardExcel : IFlatbufferObject
       var __RewardParcelType = _o.RewardParcelType.ToArray();
       _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
-    var _rewardParcelId = default(VectorOffset);
+    var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
-      var __rewardParcelId = _o.RewardParcelId.ToArray();
-      _rewardParcelId = CreateRewardParcelIdVector(builder, __rewardParcelId);
+      var __RewardParcelId = _o.RewardParcelId.ToArray();
+      _RewardParcelId = CreateRewardParcelIdVector(builder, __RewardParcelId);
     }
     var _RewardAmount = default(VectorOffset);
     if (_o.RewardAmount != null) {
@@ -337,13 +337,13 @@ public struct EventContentLocationRewardExcel : IFlatbufferObject
       _o.SecretStoneProb,
       _o.ExtraFavorExp,
       _o.ExtraFavorExpProb,
-      _extraRewardParcelType,
+      _ExtraRewardParcelType,
       _ExtraRewardParcelId,
-      _extraRewardAmount,
-      _extraRewardProb,
+      _ExtraRewardAmount,
+      _ExtraRewardProb,
       _IsExtraRewardDisplayed,
       _RewardParcelType,
-      _rewardParcelId,
+      _RewardParcelId,
       _RewardAmount);
   }
 }

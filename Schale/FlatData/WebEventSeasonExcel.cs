@@ -22,59 +22,75 @@ public struct WebEventSeasonExcel : IFlatbufferObject
 
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public bool Enabled { get { int o = __p.__offset(6); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public string StartDate { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long IconOrder { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WebEventId(int j) { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int WebEventIdLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetStartDateBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<long> GetWebEventIdBytes() { return __p.__vector_as_span<long>(10, 8); }
 #else
-  public ArraySegment<byte>? GetStartDateBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetWebEventIdBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public byte[] GetStartDateArray() { return __p.__vector_as_array<byte>(8); }
-  public string EndDate { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long[] GetWebEventIdArray() { return __p.__vector_as_array<long>(10); }
+  public bool IsFull { get { int o = __p.__offset(12); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool UseExternalBrowser { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public string StartDate { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetEndDateBytes() { return __p.__vector_as_span<byte>(10, 1); }
+  public Span<byte> GetStartDateBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetEndDateBytes() { return __p.__vector_as_arraysegment(10); }
+  public ArraySegment<byte>? GetStartDateBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetEndDateArray() { return __p.__vector_as_array<byte>(10); }
-  public string LobbyBannerImage { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetStartDateArray() { return __p.__vector_as_array<byte>(16); }
+  public string EndDate { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLobbyBannerImageBytes() { return __p.__vector_as_span<byte>(12, 1); }
+  public Span<byte> GetEndDateBytes() { return __p.__vector_as_span<byte>(18, 1); }
 #else
-  public ArraySegment<byte>? GetLobbyBannerImageBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetEndDateBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public byte[] GetLobbyBannerImageArray() { return __p.__vector_as_array<byte>(12); }
-  public string PopupTitleLocalizeKey { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetEndDateArray() { return __p.__vector_as_array<byte>(18); }
+  public string LobbyBannerImage { get { int o = __p.__offset(20); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetPopupTitleLocalizeKeyBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetLobbyBannerImageBytes() { return __p.__vector_as_span<byte>(20, 1); }
 #else
-  public ArraySegment<byte>? GetPopupTitleLocalizeKeyBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetLobbyBannerImageBytes() { return __p.__vector_as_arraysegment(20); }
 #endif
-  public byte[] GetPopupTitleLocalizeKeyArray() { return __p.__vector_as_array<byte>(14); }
-  public string StageEventUrl { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLobbyBannerImageArray() { return __p.__vector_as_array<byte>(20); }
+  public string PopupTitleLocalizeKey { get { int o = __p.__offset(22); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetStageEventUrlBytes() { return __p.__vector_as_span<byte>(16, 1); }
+  public Span<byte> GetPopupTitleLocalizeKeyBytes() { return __p.__vector_as_span<byte>(22, 1); }
 #else
-  public ArraySegment<byte>? GetStageEventUrlBytes() { return __p.__vector_as_arraysegment(16); }
+  public ArraySegment<byte>? GetPopupTitleLocalizeKeyBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
-  public byte[] GetStageEventUrlArray() { return __p.__vector_as_array<byte>(16); }
-  public string LiveEventUrl { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetPopupTitleLocalizeKeyArray() { return __p.__vector_as_array<byte>(22); }
+  public string StageEventUrl { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLiveEventUrlBytes() { return __p.__vector_as_span<byte>(18, 1); }
+  public Span<byte> GetStageEventUrlBytes() { return __p.__vector_as_span<byte>(24, 1); }
 #else
-  public ArraySegment<byte>? GetLiveEventUrlBytes() { return __p.__vector_as_arraysegment(18); }
+  public ArraySegment<byte>? GetStageEventUrlBytes() { return __p.__vector_as_arraysegment(24); }
 #endif
-  public byte[] GetLiveEventUrlArray() { return __p.__vector_as_array<byte>(18); }
+  public byte[] GetStageEventUrlArray() { return __p.__vector_as_array<byte>(24); }
+  public string LiveEventUrl { get { int o = __p.__offset(26); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetLiveEventUrlBytes() { return __p.__vector_as_span<byte>(26, 1); }
+#else
+  public ArraySegment<byte>? GetLiveEventUrlBytes() { return __p.__vector_as_arraysegment(26); }
+#endif
+  public byte[] GetLiveEventUrlArray() { return __p.__vector_as_array<byte>(26); }
 
   public static Offset<Schale.FlatData.WebEventSeasonExcel> CreateWebEventSeasonExcel(FlatBufferBuilder builder,
       long Id = 0,
       bool Enabled = false,
+      long IconOrder = 0,
+      VectorOffset WebEventIdOffset = default(VectorOffset),
+      bool IsFull = false,
+      bool UseExternalBrowser = false,
       StringOffset StartDateOffset = default(StringOffset),
       StringOffset EndDateOffset = default(StringOffset),
       StringOffset LobbyBannerImageOffset = default(StringOffset),
       StringOffset PopupTitleLocalizeKeyOffset = default(StringOffset),
       StringOffset StageEventUrlOffset = default(StringOffset),
       StringOffset LiveEventUrlOffset = default(StringOffset)) {
-    builder.StartTable(8);
+    builder.StartTable(12);
+    WebEventSeasonExcel.AddIconOrder(builder, IconOrder);
     WebEventSeasonExcel.AddId(builder, Id);
     WebEventSeasonExcel.AddLiveEventUrl(builder, LiveEventUrlOffset);
     WebEventSeasonExcel.AddStageEventUrl(builder, StageEventUrlOffset);
@@ -82,19 +98,31 @@ public struct WebEventSeasonExcel : IFlatbufferObject
     WebEventSeasonExcel.AddLobbyBannerImage(builder, LobbyBannerImageOffset);
     WebEventSeasonExcel.AddEndDate(builder, EndDateOffset);
     WebEventSeasonExcel.AddStartDate(builder, StartDateOffset);
+    WebEventSeasonExcel.AddWebEventId(builder, WebEventIdOffset);
+    WebEventSeasonExcel.AddUseExternalBrowser(builder, UseExternalBrowser);
+    WebEventSeasonExcel.AddIsFull(builder, IsFull);
     WebEventSeasonExcel.AddEnabled(builder, Enabled);
     return WebEventSeasonExcel.EndWebEventSeasonExcel(builder);
   }
 
-  public static void StartWebEventSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
+  public static void StartWebEventSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(12); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddEnabled(FlatBufferBuilder builder, bool enabled) { builder.AddBool(1, enabled, false); }
-  public static void AddStartDate(FlatBufferBuilder builder, StringOffset startDateOffset) { builder.AddOffset(2, startDateOffset.Value, 0); }
-  public static void AddEndDate(FlatBufferBuilder builder, StringOffset endDateOffset) { builder.AddOffset(3, endDateOffset.Value, 0); }
-  public static void AddLobbyBannerImage(FlatBufferBuilder builder, StringOffset lobbyBannerImageOffset) { builder.AddOffset(4, lobbyBannerImageOffset.Value, 0); }
-  public static void AddPopupTitleLocalizeKey(FlatBufferBuilder builder, StringOffset popupTitleLocalizeKeyOffset) { builder.AddOffset(5, popupTitleLocalizeKeyOffset.Value, 0); }
-  public static void AddStageEventUrl(FlatBufferBuilder builder, StringOffset stageEventUrlOffset) { builder.AddOffset(6, stageEventUrlOffset.Value, 0); }
-  public static void AddLiveEventUrl(FlatBufferBuilder builder, StringOffset liveEventUrlOffset) { builder.AddOffset(7, liveEventUrlOffset.Value, 0); }
+  public static void AddIconOrder(FlatBufferBuilder builder, long iconOrder) { builder.AddLong(2, iconOrder, 0); }
+  public static void AddWebEventId(FlatBufferBuilder builder, VectorOffset webEventIdOffset) { builder.AddOffset(3, webEventIdOffset.Value, 0); }
+  public static VectorOffset CreateWebEventIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateWebEventIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateWebEventIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateWebEventIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartWebEventIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddIsFull(FlatBufferBuilder builder, bool isFull) { builder.AddBool(4, isFull, false); }
+  public static void AddUseExternalBrowser(FlatBufferBuilder builder, bool useExternalBrowser) { builder.AddBool(5, useExternalBrowser, false); }
+  public static void AddStartDate(FlatBufferBuilder builder, StringOffset startDateOffset) { builder.AddOffset(6, startDateOffset.Value, 0); }
+  public static void AddEndDate(FlatBufferBuilder builder, StringOffset endDateOffset) { builder.AddOffset(7, endDateOffset.Value, 0); }
+  public static void AddLobbyBannerImage(FlatBufferBuilder builder, StringOffset lobbyBannerImageOffset) { builder.AddOffset(8, lobbyBannerImageOffset.Value, 0); }
+  public static void AddPopupTitleLocalizeKey(FlatBufferBuilder builder, StringOffset popupTitleLocalizeKeyOffset) { builder.AddOffset(9, popupTitleLocalizeKeyOffset.Value, 0); }
+  public static void AddStageEventUrl(FlatBufferBuilder builder, StringOffset stageEventUrlOffset) { builder.AddOffset(10, stageEventUrlOffset.Value, 0); }
+  public static void AddLiveEventUrl(FlatBufferBuilder builder, StringOffset liveEventUrlOffset) { builder.AddOffset(11, liveEventUrlOffset.Value, 0); }
   public static Offset<Schale.FlatData.WebEventSeasonExcel> EndWebEventSeasonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.WebEventSeasonExcel>(o);
@@ -108,6 +136,11 @@ public struct WebEventSeasonExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("WebEventSeason");
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
     _o.Enabled = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Enabled, key) : this.Enabled;
+    _o.IconOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconOrder, key) : this.IconOrder;
+    _o.WebEventId = new List<long>();
+    for (var _j = 0; _j < this.WebEventIdLength; ++_j) {_o.WebEventId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WebEventId(_j), key) : this.WebEventId(_j));}
+    _o.IsFull = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsFull, key) : this.IsFull;
+    _o.UseExternalBrowser = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UseExternalBrowser, key) : this.UseExternalBrowser;
     _o.StartDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.StartDate, key) : this.StartDate;
     _o.EndDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EndDate, key) : this.EndDate;
     _o.LobbyBannerImage = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyBannerImage, key) : this.LobbyBannerImage;
@@ -117,6 +150,11 @@ public struct WebEventSeasonExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.WebEventSeasonExcel> Pack(FlatBufferBuilder builder, WebEventSeasonExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.WebEventSeasonExcel>);
+    var _WebEventId = default(VectorOffset);
+    if (_o.WebEventId != null) {
+      var __WebEventId = _o.WebEventId.ToArray();
+      _WebEventId = CreateWebEventIdVector(builder, __WebEventId);
+    }
     var _StartDate = _o.StartDate == null ? default(StringOffset) : builder.CreateString(_o.StartDate);
     var _EndDate = _o.EndDate == null ? default(StringOffset) : builder.CreateString(_o.EndDate);
     var _LobbyBannerImage = _o.LobbyBannerImage == null ? default(StringOffset) : builder.CreateString(_o.LobbyBannerImage);
@@ -127,6 +165,10 @@ public struct WebEventSeasonExcel : IFlatbufferObject
       builder,
       _o.Id,
       _o.Enabled,
+      _o.IconOrder,
+      _WebEventId,
+      _o.IsFull,
+      _o.UseExternalBrowser,
       _StartDate,
       _EndDate,
       _LobbyBannerImage,
@@ -140,6 +182,10 @@ public class WebEventSeasonExcelT
 {
   public long Id { get; set; }
   public bool Enabled { get; set; }
+  public long IconOrder { get; set; }
+  public List<long> WebEventId { get; set; }
+  public bool IsFull { get; set; }
+  public bool UseExternalBrowser { get; set; }
   public string StartDate { get; set; }
   public string EndDate { get; set; }
   public string LobbyBannerImage { get; set; }
@@ -150,6 +196,10 @@ public class WebEventSeasonExcelT
   public WebEventSeasonExcelT() {
     this.Id = 0;
     this.Enabled = false;
+    this.IconOrder = 0;
+    this.WebEventId = null;
+    this.IsFull = false;
+    this.UseExternalBrowser = false;
     this.StartDate = null;
     this.EndDate = null;
     this.LobbyBannerImage = null;
@@ -167,12 +217,16 @@ static public class WebEventSeasonExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*Enabled*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyString(tablePos, 8 /*StartDate*/, false)
-      && verifier.VerifyString(tablePos, 10 /*EndDate*/, false)
-      && verifier.VerifyString(tablePos, 12 /*LobbyBannerImage*/, false)
-      && verifier.VerifyString(tablePos, 14 /*PopupTitleLocalizeKey*/, false)
-      && verifier.VerifyString(tablePos, 16 /*StageEventUrl*/, false)
-      && verifier.VerifyString(tablePos, 18 /*LiveEventUrl*/, false)
+      && verifier.VerifyField(tablePos, 8 /*IconOrder*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 10 /*WebEventId*/, 8 /*long*/, false)
+      && verifier.VerifyField(tablePos, 12 /*IsFull*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 14 /*UseExternalBrowser*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyString(tablePos, 16 /*StartDate*/, false)
+      && verifier.VerifyString(tablePos, 18 /*EndDate*/, false)
+      && verifier.VerifyString(tablePos, 20 /*LobbyBannerImage*/, false)
+      && verifier.VerifyString(tablePos, 22 /*PopupTitleLocalizeKey*/, false)
+      && verifier.VerifyString(tablePos, 24 /*StageEventUrl*/, false)
+      && verifier.VerifyString(tablePos, 26 /*LiveEventUrl*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

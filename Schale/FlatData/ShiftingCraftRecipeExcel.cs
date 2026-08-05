@@ -29,15 +29,19 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
   public long RequireItemId { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long RequireItemAmount { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long RequireGold { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.Tag IngredientTag(int j) { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.Tag)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.Tag)0; }
-  public int IngredientTagLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.ParcelType AdditionalCostParcelType { get { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long AdditionalCostParcelId { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long AdditionalCostParcelAmount { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.Tag IngredientTag(int j) { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.Tag)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.Tag)0; }
+  public int IngredientTagLength { get { int o = __p.__offset(28); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.Tag> GetIngredientTagBytes() { return __p.__vector_as_span<Schale.FlatData.Tag>(22, 4); }
+  public Span<Schale.FlatData.Tag> GetIngredientTagBytes() { return __p.__vector_as_span<Schale.FlatData.Tag>(28, 4); }
 #else
-  public ArraySegment<byte>? GetIngredientTagBytes() { return __p.__vector_as_arraysegment(22); }
+  public ArraySegment<byte>? GetIngredientTagBytes() { return __p.__vector_as_arraysegment(28); }
 #endif
-  public Schale.FlatData.Tag[] GetIngredientTagArray() { int o = __p.__offset(22); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
-  public long IngredientExp { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.Tag[] GetIngredientTagArray() { int o = __p.__offset(28); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
+  public long IngredientExp { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.RecipeDisplayOptions RecipeDisplayOptions { get { int o = __p.__offset(32); return o != 0 ? (Schale.FlatData.RecipeDisplayOptions)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.RecipeDisplayOptions.None; } }
 
   public static Offset<Schale.FlatData.ShiftingCraftRecipeExcel> CreateShiftingCraftRecipeExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -49,10 +53,16 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
       long RequireItemId = 0,
       long RequireItemAmount = 0,
       long RequireGold = 0,
+      Schale.FlatData.ParcelType AdditionalCostParcelType = Schale.FlatData.ParcelType.None,
+      long AdditionalCostParcelId = 0,
+      long AdditionalCostParcelAmount = 0,
       VectorOffset IngredientTagOffset = default(VectorOffset),
-      long IngredientExp = 0) {
-    builder.StartTable(11);
+      long IngredientExp = 0,
+      Schale.FlatData.RecipeDisplayOptions RecipeDisplayOptions = Schale.FlatData.RecipeDisplayOptions.None) {
+    builder.StartTable(15);
     ShiftingCraftRecipeExcel.AddIngredientExp(builder, IngredientExp);
+    ShiftingCraftRecipeExcel.AddAdditionalCostParcelAmount(builder, AdditionalCostParcelAmount);
+    ShiftingCraftRecipeExcel.AddAdditionalCostParcelId(builder, AdditionalCostParcelId);
     ShiftingCraftRecipeExcel.AddRequireGold(builder, RequireGold);
     ShiftingCraftRecipeExcel.AddRequireItemAmount(builder, RequireItemAmount);
     ShiftingCraftRecipeExcel.AddRequireItemId(builder, RequireItemId);
@@ -60,13 +70,15 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
     ShiftingCraftRecipeExcel.AddResultId(builder, ResultId);
     ShiftingCraftRecipeExcel.AddDisplayOrder(builder, DisplayOrder);
     ShiftingCraftRecipeExcel.AddId(builder, Id);
+    ShiftingCraftRecipeExcel.AddRecipeDisplayOptions(builder, RecipeDisplayOptions);
     ShiftingCraftRecipeExcel.AddIngredientTag(builder, IngredientTagOffset);
+    ShiftingCraftRecipeExcel.AddAdditionalCostParcelType(builder, AdditionalCostParcelType);
     ShiftingCraftRecipeExcel.AddResultParcel(builder, ResultParcel);
     ShiftingCraftRecipeExcel.AddNotificationId(builder, NotificationId);
     return ShiftingCraftRecipeExcel.EndShiftingCraftRecipeExcel(builder);
   }
 
-  public static void StartShiftingCraftRecipeExcel(FlatBufferBuilder builder) { builder.StartTable(11); }
+  public static void StartShiftingCraftRecipeExcel(FlatBufferBuilder builder) { builder.StartTable(15); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(1, displayOrder, 0); }
   public static void AddNotificationId(FlatBufferBuilder builder, int notificationId) { builder.AddInt(2, notificationId, 0); }
@@ -76,13 +88,17 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
   public static void AddRequireItemId(FlatBufferBuilder builder, long requireItemId) { builder.AddLong(6, requireItemId, 0); }
   public static void AddRequireItemAmount(FlatBufferBuilder builder, long requireItemAmount) { builder.AddLong(7, requireItemAmount, 0); }
   public static void AddRequireGold(FlatBufferBuilder builder, long requireGold) { builder.AddLong(8, requireGold, 0); }
-  public static void AddIngredientTag(FlatBufferBuilder builder, VectorOffset ingredientTagOffset) { builder.AddOffset(9, ingredientTagOffset.Value, 0); }
+  public static void AddAdditionalCostParcelType(FlatBufferBuilder builder, Schale.FlatData.ParcelType additionalCostParcelType) { builder.AddInt(9, (int)additionalCostParcelType, 0); }
+  public static void AddAdditionalCostParcelId(FlatBufferBuilder builder, long additionalCostParcelId) { builder.AddLong(10, additionalCostParcelId, 0); }
+  public static void AddAdditionalCostParcelAmount(FlatBufferBuilder builder, long additionalCostParcelAmount) { builder.AddLong(11, additionalCostParcelAmount, 0); }
+  public static void AddIngredientTag(FlatBufferBuilder builder, VectorOffset ingredientTagOffset) { builder.AddOffset(12, ingredientTagOffset.Value, 0); }
   public static VectorOffset CreateIngredientTagVector(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateIngredientTagVectorBlock(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateIngredientTagVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.Tag> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateIngredientTagVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.Tag>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartIngredientTagVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddIngredientExp(FlatBufferBuilder builder, long ingredientExp) { builder.AddLong(10, ingredientExp, 0); }
+  public static void AddIngredientExp(FlatBufferBuilder builder, long ingredientExp) { builder.AddLong(13, ingredientExp, 0); }
+  public static void AddRecipeDisplayOptions(FlatBufferBuilder builder, Schale.FlatData.RecipeDisplayOptions recipeDisplayOptions) { builder.AddInt(14, (int)recipeDisplayOptions, 0); }
   public static Offset<Schale.FlatData.ShiftingCraftRecipeExcel> EndShiftingCraftRecipeExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ShiftingCraftRecipeExcel>(o);
@@ -103,9 +119,13 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
     _o.RequireItemId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RequireItemId, key) : this.RequireItemId;
     _o.RequireItemAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RequireItemAmount, key) : this.RequireItemAmount;
     _o.RequireGold = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RequireGold, key) : this.RequireGold;
+    _o.AdditionalCostParcelType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AdditionalCostParcelType, key) : this.AdditionalCostParcelType;
+    _o.AdditionalCostParcelId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AdditionalCostParcelId, key) : this.AdditionalCostParcelId;
+    _o.AdditionalCostParcelAmount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AdditionalCostParcelAmount, key) : this.AdditionalCostParcelAmount;
     _o.IngredientTag = new List<Schale.FlatData.Tag>();
     for (var _j = 0; _j < this.IngredientTagLength; ++_j) {_o.IngredientTag.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IngredientTag(_j), key) : this.IngredientTag(_j));}
     _o.IngredientExp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IngredientExp, key) : this.IngredientExp;
+    _o.RecipeDisplayOptions = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RecipeDisplayOptions, key) : this.RecipeDisplayOptions;
   }
   public static Offset<Schale.FlatData.ShiftingCraftRecipeExcel> Pack(FlatBufferBuilder builder, ShiftingCraftRecipeExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ShiftingCraftRecipeExcel>);
@@ -125,8 +145,12 @@ public struct ShiftingCraftRecipeExcel : IFlatbufferObject
       _o.RequireItemId,
       _o.RequireItemAmount,
       _o.RequireGold,
+      _o.AdditionalCostParcelType,
+      _o.AdditionalCostParcelId,
+      _o.AdditionalCostParcelAmount,
       _IngredientTag,
-      _o.IngredientExp);
+      _o.IngredientExp,
+      _o.RecipeDisplayOptions);
   }
 }
 
@@ -141,8 +165,12 @@ public class ShiftingCraftRecipeExcelT
   public long RequireItemId { get; set; }
   public long RequireItemAmount { get; set; }
   public long RequireGold { get; set; }
+  public Schale.FlatData.ParcelType AdditionalCostParcelType { get; set; }
+  public long AdditionalCostParcelId { get; set; }
+  public long AdditionalCostParcelAmount { get; set; }
   public List<Schale.FlatData.Tag> IngredientTag { get; set; }
   public long IngredientExp { get; set; }
+  public Schale.FlatData.RecipeDisplayOptions RecipeDisplayOptions { get; set; }
 
   public ShiftingCraftRecipeExcelT() {
     this.Id = 0;
@@ -154,8 +182,12 @@ public class ShiftingCraftRecipeExcelT
     this.RequireItemId = 0;
     this.RequireItemAmount = 0;
     this.RequireGold = 0;
+    this.AdditionalCostParcelType = Schale.FlatData.ParcelType.None;
+    this.AdditionalCostParcelId = 0;
+    this.AdditionalCostParcelAmount = 0;
     this.IngredientTag = null;
     this.IngredientExp = 0;
+    this.RecipeDisplayOptions = Schale.FlatData.RecipeDisplayOptions.None;
   }
 }
 
@@ -174,8 +206,12 @@ static public class ShiftingCraftRecipeExcelVerify
       && verifier.VerifyField(tablePos, 16 /*RequireItemId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 18 /*RequireItemAmount*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 20 /*RequireGold*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfData(tablePos, 22 /*IngredientTag*/, 4 /*Schale.FlatData.Tag*/, false)
-      && verifier.VerifyField(tablePos, 24 /*IngredientExp*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*AdditionalCostParcelType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 24 /*AdditionalCostParcelId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 26 /*AdditionalCostParcelAmount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 28 /*IngredientTag*/, 4 /*Schale.FlatData.Tag*/, false)
+      && verifier.VerifyField(tablePos, 30 /*IngredientExp*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*RecipeDisplayOptions*/, 4 /*Schale.FlatData.RecipeDisplayOptions*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

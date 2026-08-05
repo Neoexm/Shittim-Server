@@ -63,18 +63,18 @@ public struct EventContentCardShopExcel : IFlatbufferObject
       bool IsLegacy = false,
       int RefreshGroup = 0,
       int Prob = 0,
-      int ProbWeight1 = 0,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset rewardParcelIdOffset = default(VectorOffset),
+      int ProbWeight_1 = 0,
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
     builder.StartTable(12);
     EventContentCardShopExcel.AddCostGoodsId(builder, CostGoodsId);
     EventContentCardShopExcel.AddId(builder, Id);
     EventContentCardShopExcel.AddEventContentId(builder, EventContentId);
     EventContentCardShopExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
-    EventContentCardShopExcel.AddRewardParcelId(builder, rewardParcelIdOffset);
-    EventContentCardShopExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
-    EventContentCardShopExcel.AddProbWeight1(builder, ProbWeight1);
+    EventContentCardShopExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
+    EventContentCardShopExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
+    EventContentCardShopExcel.AddProbWeight1(builder, ProbWeight_1);
     EventContentCardShopExcel.AddProb(builder, Prob);
     EventContentCardShopExcel.AddRefreshGroup(builder, RefreshGroup);
     EventContentCardShopExcel.AddCardGroupId(builder, CardGroupId);
@@ -140,15 +140,15 @@ public struct EventContentCardShopExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentCardShopExcel> Pack(FlatBufferBuilder builder, EventContentCardShopExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentCardShopExcel>);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
-    var _rewardParcelId = default(VectorOffset);
+    var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
-      var __rewardParcelId = _o.RewardParcelId.ToArray();
-      _rewardParcelId = CreateRewardParcelIdVector(builder, __rewardParcelId);
+      var __RewardParcelId = _o.RewardParcelId.ToArray();
+      _RewardParcelId = CreateRewardParcelIdVector(builder, __RewardParcelId);
     }
     var _RewardParcelAmount = default(VectorOffset);
     if (_o.RewardParcelAmount != null) {
@@ -166,8 +166,8 @@ public struct EventContentCardShopExcel : IFlatbufferObject
       _o.RefreshGroup,
       _o.Prob,
       _o.ProbWeight1,
-      _rewardParcelType,
-      _rewardParcelId,
+      _RewardParcelType,
+      _RewardParcelId,
       _RewardParcelAmount);
   }
 }

@@ -113,10 +113,10 @@ public struct WorldRaidBossGroupExcel : IFlatbufferObject
       StringOffset WorldBossParcelPortraitOffset = default(StringOffset),
       StringOffset WorldBossListParcelOffset = default(StringOffset),
       long WorldBossHP = 0,
-      long WorldBossHPTw = 0,
-      long WorldBossHPAsia = 0,
-      long WorldBossHPNa = 0,
-      long WorldBossHPGlobal = 0,
+      long WorldBossHP_Tw = 0,
+      long WorldBossHP_Asia = 0,
+      long WorldBossHP_Na = 0,
+      long WorldBossHP_Global = 0,
       bool UIHideBeforeSpawn = false,
       bool HideAnotherBossKilled = false,
       long WorldBossClearRewardGroupId = 0,
@@ -131,10 +131,10 @@ public struct WorldRaidBossGroupExcel : IFlatbufferObject
     WorldRaidBossGroupExcel.AddBossGroupOpenCondition(builder, BossGroupOpenCondition);
     WorldRaidBossGroupExcel.AddEchelonConstraintGroupId(builder, EchelonConstraintGroupId);
     WorldRaidBossGroupExcel.AddWorldBossClearRewardGroupId(builder, WorldBossClearRewardGroupId);
-    WorldRaidBossGroupExcel.AddWorldBossHPGlobal(builder, WorldBossHPGlobal);
-    WorldRaidBossGroupExcel.AddWorldBossHPNa(builder, WorldBossHPNa);
-    WorldRaidBossGroupExcel.AddWorldBossHPAsia(builder, WorldBossHPAsia);
-    WorldRaidBossGroupExcel.AddWorldBossHPTw(builder, WorldBossHPTw);
+    WorldRaidBossGroupExcel.AddWorldBossHPGlobal(builder, WorldBossHP_Global);
+    WorldRaidBossGroupExcel.AddWorldBossHPNa(builder, WorldBossHP_Na);
+    WorldRaidBossGroupExcel.AddWorldBossHPAsia(builder, WorldBossHP_Asia);
+    WorldRaidBossGroupExcel.AddWorldBossHPTw(builder, WorldBossHP_Tw);
     WorldRaidBossGroupExcel.AddWorldBossHP(builder, WorldBossHP);
     WorldRaidBossGroupExcel.AddWorldRaidBossGroupId(builder, WorldRaidBossGroupId);
     WorldRaidBossGroupExcel.AddId(builder, Id);

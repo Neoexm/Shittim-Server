@@ -39,9 +39,9 @@ public struct SpineLipsyncExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.SpineLipsyncExcel> CreateSpineLipsyncExcel(FlatBufferBuilder builder,
       uint VoiceId = 0,
       StringOffset AnimJsonOffset = default(StringOffset),
-      StringOffset AnimJsonKrOffset = default(StringOffset)) {
+      StringOffset AnimJson_krOffset = default(StringOffset)) {
     builder.StartTable(3);
-    SpineLipsyncExcel.AddAnimJsonKr(builder, AnimJsonKrOffset);
+    SpineLipsyncExcel.AddAnimJsonKr(builder, AnimJson_krOffset);
     SpineLipsyncExcel.AddAnimJson(builder, AnimJsonOffset);
     SpineLipsyncExcel.AddVoiceId(builder, VoiceId);
     return SpineLipsyncExcel.EndSpineLipsyncExcel(builder);
@@ -69,12 +69,12 @@ public struct SpineLipsyncExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.SpineLipsyncExcel> Pack(FlatBufferBuilder builder, SpineLipsyncExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.SpineLipsyncExcel>);
     var _AnimJson = _o.AnimJson == null ? default(StringOffset) : builder.CreateString(_o.AnimJson);
-    var _AnimJsonKr = _o.AnimJsonKr == null ? default(StringOffset) : builder.CreateString(_o.AnimJsonKr);
+    var _AnimJson_kr = _o.AnimJsonKr == null ? default(StringOffset) : builder.CreateString(_o.AnimJsonKr);
     return CreateSpineLipsyncExcel(
       builder,
       _o.VoiceId,
       _AnimJson,
-      _AnimJsonKr);
+      _AnimJson_kr);
   }
 }
 

@@ -76,13 +76,6 @@ public struct BattlePassInfoExcel : IFlatbufferObject
   public ArraySegment<byte>? GetPurchaseStepProductImagePathBytes() { return __p.__vector_as_arraysegment(40); }
 #endif
   public byte[] GetPurchaseStepProductImagePathArray() { return __p.__vector_as_array<byte>(40); }
-  public string PurchaseStepBgImagePath { get { int o = __p.__offset(42); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetPurchaseStepBgImagePathBytes() { return __p.__vector_as_span<byte>(42, 1); }
-#else
-  public ArraySegment<byte>? GetPurchaseStepBgImagePathBytes() { return __p.__vector_as_arraysegment(42); }
-#endif
-  public byte[] GetPurchaseStepBgImagePathArray() { return __p.__vector_as_array<byte>(42); }
 
   public static Offset<Schale.FlatData.BattlePassInfoExcel> CreateBattlePassInfoExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -103,9 +96,8 @@ public struct BattlePassInfoExcel : IFlatbufferObject
       uint PassExpLocalizeEtcId = 0,
       StringOffset LobbyBannerPathOffset = default(StringOffset),
       StringOffset MainIconParcelPathOffset = default(StringOffset),
-      StringOffset PurchaseStepProductImagePathOffset = default(StringOffset),
-      StringOffset PurchaseStepBgImagePathOffset = default(StringOffset)) {
-    builder.StartTable(20);
+      StringOffset PurchaseStepProductImagePathOffset = default(StringOffset)) {
+    builder.StartTable(19);
     BattlePassInfoExcel.AddExclusiveEmblemID(builder, ExclusiveEmblemID);
     BattlePassInfoExcel.AddExclusiveRewardID(builder, ExclusiveRewardID);
     BattlePassInfoExcel.AddFlavorTextGroupID(builder, FlavorTextGroupID);
@@ -116,7 +108,6 @@ public struct BattlePassInfoExcel : IFlatbufferObject
     BattlePassInfoExcel.AddPurchaseRewardGroupID(builder, PurchaseRewardGroupID);
     BattlePassInfoExcel.AddFreeRewardGroupID(builder, FreeRewardGroupID);
     BattlePassInfoExcel.AddId(builder, Id);
-    BattlePassInfoExcel.AddPurchaseStepBgImagePath(builder, PurchaseStepBgImagePathOffset);
     BattlePassInfoExcel.AddPurchaseStepProductImagePath(builder, PurchaseStepProductImagePathOffset);
     BattlePassInfoExcel.AddMainIconParcelPath(builder, MainIconParcelPathOffset);
     BattlePassInfoExcel.AddLobbyBannerPath(builder, LobbyBannerPathOffset);
@@ -129,7 +120,7 @@ public struct BattlePassInfoExcel : IFlatbufferObject
     return BattlePassInfoExcel.EndBattlePassInfoExcel(builder);
   }
 
-  public static void StartBattlePassInfoExcel(FlatBufferBuilder builder) { builder.StartTable(20); }
+  public static void StartBattlePassInfoExcel(FlatBufferBuilder builder) { builder.StartTable(19); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddFreeRewardGroupID(FlatBufferBuilder builder, long freeRewardGroupID) { builder.AddLong(1, freeRewardGroupID, 0); }
   public static void AddPurchaseRewardGroupID(FlatBufferBuilder builder, long purchaseRewardGroupID) { builder.AddLong(2, purchaseRewardGroupID, 0); }
@@ -154,7 +145,6 @@ public struct BattlePassInfoExcel : IFlatbufferObject
   public static void AddLobbyBannerPath(FlatBufferBuilder builder, StringOffset lobbyBannerPathOffset) { builder.AddOffset(16, lobbyBannerPathOffset.Value, 0); }
   public static void AddMainIconParcelPath(FlatBufferBuilder builder, StringOffset mainIconParcelPathOffset) { builder.AddOffset(17, mainIconParcelPathOffset.Value, 0); }
   public static void AddPurchaseStepProductImagePath(FlatBufferBuilder builder, StringOffset purchaseStepProductImagePathOffset) { builder.AddOffset(18, purchaseStepProductImagePathOffset.Value, 0); }
-  public static void AddPurchaseStepBgImagePath(FlatBufferBuilder builder, StringOffset purchaseStepBgImagePathOffset) { builder.AddOffset(19, purchaseStepBgImagePathOffset.Value, 0); }
   public static Offset<Schale.FlatData.BattlePassInfoExcel> EndBattlePassInfoExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.BattlePassInfoExcel>(o);
@@ -186,7 +176,6 @@ public struct BattlePassInfoExcel : IFlatbufferObject
     _o.LobbyBannerPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyBannerPath, key) : this.LobbyBannerPath;
     _o.MainIconParcelPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MainIconParcelPath, key) : this.MainIconParcelPath;
     _o.PurchaseStepProductImagePath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PurchaseStepProductImagePath, key) : this.PurchaseStepProductImagePath;
-    _o.PurchaseStepBgImagePath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PurchaseStepBgImagePath, key) : this.PurchaseStepBgImagePath;
   }
   public static Offset<Schale.FlatData.BattlePassInfoExcel> Pack(FlatBufferBuilder builder, BattlePassInfoExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.BattlePassInfoExcel>);
@@ -200,7 +189,6 @@ public struct BattlePassInfoExcel : IFlatbufferObject
     var _LobbyBannerPath = _o.LobbyBannerPath == null ? default(StringOffset) : builder.CreateString(_o.LobbyBannerPath);
     var _MainIconParcelPath = _o.MainIconParcelPath == null ? default(StringOffset) : builder.CreateString(_o.MainIconParcelPath);
     var _PurchaseStepProductImagePath = _o.PurchaseStepProductImagePath == null ? default(StringOffset) : builder.CreateString(_o.PurchaseStepProductImagePath);
-    var _PurchaseStepBgImagePath = _o.PurchaseStepBgImagePath == null ? default(StringOffset) : builder.CreateString(_o.PurchaseStepBgImagePath);
     return CreateBattlePassInfoExcel(
       builder,
       _o.Id,
@@ -221,8 +209,7 @@ public struct BattlePassInfoExcel : IFlatbufferObject
       _o.PassExpLocalizeEtcId,
       _LobbyBannerPath,
       _MainIconParcelPath,
-      _PurchaseStepProductImagePath,
-      _PurchaseStepBgImagePath);
+      _PurchaseStepProductImagePath);
   }
 }
 
@@ -247,7 +234,6 @@ public class BattlePassInfoExcelT
   public string LobbyBannerPath { get; set; }
   public string MainIconParcelPath { get; set; }
   public string PurchaseStepProductImagePath { get; set; }
-  public string PurchaseStepBgImagePath { get; set; }
 
   public BattlePassInfoExcelT() {
     this.Id = 0;
@@ -269,7 +255,6 @@ public class BattlePassInfoExcelT
     this.LobbyBannerPath = null;
     this.MainIconParcelPath = null;
     this.PurchaseStepProductImagePath = null;
-    this.PurchaseStepBgImagePath = null;
   }
 }
 
@@ -298,7 +283,6 @@ static public class BattlePassInfoExcelVerify
       && verifier.VerifyString(tablePos, 36 /*LobbyBannerPath*/, false)
       && verifier.VerifyString(tablePos, 38 /*MainIconParcelPath*/, false)
       && verifier.VerifyString(tablePos, 40 /*PurchaseStepProductImagePath*/, false)
-      && verifier.VerifyString(tablePos, 42 /*PurchaseStepBgImagePath*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

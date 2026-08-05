@@ -49,12 +49,12 @@ public struct FieldTutorialExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.FieldTutorialExcel> CreateFieldTutorialExcel(FlatBufferBuilder builder,
       long SeasonId = 0,
       VectorOffset TutorialTypeOffset = default(VectorOffset),
-      VectorOffset conditionTypeOffset = default(VectorOffset),
-      VectorOffset conditionIdOffset = default(VectorOffset)) {
+      VectorOffset ConditionTypeOffset = default(VectorOffset),
+      VectorOffset ConditionIdOffset = default(VectorOffset)) {
     builder.StartTable(4);
     FieldTutorialExcel.AddSeasonId(builder, SeasonId);
-    FieldTutorialExcel.AddConditionId(builder, conditionIdOffset);
-    FieldTutorialExcel.AddConditionType(builder, conditionTypeOffset);
+    FieldTutorialExcel.AddConditionId(builder, ConditionIdOffset);
+    FieldTutorialExcel.AddConditionType(builder, ConditionTypeOffset);
     FieldTutorialExcel.AddTutorialType(builder, TutorialTypeOffset);
     return FieldTutorialExcel.EndFieldTutorialExcel(builder);
   }
@@ -105,22 +105,22 @@ public struct FieldTutorialExcel : IFlatbufferObject
       var __TutorialType = _o.TutorialType.ToArray();
       _TutorialType = CreateTutorialTypeVector(builder, __TutorialType);
     }
-    var _conditionType = default(VectorOffset);
+    var _ConditionType = default(VectorOffset);
     if (_o.ConditionType != null) {
-      var __conditionType = _o.ConditionType.ToArray();
-      _conditionType = CreateConditionTypeVector(builder, __conditionType);
+      var __ConditionType = _o.ConditionType.ToArray();
+      _ConditionType = CreateConditionTypeVector(builder, __ConditionType);
     }
-    var _conditionId = default(VectorOffset);
+    var _ConditionId = default(VectorOffset);
     if (_o.ConditionId != null) {
-      var __conditionId = _o.ConditionId.ToArray();
-      _conditionId = CreateConditionIdVector(builder, __conditionId);
+      var __ConditionId = _o.ConditionId.ToArray();
+      _ConditionId = CreateConditionIdVector(builder, __ConditionId);
     }
     return CreateFieldTutorialExcel(
       builder,
       _o.SeasonId,
       _TutorialType,
-      _conditionType,
-      _conditionId);
+      _ConditionType,
+      _ConditionId);
   }
 }
 

@@ -140,7 +140,7 @@ public struct CharacterExcel : IFlatbufferObject
       StringOffset ReleaseDateOffset = default(StringOffset),
       StringOffset CollectionVisibleStartDateOffset = default(StringOffset),
       StringOffset CollectionVisibleEndDateOffset = default(StringOffset),
-      bool isPlayableCharacter = false,
+      bool IsPlayableCharacter = false,
       uint LocalizeEtcId = 0,
       Schale.FlatData.Rarity Rarity = Schale.FlatData.Rarity.N,
       bool IsNPC = false,
@@ -169,10 +169,10 @@ public struct CharacterExcel : IFlatbufferObject
       StringOffset ScenarioCharacterOffset = default(StringOffset),
       uint SpawnTemplateId = 0,
       int FavorLevelupType = 0,
-      VectorOffset equipmentSlotOffset = default(VectorOffset),
+      VectorOffset EquipmentSlotOffset = default(VectorOffset),
       uint WeaponLocalizeId = 0,
       bool DisplayEnemyInfo = false,
-      long bodyRadius = 0,
+      long BodyRadius = 0,
       long RandomEffectRadius = 0,
       bool HPBarHide = false,
       float HpBarHeight = 0.0f,
@@ -190,7 +190,7 @@ public struct CharacterExcel : IFlatbufferObject
       bool IgnoreObstacle = false,
       bool IsAirUnit = false,
       long AirUnitHeight = 0,
-      VectorOffset tagsOffset = default(VectorOffset),
+      VectorOffset TagsOffset = default(VectorOffset),
       long SecretStoneItemId = 0,
       int SecretStoneItemAmount = 0,
       long CharacterPieceItemId = 0,
@@ -202,7 +202,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddSecretStoneItemId(builder, SecretStoneItemId);
     CharacterExcel.AddAirUnitHeight(builder, AirUnitHeight);
     CharacterExcel.AddRandomEffectRadius(builder, RandomEffectRadius);
-    CharacterExcel.AddBodyRadius(builder, bodyRadius);
+    CharacterExcel.AddBodyRadius(builder, BodyRadius);
     CharacterExcel.AddMainCombatStyleId(builder, MainCombatStyleId);
     CharacterExcel.AddExternalBTId(builder, ExternalBTId);
     CharacterExcel.AddCharacterAIId(builder, CharacterAIId);
@@ -211,7 +211,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddId(builder, Id);
     CharacterExcel.AddCharacterPieceItemAmount(builder, CharacterPieceItemAmount);
     CharacterExcel.AddSecretStoneItemAmount(builder, SecretStoneItemAmount);
-    CharacterExcel.AddTags(builder, tagsOffset);
+    CharacterExcel.AddTags(builder, TagsOffset);
     CharacterExcel.AddAppearFrame(builder, AppearFrame);
     CharacterExcel.AddJumpMotionFrame(builder, JumpMotionFrame);
     CharacterExcel.AddMoveEndFrame(builder, MoveEndFrame);
@@ -221,7 +221,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddHighlightFloaterHeight(builder, HighlightFloaterHeight);
     CharacterExcel.AddHpBarHeight(builder, HpBarHeight);
     CharacterExcel.AddWeaponLocalizeId(builder, WeaponLocalizeId);
-    CharacterExcel.AddEquipmentSlot(builder, equipmentSlotOffset);
+    CharacterExcel.AddEquipmentSlot(builder, EquipmentSlotOffset);
     CharacterExcel.AddFavorLevelupType(builder, FavorLevelupType);
     CharacterExcel.AddSpawnTemplateId(builder, SpawnTemplateId);
     CharacterExcel.AddScenarioCharacter(builder, ScenarioCharacterOffset);
@@ -259,7 +259,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddIsDummy(builder, IsDummy);
     CharacterExcel.AddCanSurvive(builder, CanSurvive);
     CharacterExcel.AddIsNPC(builder, IsNPC);
-    CharacterExcel.AddIsPlayableCharacter(builder, isPlayableCharacter);
+    CharacterExcel.AddIsPlayableCharacter(builder, IsPlayableCharacter);
     CharacterExcel.AddCollectionVisible(builder, CollectionVisible);
     CharacterExcel.AddIsPlayable(builder, IsPlayable);
     return CharacterExcel.EndCharacterExcel(builder);
@@ -427,15 +427,15 @@ public struct CharacterExcel : IFlatbufferObject
     var _CollectionVisibleStartDate = _o.CollectionVisibleStartDate == null ? default(StringOffset) : builder.CreateString(_o.CollectionVisibleStartDate);
     var _CollectionVisibleEndDate = _o.CollectionVisibleEndDate == null ? default(StringOffset) : builder.CreateString(_o.CollectionVisibleEndDate);
     var _ScenarioCharacter = _o.ScenarioCharacter == null ? default(StringOffset) : builder.CreateString(_o.ScenarioCharacter);
-    var _equipmentSlot = default(VectorOffset);
+    var _EquipmentSlot = default(VectorOffset);
     if (_o.EquipmentSlot != null) {
-      var __equipmentSlot = _o.EquipmentSlot.ToArray();
-      _equipmentSlot = CreateEquipmentSlotVector(builder, __equipmentSlot);
+      var __EquipmentSlot = _o.EquipmentSlot.ToArray();
+      _EquipmentSlot = CreateEquipmentSlotVector(builder, __EquipmentSlot);
     }
-    var _tags = default(VectorOffset);
+    var _Tags = default(VectorOffset);
     if (_o.Tags != null) {
-      var __tags = _o.Tags.ToArray();
-      _tags = CreateTagsVector(builder, __tags);
+      var __Tags = _o.Tags.ToArray();
+      _Tags = CreateTagsVector(builder, __Tags);
     }
     return CreateCharacterExcel(
       builder,
@@ -477,7 +477,7 @@ public struct CharacterExcel : IFlatbufferObject
       _ScenarioCharacter,
       _o.SpawnTemplateId,
       _o.FavorLevelupType,
-      _equipmentSlot,
+      _EquipmentSlot,
       _o.WeaponLocalizeId,
       _o.DisplayEnemyInfo,
       _o.BodyRadius,
@@ -498,7 +498,7 @@ public struct CharacterExcel : IFlatbufferObject
       _o.IgnoreObstacle,
       _o.IsAirUnit,
       _o.AirUnitHeight,
-      _tags,
+      _Tags,
       _o.SecretStoneItemId,
       _o.SecretStoneItemAmount,
       _o.CharacterPieceItemId,

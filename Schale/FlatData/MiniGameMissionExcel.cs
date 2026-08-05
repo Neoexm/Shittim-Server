@@ -51,7 +51,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
   public ArraySegment<byte>? GetPreMissionIdBytes() { return __p.__vector_as_arraysegment(26); }
 #endif
   public long[] GetPreMissionIdArray() { return __p.__vector_as_array<long>(26); }
-  public Schale.FlatData.AccountState AccountType { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.AccountState)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.AccountState.WaitingSignIn; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public long AccountLevel { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public string ShortcutUI(int j) { int o = __p.__offset(32); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int ShortcutUILength { get { int o = __p.__offset(32); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -152,7 +152,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
       bool ViewFlag = false,
       long DisplayOrder = 0,
       VectorOffset PreMissionIdOffset = default(VectorOffset),
-      Schale.FlatData.AccountState AccountType = Schale.FlatData.AccountState.WaitingSignIn,
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       long AccountLevel = 0,
       VectorOffset ShortcutUIOffset = default(VectorOffset),
       Schale.FlatData.MissionCompleteConditionType CompleteConditionType = Schale.FlatData.MissionCompleteConditionType.None,
@@ -189,7 +189,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
     MiniGameMissionExcel.AddCompleteConditionParameter(builder, CompleteConditionParameterOffset);
     MiniGameMissionExcel.AddCompleteConditionType(builder, CompleteConditionType);
     MiniGameMissionExcel.AddShortcutUI(builder, ShortcutUIOffset);
-    MiniGameMissionExcel.AddAccountType(builder, AccountType);
+    MiniGameMissionExcel.AddTargetGroup(builder, TargetGroup);
     MiniGameMissionExcel.AddPreMissionId(builder, PreMissionIdOffset);
     MiniGameMissionExcel.AddToastImagePath(builder, ToastImagePathOffset);
     MiniGameMissionExcel.AddToastDisplayType(builder, ToastDisplayType);
@@ -220,7 +220,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartPreMissionIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddAccountType(FlatBufferBuilder builder, Schale.FlatData.AccountState accountType) { builder.AddInt(12, (int)accountType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(12, (int)targetGroup, 0); }
   public static void AddAccountLevel(FlatBufferBuilder builder, long accountLevel) { builder.AddLong(13, accountLevel, 0); }
   public static void AddShortcutUI(FlatBufferBuilder builder, VectorOffset shortcutUIOffset) { builder.AddOffset(14, shortcutUIOffset.Value, 0); }
   public static VectorOffset CreateShortcutUIVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
@@ -311,7 +311,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
     _o.PreMissionId = new List<long>();
     for (var _j = 0; _j < this.PreMissionIdLength; ++_j) {_o.PreMissionId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PreMissionId(_j), key) : this.PreMissionId(_j));}
-    _o.AccountType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountType, key) : this.AccountType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.AccountLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevel, key) : this.AccountLevel;
     _o.ShortcutUI = new List<string>();
     for (var _j = 0; _j < this.ShortcutUILength; ++_j) {_o.ShortcutUI.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutUI(_j), key) : this.ShortcutUI(_j));}
@@ -414,7 +414,7 @@ public struct MiniGameMissionExcel : IFlatbufferObject
       _o.ViewFlag,
       _o.DisplayOrder,
       _PreMissionId,
-      _o.AccountType,
+      _o.TargetGroup,
       _o.AccountLevel,
       _ShortcutUI,
       _o.CompleteConditionType,
@@ -448,7 +448,7 @@ public class MiniGameMissionExcelT
   public bool ViewFlag { get; set; }
   public long DisplayOrder { get; set; }
   public List<long> PreMissionId { get; set; }
-  public Schale.FlatData.AccountState AccountType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public long AccountLevel { get; set; }
   public List<string> ShortcutUI { get; set; }
   public Schale.FlatData.MissionCompleteConditionType CompleteConditionType { get; set; }
@@ -479,7 +479,7 @@ public class MiniGameMissionExcelT
     this.ViewFlag = false;
     this.DisplayOrder = 0;
     this.PreMissionId = null;
-    this.AccountType = Schale.FlatData.AccountState.WaitingSignIn;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.AccountLevel = 0;
     this.ShortcutUI = null;
     this.CompleteConditionType = Schale.FlatData.MissionCompleteConditionType.None;
@@ -517,7 +517,7 @@ static public class MiniGameMissionExcelVerify
       && verifier.VerifyField(tablePos, 22 /*ViewFlag*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 24 /*DisplayOrder*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 26 /*PreMissionId*/, 8 /*long*/, false)
-      && verifier.VerifyField(tablePos, 28 /*AccountType*/, 4 /*Schale.FlatData.AccountState*/, 4, false)
+      && verifier.VerifyField(tablePos, 28 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 30 /*AccountLevel*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfStrings(tablePos, 32 /*ShortcutUI*/, false)
       && verifier.VerifyField(tablePos, 34 /*CompleteConditionType*/, 4 /*Schale.FlatData.MissionCompleteConditionType*/, 4, false)

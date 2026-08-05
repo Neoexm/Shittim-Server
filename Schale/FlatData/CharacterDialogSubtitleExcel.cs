@@ -77,25 +77,25 @@ public struct CharacterDialogSubtitleExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.CharacterDialogSubtitleExcel> CreateCharacterDialogSubtitleExcel(FlatBufferBuilder builder,
       StringOffset LocalizeCVGroupOffset = default(StringOffset),
       long CharacterId = 0,
-      StringOffset TLMIDOffset = default(StringOffset),
+      StringOffset TLM_IDOffset = default(StringOffset),
       long Duration = 0,
       long DurationKr = 0,
       bool Separate = false,
-      StringOffset LocalizeKROffset = default(StringOffset),
-      StringOffset LocalizeJPOffset = default(StringOffset),
-      StringOffset LocalizeTHOffset = default(StringOffset),
-      StringOffset LocalizeTWOffset = default(StringOffset),
-      StringOffset LocalizeENOffset = default(StringOffset)) {
+      StringOffset Localize_KROffset = default(StringOffset),
+      StringOffset Localize_JPOffset = default(StringOffset),
+      StringOffset Localize_THOffset = default(StringOffset),
+      StringOffset Localize_TWOffset = default(StringOffset),
+      StringOffset Localize_ENOffset = default(StringOffset)) {
     builder.StartTable(11);
     CharacterDialogSubtitleExcel.AddDurationKr(builder, DurationKr);
     CharacterDialogSubtitleExcel.AddDuration(builder, Duration);
     CharacterDialogSubtitleExcel.AddCharacterId(builder, CharacterId);
-    CharacterDialogSubtitleExcel.AddLocalizeEN(builder, LocalizeENOffset);
-    CharacterDialogSubtitleExcel.AddLocalizeTW(builder, LocalizeTWOffset);
-    CharacterDialogSubtitleExcel.AddLocalizeTH(builder, LocalizeTHOffset);
-    CharacterDialogSubtitleExcel.AddLocalizeJP(builder, LocalizeJPOffset);
-    CharacterDialogSubtitleExcel.AddLocalizeKR(builder, LocalizeKROffset);
-    CharacterDialogSubtitleExcel.AddTLMID(builder, TLMIDOffset);
+    CharacterDialogSubtitleExcel.AddLocalizeEN(builder, Localize_ENOffset);
+    CharacterDialogSubtitleExcel.AddLocalizeTW(builder, Localize_TWOffset);
+    CharacterDialogSubtitleExcel.AddLocalizeTH(builder, Localize_THOffset);
+    CharacterDialogSubtitleExcel.AddLocalizeJP(builder, Localize_JPOffset);
+    CharacterDialogSubtitleExcel.AddLocalizeKR(builder, Localize_KROffset);
+    CharacterDialogSubtitleExcel.AddTLMID(builder, TLM_IDOffset);
     CharacterDialogSubtitleExcel.AddLocalizeCVGroup(builder, LocalizeCVGroupOffset);
     CharacterDialogSubtitleExcel.AddSeparate(builder, Separate);
     return CharacterDialogSubtitleExcel.EndCharacterDialogSubtitleExcel(builder);
@@ -139,25 +139,25 @@ public struct CharacterDialogSubtitleExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.CharacterDialogSubtitleExcel> Pack(FlatBufferBuilder builder, CharacterDialogSubtitleExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CharacterDialogSubtitleExcel>);
     var _LocalizeCVGroup = _o.LocalizeCVGroup == null ? default(StringOffset) : builder.CreateString(_o.LocalizeCVGroup);
-    var _TLMID = _o.TLMID == null ? default(StringOffset) : builder.CreateString(_o.TLMID);
-    var _LocalizeKR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
-    var _LocalizeJP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
-    var _LocalizeTH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
-    var _LocalizeTW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
-    var _LocalizeEN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
+    var _TLM_ID = _o.TLMID == null ? default(StringOffset) : builder.CreateString(_o.TLMID);
+    var _Localize_KR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
+    var _Localize_JP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
+    var _Localize_TH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
+    var _Localize_TW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
+    var _Localize_EN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
     return CreateCharacterDialogSubtitleExcel(
       builder,
       _LocalizeCVGroup,
       _o.CharacterId,
-      _TLMID,
+      _TLM_ID,
       _o.Duration,
       _o.DurationKr,
       _o.Separate,
-      _LocalizeKR,
-      _LocalizeJP,
-      _LocalizeTH,
-      _LocalizeTW,
-      _LocalizeEN);
+      _Localize_KR,
+      _Localize_JP,
+      _Localize_TH,
+      _Localize_TW,
+      _Localize_EN);
   }
 }
 
