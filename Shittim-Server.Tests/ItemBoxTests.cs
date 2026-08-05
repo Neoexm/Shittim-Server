@@ -26,7 +26,7 @@ public class ItemBoxTests
         var (box, choice) = FurnitureSelectBox();
         var ticket = GiveItem(db, account, box.Id, 2);
 
-        var result = await Manager().SelectTicket(db, account, new ItemSelectTicketRequest
+        var (used, result) = await Manager().SelectTicket(db, account, new ItemSelectTicketRequest
         {
             TicketItemServerId = ticket.ServerId,
             SelectItemUniqueId = choice.ParcelId,
@@ -36,7 +36,49 @@ public class ItemBoxTests
         Assert.Contains(db.Furnitures, x => x.AccountServerId == account.ServerId && x.UniqueId == choice.ParcelId);
         Assert.Empty(db.Characters);
         Assert.Equal(1, db.Items.Single(x => x.ServerId == ticket.ServerId).StackCount);
+        Assert.Equal(1, used.StackCount);
         Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task UsingOneBoxFromABigStackReportsTheRemainderInUsedItemDB()
+    {
+        using var db = NewContext();
+        var account = NewAccount(db);
+
+        var (box, choice) = FurnitureSelectBox();
+        var ticket = GiveItem(db, account, box.Id, 29);
+
+        var (used, _) = await Manager().SelectTicket(db, account, new ItemSelectTicketRequest
+        {
+            TicketItemServerId = ticket.ServerId,
+            SelectItemUniqueId = choice.ParcelId,
+            ConsumeCount = 1
+        });
+
+        Assert.Equal(28, used.StackCount);
+        Assert.Equal(28, db.Items.Single(x => x.ServerId == ticket.ServerId).StackCount);
+    }
+
+    [Fact]
+    public async Task UsingTheLastBoxReportsAZeroStackInUsedItemDB()
+    {
+        using var db = NewContext();
+        var account = NewAccount(db);
+
+        var (box, choice) = FurnitureSelectBox();
+        var ticket = GiveItem(db, account, box.Id, 1);
+
+        var (used, result) = await Manager().SelectTicket(db, account, new ItemSelectTicketRequest
+        {
+            TicketItemServerId = ticket.ServerId,
+            SelectItemUniqueId = choice.ParcelId,
+            ConsumeCount = 1
+        });
+
+        Assert.Equal(0, used.StackCount);
+        Assert.Contains(ticket.ServerId, result.RemovedItemIds);
+        Assert.Empty(db.Items.Where(x => x.ServerId == ticket.ServerId));
     }
 
     [Fact]
