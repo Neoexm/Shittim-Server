@@ -123,8 +123,6 @@ namespace Shittim_Server.Services
             currentJson["NXI_DIRS"] = new JsonArray(targetDirectory);
             var patchedRaw = EncodeConfig(currentJson);
 
-            File.WriteAllText(path, patchedRaw, Encoding.UTF8);
-
             var stateToSave = new InfaceConfigPatchState
             {
                 ConfigPath = path,
@@ -133,7 +131,9 @@ namespace Shittim_Server.Services
                 PluginDirectory = targetDirectory
             };
 
+            // Recorded before the config is overwritten. If this cannot be written then neither can the config: a patched nxinface.enconfig.json with nothing saying what it held before is one the user has to reinstall the client to get back.
             SaveState(statePath, stateToSave);
+            File.WriteAllText(path, patchedRaw, Encoding.UTF8);
 
             var from = currentDirs.Count == 0 ? "(missing)" : string.Join(", ", currentDirs);
             logger.LogInformation("Patched client inface config NXI_DIRS: {OriginalDirectories} -> {PluginDirectory}", from, targetDirectory);
@@ -242,17 +242,7 @@ namespace Shittim_Server.Services
                 return configuredPath;
 
             // Any Steam library can hold the install.
-            var located = SteamGameLocator.FindGameFile("nxinface.enconfig.json");
-            if (!string.IsNullOrWhiteSpace(located))
-                return located;
-
-            var candidates = new[]
-            {
-                @"F:\SteamLibrary\steamapps\common\BlueArchive\nxinface.enconfig.json",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "nxinface.enconfig.json")
-            };
-
-            return candidates.FirstOrDefault(File.Exists) ?? "";
+            return SteamGameLocator.FindGameFile("nxinface.enconfig.json") ?? "";
         }
 
         private static string GetPluginDirectory(string path)
