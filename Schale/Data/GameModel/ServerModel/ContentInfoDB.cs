@@ -4,11 +4,12 @@ namespace Schale.Data.GameModel
 {
     public class ContentInfoDB
     {
-        public RaidDataInfo? RaidDataInfo { get; set; }
-        public TimeAttackDungeonDataInfo? TimeAttackDungeonDataInfo { get; set; }
-        public EliminateRaidDataInfo? EliminateRaidDataInfo { get; set; }
-        public ArenaDataInfo? ArenaDataInfo { get; set; }
-        public MultiFloorRaidDataInfo? MultiFloorRaidDataInfo { get; set; }
+        // Rows written before one of these blocks existed come back without the key at all, and the column is serialised with WhenWritingNull so a null block never gets written back either. Login sync dereferences them unguarded, so they have to default to something.
+        public RaidDataInfo RaidDataInfo { get; set; } = new();
+        public TimeAttackDungeonDataInfo TimeAttackDungeonDataInfo { get; set; } = new();
+        public EliminateRaidDataInfo EliminateRaidDataInfo { get; set; } = new();
+        public ArenaDataInfo ArenaDataInfo { get; set; } = new();
+        public MultiFloorRaidDataInfo MultiFloorRaidDataInfo { get; set; } = new();
 
         // EventContentId -> claimed EventContentStageTotalRewardExcel row ids. Lives in the ContentInfo JSON column so no schema change is needed.
         public Dictionary<long, List<long>> ReceivedEventStageTotalRewards { get; set; } = [];
