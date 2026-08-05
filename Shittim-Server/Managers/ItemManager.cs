@@ -31,7 +31,7 @@ namespace Shittim_Server.Managers
             gachaElementExcels = excelTableService.GetTable<GachaElementExcelT>();
         }
 
-        public async Task<ParcelResultDB> SelectTicket(
+        public async Task<(ItemDBServer, ParcelResultDB)> SelectTicket(
             SchaleDataContext context, AccountDBServer account, ItemSelectTicketRequest req)
         {
             var item = context.Items.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.ServerId == req.TicketItemServerId)
@@ -50,7 +50,11 @@ namespace Shittim_Server.Managers
                 : new ParcelResult(ParcelType.Character, req.SelectItemUniqueId, req.ConsumeCount);
             var parcelResolverAdd = await parcelHandler.BuildParcel(context, account, parcelAdd, parcelResolver.ParcelResult);
 
-            return parcelResolverAdd.ParcelResult;
+            // the client takes the remaining ticket stack from UsedItemDB; without it the whole stack shows as gone until relog
+            if (parcelResolverAdd.ParcelResult.RemovedItemIds.Contains(item.ServerId))
+                item.StackCount = 0;
+
+            return (item, parcelResolverAdd.ParcelResult);
         }
 
         public async Task<(ItemDBServer, ParcelResultDB)> Consume(

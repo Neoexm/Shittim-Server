@@ -52,8 +52,9 @@ public class ItemHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var parcelResultDB = await _itemManager.SelectTicket(db, account, request);
+        var (usedItem, parcelResultDB) = await _itemManager.SelectTicket(db, account, request);
 
+        response.UsedItemDB = usedItem.ToMap(_mapper);
         response.ParcelResultDB = parcelResultDB;
 
         return response;
