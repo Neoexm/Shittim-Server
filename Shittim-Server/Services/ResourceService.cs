@@ -15,8 +15,11 @@ namespace BlueArchiveAPI.Services
 
         private static readonly HttpClient httpClient = new()
         {
-            Timeout = TimeSpan.FromMinutes(10)
+            Timeout = Timeout.InfiniteTimeSpan
         };
+
+        // A deadline on the whole transfer is wrong in both directions: ExcelDB.db on a slow line gets killed near the end with everything to do again, and a socket that has gone silent with most of the file left keeps the server sitting there until it expires. This is the gap between two reads instead.
+        internal static TimeSpan StallTimeout = TimeSpan.FromSeconds(60);
 
         static ResourceService()
         {
@@ -60,7 +63,7 @@ namespace BlueArchiveAPI.Services
                 return;
             }
 
-            // Auto resource update is opt-in. When it's disabled and we already have resources, keep the existing ones instead of re-downloading on a version change.
+            // When auto resource update is off and we already have resources, keep the existing ones instead of re-downloading on a version change.
             // A first-time bootstrap (no resources present yet) still downloads so the server can start.
             bool hasExistingResources = Directory.Exists(DumpedDir)
                 && Directory.GetFiles(DumpedDir, "*", SearchOption.AllDirectories).Length > 0;
@@ -70,15 +73,12 @@ namespace BlueArchiveAPI.Services
                 return;
             }
 
-            Console.WriteLine($"{typeLabel} resources version mismatch; deleting old resources...");
-            if (Directory.Exists(DumpedDir))
-                Directory.Delete(DumpedDir, recursive: true);
-
-            if (!Directory.Exists(DumpedDir)) Directory.CreateDirectory(DumpedDir);
+            Console.WriteLine($"{typeLabel} resources version mismatch; fetching new resources...");
 
             if (useCustomFile)
             {
                 Console.WriteLine("Using custom resources, this may take a while...");
+                ResetDumped();
                 var filesize = await CustomFiles(baseUrl, resources);
                 File.WriteAllText(customTxtPath, filesize.ToString());
             }
@@ -96,20 +96,35 @@ namespace BlueArchiveAPI.Services
         {
             if (!Directory.Exists(DownloadDir)) Directory.CreateDirectory(DownloadDir);
 
+            var fetched = new List<string>();
             foreach (var filename in resourcesList)
             {
                 var downloadUrl = baseUrl + filename;
                 var downloadFilePath = Path.Combine(DownloadDir, filename.Split('/').Last());
                 await DownloadFile(downloadUrl, downloadFilePath);
+                fetched.Add(downloadFilePath);
+            }
 
-                if (Path.GetExtension(downloadFilePath) == ".zip") 
+            // Every file is on disk before the old set goes. An update that dies mid-transfer leaves the server running on the resources it already had rather than on nothing at all.
+            ResetDumped();
+
+            foreach (var downloadFilePath in fetched)
+            {
+                if (Path.GetExtension(downloadFilePath) == ".zip")
                     ExtractExcels(downloadFilePath);
-                else 
-                    File.Copy(downloadFilePath, Path.Combine(DumpedDir, filename.Split('/').Last()), true);
+                else
+                    File.Copy(downloadFilePath, Path.Combine(DumpedDir, Path.GetFileName(downloadFilePath)), true);
             }
         }
 
-        private static async Task DownloadFile(string url, string outputFile)
+        private static void ResetDumped()
+        {
+            if (Directory.Exists(DumpedDir))
+                Directory.Delete(DumpedDir, recursive: true);
+            Directory.CreateDirectory(DumpedDir);
+        }
+
+        internal static async Task DownloadFile(string url, string outputFile)
         {
             var fileName = Path.GetFileName(outputFile);
 
@@ -126,9 +141,62 @@ namespace BlueArchiveAPI.Services
             }
 
             Console.WriteLine($"Downloading {fileName}...");
-            byte[] data = await httpClient.GetByteArrayAsync(url);
-            await File.WriteAllBytesAsync(outputFile, data);
-            Console.WriteLine($"Downloaded {fileName} ({data.Length:N0} bytes)");
+
+            var partial = outputFile + ".part";
+            long received = 0;
+            try
+            {
+                using var stall = new CancellationTokenSource(StallTimeout);
+                using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, stall.Token);
+                response.EnsureSuccessStatusCode();
+                stall.CancelAfter(StallTimeout);
+
+                var total = response.Content.Headers.ContentLength ?? remoteSize ?? 0;
+                var step = total > 0 ? Math.Max(total / 10, 1) : 16L * 1024 * 1024;
+                var nextReport = step;
+
+                using (var body = await response.Content.ReadAsStreamAsync(stall.Token))
+                using (var file = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    var buffer = new byte[81920];
+                    while (true)
+                    {
+                        int read = await body.ReadAsync(buffer, stall.Token);
+                        if (read == 0) break;
+
+                        // Pushed forward on every read that produced something, so a download that is still moving never expires no matter how long it runs.
+                        stall.CancelAfter(StallTimeout);
+
+                        await file.WriteAsync(buffer.AsMemory(0, read), stall.Token);
+                        received += read;
+
+                        if (received >= nextReport)
+                        {
+                            Console.WriteLine(total > 0
+                                ? $"Downloading {fileName}... {received * 100 / total}% ({received:N0} of {total:N0} bytes)"
+                                : $"Downloading {fileName}... {received:N0} bytes");
+                            nextReport += step;
+                        }
+                    }
+                }
+
+                if (total > 0 && received != total)
+                    throw new IOException($"{fileName} was cut short: {received:N0} of {total:N0} bytes arrived.");
+            }
+            catch (OperationCanceledException)
+            {
+                File.Delete(partial);
+                throw new IOException($"{fileName} stopped transferring after {received:N0} bytes and sent nothing for {StallTimeout.TotalSeconds:N0}s. Nothing was written.");
+            }
+            catch
+            {
+                File.Delete(partial);
+                throw;
+            }
+
+            // The download directory is what the version marker and the size check are read against next run, so the name only goes on a file that arrived whole.
+            File.Move(partial, outputFile, true);
+            Console.WriteLine($"Downloaded {fileName} ({received:N0} bytes)");
         }
 
         private static async Task<long?> GetRemoteFileSizeAsync(string url)
@@ -136,7 +204,8 @@ namespace BlueArchiveAPI.Services
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Head, url);
-                using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                using var timeout = new CancellationTokenSource(StallTimeout);
+                using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
                 return response.IsSuccessStatusCode ? response.Content.Headers.ContentLength : null;
             }
             catch
