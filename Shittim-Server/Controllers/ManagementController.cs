@@ -431,7 +431,7 @@ public class ManagementController : ControllerBase
             return BadRequest(new { error = "uid and command are required" });
 
         var parts = request.Command.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var name = parts.First().TrimStart('/').Split('/').Last();
+        var name = parts.First().TrimStart('/', '!', '.', '*').Split('/').Last();
         var args = parts.Skip(1).ToArray();
 
         try
