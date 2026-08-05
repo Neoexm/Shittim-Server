@@ -375,7 +375,8 @@ public class MissionHandler : ProtocolHandlerBase
             .Where(p => missionExcelById.TryGetValue(p.MissionUniqueId, out var missionExcel)
                 && (request.MissionCategory == MissionCategory.All
                     || missionExcel.Category == request.MissionCategory)
-                && (!request.EventContentId.HasValue
+                // an EventContentId of 0 is the no-event case, not a filter - no mission id starts with "0", so matching against it claims nothing
+                && (!request.EventContentId.HasValue || request.EventContentId.Value == 0
                     || p.MissionUniqueId.ToString().StartsWith(request.EventContentId.Value.ToString())))
             .ToList();
 
