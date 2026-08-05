@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ExcelDbKeyTool;
@@ -17,6 +19,7 @@ internal sealed class MainForm : Form
     private readonly TextBox pragmaOutput = new();
     private readonly TextBox base64Output = new();
     private readonly Label statusLabel = new();
+    private readonly Button gameButton;
 
     public MainForm()
     {
@@ -78,7 +81,10 @@ internal sealed class MainForm : Form
             WrapContents = false,
             Padding = new Padding(0, 7, 0, 0)
         };
+        gameButton = MakeButton("Read from game", ReadFromGame);
+        gameButton.Width = 140;
         buttonPanel.Controls.Add(MakeButton("Decode", DecodeProtocol, true));
+        buttonPanel.Controls.Add(gameButton);
         buttonPanel.Controls.Add(MakeButton("Clear", ClearAll));
 
         root.Controls.Add(title, 0, 0);
@@ -94,6 +100,15 @@ internal sealed class MainForm : Form
         root.Controls.Add(statusLabel, 0, 7);
 
         Controls.Add(root);
+    }
+
+    // With the game already open there is nothing to paste and nothing to ask about, so go and get the key. The protocol box is still there for a capture taken off another machine.
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+
+        if (Process.GetProcessesByName("BlueArchive").Length > 0)
+            ReadFromGame();
     }
 
     private Button MakeButton(string text, Action action, bool primary = false)
@@ -166,6 +181,29 @@ internal sealed class MainForm : Form
             pragmaOutput.Clear();
             base64Output.Clear();
             SetStatus(ex.Message, true);
+        }
+    }
+
+    private async void ReadFromGame()
+    {
+        gameButton.Enabled = false;
+        SetStatus("Looking for BlueArchive.exe...", false);
+
+        try
+        {
+            var (key, source) = await Task.Run(() => RunningClient.ReadKey(text => BeginInvoke(() => SetStatus(text, false))));
+            rawKeyOutput.Text = key.RawSqlCipherKeyHex;
+            pragmaOutput.Text = $"PRAGMA key = \"x'{key.RawSqlCipherKeyHex}'\";";
+            base64Output.Text = key.DecryptedKeyString;
+            SetStatus($"Read the ExcelDB SQLCipher key out of {source}.", false);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, true);
+        }
+        finally
+        {
+            gameButton.Enabled = true;
         }
     }
 
