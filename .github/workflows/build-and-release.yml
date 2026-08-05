@@ -1,5 +1,10 @@
 name: Build and Release Shittim Server
 
+# The release number comes from Directory.Build.props, which is also what the server
+# assemblies and ShittimControlCenter/package.json carry. Bump it there (and in
+# package.json) before running this - the tag guard below refuses to release a version
+# that has already been tagged rather than quietly shipping a second build under it.
+
 on:
   workflow_dispatch:
 
@@ -16,45 +21,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
-      - name: Install build dependencies
+      - name: Run tests
         shell: pwsh
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install pyinstaller
+          dotnet test .\Shittim-Server.Tests\Shittim-Server.Tests.csproj -c Release --nologo
 
-      - name: Compile Python sources
+      - name: Resolve release tag
+        id: version
         shell: pwsh
         run: |
-          python -m py_compile .\shittim_console.py
+          $props = Get-Content .\Directory.Build.props -Raw
+          if ($props -notmatch '<Version>([^<]+)</Version>') {
+            throw "no <Version> in Directory.Build.props"
+          }
+          $version = $Matches[1]
 
-      - name: Build Shittim Server executable
-        shell: pwsh
-        run: |
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "Shittim Server" .\shittim_console.py
+          $package = (Get-Content .\ShittimControlCenter\package.json -Raw | ConvertFrom-Json).version
+          if ($package -ne $version) {
+            throw "Directory.Build.props is $version but ShittimControlCenter/package.json is $package"
+          }
+
+          $tag = "v$version"
+          if (git tag --list $tag) {
+            throw "$tag already exists - bump Directory.Build.props and package.json before releasing"
+          }
+
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "asset_name=Shittim-Server-$tag.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Publish server runtime
         shell: pwsh
         run: |
           dotnet publish .\Shittim-Server\Shittim-Server.csproj -c Release -r win-x64 --self-contained true -o .\server-runtime
 
-      - name: Generate release tag
-        id: version
+      - name: Verify published binary version
         shell: pwsh
         run: |
-          $stamp = Get-Date -Format 'yyyy.MM.dd'
-          $tag = "v$stamp.${{ github.run_number }}"
-          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "asset_name=Shittim-Server-$tag.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          $exe = Get-Item .\server-runtime\Shittim-Server.exe
+          $shipped = $exe.VersionInfo.FileVersion
+          $expected = "${{ steps.version.outputs.tag }}".TrimStart('v')
+          if (-not $shipped.StartsWith($expected)) {
+            throw "published binary reports $shipped, expected $expected"
+          }
 
       - name: Package release archive
         shell: pwsh
@@ -67,7 +80,6 @@ jobs:
 
           New-Item -ItemType Directory -Path $packageDir | Out-Null
 
-          Copy-Item ".\dist\Shittim Server.exe" "$packageDir\Shittim Server.exe"
           Copy-Item ".\server-runtime" "$packageDir\server-runtime" -Recurse
           Copy-Item ".\README.md" "$packageDir\README.md"
           Copy-Item ".\Scripts" "$packageDir\Scripts" -Recurse
