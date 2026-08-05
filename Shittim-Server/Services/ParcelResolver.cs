@@ -100,6 +100,7 @@ public class ParcelResolver
         }
 
         character = new CharacterDBServer(Account.ServerId, parcel.Id);
+        character.StarGrade = characterExcel.DefaultStarGrade;
         Context.Characters.Add(character);
 
         _updatedCharacters[character.UniqueId] = character;
