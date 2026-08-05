@@ -45,13 +45,13 @@ public class GoodsExcelLayoutTests
     }
 
     [Fact]
-    public void CashGoodsKeepProductIds()
+    public void CashGoodsKeepTheirCombinedGachaCost()
     {
-        // One of the 56 cash rows that populate the six-long product-id block. A 21-slot layout decodes this row's reward triple out of the neighbouring vectors, so it catches that.
+        // Slot 10 is a single id and not the head of the six-long product-id block that follows it - no shipped row populates ProductIdAOS through ProductIdSTEAM at all. A 21-slot layout decodes this row's reward triple out of the neighbouring vectors, so it catches that.
         var goods = Row("cash_90030397");
 
-        Assert.Equal(101L, goods.ProductIdAOS);
-        Assert.Equal(0L, goods.ProductIdExtra);
+        Assert.Equal(101L, goods.CombinedGachaCostId);
+        Assert.Equal(0L, goods.ProductIdAOS);
         Assert.Equal([20L], goods.ParcelId);
         Assert.Equal([1L], goods.ParcelAmount);
     }

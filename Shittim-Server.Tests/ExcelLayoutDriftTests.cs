@@ -10,53 +10,26 @@ using Xunit.Abstractions;
 
 namespace Shittim_Server.Tests;
 
-// The FlatData models are reverse-engineered per client build rather than compiled from a real .fbs, and a reader stops at the last field it knows about without complaining, so drift is silent.
+// The FlatData models are compiled from a schema recovered out of one client build, and a reader stops at the last field it knows about without complaining, so drift against a later build is silent.
 //
-// Trailing fields past the model's last slot are harmless because a vtable is an explicit index-to-offset map and the earlier slots still decode. A field missing from the middle is not: every later slot shifts by one and reads its neighbour. That is how GoodsExcel's absent sixth product-id long turned 120 ActionPoint into "Currency 0x1_00000002 x5".
+// Trailing fields past the model's last slot are harmless because a vtable is an explicit index-to-offset map and the earlier slots still decode. A field missing from the middle is not: every later slot shifts by one and reads its neighbour. That is how GoodsExcel's undeclared tenth slot turned 120 ActionPoint into "Currency 0x1_00000002 x5".
 // A slot count cannot separate those two cases, so the load-bearing check runs each table's generated Verify over every shipped row.
 //
 // The dumps are ~300 MB and live in the build output, not the repo, so anything needing them skips when they are absent.
 public class ExcelLayoutDriftTests
 {
-    // Models that stop short of the shipped data. All benign: the extra slots sit past the model's last field, so nothing it does read is misaligned.
-    // Listed to turn 32 unactionable findings into a ratchet - a table drifting for the first time fails, these do not. Regenerating one against the current client removes it from the list.
+    // Models that stop short of the shipped data. Benign: the extra slots sit past the model's last field, so nothing it does read is misaligned.
+    // Listed as a ratchet - a table drifting for the first time fails, this one does not. Regenerating against the current client removes an entry, except that MinigameCardExcel cannot be regenerated any wider: the client's own reader declares a single vector field for it.
     private static readonly string[] KnownNarrowModels =
     [
-        "ArenaMapExcel", "ArenaSeasonExcel", "BattlePassFlavorTextExcel", "CafeInfoExcel",
-        "CharacterDialogEmojiExcel", "CharacterDialogEventExcel", "CharacterStatExcel",
-        "ConstCombatExcel", "ConstCommonExcel", "ConstKeyMappingExcel", "ContentsShortcutExcel",
-        "CurrencyExcel", "EquipmentExcel", "EventContentDiceRaceExcel", "EventContentScenarioExcel",
-        "GroundExcel", "GuideMissionSeasonExcel", "ItemExcel", "KeyMappingExcel",
-        "LocalizeCharProfileChangeExcel", "LocalizeCharProfileExcel", "MinigameCardExcel",
-        "MinigameCCGOpenDialogExcel", "MiniGamePlayGuideExcel", "ObstacleStatExcel",
-        "ProductSelectExcel", "ShiftingCraftRecipeExcel", "ShopCashExcel", "ShopFreeRecruitExcel",
-        "SystemMailExcel", "TutorialFailureImageExcel", "WebEventSeasonExcel",
+        "MinigameCardExcel",
     ];
 
     // Models that misread the data, with row counts at measurement time so the list ratchets three ways: a new table breaking fails, one of these verifying fewer rows fails, and one that starts reading everything has to come out.
-    // These are misaligned rather than merely short. Fixing them needs the client's global-metadata: measurement recovers where a field sits but not its name, and the reward tables were only fixable because the missing column had a recognisable *ParcelUniqueName signature. Guessing produces a model that verifies while still decoding the wrong column.
-    // Safe to leave - of these only CharacterStatExcel is read by a handler, and the fields the server touches sit at slots 0-10, ahead of the first shift.
+    // Safe to leave - no handler reads MinigameCardExcel, and there is nothing to regenerate its one declared field from.
     private static readonly (string Name, int FailedRows, int Rows)[] KnownBrokenModels =
     [
-        ("ArenaMapExcel", 60, 60),
-        ("CharacterDialogEmojiExcel", 77, 414),
-        ("CharacterStatExcel", 1144, 7279),
-        ("ConstKeyMappingExcel", 1, 1),
-        ("ContentSpoilerPopupExcel", 1, 1),
-        ("ContentsShortcutExcel", 12, 12),
-        ("EventContentScenarioExcel", 970, 970),
-        ("EventContentSpoilerPopupExcel", 15, 15),
-        ("GuideMissionSeasonExcel", 19, 19),
-        ("KeyMappingExcel", 236, 246),
-        ("KeyMappingPopupExcel", 15, 343),
-        ("LocalizeCharProfileExcel", 1, 266),
         ("MinigameCardExcel", 2, 2),
-        ("MiniGamePlayGuideExcel", 121, 146),
-        ("ProductSelectExcel", 10, 10),
-        ("ShiftingCraftRecipeExcel", 1, 91),
-        ("ShopFreeRecruitExcel", 9, 9),
-        ("SystemMailExcel", 30, 30),
-        ("WebEventSeasonExcel", 29, 29),
     ];
 
     private readonly ITestOutputHelper output;

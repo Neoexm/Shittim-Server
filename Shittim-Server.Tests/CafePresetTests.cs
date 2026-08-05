@@ -32,7 +32,7 @@ public class CafePresetTests
         Assert.All(deployed, x => Assert.Equal(cafe.CafeDBId, x.CafeDBId));
 
         var furnById = Excels.GetTable<FurnitureExcelT>().ToDictionary(x => x.Id);
-        foreach (var sub in new[] { FurnitureSubCategory.InteriorsSubCategory1, FurnitureSubCategory.Wallpaper, FurnitureSubCategory.Background })
+        foreach (var sub in new[] { FurnitureSubCategory.Floor, FurnitureSubCategory.Wallpaper, FurnitureSubCategory.Background })
             Assert.Contains(deployed, x => furnById[x.UniqueId].SubCategory == sub);
     }
 
@@ -66,7 +66,7 @@ public class CafePresetTests
         var cafe = NewCafe(db, account);
 
         var furniture = Excels.GetTable<FurnitureExcelT>();
-        var floorCovering = furniture.First(x => x.SubCategory == FurnitureSubCategory.InteriorsSubCategory1);
+        var floorCovering = furniture.First(x => x.SubCategory == FurnitureSubCategory.Floor);
         var chair = furniture.First(x => x.SubCategory == FurnitureSubCategory.Chair);
 
         db.Furnitures.Add(new FurnitureDBServer { AccountServerId = account.ServerId, CafeDBId = cafe.CafeDBId, UniqueId = floorCovering.Id, Location = FurnitureLocation.Floor, StackCount = 1, ItemDeploySequence = 11 });
@@ -110,7 +110,7 @@ public class CafePresetTests
 
         var furnById = Excels.GetTable<FurnitureExcelT>().ToDictionary(x => x.Id);
         var deployed = db.Furnitures.Where(x => x.AccountServerId == account.ServerId && x.CafeDBId == cafe.CafeDBId && x.ItemDeploySequence != 0).ToList();
-        foreach (var sub in new[] { FurnitureSubCategory.InteriorsSubCategory1, FurnitureSubCategory.Wallpaper, FurnitureSubCategory.Background })
+        foreach (var sub in new[] { FurnitureSubCategory.Floor, FurnitureSubCategory.Wallpaper, FurnitureSubCategory.Background })
             Assert.Contains(deployed, x => furnById[x.UniqueId].SubCategory == sub);
 
         // a second pass must not stack more interiors on top
