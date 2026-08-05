@@ -15,6 +15,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string GatewayRsaPrivateKeyPath { get; set; } = "";
         public string GatewayRsaPublicKeyPem { get; set; } = "";
         public string GatewayRsaPublicKeyPath { get; set; } = "";
+        // The Blue Archive install every client path below is derived from. Blank means find it: Steam's own libraries, then the conventional locations. Set it when there are two installs, or when the game is somewhere Steam does not know about.
+        public string ClientInstallDirectory { get; set; } = "";
         public bool AutoPatchClientMetadata { get; set; } = true;
         public string ClientMetadataPath { get; set; } = "";
         public bool AutoPatchClientGameAssemblyIas { get; set; } = false;
@@ -49,7 +51,7 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool KoyukiIncident { get; set; } = false;
         public bool AutoCheckVersion { get; set; } = true;
         public bool AutoUpdateVersion { get; set; } = true;
-        public bool AutoUpdateResources { get; set; } = false;
+        public bool AutoUpdateResources { get; set; } = true;
         public string? OverrideVersionId { get; set; }
         public string? OverrideCdnBaseUrl { get; set; }
         // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and overridable per-machine with SHITTIM_ADMIN_API_KEY.

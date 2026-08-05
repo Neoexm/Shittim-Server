@@ -167,16 +167,7 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(located) && (File.Exists(located) || File.Exists(located + ".bak")))
                 return located;
 
-            var candidates = new[]
-            {
-                @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\grap64.dll",
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                    "Steam", "steamapps", "common", "BlueArchive",
-                    "BlueArchive_Data", "Plugins", "x86_64", "grap64.dll")
-            };
-
-            return candidates.FirstOrDefault(p => File.Exists(p) || File.Exists(p + ".bak")) ?? "";
+            return "";
         }
 
         private static string GetStubPath()
@@ -192,8 +183,7 @@ namespace Shittim_Server.Services
                 Path.Combine(baseDir, "grap64_stub.dll"),
                 Path.Combine(baseDir, "grap64.dll"),
                 Path.Combine(baseDir, "..", "..", "Scripts", "grap64.dll"),
-                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "Scripts", "grap64.dll")),
-                @"C:\Users\tomda\Documents\Shittim-Server\Scripts\grap64.dll"
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "Scripts", "grap64.dll"))
             };
 
             return candidates.FirstOrDefault(File.Exists) ?? "";

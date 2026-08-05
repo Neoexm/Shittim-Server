@@ -7,6 +7,7 @@ const DEFAULT_SERVER_CONFIG = {
   HostPort: '5000',
   GatewayPort: '5100',
   EnableGateway: true,
+  ClientInstallDirectory: '',
   AutoPatchClientMetadata: true, ClientMetadataPath: '',
   AutoPatchClientGameAssemblyIas: false, ClientGameAssemblyPath: '',
   AutoPatchClientGamescaleIas: true, ClientGamescaleCorePath: '',
@@ -73,6 +74,7 @@ const GROUPS = [
   {
     title: 'Client auto-patching', icon: 'shield',
     fields: [
+      { key: 'ClientInstallDirectory', label: 'Game install directory', type: 'dir', hint: 'blank = look for the Steam install; the per-patch overrides below are only needed when one file lives somewhere else' },
       { key: 'AutoPatchClientMetadata', label: 'Patch metadata', type: 'bool', path: 'ClientMetadataPath' },
       { key: 'AutoPatchClientGameAssemblyIas', label: 'Patch GameAssembly IAS', type: 'bool', path: 'ClientGameAssemblyPath' },
       { key: 'AutoPatchClientGamescaleIas', label: 'Patch gamescale.core IAS', type: 'bool', path: 'ClientGamescaleCorePath' },
@@ -140,6 +142,8 @@ export default {
           const row = buildToggleRow(target, f);
           body.appendChild(row);
           if (f.path) body.appendChild(buildPathField(sc, f));
+        } else if (f.type === 'dir') {
+          body.appendChild(field(f.label, buildDirRow(target, f.key), f.hint));
         } else {
           body.appendChild(field(f.label, bindInput(target, f.key), f.hint));
         }
@@ -169,6 +173,18 @@ export default {
         el('div.tr-text', {}, el('b', { text: f.label }), f.desc ? el('span', { text: f.desc }) : null));
       const t = toggle(!!obj[f.key], (on) => { obj[f.key] = on; });
       row.appendChild(t);
+      return row;
+    }
+    function buildDirRow(obj, key) {
+      const row = el('div.input-row', { style: { minWidth: '0' } });
+      const i = input({ value: obj[key] ?? '', placeholder: '-' });
+      i.addEventListener('input', () => { obj[key] = i.value; });
+      const browse = button('...', { variant: 'ghost', onClick: async () => {
+        const picked = await window.host.pickFolder();
+        if (picked) { i.value = picked; obj[key] = picked; }
+      }});
+      browse.style.flex = '0 0 auto';
+      row.appendChild(i); row.appendChild(browse);
       return row;
     }
     function buildPathField(obj, f) {

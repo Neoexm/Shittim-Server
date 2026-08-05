@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 using BlueArchiveAPI.Configuration;
 
@@ -115,7 +116,8 @@ namespace Shittim_Server.Services
                     return state;
                 }
 
-                logger.LogWarning("No GameAssembly IAS auth patch signatures matched: {GameAssemblyPath}", path);
+                logger.LogError("No GameAssembly IAS auth patch signatures matched {GameAssemblyPath} ({Length} bytes, sha256 {Hash}), so the client will fail authentication - the signature only matches the client build it was lifted from",
+                    path, data.LongLength, Convert.ToHexString(SHA256.HashData(data)));
                 return null;
             }
 
@@ -158,7 +160,10 @@ namespace Shittim_Server.Services
             var matches = FindAll(data, definition.Signature);
             if (matches.Count != 1)
             {
-                logger.LogWarning("GameAssembly IAS patch signature {PatchName} matched {MatchCount} locations", definition.Name, matches.Count);
+                // A count of zero is the ordinary "wrong client build" case and the caller reports it once with the file's identity. More than one is not that, and patching either of them would be a guess.
+                if (matches.Count > 1)
+                    logger.LogWarning("GameAssembly IAS patch signature {PatchName} matched {MatchCount} locations", definition.Name, matches.Count);
+
                 return null;
             }
 
@@ -353,17 +358,7 @@ namespace Shittim_Server.Services
                 return ResolvePath(configuredPath);
 
             // Any Steam library can hold the install.
-            var located = SteamGameLocator.FindGameFile("GameAssembly.dll");
-            if (!string.IsNullOrWhiteSpace(located))
-                return located;
-
-            var candidates = new[]
-            {
-                @"F:\SteamLibrary\steamapps\common\BlueArchive\GameAssembly.dll",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "GameAssembly.dll")
-            };
-
-            return candidates.FirstOrDefault(File.Exists);
+            return SteamGameLocator.FindGameFile("GameAssembly.dll");
         }
 
         private static string ResolvePath(string path)
