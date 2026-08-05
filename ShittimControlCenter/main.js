@@ -388,14 +388,16 @@ async function runEnvChecks() {
   // hang on "Unpacking game resources" rather than as anything to do with keys.
   const keyDir = path.dirname(p.configPath);
   const gatewayKey = path.join(keyDir, 'GatewayPrivateKey.pem');
+  const shippedKey = path.join(p.serverDir, 'config', 'GatewayPrivateKey.pem');
+  const gateway = fs.existsSync(gatewayKey) ? { status: 'ready', detail: gatewayKey }
+    : fs.existsSync(shippedKey) ? { status: 'ready', detail: `${shippedKey} - copied next to the exe on build` }
+    : { status: 'missing', detail: `GatewayPrivateKey.pem is in neither ${keyDir} nor ${path.dirname(shippedKey)} - login cannot be decrypted` };
 
   return {
     dotnet,
     mitmproxy: { status: mitm.ok ? 'ready' : 'missing', detail: mitm.ok ? `${mitm.detail} - ${mitmPath}` : `${mitmPath} did not answer --version - click Install` },
     certificate,
-    gateway: fs.existsSync(gatewayKey)
-      ? { status: 'ready', detail: gatewayKey }
-      : { status: p.exePath ? 'missing' : 'warning', detail: `GatewayPrivateKey.pem not in ${keyDir} - login cannot be decrypted; restore it from config/` },
+    gateway,
     database: { status: fs.existsSync(p.dbPath) ? 'ready' : 'warning', detail: fs.existsSync(p.dbPath) ? p.dbPath : 'created on first server run' },
     server: { status: vs.buildStale ? 'warning' : p.exePath ? 'ready' : (fs.existsSync(p.csproj) ? 'warning' : 'missing'), detail: serverDetail },
     redirect: { status: fs.existsSync(p.redirectScript) ? 'ready' : 'missing', detail: fs.existsSync(p.redirectScript) ? p.redirectScript : 'redirect_server.py missing' },

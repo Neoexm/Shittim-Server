@@ -62,6 +62,9 @@ public class VersionConsistencyTests
         Assert.StartsWith("10.0.", pin.GetProperty("version").GetString());
         Assert.Equal("latestFeature", pin.GetProperty("rollForward").GetString());
 
+        // A feature band floor, never the patch level that happens to be installed here: rollForward only ever goes up, so pinning 10.0.302 stops anyone on 10.0.301 with "A compatible .NET SDK was not found" before a single project is loaded.
+        Assert.EndsWith("00", pin.GetProperty("version").GetString());
+
         // Schale used to sit on net8.0 while the server that consumes it was on net10.0. MemoryDumper is standalone RE scratch that nothing references and nothing ships, so it is not covered here.
         foreach (var project in new[] { "Shittim-Server", "Schale", "Shittim-Server.Tests" })
             Assert.Contains("<TargetFramework>net10.0</TargetFramework>", File.ReadAllText(Path.Combine(RepoRoot(), project, project + ".csproj")));
