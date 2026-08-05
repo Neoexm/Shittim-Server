@@ -60,6 +60,16 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 .Where(x => x.AccountServerId == account.ServerId)
                 .ToList();
 
+            // Slots written before SelectNode was bounded can hold duplicate tiers or more than the five legal nodes. Resending one replays a broken node animation and kicks the client to the lobby on every menu open, so drop them here - the slot is lost but crafting works again.
+            var corrupted = craftInfos.Where(x => x.Nodes != null &&
+                (x.Nodes.Count > 5 || x.Nodes.GroupBy(n => n.NodeTier).Any(g => g.Count() > 1) || x.Nodes.Any(n => n.NodeTier < CraftNodeTier.Base || n.NodeTier > CraftNodeTier.Max))).ToList();
+            if (corrupted.Count > 0)
+            {
+                db.CraftInfos.RemoveRange(corrupted);
+                await db.SaveChangesAsync();
+                craftInfos = craftInfos.Except(corrupted).ToList();
+            }
+
             // Official omits both keys when there is nothing to list (the first captured sample is bare Protocol + ServerTimeTicks) and never sends
             // ShiftingCraftInfos at all.
             response.CraftInfos = craftInfos.Count > 0 ? _mapper.Map<List<CraftInfoDB>>(craftInfos) : null;
@@ -140,8 +150,10 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             var slot = GetSlot(db, account.ServerId, request.SlotId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Craft slot {request.SlotId} has no craft");
 
-            var current = slot.Nodes?.LastOrDefault(x => x.LeafNodeIds is { Count: > 0 })
-                ?? throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "No node with leaf choices to select from");
+            // only the last node may be selected from. Falling back to an earlier tier that still has its leaves would append a duplicate of the tier after it - that is how a maxed craft (whose final node rolls no leaves, there is no tier past Max) used to grow an endless tail of tier-4 nodes.
+            var current = slot.Nodes is { Count: > 0 } ? slot.Nodes[^1] : null;
+            if (current == null || current.LeafNodeIds == null || current.LeafNodeIds.Count == 0)
+                throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "No node with leaf choices to select from");
 
             if (request.LeafNodeIndex < 0 || request.LeafNodeIndex >= current.LeafNodeIds!.Count)
                 throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Leaf index {request.LeafNodeIndex} out of range");
