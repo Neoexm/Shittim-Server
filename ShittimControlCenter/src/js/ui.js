@@ -222,6 +222,28 @@ export function relTime(secs) {
   return h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
 }
 
+// Collect whatever arrives between animation frames and hand it over in one call. Appending a node and then reading scrollHeight back to stay pinned to the bottom is a forced layout, so doing it per log line costs 2.1s of main-thread time for 4000 lines against 116ms for the same lines flushed a frame at a time - during a battle the renderer never catches up and the window stops answering the button that would stop the server.
+// `cap` throws away the middle of a burst, which is only ever lines that would have scrolled past before a frame could show them.
+export function batched(flush, { cap = 1200, schedule = requestAnimationFrame } = {}) {
+  let queued = [];
+  let scheduled = false;
+  return {
+    push(item) {
+      queued.push(item);
+      if (queued.length > cap) queued.splice(0, queued.length - cap);
+      if (scheduled) return;
+      scheduled = true;
+      schedule(() => {
+        scheduled = false;
+        const batch = queued;
+        queued = [];
+        if (batch.length) flush(batch);
+      });
+    },
+    discard() { queued = []; },
+  };
+}
+
 export function card(title, { sub, actions, body, tight } = {}) {
   const head = el('div.card-head', {}, el('span.tab-mark', {}),
     el('h3', { text: title }),

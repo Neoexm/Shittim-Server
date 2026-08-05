@@ -30,14 +30,23 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
   wrap.appendChild(col);
   appRoot.appendChild(wrap);
 
+  // A folder that was set and has since gone - unplugged drive, renamed, network share down - reads as "not found" unless it says so, and downloading a second copy over the top strands the database in the folder that is still there.
+  const gone = status.configuredMissing && status.configured;
+  const heading = gone ? 'Server project folder is missing' : 'Server project not found';
+  const blurb = gone
+    ? `The control center is set to <span class="mono">${escapeHtml(status.configured)}</span>, and that folder is not there right now.
+          If it lives on a drive that is not plugged in, connect it and restart. Downloading a fresh copy leaves the
+          database and configuration in the old folder.`
+    : `The control center needs the Shittim-Server project to run. Download the
+          latest copy from GitHub, or point it at a folder you already have.`;
+
   col.appendChild(frag(`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
       <img class="brand-img" src="${BRAND_IMG}" alt="" style="height:46px;width:auto">
       <div style="min-width:0">
-        <h2 style="font-size:20px;font-weight:800;color:var(--ink);line-height:1.15;margin:0">Server project not found</h2>
+        <h2 style="font-size:20px;font-weight:800;color:var(--ink);line-height:1.15;margin:0">${heading}</h2>
         <p style="font-size:13px;color:var(--ink-2);margin:4px 0 0;line-height:1.5">
-          The control center needs the Shittim-Server project to run. Download the
-          latest copy from GitHub, or point it at a folder you already have.
+          ${blurb}
         </p>
       </div>
     </div>`));

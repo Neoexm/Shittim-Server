@@ -1,8 +1,9 @@
 import { icon } from './icons.js';
 
 const BRAND_IMG = '../Sprite/Common_Icon_Setting_Account.png';
-import { el, frag, clear, select, button, toast, escapeHtml } from './ui.js';
+import { el, frag, clear, select, button, toast, escapeHtml, batched } from './ui.js';
 import { api, store, reloadAccounts } from './api.js';
+import { serverHealth } from './health.js';
 import { renderProjectGate } from './project-gate.js';
 
 import overview from './pages/overview.js';
@@ -126,6 +127,7 @@ let following = true;
 let logFilter = 'all';
 let consoleEl = null;
 let dockToggleBtn = null;
+let logFeed = null;
 
 function lineNode(entry) {
   const cls = entry.line.startsWith('>') ? 'sys' : entry.source;
@@ -133,6 +135,7 @@ function lineNode(entry) {
 }
 
 function repaintLog() {
+  if (logFeed) logFeed.discard(); // lines waiting on a frame were filtered under the old selection
   clear(consoleEl);
   const rows = logBuffer.filter((e) => logFilter === 'all' || e.source === logFilter);
   if (!rows.length) { consoleEl.appendChild(frag('<div class="ln muted">- no output yet - start the server to see logs -</div>')); return; }
@@ -173,12 +176,19 @@ function buildDock() {
   dock.appendChild(head);
   dock.appendChild(el('div.dock-body', {}, consoleEl));
 
+  // 10Hz, not a frame each: a frame each is more often than anyone reads and at a few hundred lines a second it is 5000 layout passes a minute over a scrollback whose rows all wrap. Measured at a sixth the layout work and 60MB less renderer.
+  logFeed = batched((rows) => {
+    const batch = document.createDocumentFragment();
+    for (const e of rows) batch.appendChild(lineNode(e));
+    consoleEl.appendChild(batch);
+    while (consoleEl.childElementCount > 1400) consoleEl.removeChild(consoleEl.firstChild);
+    if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
+  }, { cap: LOG_MAX, schedule: (fn) => setTimeout(() => requestAnimationFrame(fn), 100) });
+
   onLog((entry) => {
     if (!entry) { repaintLog(); return; }
     if (logFilter !== 'all' && entry.source !== logFilter) return;
-    consoleEl.appendChild(lineNode(entry));
-    while (consoleEl.childElementCount > 1400) consoleEl.removeChild(consoleEl.firstChild);
-    if (following) consoleEl.scrollTop = consoleEl.scrollHeight;
+    logFeed.push(entry);
   });
   consoleEl.addEventListener('scroll', () => {
     const atBottom = consoleEl.scrollTop + consoleEl.clientHeight >= consoleEl.scrollHeight - 30;
@@ -227,8 +237,10 @@ function persistDock() {
 const isUp = (s) => s.online || s.procServer === 'running' || s.procServer === 'starting'
   || s.procMitm === 'running' || s.procMitm === 'starting';
 
+const health = (s) => serverHealth({ proc: s.procServer, startedAt: s.serverStartedAt, live: s.live, ready: s.online, now: Date.now(), grace: s.serverGraceMs });
+
 function statusPill(state) {
-  const map = { running: ['good', 'Running'], starting: ['warn', 'Starting'], stopped: ['', 'Stopped'], failed: ['bad', 'Failed'] };
+  const map = { online: ['good', 'Running'], running: ['good', 'Running'], starting: ['warn', 'Starting'], unhealthy: ['warn', 'Not ready'], unresponsive: ['bad', 'No response'], stopped: ['', 'Stopped'], failed: ['bad', 'Failed'] };
   const [cls, label] = map[state] || ['', 'Stopped'];
   return frag(`<span class="pill ${cls}"><span class="dot"></span>${label}</span>`);
 }
@@ -265,16 +277,19 @@ function paintStatusBar() {
   if (!sbLed) return;
   const s = store.get();
 
+  const h = health(s);
   let cls, title, sub;
-  if (s.online) {
+  if (h === 'online') {
     cls = 'up'; title = 'Online';
     sub = s.status ? `v${s.status.gameVersion} · :${s.status.apiPort} · ${s.status.accountCount} acct` : `Ready · ${s.probeTarget}`;
-  } else if (s.live) {
-    cls = 'starting'; title = 'Starting'; sub = `Listening on ${s.probeTarget}`;
-  } else if (s.procServer === 'starting') {
-    cls = 'starting'; title = 'Starting'; sub = 'Booting server';
-  } else if (s.procServer === 'running') {
-    cls = 'starting'; title = 'Process up'; sub = `No response on ${s.probeTarget}`;
+  } else if (h === 'starting') {
+    cls = 'starting'; title = 'Starting'; sub = s.live ? `Listening on ${s.probeTarget}` : 'Booting server';
+  } else if (h === 'unhealthy') {
+    cls = 'starting'; title = 'Not ready'; sub = `Listening on ${s.probeTarget} but /api/admin/status is still failing`;
+  } else if (h === 'unresponsive') {
+    cls = 'bad'; title = 'Not responding'; sub = `Process up, nothing on ${s.probeTarget} after ${Math.round(s.serverGraceMs / 1000)}s`;
+  } else if (h === 'failed') {
+    cls = 'bad'; title = 'Start failed'; sub = 'The server process did not spawn - see the console';
   } else {
     cls = 'down'; title = 'Offline'; sub = 'Not running';
   }
@@ -282,8 +297,7 @@ function paintStatusBar() {
   sbTitle.textContent = title;
   sbSub.textContent = sub;
 
-  const srv = s.online ? 'running' : s.procServer;
-  clear(sbServer); sbServer.append(el('span.sb-tag', { text: 'Server' }), statusPill(srv));
+  clear(sbServer); sbServer.append(el('span.sb-tag', { text: 'Server' }), statusPill(h));
   clear(sbProxy); sbProxy.append(el('span.sb-tag', { text: 'Proxy' }), statusPill(s.procMitm));
 
   const up = isUp(s);
@@ -321,14 +335,22 @@ async function poll() {
     if (!wasReady) { await api.refreshBase(); await reloadAccounts(); refreshTargetPicker(); }
   }
   wasReady = ready;
-  store.set({
+  const patch = {
     online: ready,
     live,
     status: ready ? status : null,
     lastCheckedTs: Date.now(),
     probeTarget: api.hostPort(),
-    serverPid: pStatus ? pStatus.serverPid : store.get().serverPid,
-  });
+  };
+  // proc:state only ever announces starting/stopped/failed, so a child that is simply up is only ever visible from here
+  if (pStatus) {
+    patch.procServer = pStatus.server;
+    patch.procMitm = pStatus.mitm;
+    patch.serverPid = pStatus.serverPid;
+    patch.serverStartedAt = pStatus.serverStartedAt;
+    patch.serverGraceMs = pStatus.serverGraceMs;
+  }
+  store.set(patch);
 }
 
 // Adaptive scheduler: probe hard while the server is booting (that's when the user is watching), relax once state is stable, and back off when the window is hidden.
@@ -338,8 +360,7 @@ let pollBusy = false;
 function pollDelay() {
   const s = store.get();
   if (document.hidden) return 15000;                       // minimized - relax
-  if (s.live && !s.online) return 1500;                    // booting - tight loop
-  if (s.procServer === 'starting') return 1500;
+  if (health(s) === 'starting') return 1500;               // booting - tight loop
   if (s.online) return 5000;                               // stable online
   return 7000;                                             // offline idle
 }

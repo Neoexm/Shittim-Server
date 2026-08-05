@@ -92,6 +92,7 @@ export default {
         diagBody.appendChild(diagRow('Game database', env.database));
         diagBody.appendChild(diagRow('mitmproxy', env.mitmproxy, fixBtn('mitmproxy', env.mitmproxy)));
         diagBody.appendChild(diagRow('CA certificate', env.certificate, fixBtn('certificate', env.certificate)));
+        diagBody.appendChild(diagRow('Gateway keys', env.gateway));
         diagBody.appendChild(diagRow('Redirect script', env.redirect));
         // gate the header "Install missing" button on there being something to do
         const anyMissing = ['dotnet', 'mitmproxy', 'certificate'].some((k) => (env[k]?.status || 'missing') !== 'ready');

@@ -132,6 +132,8 @@ export const store = makeStore({
   procServer: 'stopped',   // process lifecycle state from main
   procMitm: 'stopped',
   serverPid: null,         // pid of the server child we spawned (if any)
+  serverStartedAt: null,   // epoch ms the server child was spawned, null if we did not spawn it
+  serverGraceMs: null,     // how long it gets to answer before silence is a symptom, null for a source run
   online: false,           // server is READY (db-backed /api/admin/status answered)
   live: false,             // web host answered /health but may not be ready yet
   status: null,            // /api/admin/status payload
