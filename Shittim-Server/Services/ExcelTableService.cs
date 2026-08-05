@@ -86,13 +86,26 @@ namespace BlueArchiveAPI.Services
                         command.CommandText = $"SELECT Bytes FROM [{schemaName}]";
 
                         var skippedRows = 0;
+                        var widestRow = 0;
+                        var properties = type.GetProperties();
+                        var slotMap = ClientExcelSchema.SlotMapFor(type, baseTypeName);
+                        int compiledMisfits = 0, candidateMisfits = 0, scoredRows = 0;
                         using (var reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
                                 try
                                 {
-                                var byteBuffer = new ByteBuffer((byte[])reader[0]);
+                                var rowBytes = (byte[])reader[0];
+                                widestRow = Math.Max(widestRow, RowSlotCount(rowBytes));
+                                if (slotMap != null && scoredRows < 200)
+                                {
+                                    var (compiled, candidate) = RealignedRowReader.ScoreMaps(rowBytes, properties, slotMap);
+                                    compiledMisfits += compiled;
+                                    candidateMisfits += candidate;
+                                    scoredRows++;
+                                }
+                                var byteBuffer = new ByteBuffer(rowBytes);
                                 var getRootMethod = fbType.GetMethod($"GetRootAs{baseTypeName}", BindingFlags.Static | BindingFlags.Public, [typeof(ByteBuffer)])
                                     ?? throw new MissingMethodException($"Could not find GetRootAs{baseTypeName} on type {fbType.FullName}");
 
@@ -110,6 +123,30 @@ namespace BlueArchiveAPI.Services
                                         Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName} has rows that do not match the current schema ({rowEx.GetBaseException().Message}); skipping them");
                                 }
                             }
+                        }
+
+                        // The client's field order only says where our fields sit in the build it came from, and it is a name match, so it also invents drift for reader properties that are not schema fields at all. Realign only where the rows themselves say the compiled offsets are wrong: rows the model cannot read, rows carrying more slots than the model has fields, or rows that fit the client's order better than ours.
+                        // GoodsExcel is the case this protects - it name-aligns as drifted, its rows are exactly as wide as the model, and re-reading it changes nothing.
+                        if (slotMap != null && (skippedRows > 0 || widestRow > properties.Length || candidateMisfits < compiledMisfits))
+                        {
+                            var realigned = new List<T>();
+                            var unreadable = 0;
+                            using (var rereader = command.ExecuteReader())
+                            {
+                                while (rereader.Read())
+                                {
+                                    try { realigned.Add((T)RealignedRowReader.Read((byte[])rereader[0], type, slotMap)); }
+                                    catch { unreadable++; }
+                                }
+                            }
+
+                            if (realigned.Count >= excelList.Count)
+                            {
+                                Console.WriteLine($"[ExcelTableService] {baseTypeName}: layout drift detected; realigned {realigned.Count} row(s) against the installed client's schema" +
+                                    (unreadable > 0 ? $" ({unreadable} still unreadable)" : "") + ". Regenerate the model to make this permanent.");
+                                return realigned;
+                            }
+                            Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName}: realignment read fewer rows ({realigned.Count}) than the compiled model ({excelList.Count}); keeping the compiled model's result");
                         }
 
                         if (skippedRows > 0)
@@ -137,6 +174,15 @@ namespace BlueArchiveAPI.Services
             return unpacked;
         }
 
+        // vtable layout: [0] its own size in bytes, [2] the table's inline size, then one uint16 per field.
+        private static int RowSlotCount(byte[] row)
+        {
+            if (row.Length < 8) return 0;
+            var table = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(row);
+            var vtable = table - System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(row.AsSpan(table));
+            return (System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(row.AsSpan(vtable)) - 4) / 2;
+        }
+
         // The ExcelDB key rotates between some game updates; when it does, every DB-backed table silently degrades to empty and the failure only surfaces as broken client screens much later.
         // No-ops when ExcelDB.db is absent (a .bytes-only / custom-Excel setup) or is stored as a plain, unencrypted SQLite file.
         public static void ValidateExcelDbKey()
@@ -144,9 +190,38 @@ namespace BlueArchiveAPI.Services
             var excelDbPath = Path.Combine(DumpedDir, "ExcelDB.db");
             if (!File.Exists(excelDbPath))
             {
+                // Downloaded is where the CDN files land, Dumped is what the server reads, and ExcelDB.db is copied between them while the zips are extracted. A download that stopped after the first step leaves it in the wrong one, and with no Excel directory to fall back on every table then loads empty and the server starts up looking healthy.
+                var staged = Path.Combine(ResourceDir, "Downloaded", "ExcelDB.db");
+                if (File.Exists(staged) && !Directory.Exists(Path.Combine(DumpedDir, "Excel")))
+                    throw new InvalidOperationException(
+                        $"ExcelDB.db is in {Path.GetDirectoryName(staged)} but not in {DumpedDir}, and there is no Excel " +
+                        "directory to load instead, so every table would load empty. Copy it across, or delete " +
+                        "Resources/original_version.txt to download the resources again.");
+
                 Console.WriteLine("[ExcelTableService] ExcelDB.db not present; skipping SQLCipher key validation.");
                 return;
             }
+
+            var length = new FileInfo(excelDbPath).Length;
+            var header = new byte[16];
+            using (var stream = File.OpenRead(excelDbPath))
+                stream.ReadExactly(header, 0, (int)Math.Min(header.Length, length));
+
+            // A SQLCipher database opens with its random salt, so there is nothing to positively identify it by - but the files that get mistaken for it identify themselves. Without this every one of them reaches the PRAGMA and comes back as error 26, which reads as a key problem and sends people off to re-extract a key that was never wrong.
+            string wrongFile = null;
+            if (length < 512)
+                wrongFile = $"only {length} bytes, too small to be a database";
+            else if (header[0] == 0x50 && header[1] == 0x4B && header[2] == 0x03 && header[3] == 0x04)
+                wrongFile = "a zip archive - Excel.zip and HexaMap.zip are the two that get extracted rather than copied";
+            else if (header[0] == 0x1F && header[1] == 0x8B && header[2] == 0x08)
+                wrongFile = "a gzip stream";
+            else if (header.AsSpan().StartsWith("<!DOCTYPE"u8) || header.AsSpan().StartsWith("<!doctype"u8) || header.AsSpan().StartsWith("<html"u8) || header.AsSpan().StartsWith("<?xml"u8))
+                wrongFile = "an HTML or XML document, which is what a CDN error page saved to disk looks like";
+
+            if (wrongFile != null)
+                throw new InvalidOperationException(
+                    $"{excelDbPath} is {wrongFile}, so it is not an ExcelDB and no SQLCipher key will open it. " +
+                    "Delete it and Resources/original_version.txt to download the resources again.");
 
             if (!NeedsSqlCipherKey(excelDbPath))
             {
