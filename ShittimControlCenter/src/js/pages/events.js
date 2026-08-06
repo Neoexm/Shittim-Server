@@ -1,17 +1,17 @@
-import { el, frag, clear, button, toast, confirmDialog, notifyRestart, shortDate, escapeHtml, emptyState } from '../ui.js';
+import { el, frag, clear, button, input, field, toast, confirmDialog, notifyRestart, shortDate, escapeHtml, emptyState } from '../ui.js';
 import { api, targetAccount } from '../api.js';
 import { gate, loadInto } from './_util.js';
 
 const TYPES = [
-  { key: 'total', title: 'Total Assault', icon: 'shield', sub: 'Raid season' },
-  { key: 'grand', title: 'Grand Assault', icon: 'bolt', sub: 'Eliminate raid' },
-  { key: 'drill', title: 'Joint Firing Drill', icon: 'clock', sub: 'Time-attack dungeon' },
-  { key: 'final', title: 'Final Restriction', icon: 'flask', sub: 'Multi-floor raid' },
+  { key: 'total', title: 'Total Assault', icon: 'shield' },
+  { key: 'grand', title: 'Grand Assault', icon: 'bolt' },
+  { key: 'drill', title: 'Joint Firing Drill', icon: 'clock' },
+  { key: 'final', title: 'Final Restriction', icon: 'flask' },
 ];
 
 export default {
   id: 'events',
-  title: 'Events',  icon: 'events',
+  title: 'Raids',  icon: 'events',
   needsTarget: true,
 
   mount(root) {
@@ -20,22 +20,30 @@ export default {
       const uid = acc.serverId;
 
       root.appendChild(frag(`<div class="row wrap" style="margin:-2px 0 16px;gap:8px">
-        <span class="pill blue"><span class="dot"></span>Applying to ${escapeHtml(acc.nickname)} - #${uid}</span>
-        <span class="muted" style="font-size:12px;min-width:0">Seasons are server-side; changing one resets the matching content lobby for this account.</span></div>`));
+        <span class="pill blue"><span class="dot"></span>Applying to ${escapeHtml(acc.nickname)} - #${uid}</span></div>`));
+
+      // 199 seasons across four scrollers, so the boss name is the only way anyone finds the one they want.
+      const search = input({ placeholder: 'Season number or boss' });
+      root.appendChild(el('div', { style: { maxWidth: '320px', margin: '0 0 14px' } }, field('Find', search)));
 
       const grid = el('div.grid-2', { style: { alignItems: 'start' } });
       root.appendChild(grid);
 
-      loadInto(grid, () => api.eventSeasons(), (grid, data) => {
+      loadInto(grid, () => api.eventSeasons(uid), (grid, data) => {
+        const filters = [];
+        search.addEventListener('input', () => filters.forEach((f) => f()));
+
         for (const t of TYPES) {
           const seasons = data[t.key] || [];
+          const live = data.current ? data.current[t.key] : null;
           const body = el('div.list-scroll', { style: { maxHeight: '40vh' } });
           const card = el('div.card', { style: { minWidth: '0' } },
-            el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: t.title }), el('span.sub', { text: t.sub })),
+            el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: t.title }),
+              el('div.spacer', {}), live ? frag(`<span class="pill good"><span class="dot"></span>On season ${live}</span>`) : null),
             body);
 
           if (!seasons.length) {
-            body.appendChild(emptyState('No seasons defined', 'This content has no Excel seasons'));
+            body.appendChild(emptyState('No seasons defined'));
           } else {
             // Window 132px fits the nowrap date lines; 94px fits the Apply button (box-sizing includes the 28px cell padding) - anything narrower paints the button over the date column and past the card edge.
             const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th>Season</th><th style="width:132px">Window</th><th style="width:94px"></th></tr></thead><tbody></tbody></table>');
@@ -61,9 +69,25 @@ export default {
                 catch (err) { toast(err.message, 'bad'); }
               });
               tr.lastElementChild.appendChild(apply);
+              if (s.seasonId === live) tr.firstElementChild.querySelector('b').appendChild(frag('<span class="pill good" style="margin-left:6px">Current</span>'));
               tb.appendChild(tr);
             }
             body.appendChild(tbl);
+
+            const empty = emptyState('Nothing matches');
+            empty.style.display = 'none';
+            body.appendChild(empty);
+            filters.push(() => {
+              const q = search.value.trim().toLowerCase();
+              let hits = 0;
+              for (let i = 0; i < seasons.length; i++) {
+                const show = !q || String(seasons[i].seasonId).includes(q) || (seasons[i].boss || '').toLowerCase().includes(q);
+                tb.children[i].style.display = show ? '' : 'none';
+                if (show) hits++;
+              }
+              tbl.style.display = hits ? '' : 'none';
+              empty.style.display = hits ? 'none' : '';
+            });
           }
           grid.appendChild(card);
         }

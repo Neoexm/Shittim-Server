@@ -115,7 +115,14 @@ export const api = {
   gachaConfig: () => req('GET', '/api/admin/gacha/config'),
   setGachaConfig: (b) => req('POST', '/api/admin/gacha/config', b),
   gachaBanners: () => req('GET', '/api/admin/gacha/banners'),
-  eventSeasons: () => req('GET', '/api/admin/events/seasons'),
+  eventSeasons: (uid) => req('GET', `/api/admin/events/seasons${uid ? `?uid=${uid}` : ''}`),
+
+  notice: () => req('GET', '/api/admin/notice'),
+  setNotice: (b) => req('POST', '/api/admin/notice', b),
+  eventSchedule: () => req('GET', '/api/admin/events/schedule'),
+  setEventSchedule: (b) => req('POST', '/api/admin/events/schedule', b),
+  eventUnlocks: (id, uid) => req('GET', `/api/admin/events/${id}/unlocks${uid ? `?uid=${uid}` : ''}`),
+  eventUnlock: (b) => req('POST', '/api/admin/events/unlock', b),
 };
 
 function makeStore(initial) {
