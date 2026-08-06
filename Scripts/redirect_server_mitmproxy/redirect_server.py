@@ -232,7 +232,6 @@ def request(flow: http.HTTPFlow) -> None:
                 flow.request.path.endswith('.json') and '_Live' in flow.request.path
             )
             if not is_server_config:
-                # Let CloudFront asset requests pass through (do not redirect)
                 if OFFLINE_MODE:
                     rlog(f"  -> OFFLINE-STUB cloudfront {flow.request.path}")
                     kill_or_stub(flow)
@@ -256,7 +255,7 @@ def request(flow: http.HTTPFlow) -> None:
     rlog(f"  -> FORWARD-REAL {host}{flow.request.path}")
 
 def responseheaders(flow: http.HTTPFlow) -> None:
-    # streaming has to be decided here - by the response hook the body is already buffered, which is why the old stream=True down there never did anything. Local server traffic stays buffered so its bodies are still readable in the web ui; everything real (cdn bundles, telemetry) streams through untouched, otherwise hours of play balloon the flow store by the full size of every asset the game pulls.
+    # streaming has to be decided here - by the response hook the body is already buffered and setting stream does nothing. Local server traffic stays buffered so its bodies are still readable in the web ui; everything real (cdn bundles, telemetry) streams through untouched, otherwise hours of play balloon the flow store by the full size of every asset the game pulls.
     if flow.request.host != SERVER_HOST and flow.response.raw_content is None:
         flow.response.stream = True
 

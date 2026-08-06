@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Schale.MX.GameLogic.DBModel; // Validation? DBModel namespace
-using Schale.MX.GameLogic.Parcel; // For ParcelInfo
+using Schale.MX.GameLogic.DBModel;
+using Schale.MX.GameLogic.Parcel;
 
 namespace Schale.Data.GameModel
 {
@@ -17,7 +17,6 @@ namespace Schale.Data.GameModel
         [JsonIgnore]
         public long ServerId { get; set; }
 
-        // Properties from CraftInfoDB
         public long SlotSequence { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

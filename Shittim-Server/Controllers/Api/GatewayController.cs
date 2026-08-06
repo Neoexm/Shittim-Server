@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Shittim_Server.Core;
+using Shittim_Server.Services;
 using Protocol = Schale.MX.NetworkProtocol.Protocol;
 using WebAPIErrorCode = Schale.MX.NetworkProtocol.WebAPIErrorCode;
 
@@ -197,6 +198,12 @@ namespace Shittim_Server.Controllers.Api
                     return;
                 }
 
+                if (ServerNoticeService.IsGated(protocol))
+                {
+                    await CreateProtocolErrorResponse(ServerNoticeService.GateMessage, ServerNoticeService.GateError!.Value, responseCrypto);
+                    return;
+                }
+
                 var requestType = _handlerManager.GetRequestType(protocol);
                 if (requestType == null)
                 {
@@ -226,7 +233,6 @@ namespace Shittim_Server.Controllers.Api
                 }
 
                 // Official evaluates the notification flags at request ENTRY, not after handling: the Mail_Receive response that empties the mailbox still carries HasUnreadMail, and only the next response drops it.
-                // Snapshot before dispatch.
                 var notification = await ReadServerNotificationAsync(payload, protocol);
 
                 // The client fires bursts of claims concurrently, e.g. several Mission_Reward at once, and parallel write transactions on one SQLite file can stall past the client's socket timeout; an unanswered request soft-locks the game, so dispatch is serialized per account.
@@ -333,23 +339,25 @@ namespace Shittim_Server.Controllers.Api
             if (accountServerId == 0 || SkipsServerNotification(protocol))
                 return ServerNotificationFlag.None;
 
+            // Operator-forced bits ride the same path as the mailbox baseline so the four skip protocols and pre-login requests stay unstamped, which is what official does.
+            var forced = ServerNoticeService.Flags;
+
             try
             {
                 await using var db = await _dbFactory.CreateDbContextAsync();
-                // Unclaimed and unexpired only.
                 // Official drops the flag as soon as the mail is claimed, and this goes through GetAccountMailbox so it uses the same predicate AND the same clock as Mail_Check/Mail_List. An account with ForceDateTime evaluates mail expiry against its own ServerDateTime(), so reading DateTime.Now here would let the two disagree in either direction: a red dot over an empty mailbox, or unread mail the client is never told about. In both captures the flag and the count appear together and vanish together on Mail_Receive.
                 var account = await db.Accounts.AsNoTracking()
                     .FirstOrDefaultAsync(a => a.ServerId == accountServerId);
                 var now = account?.GameSettings?.ServerDateTime() ?? DateTime.Now;
                 if (await db.GetAccountMailbox(accountServerId, now).AnyAsync())
-                    return ServerNotificationFlag.HasUnreadMail;
+                    return forced | ServerNotificationFlag.HasUnreadMail;
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "ServerNotification mail check failed");
             }
 
-            return ServerNotificationFlag.None;
+            return forced;
         }
 
         private GatewayPayload DecodeGatewayPayload(IFormFile formFile)

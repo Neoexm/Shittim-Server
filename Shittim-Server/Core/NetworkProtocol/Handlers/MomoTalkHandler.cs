@@ -78,7 +78,6 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         if (momotalkOutline == null)
         {
-            // Fallback: Check if user owns the character and create outline
             var character = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
             if (character == null) return response;
 
@@ -103,7 +102,6 @@ public class MomoTalkHandler : ProtocolHandlerBase
             {
                 nextGroupId = chosenMessage.NextGroupId;
                 
-                // Record the choice if not exists
                 var existingChoice = db.MomoTalkChoices.FirstOrDefault(x => 
                     x.AccountServerId == account.ServerId && 
                     x.CharacterDBId == request.CharacterDBId && 

@@ -80,7 +80,6 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool RequestPacket { get; set; } = true;
         public bool ResponsePacket { get; set; } = false;
         public bool ErrorPacket = false;
-        // Writes every gateway exchange to logs/wire-{date}.txt in the same format as the reference captures, so a session can be diffed against official traffic.
         // On by default: the client reports protocol faults as opaque popups, and without the response bytes there is nothing to compare. Costs one buffered append per request.
         public bool WireDump { get; set; } = true;
     }

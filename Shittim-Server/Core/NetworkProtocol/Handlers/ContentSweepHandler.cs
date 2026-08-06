@@ -80,7 +80,7 @@ public class ContentSweepHandler : ProtocolHandlerBase
 
         for (int i = 0; i < request.Count; i++)
         {
-            // A sweep pays only the per-run drop table. The FirstClear and ThreeStar rows share the reward group with their own 100% probabilities, so rolling everything handed out the once-per-account pyroxene on every single sweep.
+            // A sweep pays only the per-run drop table.
             // The GachaGroup rows are rolled to concrete items up front: they are IsDisplayed=false in the excel, and sent raw they show up as blank cells in the client's sweep result.
             var rewardDatas = campaignStageRewardExcels.GetAllRewardsByGroupId(stageExcel.CampaignStageRewardId);
             var sweepRewards = ConcentrateCampaignManager.RolledDrops(rewardDatas).GenerateGachaGroup(gachaElementExcels);

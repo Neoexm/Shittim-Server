@@ -683,9 +683,7 @@ namespace Shittim_Server.Services
                 }, current));
             }
 
-            // A byte signature that hits a different number of sites than it was written against is not the code we
-            // studied, so there is nothing to say about which of the matches is the right one. Refusing the whole
-            // definition costs a broken IAS route; guessing costs a corrupted DLL the user has to verify through Steam.
+            // A byte signature that hits a different number of sites than it was written against is not the code we studied, so there is nothing to say about which of the matches is the right one. Refusing the whole definition costs a broken IAS route; guessing costs a corrupted DLL the user has to verify through Steam.
             if (results.Count != definition.ExpectedMatches)
             {
                 logger.LogError("{ModuleName} IAS binary patch {PatchName} matched {MatchCount} locations, expected {Expected} - skipping it. The module is a build this signature was not written for.",

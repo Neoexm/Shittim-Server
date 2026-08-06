@@ -295,7 +295,6 @@ public class AccountHandler : ProtocolHandlerBase
         ArgumentNullException.ThrowIfNull(account);
         _logger.LogInformation("GetAuthenticatedUser took {Ms}ms", sw.ElapsedMilliseconds);
 
-        // Trigger Daily Login Mission Progress
         _missionService.UpdateMissionProgress(db, account, MissionCompleteConditionType.Reset_DailyLogin, 1);
         await db.SaveChangesAsync();
 
@@ -472,7 +471,7 @@ public class AccountHandler : ProtocolHandlerBase
             PreviousRoomDB = db.GetAccountTimeAttackDungeonRooms(account.ServerId).FirstOrDefaultMapTo(_mapper)
         };
 
-        // Populate Billing Response (CRITICAL for BattlePass Visual Unlock)
+        // the battle pass tab renders locked unless this rides along on the sync
         var billingResponse = new BillingPurchaseListByNexonResponse
         {
             CountList = [],

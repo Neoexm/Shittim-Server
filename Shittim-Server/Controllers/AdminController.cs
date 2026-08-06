@@ -75,8 +75,7 @@ public class AdminController : ControllerBase
             var currencyType = (CurrencyTypes)request.CurrencyType;
             var serverNow = account.GameSettings.ServerDateTime();
 
-            // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every parcel update), so a direct Gem write would be reverted on the next grant/consume;
-            // set the sources instead.
+            // Gem is derived (Gem = GemBonus + GemPaid, recomputed by UpdateGem on every parcel update), so a direct Gem write would be discarded; set the sources.
             if (currencyType == CurrencyTypes.Gem)
             {
                 currencies.CurrencyDict[CurrencyTypes.GemBonus] = request.Amount;

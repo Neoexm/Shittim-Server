@@ -115,7 +115,6 @@ namespace Shittim.Commands
             await connection.SendChatMessage("If the client abnormal after sending email, please use '!mail clear' to fix it.");
             await context.SaveChangesAsync();
 
-            // Mid-session delivery: the player's next Mail_Check reports NewMailArrived once.
             Shittim_Server.Services.MailNotificationService.MarkNewMail(account.ServerId);
         }
 

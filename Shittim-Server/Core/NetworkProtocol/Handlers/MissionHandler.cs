@@ -348,7 +348,6 @@ public class MissionHandler : ProtocolHandlerBase
         }
         else
         {
-            // Return empty list implies it's gone from active list.
             response.MissionProgressDBs = new List<MissionProgressDB>();
         }
 

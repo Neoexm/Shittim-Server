@@ -104,7 +104,7 @@ namespace Shittim_Server.Managers
             var dateTime = account.GameSettings.ServerDateTime();
             CampaignStageHistoryDBServer historyDb = new();
 
-            // FirstClear and ThreeStar rows sit in the same reward group as the drops with 100% probabilities of their own, so the old roll-everything path paid the once-per-account pyroxene again on every clear. They gate on the history's receive dates now, like the concentrate path.
+            // FirstClear and ThreeStar gate on the history's receive dates, not on a roll.
             var grantFirstClear = false;
             var grantThreeStar = false;
 

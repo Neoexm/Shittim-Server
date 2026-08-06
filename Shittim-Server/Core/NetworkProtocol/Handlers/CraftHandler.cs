@@ -150,7 +150,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             var slot = GetSlot(db, account.ServerId, request.SlotId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Craft slot {request.SlotId} has no craft");
 
-            // only the last node may be selected from. Falling back to an earlier tier that still has its leaves would append a duplicate of the tier after it - that is how a maxed craft (whose final node rolls no leaves, there is no tier past Max) used to grow an endless tail of tier-4 nodes.
+            // only the last node may be selected from. Falling back to an earlier tier that still has its leaves would append a duplicate of the tier after it - that is how a maxed craft (whose final node rolls no leaves, there is no tier past Max) grows an endless tail of tier-4 nodes.
             var current = slot.Nodes is { Count: > 0 } ? slot.Nodes[^1] : null;
             if (current == null || current.LeafNodeIds == null || current.LeafNodeIds.Count == 0)
                 throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "No node with leaf choices to select from");

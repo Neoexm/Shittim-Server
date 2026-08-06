@@ -70,7 +70,7 @@ def login() -> dict:
     return session
 
 
-# DB helpers (the reward has no dedicated column; the delivered mail IS the record)
+# the reward has no dedicated column; the delivered mail IS the record
 
 def db():
     return sqlite3.connect(DB)
