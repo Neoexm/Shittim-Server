@@ -4,7 +4,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// The signature shipped in ClientGameAssemblyIasPatchService is one fixed byte string lifted from a single client build, and it carries a rip-relative displacement inside the il2cpp class-init check as literal bytes, so it can only ever match the build it came from. Against the client installed here (225,592,304 bytes, sha256 a369337f81..) it matches nothing - not the exact pattern, not the pattern with the displacement wildcarded, not even the bare prologue - while FetchPrimaryLinkResult and HasPrimaryLink are both still present in global-metadata.dat. So the patch is stale rather than gone, and the only thing the operator ever saw was one warning line followed later by the client refusing to authenticate.
+// The signature shipped in ClientGameAssemblyIasPatchService is one fixed byte string lifted from a single client build, and it carries a rip-relative displacement inside the il2cpp class-init check as literal bytes, so it can only ever match the build it came from. Against the client installed here (225,592,304 bytes, sha256 a369337f81..) it matches nothing - not the exact pattern, not the pattern with the displacement wildcarded, not even the bare prologue - while FetchPrimaryLinkResult and HasPrimaryLink are both still present in global-metadata.dat. So the patch is stale rather than gone.
+[Collection("steam-offline-patch")]
 public class ClientGameAssemblyPatchTests : IDisposable
 {
     private static readonly byte[] Signature =
@@ -36,7 +37,7 @@ public class ClientGameAssemblyPatchTests : IDisposable
         Assert.False(File.Exists($"{path}.shittim_ias_patch.json"));
     }
 
-    // A patch the operator explicitly turned on and that then matched nothing is a failure, not a note. It used to be one LogWarning naming the path, which is the whole of what anyone had to work with before the client started refusing to authenticate; the size and hash are what makes a report of this diagnosable at all, since the only thing that varies is which build they have.
+    // A patch the operator explicitly turned on and that then matched nothing is a failure, not a note. The size and hash are what make a report of this diagnosable at all, since the only thing that varies is which build they have.
     [Fact]
     public async Task AnEnabledPatchThatMatchesNothingSaysSoAndIdentifiesTheBuild()
     {
@@ -85,8 +86,7 @@ public class ClientGameAssemblyPatchTests : IDisposable
         return path;
     }
 
-    // Deterministic and free of the signature: every byte is above 0x80 except the low nibble walk, and the run never
-    // reproduces the 55 56 57 prologue.
+    // Deterministic and free of the signature: every byte is above 0x80 except the low nibble walk, and the run never reproduces the 55 56 57 prologue.
     private static byte[] Filler(int length)
     {
         var bytes = new byte[length];

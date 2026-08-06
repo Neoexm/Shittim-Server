@@ -6,9 +6,15 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// The resource download is the longest thing the server does before it will accept a login, and it is the only part of
-// startup with nothing on the far end under our control. A transfer that has quietly died and one that is still moving
-// are the same thing from the console if neither of them prints anything.
+// Console.Out is process-wide, so the capture below swallows whatever any other test happens to print and then tears its StringBuilder apart mid-append.
+[CollectionDefinition("console-capture", DisableParallelization = true)]
+public class ConsoleCaptureCollection
+{
+}
+
+// The resource download is the longest thing the server does before it will accept a login, and it is the only part of startup with nothing on the far end under our control.
+// A transfer that has quietly died and one that is still moving are the same thing from the console if neither of them prints anything.
+[Collection("console-capture")]
 public class ResourceDownloadTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"shittim-dl-{Guid.NewGuid():N}");
@@ -21,8 +27,7 @@ public class ResourceDownloadTests : IDisposable
         ResourceService.StallTimeout = TimeSpan.FromSeconds(2);
     }
 
-    // A CDN that accepts the connection, sends a Content-Length and then stops writing holds the socket open for as long
-    // as it likes. Waiting that out is indistinguishable from a working download of a very large file.
+    // A CDN that accepts the connection, sends a Content-Length and then stops writing holds the socket open for as long as it likes. Waiting that out is indistinguishable from a working download of a very large file.
     [Fact]
     public async Task ASocketThatGoesQuietIsGivenUpOnAndSaysSo()
     {
@@ -53,8 +58,7 @@ public class ResourceDownloadTests : IDisposable
         Assert.True(progress.Count >= 3, captured.ToString());
     }
 
-    // The point of measuring the gap rather than the whole transfer: ExcelDB.db is large enough that any total deadline
-    // short enough to catch a dead socket is also short enough to kill a working download on a slow line.
+    // The point of measuring the gap rather than the whole transfer: ExcelDB.db is large enough that any total deadline short enough to catch a dead socket is also short enough to kill a working download on a slow line.
     [Fact]
     public async Task ASlowDownloadThatKeepsArrivingIsNotGivenUpOn()
     {
@@ -66,8 +70,7 @@ public class ResourceDownloadTests : IDisposable
         Assert.Equal(128 * 1024, new FileInfo(output).Length);
     }
 
-    // A body cut off short of its Content-Length is a truncated archive, and the extractor's error for one of those says
-    // nothing about the download.
+    // A body cut off short of its Content-Length is a truncated archive, and the extractor's error for one of those says nothing about the download.
     [Fact]
     public async Task ABodyThatEndsEarlyIsNotAcceptedAsTheFile()
     {
@@ -80,8 +83,7 @@ public class ResourceDownloadTests : IDisposable
         Assert.False(File.Exists(output + ".part"));
     }
 
-    // Downloaded/ExcelDB.db from a run that worked is what the size check compares against and what gets copied into
-    // Dumped, so a re-download that fails must not be the thing that destroys it.
+    // Downloaded/ExcelDB.db from a run that worked is what the size check compares against and what gets copied into Dumped, so a re-download that fails must not be the thing that destroys it.
     [Fact]
     public async Task AFileFromAnEarlierRunSurvivesAFailedDownload()
     {
@@ -96,8 +98,7 @@ public class ResourceDownloadTests : IDisposable
         Assert.Equal(kept, File.ReadAllBytes(output));
     }
 
-    // Accepting the connection and then never answering is the other half of the stall: no headers arrive, so nothing the
-    // read loop does can help.
+    // Accepting the connection and then never answering is the other half of the stall: no headers arrive, so nothing the read loop does can help.
     [Fact]
     public async Task AServerThatAcceptsTheConnectionAndNeverAnswersIsGivenUpOn()
     {
@@ -135,8 +136,8 @@ public class ResourceDownloadTests : IDisposable
             Directory.Delete(_dir, true);
     }
 
-    // HttpListener wants a URL ACL for anything but the default prefixes, so the responses are written by hand. It answers
-    // one HEAD and then one GET, on separate connections because the HEAD reply closes.
+    // HttpListener wants a URL ACL for anything but the default prefixes, so the responses are written by hand.
+    // It answers one HEAD and then one GET, on separate connections because the HEAD reply closes.
     private sealed class FakeCdn : IDisposable
     {
         private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
