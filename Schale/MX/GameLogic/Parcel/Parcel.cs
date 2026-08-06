@@ -202,7 +202,8 @@ namespace Schale.MX.GameLogic.Parcel
     {
         public List<AcademyLocationDB> AcademyLocationDBs { get; set; } = new();
         public List<ParcelInfo> AcquiredItems { get; set; } = new();
-        public AccountCurrencyDB AccountCurrencyDB { get; set; } = new();
+        // An empty currency row is worse than an absent one: AccountCurrencyInfo.SyncCurrency swaps the client's entire currency cache for whatever non-null object arrives, and the CurrencyUpdateMessage right behind it has UITop.RefreshCurrency index ActionPoint straight out of the new cache - it throws, and the top bar stays dead until the game is relaunched.
+        public AccountCurrencyDB? AccountCurrencyDB { get; set; }
 
         // Not initialized: [OmitWhenEmpty] only drops empty collections, so an eagerly created AccountDB would serialize as {} - a key no official ParcelResultDB carries.
         // It stays null unless the reward actually changed the account row (see ParcelResolver).
