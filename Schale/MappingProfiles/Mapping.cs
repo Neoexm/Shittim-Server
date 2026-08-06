@@ -96,6 +96,7 @@ namespace Schale.MappingProfiles
             CreateMap<AcademyDBServer, AcademyDB>();
             CreateMap<AcademyLocationDBServer, AcademyLocationDB>();
             CreateMap<CampaignMainStageSaveDBServer, CampaignMainStageSaveDB>();
+            CreateMap<CampaignMainStageSaveDBServer, EventContentMainStageSaveDB>();
             CreateMap<CampaignChapterClearRewardHistoryDBServer, CampaignChapterClearRewardHistoryDB>();
             CreateMap<StrategyObjectHistoryDBServer, StrategyObjectHistoryDB>();
             CreateMap<ScenarioHistoryDBServer, ScenarioHistoryDB>();

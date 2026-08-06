@@ -18,7 +18,7 @@ public class HexaMapService
         SerializationBinder = new HexaMapSerializationBinder()
     };
 
-    private static readonly Dictionary<long, HexaTileMap> _hexaMapCache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, HexaTileMap> _hexaMapCache = new();
     private static readonly string _resourceDir = Path.Join(
         Path.GetDirectoryName(AppContext.BaseDirectory), 
         "Resources", 
@@ -31,18 +31,22 @@ public class HexaMapService
         _logger = logger;
     }
 
-    public async Task<HexaTileMap> LoadState(long stageUniqueId)
-    {
-        if (_hexaMapCache.ContainsKey(stageUniqueId))
-            return _hexaMapCache[stageUniqueId];
+    public Task<HexaTileMap> LoadState(long stageUniqueId) => LoadState($"strategymap_{stageUniqueId}");
 
-        var nameMap = $"strategymap_{stageUniqueId}.json";
+    // The string overload is for event stages: their map name comes off EventContentStageExcel.StrategyMap, and a rerun replays the original event's file, so stage 108013102 plays strategymap_8013102.
+    public async Task<HexaTileMap> LoadState(string strategyMap)
+    {
+        var nameMap = strategyMap.ToLowerInvariant() + ".json";
+
+        if (_hexaMapCache.ContainsKey(nameMap))
+            return _hexaMapCache[nameMap];
+
         var filePath = Path.Combine(_resourceDir, nameMap);
 
         if (!File.Exists(filePath))
         {
             _logger.LogWarning("HexaMap file not found: {FilePath}", filePath);
-            return CreateEmptyMap(stageUniqueId);
+            return CreateEmptyMap();
         }
 
         var json = await File.ReadAllTextAsync(filePath);
@@ -50,14 +54,14 @@ public class HexaMapService
 
         if (hexaData != null)
         {
-            _hexaMapCache[stageUniqueId] = hexaData;
+            _hexaMapCache[nameMap] = hexaData;
             _logger.LogDebug("HexaMap: {StrategyMap} loaded!", nameMap);
         }
 
-        return hexaData ?? CreateEmptyMap(stageUniqueId);
+        return hexaData ?? CreateEmptyMap();
     }
 
-    private HexaTileMap CreateEmptyMap(long stageUniqueId)
+    private HexaTileMap CreateEmptyMap()
     {
         return new HexaTileMap
         {

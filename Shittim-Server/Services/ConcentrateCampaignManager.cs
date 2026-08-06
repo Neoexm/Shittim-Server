@@ -28,7 +28,7 @@ public class ConcentrateCampaignManager
     // HpInfos is a rate on 0..10000, not absolute hp
     private const long FullHpRate = 10000L;
 
-    private const long TacticRankS = 3L;
+    internal const long TacticRankS = 3L;
 
     // AccountExp has no meaningful id of its own (the sub-stage paths pass 0) but the capture says 1, and the id is what the client keys the ParcelForMission entry by
     private const long AccountExpParcelId = 1L;
@@ -100,6 +100,10 @@ public class ConcentrateCampaignManager
 
         return open.Count;
     }
+
+    // Event runs name their map on the save row because a rerun replays the original event's file; campaign rows leave it null and the stage id is the name.
+    internal Task<HexaTileMap> LoadStageMap(CampaignMainStageSaveDBServer save)
+        => save.StrategyMap != null ? _hexaMapService.LoadState(save.StrategyMap) : _hexaMapService.LoadState(save.StageUniqueId);
 
     public async Task<CampaignMainStageSaveDBServer> CreateConcentrateCampaign(
         SchaleDataContext context,
@@ -492,9 +496,7 @@ public class ConcentrateCampaignManager
             if (tacticRank >= TacticRankS)
                 stageSaveData.TacticRankSCount++;
 
-            // The stage clear is the map's own EndBattle event, fired by a HexaConditionUnitDead naming one designated boss, not "the map is empty": on strategymap_1011104 the boss is 10013 while 10017 and 10018 are still standing when official ends the mission, and on stage 1111102 it is 10044 out of 10040-10044.
-            // Requiring an empty map makes the player mop up units official never asks for, and on maps where a TileHide deletes an enemy for you it can never be satisfied at all.
-            var hexaData = await _hexaMapService.LoadState(stageSaveData.StageUniqueId);
+            var hexaData = await LoadStageMap(stageSaveData);
             var endBattle = HexaMapService.FindSatisfiedEndBattle(
                 hexaData, stageSaveData.EnemyInfos, stageSaveData.ActivatedHexaEventsAndConditions);
 
@@ -552,7 +554,7 @@ public class ConcentrateCampaignManager
         if (wasEnemyPhase && !isStageClear)
         {
             DecideEnemyMoves(
-                await _hexaMapService.LoadState(stageSaveData.StageUniqueId), stageSaveData, engagedEnemyId,
+                await LoadStageMap(stageSaveData), stageSaveData, engagedEnemyId,
                 _excelService.GetTable<CampaignUnitExcelT>(), _excelService.GetTable<CampaignStrategyObjectExcelT>());
         }
         else
@@ -759,7 +761,7 @@ public class ConcentrateCampaignManager
         return save;
     }
 
-    private Dictionary<long, HexaUnit>? ChangeConcentratedEchelon(
+    internal static Dictionary<long, HexaUnit>? ChangeConcentratedEchelon(
         Dictionary<long, HexaUnit>? existHexaUnitData,
         BattleSummary battleSummary,
         SkillCardHand? hand = null)
@@ -884,7 +886,7 @@ public class ConcentrateCampaignManager
             stageSaveData.CampaignState = CampaignState.EnemyPhase;
 
             DecideEnemyMoves(
-                await _hexaMapService.LoadState(stageSaveData.StageUniqueId), stageSaveData, long.MinValue,
+                await LoadStageMap(stageSaveData), stageSaveData, long.MinValue,
                 _excelService.GetTable<CampaignUnitExcelT>(), _excelService.GetTable<CampaignStrategyObjectExcelT>());
         }
         else if (stageSaveData.CampaignState == CampaignState.EnemyPhase)

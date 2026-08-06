@@ -237,6 +237,7 @@ namespace Schale.Data
             modelBuilder.Entity<CampaignMainStageSaveDBServer>().Property(x => x.DeployedEchelonInfos).HasJsonConversion();
             modelBuilder.Entity<CampaignMainStageSaveDBServer>().Property(x => x.StageEntranceFee).HasJsonConversion();
             modelBuilder.Entity<CampaignMainStageSaveDBServer>().Property(x => x.EnemyKillCountByUniqueId).HasJsonConversion();
+            modelBuilder.Entity<CampaignMainStageSaveDBServer>().Property(x => x.SelectedBuffDict).HasJsonConversion();
 
             modelBuilder.Entity<ScenarioGroupHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<CampaignStageHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();

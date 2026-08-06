@@ -363,7 +363,20 @@ public class MissionHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var missionExcels = _excelService.GetTable<MissionExcelT>();
+        // Event missions live in their own table keyed by event; MissionExcel holds not one row in any event category, so nothing an id prefix picks out of it belongs to an event tab.
+        var missionExcels = request.EventContentId.GetValueOrDefault() == 0
+            ? _excelService.GetTable<MissionExcelT>()
+            : _excelService.GetTable<EventContentMissionExcelT>()
+                .Where(x => x.EventContentId == request.EventContentId!.Value)
+                .Select(x => new MissionExcelT
+                {
+                    Id = x.Id,
+                    Category = x.Category,
+                    MissionRewardParcelType = x.MissionRewardParcelType,
+                    MissionRewardParcelId = x.MissionRewardParcelId,
+                    MissionRewardAmount = x.MissionRewardAmount
+                })
+                .ToList();
         var missionExcelById = missionExcels.ToDictionary(x => x.Id, x => x);
 
         var progresses = db.MissionProgresses
@@ -374,10 +387,7 @@ public class MissionHandler : ProtocolHandlerBase
         var targetProgresses = progresses
             .Where(p => missionExcelById.TryGetValue(p.MissionUniqueId, out var missionExcel)
                 && (request.MissionCategory == MissionCategory.All
-                    || missionExcel.Category == request.MissionCategory)
-                // an EventContentId of 0 is the no-event case, not a filter - no mission id starts with "0", so matching against it claims nothing
-                && (!request.EventContentId.HasValue || request.EventContentId.Value == 0
-                    || p.MissionUniqueId.ToString().StartsWith(request.EventContentId.Value.ToString())))
+                    || missionExcel.Category == request.MissionCategory))
             .ToList();
 
         if (targetProgresses.Count == 0)
