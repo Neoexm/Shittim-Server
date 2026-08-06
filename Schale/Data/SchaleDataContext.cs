@@ -367,7 +367,8 @@ namespace Schale.Data
                 typeof(T),
                 _ => new ValueConverter<T, string>(
                     v => JsonSerializer.Serialize(v, _options),
-                    v => JsonSerializer.Deserialize<T>(v, _options) ?? new T()
+                    // rows that predate the column hold '' rather than JSON, since that is the not-null default SchemaReconciler has to give a TEXT column it adds to a table that already has rows
+                    v => string.IsNullOrEmpty(v) ? new T() : JsonSerializer.Deserialize<T>(v, _options) ?? new T()
                 )
             );
 
