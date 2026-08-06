@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// "forgot to change ver number" is a real commit in this history. The server assemblies, the Control Center package and the release tag all used to be free to disagree, so this pins them to Directory.Build.props and fails when one of them is bumped alone.
+// "forgot to change ver number" is a real commit in this history. Nothing else stops the server assemblies, the Control Center package and the release tag drifting apart, so this pins all three to Directory.Build.props and fails when one is bumped alone.
 public class VersionConsistencyTests
 {
     [Fact]
@@ -35,7 +35,7 @@ public class VersionConsistencyTests
         Assert.DoesNotContain("Get-Date -Format 'yyyy.MM.dd'", workflow);
     }
 
-    // Every step the release workflow runs has to exist in the tree. The workflow spent its whole life calling PyInstaller on a shittim_console.py that is not in the repository, so it could never have produced a release.
+    // Every script the release workflow names has to exist in the tree - a PyInstaller call on something that is not in the repository takes the whole job down, and only once someone pushes a tag.
     [Fact]
     public void EveryScriptTheReleaseWorkflowInvokesExists()
     {
@@ -52,7 +52,7 @@ public class VersionConsistencyTests
         Assert.Empty(missing);
     }
 
-    // Nothing pinned the SDK, so the same tree built against whatever was installed. dotnet resolves global.json before it loads a project, so a machine without a matching SDK stops with "A compatible .NET SDK was not found" instead of failing later inside a compile.
+    // dotnet resolves global.json before it loads a project, so an unpinned tree builds against whatever SDK happens to be installed while a pinned one stops with "A compatible .NET SDK was not found" instead of failing later inside a compile.
     [Fact]
     public void TheSdkIsPinnedToTheFrameworkTheProjectsTarget()
     {
@@ -65,7 +65,7 @@ public class VersionConsistencyTests
         // A feature band floor, never the patch level that happens to be installed here: rollForward only ever goes up, so pinning 10.0.302 stops anyone on 10.0.301 with "A compatible .NET SDK was not found" before a single project is loaded.
         Assert.EndsWith("00", pin.GetProperty("version").GetString());
 
-        // Schale used to sit on net8.0 while the server that consumes it was on net10.0. MemoryDumper is standalone RE scratch that nothing references and nothing ships, so it is not covered here.
+        // MemoryDumper is standalone RE scratch that nothing references and nothing ships, so it is not covered here.
         foreach (var project in new[] { "Shittim-Server", "Schale", "Shittim-Server.Tests" })
             Assert.Contains("<TargetFramework>net10.0</TargetFramework>", File.ReadAllText(Path.Combine(RepoRoot(), project, project + ".csproj")));
     }

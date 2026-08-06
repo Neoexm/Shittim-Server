@@ -13,8 +13,7 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// Opening a furniture selection box used to record the pick as a character row keyed by the furniture id, and one such row is enough to make the client abort every later login sync.
-// These run against the real dumped excels because the whole bug is in how the ticket's recipe chain is (not) consulted.
+// What a selection box hands over is whatever its recipe chain resolves to, and the chain lives in the dumped excels, so these run against the real ones. Anything that skips it and assumes a character writes a character row keyed by a furniture id, and one of those is enough to make the client abort every later login sync.
 public class ItemBoxTests
 {
     [Fact]
@@ -90,7 +89,7 @@ public class ItemBoxTests
         var (box, _) = FurnitureSelectBox();
         var ticket = GiveItem(db, account, box.Id, 1);
 
-        // an id no table knows - the old handler would have written it to Characters verbatim
+        // an id no table knows - writing it to Characters verbatim is what bricks the account
         await Manager().SelectTicket(db, account, new ItemSelectTicketRequest
         {
             TicketItemServerId = ticket.ServerId,

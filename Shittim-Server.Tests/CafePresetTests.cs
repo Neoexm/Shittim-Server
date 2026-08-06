@@ -13,7 +13,6 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// Applying a furniture template used to write a second deployed row (CafeDBId 0) for every piece the account already owned, which is exactly the floor/wallpaper/background that step one had just returned to inventory - so presets came out with no walls.
 public class CafePresetTests
 {
     [Fact]

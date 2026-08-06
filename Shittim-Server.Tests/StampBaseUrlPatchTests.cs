@@ -5,9 +5,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// Both stamp base builders sit next to the sandbox and pre spellings of the same URL, and the live route is a prefix
-// of live01, so a definition that is even slightly too loose eats a neighbour. The offsets below keep the real spacing
-// gamescale.core.dll has so the slot lengths are tested against the layout they were measured from.
+// Both stamp base builders sit next to the sandbox and pre spellings of the same URL, and the live route is a prefix of live01, so a definition that is even slightly too loose eats a neighbour.
+// The offsets below keep the real spacing gamescale.core.dll has so the slot lengths are tested against the layout they were measured from.
 [Collection("native-ias-patch")]
 public class StampBaseUrlPatchTests : IDisposable
 {

@@ -3,9 +3,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// The update path is javascript in the Control Center's main process, and it is the thing that decides
-// whether a failed update leaves a tree that still compiles. Running it from here keeps `dotnet test` the
-// one command that covers it - node/ needs nothing installed, updater.js only uses built-in modules.
+// The update path is javascript in the Control Center's main process, and it is the thing that decides whether a failed update leaves a tree that still compiles.
+// Running it from here keeps `dotnet test` the one command that covers it - node/ needs nothing installed, updater.js only uses built-in modules.
 public class ControlCenterUpdaterTests
 {
     [Fact]
@@ -28,8 +27,7 @@ public class ControlCenterUpdaterTests
         Assert.True(proc.ExitCode == 0, output);
     }
 
-    // An update only ever writes paths the release archive carries, and the archive is the git tree. The day a
-    // database gets committed is the day every update overwrites the player's accounts with the committed one.
+    // An update only ever writes paths the release archive carries, and the archive is the git tree. The day a database gets committed is the day every update overwrites the player's accounts with the committed one.
     [Fact]
     public void NoDatabaseIsCarriedInTheReleaseArchive()
     {

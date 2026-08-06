@@ -4,15 +4,14 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// ExcelTableService.ResourceDir and DumpedDir are where every other Excel test reads the shipped tables from, so pointing
-// them at a fixture has to stop the rest of the suite rather than race it.
+// ExcelTableService.ResourceDir and DumpedDir are where every other Excel test reads the shipped tables from, so pointing them at a fixture has to stop the rest of the suite rather than race it.
 [CollectionDefinition("exceldb-paths", DisableParallelization = true)]
 public class ExcelDbPathCollection
 {
 }
 
-// Resources/Downloaded is the staging copy and Resources/Dumped is what the server reads. Getting a file into the wrong
-// one of those, or getting the wrong file into the right one, both end at SQLite error 26 blaming the SQLCipher key.
+// Resources/Downloaded is the staging copy and Resources/Dumped is what the server reads.
+// Getting a file into the wrong one of those, or getting the wrong file into the right one, both end at SQLite error 26 blaming the SQLCipher key.
 [Collection("exceldb-paths")]
 public class ExcelDbPathTests : IDisposable
 {
@@ -35,8 +34,7 @@ public class ExcelDbPathTests : IDisposable
         ExcelTableService.DumpedDir = _dumped;
     }
 
-    // A zip that got renamed, a CDN error page saved as the database, a half-finished download. All of them reach the
-    // same PRAGMA key and the same error 26, and the message sends the reader off to re-extract a key that was fine.
+    // A zip that got renamed, a CDN error page saved as the database, a half-finished download. All of them reach the same PRAGMA key and the same error 26, and the message sends the reader off to re-extract a key that was fine.
     [Fact]
     public void AFileThatIsNotADatabaseIsNotBlamedOnTheKey()
     {
@@ -58,8 +56,7 @@ public class ExcelDbPathTests : IDisposable
         Assert.DoesNotContain("key most likely rotated", ex.Message, StringComparison.Ordinal);
     }
 
-    // The download landed but the copy into Dumped never happened. Every table then loads empty and the server starts up
-    // looking healthy, so the file one directory over has to be named.
+    // The download landed but the copy into Dumped never happened. Every table then loads empty and the server starts up looking healthy, so the file one directory over has to be named.
     [Fact]
     public void AnExcelDbLeftInTheDownloadDirectoryIsPointedAt()
     {

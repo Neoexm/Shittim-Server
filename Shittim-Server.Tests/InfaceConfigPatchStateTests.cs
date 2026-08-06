@@ -6,9 +6,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// nxinface.enconfig.json is the client's own config, not something the server owns, so the only acceptable outcome of a
-// failed patch is that it still says what it said. Patching it without having recorded what it used to say leaves the
-// user with a file nothing can put back.
+// nxinface.enconfig.json is the client's own config, not something the server owns, so the only acceptable outcome of a failed patch is that it still says what it said.
+// Patching it without having recorded what it used to say leaves the user with a file nothing can put back.
 public class InfaceConfigPatchStateTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"shittim-inface-{Guid.NewGuid():N}");
@@ -28,8 +27,7 @@ public class InfaceConfigPatchStateTests : IDisposable
         Environment.SetEnvironmentVariable("SHITTIM_CLIENT_PLUGIN_DIRECTORY", Path.Combine(_dir, "plugins"));
     }
 
-    // A directory on the state file's name is a save that cannot happen. The config must survive it untouched, which it
-    // only can if the state is written first.
+    // A directory on the state file's name is a save that cannot happen. The config must survive it untouched, which it only can if the state is written first.
     [Fact]
     public async Task AConfigIsNeverPatchedWithoutSomewhereToRecordWhatItWas()
     {

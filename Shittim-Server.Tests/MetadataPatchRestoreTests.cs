@@ -7,9 +7,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// global-metadata.dat carrying our gateway key is what the official client chokes on: it reads the file on the way in and
-// sits on "Unpacking game resources" forever, and the only way out anyone finds is Steam's file verification. Turning the
-// patch off has to be enough to get the client back.
+// global-metadata.dat carrying our gateway key is what the official client chokes on: it reads the file on the way in and sits on "Unpacking game resources" forever, and the only way out anyone finds is Steam's file verification.
+// Turning the patch off has to be enough to get the client back.
 public class MetadataPatchRestoreTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"shittim-metadata-{Guid.NewGuid():N}");
@@ -57,8 +56,7 @@ public class MetadataPatchRestoreTests : IDisposable
         Assert.False(File.Exists(_path + ".shittim_patch.json"));
     }
 
-    // A server that was killed rather than shut down leaves the state file behind with no instance holding it. Starting
-    // again with the patch off is the only chance to notice, so it has to be taken from disk, not from memory.
+    // A server that was killed rather than shut down leaves the state file behind with no instance holding it. Starting again with the patch off is the only chance to notice, so it has to be taken from disk, not from memory.
     [Fact]
     public async Task ARestoreAfterAKilledServerStillWorks()
     {

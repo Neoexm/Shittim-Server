@@ -246,7 +246,6 @@ public class CampaignStageClearWireTests
     [Fact]
     public void ANoneEndBattleTypeStillReportsAWin()
     {
-        // None serializes as 0, which DefaultValueHandling.Ignore drops entirely - and an absent Parameter reads as a loss, so a victory would show the retreat screen. Coerce instead.
         var json = Wire(new CampaignTacticResultResponse
         {
             SaveDataDB = ConcentrateCampaignManager.AttachStageClearForWire(

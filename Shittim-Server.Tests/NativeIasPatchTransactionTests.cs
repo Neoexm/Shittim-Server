@@ -7,9 +7,7 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// What has to hold after the server has been anywhere near a client binary: the file is either untouched or completely
-// patched, the state on disk describes it either way, and a restore that does not land back on the original bytes says so
-// instead of leaving the user with a client that sits on "Unpacking game resources" until Steam repairs it.
+// What has to hold after the server has been anywhere near a client binary: the file is either untouched or completely patched, the state on disk describes it either way, and a restore that does not land back on the original bytes says so instead of leaving the user with a client that sits on "Unpacking game resources" until Steam repairs it.
 // Shares the module path environment variables with the ambiguity tests, and those are process-wide.
 [Collection("native-ias-patch")]
 public class NativeIasPatchTransactionTests : IDisposable
@@ -52,8 +50,7 @@ public class NativeIasPatchTransactionTests : IDisposable
         Assert.NotEqual(pristine, state.GetProperty("PatchedSha256").GetString());
     }
 
-    // The staging file is where the patched module is assembled, so a directory sitting on that name is a write that
-    // cannot start. Nothing may reach the module, and the state has to already be there - the ordering is the whole point.
+    // The staging file is where the patched module is assembled, so a directory sitting on that name is a write that cannot start. Nothing may reach the module, and the state has to already be there - the ordering is the whole point.
     [Fact]
     public async Task AWriteThatCannotStartLeavesTheModuleAloneAndTheStateBehind()
     {
@@ -94,8 +91,8 @@ public class NativeIasPatchTransactionTests : IDisposable
         Assert.False(File.Exists(StatePath()));
     }
 
-    // Something else edited the module while the server held it patched. Reverting our own offsets is then not enough to
-    // call the file official again, and claiming otherwise is what sends people to Steam's file verification with no idea why.
+    // Something else edited the module while the server held it patched.
+    // Reverting our own offsets is then not enough to call the file official again, and claiming otherwise is what sends people to Steam's file verification with no idea why.
     [Fact]
     public async Task ARestoreThatDoesNotReachTheOriginalHashIsReported()
     {
@@ -114,8 +111,7 @@ public class NativeIasPatchTransactionTests : IDisposable
         Assert.True(File.Exists(StatePath()));
     }
 
-    // gamescale routed at the loopback server while NexonPlatformModules still talks to nexon.com is a client that gets
-    // through sign-in and dies later somewhere that has nothing to do with the module that failed.
+    // gamescale routed at the loopback server while NexonPlatformModules still talks to nexon.com is a client that gets through sign-in and dies later somewhere that has nothing to do with the module that failed.
     [Fact]
     public async Task AModuleThatCannotBePatchedTakesTheOnesAlreadyPatchedBackWithIt()
     {
@@ -133,9 +129,7 @@ public class NativeIasPatchTransactionTests : IDisposable
         Assert.Contains(_log.Entries, x => x.Level == LogLevel.Error && x.Message.Contains("rolling back", StringComparison.Ordinal));
     }
 
-    // State files written before the hashes existed are sitting beside the real client right now. The module they describe
-    // is the patched one, so there is no way to work out afterwards what it hashed to before - and recording what is in
-    // front of us would make restore verify our own bytes and call the client official.
+    // State files written before the hashes existed are sitting beside the real client right now. The module they describe is the patched one, so there is no way to work out afterwards what it hashed to before - and recording what is in front of us would make restore verify our own bytes and call the client official.
     [Fact]
     public async Task AStateFileFromBeforeTheHashesCannotInventOne()
     {

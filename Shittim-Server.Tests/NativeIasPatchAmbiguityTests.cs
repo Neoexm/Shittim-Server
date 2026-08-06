@@ -4,9 +4,8 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// A byte pattern that occurs twice in a module is not a patch target, it is two candidates, and the code that
-// picks one is guessing. gamescale's own definitions say as much - the ifinpay suppressions are anchored on
-// surrounding instructions because the bare `mov edx,0` they write is common enough to hit unrelated code.
+// A byte pattern that occurs twice in a module is not a patch target, it is two candidates, and the code that picks one is guessing.
+// gamescale's own definitions say as much - the ifinpay suppressions are anchored on surrounding instructions because the bare `mov edx,0` they write is common enough to hit unrelated code.
 [Collection("native-ias-patch")]
 public class NativeIasPatchAmbiguityTests : IDisposable
 {

@@ -14,8 +14,7 @@ using Xunit;
 
 namespace Shittim_Server.Tests;
 
-// Spending recruitment points used to roll a ten-pull: the exchange rides Shop_BuyGacha3, the coin item has no GachaTicket type, and the amount-by-item lookup falls through to 10.
-// Runs against the real dumped excels because the whole point is how the RecruitSellection goods row is recognised.
+// The recruitment point exchange rides Shop_BuyGacha3 like every other banner buy, and the only thing separating it from one is the RecruitSellection goods row. Miss that and the coin item has no GachaTicket type, the amount-by-item lookup falls through to 10, and a student purchase comes out a ten-pull.
 public class RecruitPointExchangeTests
 {
     [Fact]
