@@ -515,6 +515,8 @@ namespace Schale.MX.NetworkProtocol
         CheckConquest = 16384,
         CanReceiveEliminateRaidReward = 32768,
         CanReceiveMultiFloorRaidReward = 65536,
+        CanReceiveProductDailyRecordReward = 131072,
+        HasUnreadSemiPermanentMail = 262144,
     }
 
     public class BillingValidateNexonResponse
