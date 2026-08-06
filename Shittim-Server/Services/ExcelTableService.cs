@@ -14,7 +14,7 @@ namespace BlueArchiveAPI.Services
         // TableEncryptionService.UseEncryption is a global static selecting XOR-decryption of every string and numeric field, read per field deep inside the generated UnPackTo methods rather than once up front.
         // The two branches below set it to opposite values and ConcurrentDictionary.GetOrAdd does not serialize factories across keys, so two first-time loads of different tables can flip the flag out from under each other's in-flight unpack and produce garbled rows that the row-level catch swallows. Both branches are live - .bytes files and ExcelDB.db coexist in Resources/Dumped.
         // Threading the flag through as a parameter means regenerating several hundred FlatData files, so loads are serialized instead; this contends only on the first load of each table, every later call hits the lock-free TryGetValue above.
-        private static readonly object loadLock = new();
+        internal static readonly object loadLock = new();
 
         public static string ResourceDir = Path.Join(Path.GetDirectoryName(AppContext.BaseDirectory), "Resources");
         public static string DumpedDir = Path.Combine(ResourceDir, "Dumped");

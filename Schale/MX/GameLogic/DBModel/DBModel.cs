@@ -1571,6 +1571,35 @@ namespace Schale.MX.GameLogic.DBModel
         public DateTime ClearDate { get; set; }
     }
 
+    public class RoadPuzzleTileData
+    {
+        public HexLocation Location { get; set; }
+        public int rotation { get; set; }
+        public long Uid { get; set; }
+    }
+
+    public class RoadPuzzleRailTileData : RoadPuzzleTileData
+    {
+        public RoadPuzzleRailTileType Type { get; set; }
+    }
+
+    public class RoadPuzzleTileRewardData
+    {
+        public HexLocation Location { get; set; }
+        public ParcelInfo? RewardInfo { get; set; }
+    }
+
+    public class RoadPuzzleBoardSaveDB
+    {
+        public long UniqueId { get; set; }
+        public int Round { get; set; }
+        public RoadPuzzleRailTileData? recentRandomRailTile { get; set; }
+        public Dictionary<RoadPuzzleRailTileType, int>? remainingTiles { get; set; }
+        public List<RoadPuzzleRailTileData>? placedRailTiles { get; set; }
+        public List<RoadPuzzleTileRewardData>? rewardTiles { get; set; }
+        public bool isTrainReadyToDepart { get; set; }
+    }
+
     public class MiniGameShootingHistoryDB
     {
         public long EventContentId { get; set; }

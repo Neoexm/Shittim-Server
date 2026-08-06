@@ -1,4 +1,4 @@
-using Schale.MX.None;
+﻿using Schale.MX.None;
 using Schale.FlatData;
 using Schale.MX.Campaign;
 using Schale.MX.Conquest.ConquestTileMapEvent;
@@ -4418,7 +4418,7 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameTableBoardSyncResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardSync; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
     }
 
     public class MiniGameTableBoardMoveRequest : RequestPacket
@@ -4432,8 +4432,8 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardMove; }
         public TBGPlayerDB? PlayerDB { get; set; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
-        // public TBGEncounterDB EncounterDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
+        public TBGEncounterDB? EncounterDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
 
@@ -4449,11 +4449,11 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameTableBoardEncounterInputResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardEncounterInput; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
-        // public TBGEncounterDB EncounterDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
+        public TBGEncounterDB? EncounterDB { get; set; }
         public List<int>? PlayerDiceResult { get; set; }
         public Nullable<int> PlayerAddDotEffectResult { get; set; }
-        // public Nullable<TBGDiceRollResult> PlayerDicePlayResult { get; set; }
+        public Nullable<TBGDiceRollResult> PlayerDicePlayResult { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
         public List<EventContentCollectionDB>? EventContentCollectionDBs { get; set; }
     }
@@ -4467,7 +4467,7 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameTableBoardMoveThemaResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardMoveThema; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
     }
 
     public class MiniGameTableBoardClearThemaRequest : RequestPacket
@@ -4480,7 +4480,7 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameTableBoardClearThemaResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardClearThema; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
 
@@ -4522,7 +4522,7 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameTableBoardSweepResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardSweep; }
-        // public TBGBoardSaveDB SaveDB { get; set; }
+        public TBGBoardSaveDB? SaveDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
 
@@ -4673,7 +4673,7 @@ namespace Schale.MX.NetworkProtocol
     public class MiniGameRoadPuzzleGetInfoResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_RoadPuzzleGetInfo; }
-        // public RoadPuzzleBoardSaveDB SaveDB { get; set; }
+        public RoadPuzzleBoardSaveDB? SaveDB { get; set; }
     }
 
     public class MiniGameRoadPuzzleTilePlaceRequest : RequestPacket
@@ -4682,14 +4682,14 @@ namespace Schale.MX.NetworkProtocol
         public long EventContentId { get; set; }
         public long UniqueId { get; set; }
         public long Round { get; set; }
-        // public RoadPuzzleRailTileData RailTileToPlace { get; set; }
+        public RoadPuzzleRailTileData? RailTileToPlace { get; set; }
     }
 
     public class MiniGameRoadPuzzleTilePlaceResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_RoadPuzzleTilePlace; }
-        // public RoadPuzzleRailTileData RailTileToPlace { get; set; }
-        // public RoadPuzzleBoardSaveDB SaveDB { get; set; }
+        public RoadPuzzleRailTileData? RailTileToPlace { get; set; }
+        public RoadPuzzleBoardSaveDB? SaveDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
 
@@ -4699,13 +4699,13 @@ namespace Schale.MX.NetworkProtocol
         public long EventContentId { get; set; }
         public long UniqueId { get; set; }
         public long Round { get; set; }
-        // public List<RoadPuzzleRailTileData> placeRailTiles { get; set; }
+        public List<RoadPuzzleRailTileData>? placeRailTiles { get; set; }
     }
 
     public class MiniGameRoadPuzzleSaveStageResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MiniGame_RoadPuzzleSaveStage; }
-        // public RoadPuzzleBoardSaveDB SaveDB { get; set; }
+        public RoadPuzzleBoardSaveDB? SaveDB { get; set; }
     }
 
     public class MiniGameRoadPuzzleClearStageRequest : RequestPacket

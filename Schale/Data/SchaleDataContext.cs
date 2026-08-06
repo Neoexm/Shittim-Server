@@ -58,6 +58,18 @@ namespace Schale.Data
         public DbSet<MissionHistoryDBServer> MissionHistories { get; set; }
         public DbSet<BeforehandGachaHistoryDBServer> BeforehandGachaHistories { get; set; }
         public DbSet<ShopPurchaseHistoryDBServer> ShopPurchaseHistories { get; set; }
+        public DbSet<EventContentPlayDBServer> EventContentPlays { get; set; }
+        public DbSet<EventContentCollectionDBServer> EventContentCollections { get; set; }
+        public DbSet<EventContentLocationDBServer> EventContentLocations { get; set; }
+        public DbSet<MiniGameHistoryDBServer> MiniGameHistories { get; set; }
+        public DbSet<MiniGameShootingHistoryDBServer> MiniGameShootingHistories { get; set; }
+        public DbSet<MiniGameDefenseStageHistoryDBServer> MiniGameDefenseStageHistories { get; set; }
+        public DbSet<MiniGameRoadPuzzleHistoryDBServer> MiniGameRoadPuzzleHistories { get; set; }
+        public DbSet<MiniGameRoadPuzzleSaveDBServer> MiniGameRoadPuzzleSaves { get; set; }
+        public DbSet<MiniGameDreamMakerDBServer> MiniGameDreamMakers { get; set; }
+        public DbSet<MiniGameDreamMakerEndingDBServer> MiniGameDreamMakerEndings { get; set; }
+        public DbSet<MiniGameCCGSaveDBServer> MiniGameCCGSaves { get; set; }
+        public DbSet<MiniGameTableBoardDBServer> MiniGameTableBoards { get; set; }
 
         public DbSet<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; set; }
         public DbSet<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; set; }
@@ -269,6 +281,49 @@ namespace Schale.Data
             modelBuilder.Entity<BeforehandGachaHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<ShopPurchaseHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
             modelBuilder.Entity<BeforehandGachaHistoryDBServer>().Property(x => x.SavedResults).HasJsonConversion();
+
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.BoxGachaDrawnElementIds).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.CardShopElements).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.CardShopPurchaseCounts).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.CardShopRewardHistory).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.TreasureLayout).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.TreasureFlippedCells).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.TreasureHintServerIds).HasJsonConversion();
+            modelBuilder.Entity<EventContentPlayDBServer>().Property(x => x.RefreshShopIds).HasJsonConversion();
+
+            modelBuilder.Entity<EventContentCollectionDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<EventContentLocationDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<EventContentLocationDBServer>().Property(x => x.ZoneVisitCharacterDBs).HasJsonConversion();
+
+            modelBuilder.Entity<MiniGameHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameShootingHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameDefenseStageHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameRoadPuzzleHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<MiniGameRoadPuzzleSaveDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameRoadPuzzleSaveDBServer>().Property(x => x.SaveDB).HasJsonConversion();
+
+            modelBuilder.Entity<MiniGameDreamMakerDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameDreamMakerDBServer>().Property(x => x.ParameterBases).HasJsonConversion();
+            modelBuilder.Entity<MiniGameDreamMakerDBServer>().Property(x => x.ParameterAmounts).HasJsonConversion();
+            modelBuilder.Entity<MiniGameDreamMakerDBServer>().Property(x => x.CollectionScenarios).HasJsonConversion();
+            modelBuilder.Entity<MiniGameDreamMakerEndingDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<MiniGameCCGSaveDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameCCGSaveDBServer>().Property(x => x.SaveDB).HasJsonConversion();
+            modelBuilder.Entity<MiniGameCCGSaveDBServer>().Property(x => x.Perks).HasJsonConversion();
+            modelBuilder.Entity<MiniGameCCGSaveDBServer>().Property(x => x.ReceivedRewardItemIds).HasJsonConversion();
+
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.MainMap).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.HiddenMap).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.Player).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.BestClearRecord).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.HiddenTreasureRecord).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.HiddenPotalOpenConditionRecord).HasJsonConversion();
+            modelBuilder.Entity<MiniGameTableBoardDBServer>().Property(x => x.EncounterRewards).HasJsonConversion();
         }
 
         private void ConfigureContentModels(ModelBuilder modelBuilder)

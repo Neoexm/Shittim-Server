@@ -46,7 +46,8 @@ namespace BlueArchiveAPI.Services
             var resources = new List<string>() {
                 "/Preload/TableBundles/ExcelDB.db",
                 "/Preload/TableBundles/Excel.zip",
-                "/GameData/TableBundles/HexaMap.zip"
+                "/GameData/TableBundles/HexaMap.zip",
+                "/GameData/TableBundles/TableBoardMapData.zip"
             };
 
             string txtPath = useCustomFile ? customTxtPath : versionTxtPath;
