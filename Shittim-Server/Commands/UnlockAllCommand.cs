@@ -211,7 +211,7 @@ namespace Shittim.Commands
                                 MissionUniqueId = mission.Id,
                                 Complete = true,
                                 StartTime = DateTime.Now,
-                                ProgressParameters = new Dictionary<long,long>()
+                                ProgressParameters = new Dictionary<long,long> { [mission.CompleteConditionParameter?.Count == 1 ? mission.CompleteConditionParameter[0] : 0] = mission.CompleteConditionCount }
                             };
                             context.MissionProgresses.Add(progress);
                             newMissionsCount++;
