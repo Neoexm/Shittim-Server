@@ -1,13 +1,17 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Schale.Crypto;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Data.Models;
 using Schale.FlatData;
 using Schale.MX.GameLogic.Parcel;
+using ServerNotificationFlag = Schale.MX.NetworkProtocol.ServerNotificationFlag;
+using WebAPIErrorCode = Schale.MX.NetworkProtocol.WebAPIErrorCode;
 using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
 using Shittim_Server.Services;
@@ -658,7 +662,7 @@ public class ManagementController : ControllerBase
     }
 
     [HttpGet("events/seasons")]
-    public IActionResult EventSeasons()
+    public async Task<IActionResult> EventSeasons([FromQuery] long uid = 0)
     {
         var total = _excel.GetTable<RaidSeasonManageExcelT>().Select(s => new
         {
@@ -701,13 +705,530 @@ public class ManagementController : ControllerBase
             boss = s.OpenRaidBossGroupId,
         });
 
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var account = uid > 0 ? await db.Accounts.FirstOrDefaultAsync(a => a.ServerId == uid) : null;
+
         return Ok(new
         {
             total = total.OrderBy(x => x.seasonId),
             grand = grand.OrderBy(x => x.seasonId),
             drill = drill.OrderBy(x => x.seasonId),
             final = final.OrderBy(x => x.seasonId),
+            current = account == null ? null : new
+            {
+                total = account.ContentInfo.RaidDataInfo.SeasonId,
+                grand = account.ContentInfo.EliminateRaidDataInfo.SeasonId,
+                drill = account.ContentInfo.TimeAttackDungeonDataInfo.SeasonId,
+                final = account.ContentInfo.MultiFloorRaidDataInfo.SeasonId,
+            },
         });
+    }
+
+    [HttpGet("notice")]
+    public IActionResult GetNotice()
+    {
+        return Ok(new
+        {
+            flags = (int)ServerNoticeService.Flags,
+            gateError = ServerNoticeService.GateError != null ? (int)ServerNoticeService.GateError : 0,
+            gateMessage = ServerNoticeService.GateMessage,
+            availableFlags = Enum.GetValues<ServerNotificationFlag>()
+                .Where(f => f != ServerNotificationFlag.None)
+                .Select(f => new { name = f.ToString(), value = (int)f }),
+        });
+    }
+
+    public class SetNoticeRequest
+    {
+        public int Flags { get; set; }
+        public int GateError { get; set; }
+        public string? GateMessage { get; set; }
+    }
+
+    [HttpPost("notice")]
+    public IActionResult SetNotice([FromBody] SetNoticeRequest request)
+    {
+        try
+        {
+            ServerNoticeService.Set(
+                (ServerNotificationFlag)request.Flags,
+                request.GateError == 0 ? null : (WebAPIErrorCode)request.GateError,
+                string.IsNullOrWhiteSpace(request.GateMessage) ? "Server is under maintenance" : request.GateMessage);
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.GetBaseException().Message });
+        }
+    }
+
+    [HttpGet("events/schedule")]
+    public IActionResult GetEventSchedule()
+    {
+        var loc = _excel.GetTable<LocalizeExcelT>()
+            .GroupBy(l => l.Key)
+            .ToDictionary(g => g.Key, g => g.First().En ?? g.First().Jp ?? g.First().Kr ?? "");
+
+        var etc = LocalizeMap();
+        var charNames = _excel.GetTable<CharacterExcelT>().GroupBy(c => c.Id).ToDictionary(g => g.Key, g => ResolveName(etc, g.First().LocalizeEtcId, null));
+        var itemNames = _excel.GetTable<ItemExcelT>().GroupBy(i => i.Id).ToDictionary(g => g.Key, g => ResolveName(etc, g.First().LocalizeEtcId, null));
+        var bonuses = _excel.GetTable<EventContentCharacterBonusExcelT>().GroupBy(b => b.EventContentId).ToDictionary(g => g.Key, g => g.ToList());
+        var currencies = _excel.GetTable<EventContentCurrencyItemExcelT>().GroupBy(c => c.EventContentId).ToDictionary(g => g.Key, g => g.ToList());
+        var stageCounts = _excel.GetTable<EventContentStageExcelT>().GroupBy(s => s.EventContentId).ToDictionary(g => g.Key, g => g.Count());
+
+        var events = _excel.GetTable<EventContentSeasonExcelT>()
+            .GroupBy(s => s.EventContentId)
+            .Select(g =>
+            {
+                // The Stage row is the one that carries EventDisplay and the banner art; events that never had a stage (world raid entrances, mini events) fall back to whatever row came first.
+                var head = g.FirstOrDefault(s => s.EventContentType == EventContentType.Stage) ?? g.First();
+                var types = g.Select(s => s.EventContentType.ToString()).Distinct().ToList();
+
+                using var hasher = XXHash32.Create();
+                hasher.ComputeHash(Encoding.UTF8.GetBytes(head.Name ?? ""));
+                loc.TryGetValue(hasher.HashUInt32, out var localized);
+
+                // A rerun carries none of the original's stages, bonuses or currency of its own, so everything descriptive has to be read off the id it is a rerun of.
+                var source = head.OriginalEventContentId > 0 ? head.OriginalEventContentId : g.Key;
+
+                var students = (bonuses.GetValueOrDefault(source) ?? [])
+                    .OrderByDescending(b => b.BonusPercentage.Count > 0 ? b.BonusPercentage.Max() : 0)
+                    .ThenBy(b => b.CharacterId)
+                    .Select(b => charNames.GetValueOrDefault(b.CharacterId))
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Take(3)
+                    .ToList();
+
+                var currency = (currencies.GetValueOrDefault(source) ?? [])
+                    .Select(c => itemNames.GetValueOrDefault(c.ItemUniqueId))
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Distinct()
+                    .ToList();
+
+                return new
+                {
+                    id = g.Key,
+                    // 21 of these have no LocalizeExcel row, and the mini events all share one Name key, so showing the raw key would label eighteen different events identically.
+                    name = string.IsNullOrWhiteSpace(localized) ? $"Event #{g.Key}" : localized,
+                    key = head.Name,
+                    types,
+                    minigames = types.Where(t => t.StartsWith("MiniGame") || t.StartsWith("Minigame")).ToList(),
+                    releaseType = head.EventContentReleaseType.ToString(),
+                    original = head.OriginalEventContentId,
+                    isReturn = g.Any(s => s.IsReturn),
+                    // the lobby icon rail draws one entry per season row that is both displayable and not a permanent unlock; the other events are reachable only from a menu
+                    rail = g.Any(s => s.EventDisplay && s.EventContentReleaseType == EventContentReleaseType.None),
+                    iconOrder = g.Max(s => s.IconOrder),
+                    students,
+                    currency,
+                    stages = stageCounts.GetValueOrDefault(source),
+                    open = head.EventContentOpenTime,
+                    close = head.EventContentCloseTime,
+                    enabled = EventScheduleService.Enabled.Contains(g.Key),
+                };
+            })
+            .OrderBy(e => e.id)
+            .ToList();
+
+        return Ok(new { events, enabled = EventScheduleService.Enabled.OrderBy(x => x) });
+    }
+
+    public class SetEventScheduleRequest
+    {
+        public List<long>? Enabled { get; set; }
+    }
+
+    [HttpPost("events/schedule")]
+    public IActionResult SetEventSchedule([FromBody] SetEventScheduleRequest request)
+    {
+        try
+        {
+            var written = EventScheduleService.Set(request.Enabled ?? new List<long>(), _excel);
+            return Ok(new { success = true, rows = written, enabled = EventScheduleService.Enabled.OrderBy(x => x) });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.GetBaseException().Message });
+        }
+    }
+
+    [HttpGet("events/{eventContentId:long}/unlocks")]
+    public async Task<IActionResult> EventUnlocks(long eventContentId, [FromQuery] long uid = 0)
+    {
+        var itemNames = NameMap(_excel.GetTable<ItemExcelT>().GroupBy(i => i.Id).ToDictionary(g => g.Key, g => g.First().LocalizeEtcId));
+
+        var stages = _excel.GetTable<EventContentStageExcelT>().Where(x => x.EventContentId == eventContentId).ToList();
+        var missionIds = MissionIdsFor(eventContentId);
+        var shopIds = _excel.GetTable<EventContentShopExcelT>().Where(x => x.EventContentId == eventContentId).Select(x => x.Id).ToHashSet();
+        var collectionIds = _excel.GetTable<EventContentCollectionExcelT>().Where(x => x.EventContentId == eventContentId).Select(x => x.Id).ToHashSet();
+        var gates = MinigameGatesFor(eventContentId);
+        var gateStageIds = gates.Select(x => x.CampaignStageId).Where(x => x != 0).ToHashSet();
+        var play = MinigameStagesFor(eventContentId);
+
+        // An event names the same item on more than one row when a token doubles as the shortcut currency, and the popup wants one amount box per item rather than one per row.
+        var currency = _excel.GetTable<EventContentCurrencyItemExcelT>()
+            .Where(x => x.EventContentId == eventContentId)
+            .GroupBy(x => x.ItemUniqueId)
+            .Select(g => new { itemId = g.Key, type = g.First().EventContentItemType.ToString(), name = itemNames.GetValueOrDefault(g.Key) })
+            .ToList();
+
+        // Handing out a token without saying what a run costs is how you end up with 23 of something the client wants 100 of, and the client blocks that entirely on its side so the server never gets a chance to explain.
+        var enterCosts = stages.Where(x => x.StageEnterCostType == ParcelType.Item && x.StageEnterCostAmount > 0).Select(x => (x.StageEnterCostId, Amount: (long)x.StageEnterCostAmount))
+            .Concat(_excel.GetTable<MiniGameDefenseStageExcelT>().Where(x => x.EventContentId == eventContentId && x.StageEnterCostType == ParcelType.Item && x.StageEnterCostAmount > 0).Select(x => (x.StageEnterCostId, Amount: (long)x.StageEnterCostAmount)))
+            .GroupBy(x => x.StageEnterCostId)
+            .ToDictionary(g => g.Key, g => (Min: g.Min(x => x.Amount), Max: g.Max(x => x.Amount)));
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var held = uid > 0
+            ? await db.Items.Where(x => x.AccountServerId == uid).ToDictionaryAsync(x => x.UniqueId, x => x.StackCount)
+            : [];
+
+        var stageIds = stages.Select(x => x.Id).ToHashSet();
+        var cleared = uid > 0 ? await db.CampaignStageHistories.CountAsync(x => x.AccountServerId == uid && x.IsClearedEver && stageIds.Contains(x.StageUniqueId)) : 0;
+        var done = uid > 0 ? await db.MissionProgresses.CountAsync(x => x.AccountServerId == uid && x.Complete && missionIds.Contains(x.MissionUniqueId)) : 0;
+        var bought = uid > 0 ? await db.ShopPurchaseHistories.CountAsync(x => x.AccountServerId == uid && shopIds.Contains(x.ShopUniqueId)) : 0;
+        var owned = uid > 0 ? await db.EventContentCollections.CountAsync(x => x.AccountServerId == uid && x.EventContentId == eventContentId) : 0;
+        var gatesCleared = uid > 0 && gateStageIds.Count > 0 ? await db.CampaignStageHistories.CountAsync(x => x.AccountServerId == uid && x.IsClearedEver && gateStageIds.Contains(x.StageUniqueId)) : 0;
+
+        var playCleared = 0;
+        if (uid > 0 && play.Total > 0)
+        {
+            var rhythmIds = play.Rhythm.Select(x => x.UniqueId).ToHashSet();
+            var shootingIds = play.Shooting.Select(x => x.Id).ToHashSet();
+            playCleared = await db.MiniGameDefenseStageHistories.CountAsync(x => x.AccountServerId == uid && x.EventContentId == eventContentId && x.Star1Flag && play.Defense.Contains(x.StageId))
+                + await db.MiniGameHistories.CountAsync(x => x.AccountServerId == uid && x.EventContentId == eventContentId && x.HighScore > 0 && rhythmIds.Contains(x.UniqueId))
+                + await db.MiniGameShootingHistories.CountAsync(x => x.AccountServerId == uid && x.EventContentId == eventContentId && x.ArriveSection > 0 && shootingIds.Contains(x.UniqueId));
+        }
+
+        return Ok(new
+        {
+            id = eventContentId,
+            currency = currency.Select(c => new { c.itemId, c.type, c.name, held = held.GetValueOrDefault(c.itemId), costMin = enterCosts.GetValueOrDefault(c.itemId).Min, costMax = enterCosts.GetValueOrDefault(c.itemId).Max }),
+            stages = new { total = stages.Count, cleared, difficulties = stages.GroupBy(x => x.StageDifficulty.ToString()).ToDictionary(g => g.Key, g => g.Count()) },
+            missions = new { total = missionIds.Count, done },
+            shop = new { total = shopIds.Count, bought },
+            collections = new { total = collectionIds.Count, owned },
+            minigame = new { total = gateStageIds.Count, cleared = gatesCleared, names = gates.Select(x => x.OpenConditionContentType.ToString()) },
+            minigameStages = new { total = play.Total, cleared = playCleared, kinds = play.Kinds },
+        });
+    }
+
+    public class EventUnlockRequest
+    {
+        public long AccountServerId { get; set; }
+        public long EventContentId { get; set; }
+        public bool ClearStages { get; set; }
+        public bool CompleteMissions { get; set; }
+        public bool ResetShop { get; set; }
+        public bool UnlockCollections { get; set; }
+        public bool UnlockMinigame { get; set; }
+        public bool ClearMinigames { get; set; }
+        public Dictionary<long, long>? Currency { get; set; }
+    }
+
+    [HttpPost("events/unlock")]
+    public async Task<IActionResult> EventUnlock([FromBody] EventUnlockRequest request)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var account = await db.Accounts.FirstOrDefaultAsync(x => x.ServerId == request.AccountServerId);
+            if (account == null)
+                return NotFound(new { error = "Account not found" });
+
+            var now = account.GameSettings.ServerDateTime();
+            int stages = 0, missions = 0, shop = 0, collections = 0, items = 0, minigame = 0, minigameStages = 0;
+
+            if (request.ClearStages)
+            {
+                var stageExcels = _excel.GetTable<EventContentStageExcelT>().Where(x => x.EventContentId == request.EventContentId).ToList();
+                var ids = stageExcels.Select(x => x.Id).ToHashSet();
+                var existing = await db.CampaignStageHistories
+                    .Where(x => x.AccountServerId == account.ServerId && ids.Contains(x.StageUniqueId))
+                    .ToDictionaryAsync(x => x.StageUniqueId);
+
+                foreach (var excel in stageExcels)
+                {
+                    if (!existing.TryGetValue(excel.Id, out var row))
+                    {
+                        row = new CampaignStageHistoryDBServer { AccountServerId = account.ServerId, StageUniqueId = excel.Id };
+                        db.CampaignStageHistories.Add(row);
+                    }
+                    else if (row.IsClearedEver)
+                    {
+                        continue;
+                    }
+
+                    row.IsClearedEver = true;
+                    row.BestStarRecord = 3;
+                    row.Star1Flag = true;
+                    row.Star2Flag = true;
+                    row.Star3Flag = true;
+                    row.LastPlay = now;
+                    if (row.ClearTurnRecord == 0) row.ClearTurnRecord = 1;
+                    row.FirstClearRewardReceive ??= now;
+                    row.StarRewardReceive ??= now;
+                    stages++;
+                }
+
+                // Reruns carry a permanent record whose all-clear flag gates the character reward, and nothing in the stage-clear path ever sets it.
+                var permanent = await db.EventContentPermanents.FirstOrDefaultAsync(
+                    x => x.AccountServerId == account.ServerId && x.EventContentId == request.EventContentId);
+                if (permanent != null && stageExcels.Count > 0)
+                    permanent.IsStageAllClear = true;
+            }
+
+            if (request.UnlockMinigame)
+            {
+                var gateStageIds = MinigameGatesFor(request.EventContentId).Select(x => x.CampaignStageId).Where(x => x != 0).ToHashSet();
+                var existing = await db.CampaignStageHistories
+                    .Where(x => x.AccountServerId == account.ServerId && gateStageIds.Contains(x.StageUniqueId))
+                    .ToDictionaryAsync(x => x.StageUniqueId);
+
+                foreach (var stageId in gateStageIds)
+                {
+                    if (!existing.TryGetValue(stageId, out var row))
+                    {
+                        row = new CampaignStageHistoryDBServer { AccountServerId = account.ServerId, StageUniqueId = stageId };
+                        db.CampaignStageHistories.Add(row);
+                    }
+                    else if (row.IsClearedEver)
+                    {
+                        continue;
+                    }
+
+                    row.IsClearedEver = true;
+                    row.BestStarRecord = 3;
+                    row.Star1Flag = true;
+                    row.Star2Flag = true;
+                    row.Star3Flag = true;
+                    row.LastPlay = now;
+                    if (row.ClearTurnRecord == 0) row.ClearTurnRecord = 1;
+                    row.FirstClearRewardReceive ??= now;
+                    row.StarRewardReceive ??= now;
+                    minigame++;
+                }
+            }
+
+            if (request.ClearMinigames)
+            {
+                var play = MinigameStagesFor(request.EventContentId);
+
+                var defenseRows = await db.MiniGameDefenseStageHistories
+                    .Where(x => x.AccountServerId == account.ServerId && x.EventContentId == request.EventContentId)
+                    .ToDictionaryAsync(x => x.StageId);
+
+                foreach (var stageId in play.Defense)
+                {
+                    if (!defenseRows.TryGetValue(stageId, out var row))
+                    {
+                        row = new MiniGameDefenseStageHistoryDBServer { AccountServerId = account.ServerId, EventContentId = request.EventContentId, StageId = stageId };
+                        db.MiniGameDefenseStageHistories.Add(row);
+                    }
+                    else if (row.Star1Flag && row.Star2Flag && row.Star3Flag)
+                    {
+                        continue;
+                    }
+
+                    row.Star1Flag = true;
+                    row.Star2Flag = true;
+                    row.Star3Flag = true;
+                    row.FirstClearRewardReceive = true;
+                    row.StarRewardReceive = true;
+                    minigameStages++;
+                }
+
+                var rhythmRows = await db.MiniGameHistories
+                    .Where(x => x.AccountServerId == account.ServerId && x.EventContentId == request.EventContentId)
+                    .ToDictionaryAsync(x => x.UniqueId);
+
+                foreach (var chart in play.Rhythm)
+                {
+                    if (!rhythmRows.TryGetValue(chart.UniqueId, out var row))
+                    {
+                        row = new MiniGameHistoryDBServer { AccountServerId = account.ServerId, EventContentId = request.EventContentId, UniqueId = chart.UniqueId };
+                        db.MiniGameHistories.Add(row);
+                    }
+                    else if (row.HighScore >= chart.MaxScore)
+                    {
+                        continue;
+                    }
+
+                    row.HighScore = chart.MaxScore;
+                    // the later charts open on the event's summed AccumulatedScore rather than on any single clear, and a full-marks record on every chart is what takes the sum past the last OpenStageScoreAmount
+                    row.AccumulatedScore = Math.Max(row.AccumulatedScore, chart.MaxScore);
+                    row.IsFullCombo = true;
+                    row.ClearDate = now;
+                    minigameStages++;
+                }
+
+                var shootingRows = await db.MiniGameShootingHistories
+                    .Where(x => x.AccountServerId == account.ServerId && x.EventContentId == request.EventContentId)
+                    .ToDictionaryAsync(x => x.UniqueId);
+
+                foreach (var (stageId, sections) in play.Shooting)
+                {
+                    if (!shootingRows.TryGetValue(stageId, out var row))
+                    {
+                        row = new MiniGameShootingHistoryDBServer { AccountServerId = account.ServerId, EventContentId = request.EventContentId, UniqueId = stageId };
+                        db.MiniGameShootingHistories.Add(row);
+                    }
+                    else if (row.ArriveSection >= sections)
+                    {
+                        continue;
+                    }
+
+                    // LastUpdateDate is left where it is on purpose - the lobby derives IsClearToday from it, so stamping now would spend today's run on a clear nobody played
+                    row.ArriveSection = sections;
+                    minigameStages++;
+                }
+            }
+
+            if (request.CompleteMissions)
+            {
+                var ids = MissionIdsFor(request.EventContentId);
+                var existing = await db.MissionProgresses
+                    .Where(x => x.AccountServerId == account.ServerId && ids.Contains(x.MissionUniqueId))
+                    .ToDictionaryAsync(x => x.MissionUniqueId);
+                var conditions = _excel.GetTable<EventContentMissionExcelT>().Where(x => ids.Contains(x.Id))
+                    .ToDictionary(x => x.Id, x => (x.CompleteConditionParameter, x.CompleteConditionCount));
+                foreach (var m in _excel.GetTable<MiniGameMissionExcelT>().Where(x => ids.Contains(x.Id)))
+                    conditions[m.Id] = (m.CompleteConditionParameter, m.CompleteConditionCount);
+
+                foreach (var id in ids)
+                {
+                    var cond = conditions[id];
+                    var progress = ForcedProgress(cond.CompleteConditionParameter, cond.CompleteConditionCount, request.EventContentId);
+                    if (existing.TryGetValue(id, out var row))
+                    {
+                        if (row.Complete && row.ProgressParameters?.Count > 0) continue;
+                        row.Complete = true;
+                        row.ProgressParameters = progress;
+                    }
+                    else
+                    {
+                        db.MissionProgresses.Add(new MissionProgressDBServer
+                        {
+                            AccountServerId = account.ServerId,
+                            MissionUniqueId = id,
+                            Complete = true,
+                            StartTime = now,
+                            ProgressParameters = progress
+                        });
+                    }
+                    missions++;
+                }
+            }
+
+            if (request.ResetShop)
+            {
+                var ids = _excel.GetTable<EventContentShopExcelT>().Where(x => x.EventContentId == request.EventContentId).Select(x => x.Id).ToHashSet();
+                var rows = await db.ShopPurchaseHistories
+                    .Where(x => x.AccountServerId == account.ServerId && ids.Contains(x.ShopUniqueId))
+                    .ToListAsync();
+                shop = rows.Count;
+                db.ShopPurchaseHistories.RemoveRange(rows);
+            }
+
+            if (request.UnlockCollections)
+            {
+                var owned = await db.EventContentCollections
+                    .Where(x => x.AccountServerId == account.ServerId && x.EventContentId == request.EventContentId)
+                    .Select(x => x.UniqueId)
+                    .ToListAsync();
+                var have = owned.ToHashSet();
+
+                foreach (var excel in _excel.GetTable<EventContentCollectionExcelT>().Where(x => x.EventContentId == request.EventContentId && !have.Contains(x.Id)))
+                {
+                    db.EventContentCollections.Add(new EventContentCollectionDBServer
+                    {
+                        AccountServerId = account.ServerId,
+                        EventContentId = request.EventContentId,
+                        GroupId = excel.GroupId,
+                        UniqueId = excel.Id,
+                        ReceiveDate = now
+                    });
+                    collections++;
+                }
+            }
+
+            foreach (var (itemId, amount) in request.Currency ?? [])
+            {
+                if (amount <= 0) continue;
+                var row = await db.Items.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.UniqueId == itemId);
+                if (row != null)
+                    row.StackCount += amount;
+                else
+                    db.Items.Add(new ItemDBServer { AccountServerId = account.ServerId, UniqueId = itemId, StackCount = amount });
+                items++;
+            }
+
+            await db.SaveChangesAsync();
+            return Ok(new { success = true, stages, missions, shop, collections, items, minigame, minigameStages });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.GetBaseException().Message });
+        }
+    }
+
+    // Event missions and minigame missions are separate tables that both feed MissionProgress, and an event with a minigame has rows in both.
+    private HashSet<long> MissionIdsFor(long eventContentId) =>
+        _excel.GetTable<EventContentMissionExcelT>().Where(x => x.EventContentId == eventContentId).Select(x => x.Id)
+            .Concat(_excel.GetTable<MiniGameMissionExcelT>().Where(x => x.EventContentId == eventContentId).Select(x => x.Id))
+            .ToHashSet();
+
+    // The client reads a mission's count out of ProgressParameters by the parameter it matched on, so a forced complete has to name the same key the play path would have picked - CompleteConditionParameter leads with the event id and then the subject, and a list that does not lead with the event id is the subject set itself and shares one bucket.
+    private static Dictionary<long, long> ForcedProgress(List<long> declared, long count, long eventContentId)
+    {
+        declared ??= [];
+        long key;
+        if (declared.Count == 0)
+            key = 0;
+        else if (declared.Count == 1)
+            key = declared[0];
+        else
+            key = declared[0] == eventContentId ? declared[1] : 0;
+
+        return new Dictionary<long, long> { [key] = count };
+    }
+
+    // The minigame padlock is an OpenConditionExcel row keyed on the minigame's own content type, and its stage belongs to the rerun twin rather than to the event you turned on - 838's defense minigame wants 108381311, which only exists under 10838.
+    private List<OpenConditionExcelT> MinigameGatesFor(long eventContentId)
+    {
+        var seasons = _excel.GetTable<EventContentSeasonExcelT>();
+        var origin = seasons.Where(x => x.EventContentId == eventContentId).Select(x => x.OriginalEventContentId).FirstOrDefault(x => x != 0);
+        if (origin == 0)
+            origin = eventContentId;
+
+        var family = seasons.Where(x => x.EventContentId == origin || x.OriginalEventContentId == origin).Select(x => x.EventContentId).ToHashSet();
+        return _excel.GetTable<OpenConditionExcelT>().Where(x => family.Contains(x.ShortcutParam)).ToList();
+    }
+
+    // Only the three minigames that keep a per-stage record are here. TBG, CCG, DreamMaker and the road puzzle save a run in progress - a board, a deck, an ending - with no cleared flag to force, so there is nothing for a forced clear to write.
+    private (List<long> Defense, List<MiniGameRhythmExcelT> Rhythm, List<(long Id, long Sections)> Shooting, int Total, List<string> Kinds) MinigameStagesFor(long eventContentId)
+    {
+        var defense = _excel.GetTable<MiniGameDefenseStageExcelT>().Where(x => x.EventContentId == eventContentId).Select(x => x.Id).ToList();
+
+        var bgm = _excel.GetTable<MiniGameRhythmBgmExcelT>().ToDictionary(x => x.RhythmBgmId, x => x.EventContentId);
+        var rhythm = _excel.GetTable<MiniGameRhythmExcelT>().Where(x => bgm.GetValueOrDefault(x.RhythmBgmId) == eventContentId).ToList();
+
+        // Shooting stages carry no event column - the three of them are named by ConstMiniGameShooting and belong to whichever event carries the shooting missions.
+        var shooting = new List<(long, long)>();
+        var shootingConst = _excel.GetTable<ConstMiniGameShootingExcelT>().FirstOrDefault();
+        if (shootingConst != null && _excel.GetTable<MiniGameMissionExcelT>().Any(x => x.EventContentId == eventContentId && x.CompleteConditionType == MissionCompleteConditionType.Reset_ClearCountShooting))
+        {
+            shooting.Add((shootingConst.NormalStageId, shootingConst.NormalSectionCount));
+            shooting.Add((shootingConst.HardStageId, shootingConst.HardSectionCount));
+            shooting.Add((shootingConst.FreeStageId, shootingConst.FreeSectionCount));
+        }
+
+        var kinds = new List<string>();
+        if (defense.Count > 0) kinds.Add("Defense");
+        if (rhythm.Count > 0) kinds.Add("Rhythm");
+        if (shooting.Count > 0) kinds.Add("Shooting");
+
+        return (defense, rhythm, shooting, defense.Count + rhythm.Count + shooting.Count, kinds);
     }
 
     private Dictionary<uint, string> LocalizeMap() =>
