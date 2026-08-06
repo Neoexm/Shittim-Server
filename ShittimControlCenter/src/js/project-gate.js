@@ -37,8 +37,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
     ? `The control center is set to <span class="mono">${escapeHtml(status.configured)}</span>, and that folder is not there right now.
           If it lives on a drive that is not plugged in, connect it and restart. Downloading a fresh copy leaves the
           database and configuration in the old folder.`
-    : `The control center needs the Shittim-Server project to run. Download the
-          latest copy from GitHub, or point it at a folder you already have.`;
+    : `The control center needs the Shittim-Server project to run.`;
 
   col.appendChild(frag(`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
@@ -79,7 +78,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
       el('span.sub', { text: 'Neoexm/Shittim-Server - main' }), el('div.spacer', {})),
     el('div.card-body', {},
       el('p', {
-        html: 'Fetches a zip of the latest commit from GitHub and unpacks it into the folder below.',
+        html: 'Fetches a zip of the latest commit from GitHub.',
         style: { fontSize: '13px', color: 'var(--ink-2)', margin: '0 0 14px', lineHeight: '1.6' },
       }),
       el('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: '0', padding: '10px 12px', background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 'var(--r-sm)' } },
@@ -95,7 +94,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
     el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Use an existing folder' })),
     el('div.card-body', {},
       el('p', {
-        html: 'Already have the project? Choose the repo folder (the one that contains <b>Shittim-Server</b>) or the <b>Shittim-Server</b> project folder itself.',
+        html: 'Choose the repo folder (the one that contains <b>Shittim-Server</b>) or the <b>Shittim-Server</b> project folder itself.',
         style: { fontSize: '13px', color: 'var(--ink-2)', margin: '0 0 14px', lineHeight: '1.6' },
       }),
       locateBtn));
@@ -144,7 +143,7 @@ export function renderProjectGate(appRoot, status, { titlebar }) {
         toast('Project downloaded', 'good', 'Ready');
         setTimeout(() => location.reload(), 500);
       } else {
-        toast((res && res.error) || 'Download failed', 'bad', 'Download failed');
+        toast((res && res.error) || 'Download failed', 'bad');
         showProgress(100, (res && res.error) || 'Download failed');
         setBusy(false);
       }

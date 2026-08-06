@@ -20,10 +20,10 @@ export default {
   mount(root) {
     const diagBody = el('div.diag', { style: { minWidth: '0' } });
 
-    let busy = false; // a setup install is in flight - gate the buttons
+    let busy = false;
     const refreshBtn = button('Re-check', { variant: 'ghost', sm: true, iconName: 'refresh', onClick: () => loadDiag() });
     const setupBtn = button('Install missing', { variant: 'primary', sm: true, iconName: 'download', onClick: () => runSetup('all') });
-    const readiness = cardWith('Environment readiness', 'Toolchain & data prerequisites', [setupBtn, refreshBtn], diagBody);
+    const readiness = cardWith('Environment readiness', null, [setupBtn, refreshBtn], diagBody);
 
     const shortcutBody = el('div.row.wrap', { style: { gap: '10px', minWidth: '0' } });
     const shortcuts = [
@@ -38,7 +38,7 @@ export default {
         window.host.openPath(pick(p));
       }}));
     }
-    const shortcutsCard = cardWith('Shortcuts', 'Open the files behind the server', [], shortcutBody);
+    const shortcutsCard = cardWith('Shortcuts', null, [], shortcutBody);
 
     const hostsLine = el('p', { style: { fontSize: '12.5px', color: 'var(--ink-3)', margin: '12px 0 0', lineHeight: '1.6' } });
     const offlineBtn = button('Start offline', { variant: 'primary', iconName: 'play', onClick: () => startOffline() });
@@ -73,7 +73,6 @@ export default {
     const right = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '18px', minWidth: '0' } }, offlineCard, shortcutsCard, diagnostics);
     root.appendChild(el('div.grid-2', { style: { gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', alignItems: 'start' } }, readiness, right));
 
-    // A small "Install" / "Fix" button for an installable prerequisite, shown only when that check isn't already satisfied.
     function fixBtn(step, info) {
       if (busy) return null;
       const ready = (info?.status || 'missing') === 'ready';
@@ -94,7 +93,6 @@ export default {
         diagBody.appendChild(diagRow('CA certificate', env.certificate, fixBtn('certificate', env.certificate)));
         diagBody.appendChild(diagRow('Gateway keys', env.gateway));
         diagBody.appendChild(diagRow('Redirect script', env.redirect));
-        // gate the header "Install missing" button on there being something to do
         const anyMissing = ['dotnet', 'mitmproxy', 'certificate'].some((k) => (env[k]?.status || 'missing') !== 'ready');
         setupBtn.disabled = busy || !anyMissing;
       } catch (e) {
@@ -141,7 +139,6 @@ export default {
       }
     }
 
-    // A live progress panel shown in place of the readiness list while an install runs.
     // The .NET SDK download (~250 MB) is silent for minutes, so a spinner plus an always-ticking elapsed counter is what stops it reading as "hung".
     function setupPanel() {
       const titleEl = el('div', { style: { fontWeight: '700', fontSize: '13.5px' } });
@@ -155,7 +152,6 @@ export default {
 
     function fmtMB(n) { return `${(n / (1024 * 1024)).toFixed(0)} MB`; }
 
-    // Drive setupInstall for one step or 'all', rendering live progress in the card and re-checking the environment when it finishes.
     // mitmproxy/.NET install per-user (silent); trusting the CA raises one Windows elevation prompt.
     async function runSetup(which) {
       if (busy) return;

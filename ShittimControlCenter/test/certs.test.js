@@ -9,8 +9,7 @@ const path = require('path');
 
 const { thumbprint, trustedRoot } = require('../certs');
 
-// A stand-in for what mitmproxy leaves in ~/.mitmproxy: DER bytes wrapped in PEM under a .cer name. Nothing here parses
-// the certificate, so the bytes only have to be stable.
+// A stand-in for what mitmproxy leaves in ~/.mitmproxy: DER bytes wrapped in PEM under a .cer name. Nothing here parses the certificate, so the bytes only have to be stable.
 function fakeCa(der) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-ca-'));
   const file = path.join(dir, 'mitmproxy-ca-cert.cer');
@@ -27,8 +26,7 @@ test('the thumbprint of a PEM file is the sha1 of the certificate inside it', ()
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-// mitmproxy regenerates its CA whenever ~/.mitmproxy is wiped. The file is back, the card was happy with it, and the
-// store still holds the CA from before - so the thumbprint has to be what identifies it, not the path.
+// mitmproxy regenerates its CA whenever ~/.mitmproxy is wiped. The file is back, the card was happy with it, and the store still holds the CA from before - so the thumbprint has to be what identifies it, not the path.
 test('a regenerated CA does not have the thumbprint of the one that was trusted', () => {
   const der = crypto.randomBytes(600);
   const first = fakeCa(der);
@@ -48,8 +46,7 @@ test('a CA the machine root store knows about is trusted', async () => {
   assert.deepEqual(asked, ['certutil -verifystore Root AABB']);
 });
 
-// certutil answers 0x800b010a on a thumbprint that is not in the store, which is what a declined elevation prompt
-// leaves behind: the file written, the trust step never run.
+// certutil answers 0x800b010a on a thumbprint that is not in the store, which is what a declined elevation prompt leaves behind: the file written, the trust step never run.
 test('a CA that was never trusted is not trusted just because the file is there', async () => {
   const asked = [];
   const run = (cmd, args, opts, cb) => { asked.push(args.join(' ')); cb(new Error('exit 0x800b010a'), '', ''); };

@@ -1,7 +1,6 @@
 'use strict';
 
-// Stands in for the real preload so the soak drives the actual page without a server behind it. Same window.host
-// surface, every answer canned, plus window.__log to push lines at the console the way the main process would.
+// Stands in for the real preload so the soak drives the actual page without a server behind it. Same window.host surface, every answer canned, plus window.__log to push lines at the console the way the main process would.
 const noop = () => {};
 const logSubs = [];
 const stateSubs = [];

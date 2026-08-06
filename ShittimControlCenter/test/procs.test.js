@@ -7,8 +7,7 @@ const { PassThrough } = require('stream');
 
 const { alive, killTree, streamLines } = require('../procs');
 
-// tasklist/taskkill stand-in. `living` is the set of pids the fake machine still has, and every call is recorded so a
-// test can assert on the argv taskkill was actually given.
+// tasklist/taskkill stand-in. `living` is the set of pids the fake machine still has, and every call is recorded so a test can assert on the argv taskkill was actually given.
 function fakeShell(living, onKill) {
   const calls = [];
   const run = (cmd, args, cb) => {
@@ -40,8 +39,7 @@ test('a kill that lands is reported once the pid has actually gone', async () =>
   assert.deepEqual(await killTree(4242, { run, sleep: nap }), { ok: true });
 });
 
-// The whole point: taskkill's exit code arrives long before the process does, and an elevated server refuses outright.
-// Saying "stopped" here is what leaves the next launch unable to bind the port.
+// The whole point: taskkill's exit code arrives long before the process does, and an elevated server refuses outright. Saying "stopped" here is what leaves the next launch unable to bind the port.
 test('a kill the machine refuses is a failure and carries what it said', async () => {
   const { run } = fakeShell(new Set([4242]), () => 'ERROR: The process with PID 4242 could not be terminated. Reason: Access is denied.');
   const r = await killTree(4242, { run, tries: 3, sleep: nap });
@@ -49,8 +47,7 @@ test('a kill the machine refuses is a failure and carries what it said', async (
   assert.match(r.error, /Access is denied/);
 });
 
-// "could not stop pid 4242 - Access is denied" is true and useless. The only thing that gets the port back is Task
-// Manager or an elevated relaunch, and neither is guessable from the errno.
+// "could not stop pid 4242 - Access is denied" is true and useless. The only thing that gets the port back is Task Manager or an elevated relaunch, and neither is guessable from the errno.
 test('a process running with rights we do not have says what to do about it', async () => {
   const { run } = fakeShell(new Set([4242]), () => 'ERROR: The process with PID 4242 could not be terminated. Reason: Access is denied.');
   const r = await killTree(4242, { run, tries: 2, sleep: nap });
@@ -87,8 +84,7 @@ function fakeChild() {
   return { child, lines };
 }
 
-// A server logging a path with kanji or Cyrillic in it emits a 3-byte sequence that a 64KB pipe read will eventually
-// split, and that is not rare - it is once per couple of thousand lines, forever, on the machines that have such paths.
+// A server logging a path with kanji or Cyrillic in it emits a 3-byte sequence that a 64KB pipe read will eventually split, and that is not rare - it is once per couple of thousand lines, forever, on the machines that have such paths.
 test('a character split across two reads survives', () => {
   const { child, lines } = fakeChild();
   const bytes = Buffer.from('reading D:\\ゲーム\\config\n', 'utf8');
@@ -117,8 +113,7 @@ test('CRLF from a windows child is not left on the line', () => {
   assert.deepEqual(lines, ['one', 'two', 'three']);
 });
 
-// `dotnet run` holds the server as a grandchild, so this is the shape that matters: kill what we spawned, and check
-// that the process which actually owns the port went with it.
+// `dotnet run` holds the server as a grandchild, so this is the shape that matters: kill what we spawned, and check that the process which actually owns the port went with it.
 test('a grandchild dies with the child we spawned', { skip: process.platform !== 'win32' }, async () => {
   const inner = 'setInterval(() => {}, 1000);';
   const outer = `const {spawn}=require('child_process');const c=spawn(process.execPath,['-e',${JSON.stringify(inner)}],{stdio:'ignore'});console.log(c.pid);setInterval(()=>{},1000);`;

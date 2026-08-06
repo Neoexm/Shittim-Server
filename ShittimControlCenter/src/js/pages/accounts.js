@@ -35,7 +35,7 @@ export default {
         el('div.card-body', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' } },
           el('b', { text: 'Game account', style: { fontFamily: 'var(--font-round)', fontSize: '13px' } }),
           gameSel,
-          el('span.muted', { text: 'The account the game logs into. Applies from the next launch.', style: { fontSize: '12px' } }))));
+          el('span.muted', { text: 'Applies from the next launch.', style: { fontSize: '12px' } }))));
 
       const layout = el('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.25fr)', gap: '18px', alignItems: 'start' } });
       const listCard = el('div.card', { style: { minWidth: '0' } });
@@ -61,7 +61,7 @@ export default {
         const q = searchInput.value.trim().toLowerCase();
         const rows = allRows.filter((a) => !q || a.nickname.toLowerCase().includes(q) || String(a.serverId).includes(q));
         clear(listBody);
-        if (!rows.length) { listBody.appendChild(emptyState('No accounts', q ? 'No match for this filter' : 'Create one to begin')); return; }
+        if (!rows.length) { listBody.appendChild(emptyState(q ? 'No match' : 'No accounts')); return; }
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Nickname</th><th style="width:54px">Lvl</th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const a of rows) {
@@ -167,7 +167,7 @@ export default {
         body.appendChild(frag(`<div class="muted" style="font-size:12px;margin-top:18px">${d.itemCount} items · ${d.characterCount} characters · ${d.mailCount} mails · ${escapeHtml(d.state || '')}</div>`));
         const del = button('Delete account', { variant: 'danger', iconName: 'trash', onClick: async () => {
           const ok = await confirmDialog({ title: 'Delete account', danger: true, confirmLabel: 'Delete permanently',
-            message: `This permanently removes "${d.nickname}" (#${d.serverId}) and all of its data. This cannot be undone.` });
+            message: `This permanently removes "${d.nickname}" (#${d.serverId}) and all of its data.` });
           if (!ok) return;
           try { await api.accountDelete(d.serverId); toast('Account deleted', 'warn'); store.set({ targetId: null }); loadList(); }
           catch (e) { toast(e.message, 'bad'); }
@@ -190,7 +190,7 @@ export default {
       }
 
       function openCreate() {
-        const nick = input({ placeholder: 'Nickname', value: 'Sensei' });
+        const nick = input({ value: 'Sensei' });
         const create = button('Create account', { variant: 'primary', iconName: 'plus' });
         const cancel = button('Cancel', { variant: 'ghost' });
         const ref = modal({ title: 'New account', body: el('div', {}, field('Nickname', nick)),

@@ -1,5 +1,3 @@
-// HTTP client for the server's /api/admin surface plus a tiny reactive store shared across pages. The renderer reaches the server over loopback only.
-
 const host = window.host;
 
 // Stable currency map (mirrors Schale.FlatData.CurrencyTypes) so the Accounts page can render balances regardless of how enum dict keys are serialized.
@@ -16,7 +14,6 @@ export const CURRENCIES = [
 ];
 export const CURRENCY_ID = Object.fromEntries(CURRENCIES.map(([id, name]) => [name, id]));
 export const CURRENCY_NAME = Object.fromEntries(CURRENCIES.map(([id, name]) => [id, name]));
-// "primary" currencies surfaced prominently
 export const PRIMARY_CURRENCIES = [4, 1, 5, 7, 8, 18]; // Gem, Gold, AP, Arena, Raid, MasterCoin
 
 let apiPort = 5000;
@@ -70,7 +67,6 @@ export const api = {
   // Two-stage probe so the UI never lies about being "online":
   //   live  = the web host answers /health (process is up / port bound)
   //   ready = /api/admin/status answers - that handler hits the DB, so a 200 means the server is genuinely able to serve, not just listening.
-  // Only `ready` should ever render as "Online".
   async probe() {
     let live = false;
     try { const r = await req('GET', '/health', null, { timeout: 1500 }); live = r?.status === 'ok'; }
@@ -145,7 +141,7 @@ export const store = makeStore({
   live: false,             // web host answered /health but may not be ready yet
   status: null,            // /api/admin/status payload
   lastCheckedTs: 0,        // epoch ms of the last completed probe
-  probeTarget: '127.0.0.1:5000', // host:port the probe is hitting
+  probeTarget: '127.0.0.1:5000',
   accounts: [],            // [{serverId,nickname,level,...}]
   targetId: null,          // selected account
 });

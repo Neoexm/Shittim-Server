@@ -25,9 +25,7 @@ function pathsFor(repoRoot, platform = process.platform) {
   const serverDir = path.join(repoRoot, 'Shittim-Server');
   const csproj = path.join(serverDir, 'Shittim-Server.csproj');
 
-  // dotnet publishes the apphost without a suffix everywhere except Windows. Looking only for Shittim-Server.exe finds
-  // nothing on Linux, and then every path below it - config, gacha overrides, the gateway key directory - is derived
-  // from a build directory that was only ever a guess.
+  // dotnet publishes the apphost without a suffix everywhere except Windows. Looking only for Shittim-Server.exe finds nothing on Linux, and then every path below it - config, gacha overrides, the gateway key directory - is derived from a build directory that was only ever a guess.
   const exeName = platform === 'win32' ? 'Shittim-Server.exe' : 'Shittim-Server';
   const debugExe = path.join(serverDir, 'bin', 'Debug', 'net10.0', exeName);
   const releaseExe = path.join(serverDir, 'bin', 'Release', 'net10.0', exeName);
@@ -111,9 +109,7 @@ function builtVersion(exePath) {
   return null;
 }
 
-// bin/ is not in the release archive, so an update replaces the sources, the patch definitions and the schema
-// while leaving the compiled server exactly as it was. Launching that binary runs the old server against the new
-// everything else, and the update looks like it did nothing.
+// bin/ is not in the release archive, so an update replaces the sources, the patch definitions and the schema while leaving the compiled server exactly as it was. Launching that binary runs the old server against the new everything else, and the update looks like it did nothing.
 function componentVersions(repoRoot, appVersion, marker) {
   const exePath = pathsFor(repoRoot).exePath;
   const sources = declaredVersion(repoRoot);

@@ -62,8 +62,7 @@ test('every derived path moves when the project folder changes', () => {
   }
 });
 
-// dotnet only appends .exe on Windows, so on Linux the resolver found no build at all and fell back to a Debug directory
-// that may not be the one the server was published into.
+// dotnet only appends .exe on Windows, so a resolver looking for one finds no build at all on Linux and falls back to a Debug directory that may not be the one the server was published into.
 test('the built server is found on a platform that does not suffix executables', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-nix-'));
   try {
@@ -233,7 +232,6 @@ test('nothing to complain about when the server has never been built', () => {
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
-// Not a block - the control center still drives an older server, and saying which is which is the whole cure.
 test('a control center from another release is reported but does not stop anything', () => {
   const { root } = versioned('2026.6.1', '2026.6.1');
   try {

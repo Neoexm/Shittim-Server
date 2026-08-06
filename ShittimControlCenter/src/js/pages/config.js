@@ -34,25 +34,24 @@ const DEFAULT_SERVER_CONFIG = {
   PacketLogging: { RequestPacket: true, ResponsePacket: false, ErrorPacket: false },
 };
 
-// field descriptors grouped for a readable editor over ServerConfiguration
 const GROUPS = [
   {
     title: 'Networking', icon: 'server',
     fields: [
       { key: 'HostPort', label: 'API port', type: 'text', hint: 'default 5000' },
       { key: 'GatewayPort', label: 'Gateway port', type: 'text', hint: 'default 5100' },
-      { key: 'EnableGateway', label: 'Enable gateway', type: 'bool', desc: 'Serve the encrypted gateway endpoint' },
+      { key: 'EnableGateway', label: 'Enable gateway', type: 'bool' },
     ],
   },
   {
     title: 'Behaviour', icon: 'bolt',
     fields: [
-      { key: 'UseEncryption', label: 'Packet encryption', type: 'bool', desc: 'Encrypt protocol responses' },
-      { key: 'BypassAuthentication', label: 'Bypass authentication', type: 'bool', desc: 'Skip login auth checks' },
-      { key: 'UseCustomExcel', label: 'Custom Excel tables', type: 'bool', desc: 'Load overridden game data' },
+      { key: 'UseEncryption', label: 'Packet encryption', type: 'bool' },
+      { key: 'BypassAuthentication', label: 'Bypass authentication', type: 'bool' },
+      { key: 'UseCustomExcel', label: 'Custom Excel tables', type: 'bool' },
       { key: 'KoyukiIncident', label: 'Koyuki incident', type: 'bool', desc: 'nihahaha' },
       { key: 'AutoCheckVersion', label: 'Auto-check version', type: 'bool', desc: 'Resolve latest data version on boot' },
-      { key: 'AutoUpdateVersion', label: 'Auto-update version', type: 'bool', desc: 'Apply resolved version automatically' },
+      { key: 'AutoUpdateVersion', label: 'Auto-update version', type: 'bool' },
       { key: 'AutoUpdateResources', label: 'Auto-update resources', type: 'bool', desc: 'Re-download game data (Excel, HexaMap) when the version changes' },
     ],
   },
@@ -204,15 +203,15 @@ export default {
 
     async function save() {
       const r = await window.host.configWrite(data);
-      toast(r.ok ? 'Configuration saved' : (r.error || 'Save failed'), r.ok ? 'good' : 'bad', r.ok ? 'Saved' : 'Error');
+      toast(r.ok ? 'Configuration saved' : (r.error || 'Save failed'), r.ok ? 'good' : 'bad');
     }
     async function resetDefaults() {
       const ok = await confirmDialog({ title: 'Reset to defaults', confirmLabel: 'Reset & save',
-        message: 'Restore every setting on this page to its default value and save it to Config.json? GameVersion, gateway keys and the database are left untouched. If the server is running, restart it to apply.' });
+        message: 'Restore every setting on this page to its default value and save it to Config.json? GameVersion, gateway keys and the database are left untouched.' });
       if (!ok) return;
       Object.assign(sc, DEFAULT_SERVER_CONFIG, { PacketLogging: { ...DEFAULT_SERVER_CONFIG.PacketLogging } });
       const r = await window.host.configWrite(data);
-      if (r.ok) { toast('Configuration reset to defaults', 'good', 'Defaults restored'); rerender(); }
+      if (r.ok) { toast('Configuration reset to defaults', 'good'); rerender(); }
       else toast(r.error || 'Reset failed', 'bad');
     }
 

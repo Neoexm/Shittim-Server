@@ -2,7 +2,6 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// The renderer never touches Node or Electron internals directly - everything it can do is listed here.
 contextBridge.exposeInMainWorld('host', {
   paths: () => ipcRenderer.invoke('paths:resolve'),
   settingsRead: () => ipcRenderer.invoke('settings:read'),
@@ -24,7 +23,6 @@ contextBridge.exposeInMainWorld('host', {
 
   envCheck: () => ipcRenderer.invoke('env:check'),
 
-  // one-click toolchain setup (.NET SDK, mitmproxy, CA certificate)
   setupInstall: (which) => ipcRenderer.invoke('setup:install', which),
   onSetupProgress: (cb) => {
     const fn = (_e, d) => cb(d);
@@ -36,12 +34,10 @@ contextBridge.exposeInMainWorld('host', {
   projectDownload: (opts) => ipcRenderer.invoke('project:download', opts),
   projectSetPath: (dir) => ipcRenderer.invoke('project:setPath', dir),
 
-  // server self-update (GitHub REST - no git required)
   updatesCheck: () => ipcRenderer.invoke('updates:check'),
   updatesApply: () => ipcRenderer.invoke('updates:apply'),
   updatesRebuild: () => ipcRenderer.invoke('updates:rebuild'),
 
-  // Control Center app self-update (electron-updater / GitHub Releases)
   updatesCheckSelf: () => ipcRenderer.invoke('updates:checkSelf'),
   onSelfUpdate: (cb) => {
     const fn = (_e, d) => cb(d);
@@ -61,7 +57,6 @@ contextBridge.exposeInMainWorld('host', {
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
   revealPath: (p) => ipcRenderer.invoke('shell:showItem', p),
 
-  // bundle server logs + diagnostics into a .zip (returns { ok, path, name, count })
   exportLogs: () => ipcRenderer.invoke('logs:export'),
 
   windowControl: (action) => ipcRenderer.send('window:control', action),
@@ -69,7 +64,7 @@ contextBridge.exposeInMainWorld('host', {
   onProcLog: (cb) => ipcRenderer.on('proc:log', (_e, d) => cb(d)),
   onProcState: (cb) => ipcRenderer.on('proc:state', (_e, d) => cb(d)),
   onWindowState: (cb) => ipcRenderer.on('window:state', (_e, d) => cb(d)),
-  // download/extract progress for project acquisition + updates; returns an unsubscribe so callers can detach the listener when their view goes away.
+  // download/extract progress for project acquisition + updates
   onProjectProgress: (cb) => {
     const fn = (_e, d) => cb(d);
     ipcRenderer.on('project:progress', fn);

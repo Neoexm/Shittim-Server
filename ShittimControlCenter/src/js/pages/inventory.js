@@ -44,7 +44,7 @@ export default {
         const q = itemSearch.value.trim().toLowerCase();
         const rows = itemRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(itemsBody);
-        if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with "Give item"')); return; }
+        if (!rows.length) { itemsBody.appendChild(emptyState('No items')); return; }
         // 64px = 36px trash button + the 28px of cell padding (border-box) - narrower and the button overflows the fixed column, dragging a horizontal scrollbar into the list
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:64px"></th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
@@ -83,7 +83,7 @@ export default {
         const q = charSearch.value.trim().toLowerCase();
         const rows = charRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(charsBody);
-        if (!rows.length) { charsBody.appendChild(emptyState('No characters', 'Add students with the button above')); return; }
+        if (!rows.length) { charsBody.appendChild(emptyState('No characters')); return; }
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:84px">Grade</th><th style="width:54px">Lvl</th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const r of rows) {
@@ -115,7 +115,7 @@ export default {
       function addChar() {
         openPicker({ title: 'Pick a student', loader: (q) => api.staticCharacters(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: `★${x.maxStar}` }))),
           onPick: (it) => {
-            const lvl = input({ value: 'max', placeholder: 'max / basic / ue30 / ue50' });
+            const lvl = input({ value: 'max' });
             const add = button('Add', { variant: 'primary', iconName: 'plus' });
             const cancel = button('Cancel', { variant: 'ghost' });
             const ref = modal({ title: `Add ${it.name}`, body: el('div', {}, field('Preset', lvl, 'barebone - basic - ue30 - ue50 - max')), footer: [cancel, add] });

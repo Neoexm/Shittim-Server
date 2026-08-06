@@ -28,9 +28,7 @@ test('lines arriving between two frames are rendered in one pass', async () => {
   assert.deepEqual(flushes, [500], 'an idle frame does no work');
 });
 
-// Without this the console dock appended a node and read scrollHeight back per line, which is a forced layout each
-// time. 20000 lines left the renderer 16.9 seconds behind a child process that had already exited, and for those
-// 16.9 seconds the window could not service the button that stops the server.
+// Without this the console dock appended a node and read scrollHeight back per line, which is a forced layout each time. 20000 lines left the renderer 16.9 seconds behind a child process that had already exited, and for those 16.9 seconds the window could not service the button that stops the server.
 test('a burst costs one flush per frame however fast it arrives', async () => {
   const { batched } = await ui();
   const f = frames();

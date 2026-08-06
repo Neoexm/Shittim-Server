@@ -25,7 +25,7 @@ export default {
       root.appendChild(layout);
 
       const fSender = input({ value: 'Plana' });
-      const fComment = textarea({ value: 'A gift from the management team.', placeholder: 'Message body...' });
+      const fComment = textarea({ value: 'A gift from the management team.' });
       const fExpire = input({ value: 30, type: 'number' });
 
       const kindSel = select(PARCEL_KINDS.map((k) => ({ value: k.value, label: k.label })));
@@ -61,7 +61,7 @@ export default {
       }
       function paintChips() {
         clear(chipList);
-        if (!rewards.length) { chipList.appendChild(frag('<div class="muted" style="font-size:12.5px;padding:6px 2px">No attachments yet - add items, currency, equipment or students.</div>')); return; }
+        if (!rewards.length) { chipList.appendChild(frag('<div class="muted" style="font-size:12.5px;padding:6px 2px">No attachments</div>')); return; }
         rewards.forEach((r, i) => {
           const chip = frag(`<div class="chip"><div class="chip-ic">${icon(r.type === 'Currency' ? 'coin' : r.type === 'Character' ? 'users' : r.type === 'Equipment' ? 'shield' : 'box')}</div>
             <div class="chip-main"><b>${escapeHtml(r.name)}</b><span data-selectable>${r.type} - id ${r.id} - ×${num(r.amount)}</span></div></div>`);
@@ -79,7 +79,7 @@ export default {
         try {
           await api.sendMail({ accountServerId: uid, sender: fSender.value || 'Plana', comment: fComment.value,
             parcels: rewards.map((r) => ({ type: r.type, id: r.id, amount: r.amount })), expireDate });
-          toast('Mail sent', 'good', 'Delivered');
+          toast('Mail sent', 'good');
           rewards.length = 0; paintChips(); reloadInbox();
         } catch (e) { toast(e.message, 'bad'); }
         sendBtn.disabled = false;
@@ -100,7 +100,7 @@ export default {
 
       async function reloadInbox() {
         await loadInto(inboxBody, () => api.mails(uid), (body, mails) => {
-          if (!mails.length) { body.appendChild(emptyState('Inbox empty', 'Sent mail appears here')); return; }
+          if (!mails.length) { body.appendChild(emptyState('Inbox empty')); return; }
           const wrap = el('div', { style: { padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' } });
           for (const m of mails) {
             const parcels = (m.parcels || []).map((p) => `<span class="tag grey" data-selectable>${escapeHtml(p.type)} ${p.id} ×${num(p.amount)}</span>`).join(' ');

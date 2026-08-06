@@ -23,8 +23,7 @@ function loadSettings() {
     return {};
   }
 }
-// Throws when the settings cannot be persisted. A silent failure here is how a located project folder is
-// forgotten by the next launch after the app has already said it was set.
+// Throws when the settings cannot be persisted. A silent failure here is how a located project folder is forgotten by the next launch after the app has already said it was set.
 function saveSettings(patch) {
   const next = { ...loadSettings(), ...patch };
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
@@ -60,8 +59,7 @@ function writeConfig(payload) {
 }
 
 const procs = { server: null, mitm: null };
-// when each child was spawned, and how long the server gets to bind its port before silence counts as a symptom.
-// A source run compiles first, so it gets no deadline at all - there is no telling a long build from a hang.
+// when each child was spawned, and how long the server gets to bind its port before silence counts as a symptom. A source run compiles first, so it gets no deadline at all - there is no telling a long build from a hang.
 const started = { server: null, mitm: null, serverGraceMs: null };
 const LISTEN_GRACE_MS = 90_000;
 // a child that never spawned leaves nothing to ask about, so the failure has to outlive it or the next poll reports a tidy "stopped"
@@ -82,8 +80,7 @@ function killTree(child) {
   return killPidTree(child.pid);
 }
 
-// Every child that is not the server or the proxy: builds, installers, the cert probe. Quit has to take these down too,
-// or a rebuild's msbuild nodes outlive the window that started them.
+// Every child that is not the server or the proxy: builds, installers, the cert probe. Quit has to take these down too, or a rebuild's msbuild nodes outlive the window that started them.
 const helpers = new Set();
 function track(child) {
   helpers.add(child);
@@ -128,9 +125,7 @@ function startServer(offline) {
   const env = dotnetEnv(dn.root);
   if (offline) env.SHITTIM_AUTO_PATCH_STEAM_OFFLINE = 'true';
 
-  // An update replaces the sources, the patch definitions and the schema but never bin/, so the previously-built
-  // server is still sitting there and is the thing this would launch. It runs against the new everything else and
-  // the update looks like it did nothing.
+  // An update replaces the sources, the patch definitions and the schema but never bin/, so the already-built server is still sitting there and is the thing this would launch. It runs against the new everything else and the update looks like it did nothing.
   const stale = componentVersions(p.repoRoot, null, readVersionMarker(p.repoRoot)).buildStale;
   if (p.exePath && stale) {
     broadcast('proc:log', { source: 'server', line: `> ${stale}` });
@@ -207,8 +202,7 @@ function startMitm(offline) {
   // the addon reads this at import time and answers anything it has no local route for with a 502 instead of forwarding it, so a missed host shows up as a logged failure rather than a connection that hangs until it times out.
   const env = { ...process.env };
   if (offline) env.SHITTIM_OFFLINE_MODE = '1';
-  // otherwise Python picks the ANSI codepage for open() and for its own stdio, and on a Chinese or Japanese install that is
-  // cp936/cp932 - the addon then dies reading a UTF-8 file with "'gbk' codec can't decode byte ... illegal multibyte sequence"
+  // otherwise Python picks the ANSI codepage for open() and for its own stdio, and on a Chinese or Japanese install that is cp936/cp932 - the addon then dies reading a UTF-8 file with "'gbk' codec can't decode byte ... illegal multibyte sequence"
   env.PYTHONUTF8 = '1';
   env.PYTHONIOENCODING = 'utf-8';
 
@@ -353,9 +347,7 @@ async function checkDotnet() {
   return { status: 'ready', detail: `SDK ${ver.detail} (${where})` };
 }
 
-// The CA the client has to accept, and whether the machine actually accepts it. A file check passes in two states that
-// break every handshake: the certutil step was declined, or mitmproxy regenerated its CA after that step ran and the
-// store still holds the old one.
+// The CA the client has to accept, and whether the machine actually accepts it. A file check passes in two states that break every handshake: the certutil step was declined, or mitmproxy regenerated its CA after that step ran and the store still holds the old one.
 async function checkCertificate() {
   const certPath = CERT_PATH();
   if (!fs.existsSync(certPath)) return { status: 'warning', detail: 'CA certificate not generated yet' };
@@ -383,9 +375,7 @@ async function runEnvChecks() {
     : fs.existsSync(p.csproj) ? 'source only - will build on launch'
     : 'server project not found';
 
-  // The gateway RSA pair is not generated - it is shipped and copied next to the exe by the csproj. A clean rebuild
-  // wipes bin/Config, and without the private key the 50001 handshake cannot be decrypted, which the client shows as a
-  // hang on "Unpacking game resources" rather than as anything to do with keys.
+  // The gateway RSA pair is not generated - it is shipped and copied next to the exe by the csproj. A clean rebuild wipes bin/Config, and without the private key the 50001 handshake cannot be decrypted, which the client shows as a hang on "Unpacking game resources" rather than as anything to do with keys.
   const keyDir = path.dirname(p.configPath);
   const gatewayKey = path.join(keyDir, 'GatewayPrivateKey.pem');
   const shippedKey = path.join(p.serverDir, 'config', 'GatewayPrivateKey.pem');
@@ -855,7 +845,7 @@ async function installDotnet() {
   if (process.platform !== 'win32') {
     return { ok: false, error: 'Automated .NET install is wired up for Windows only - install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
   }
-  setupPhase(step, 'running', { message: 'Downloading & installing the .NET 10 SDK (~250 MB) - this can take a few minutes' });
+  setupPhase(step, 'running', { message: '~250 MB, this can take a few minutes' });
   let tmp = null;
   let beat = null;
   try {
@@ -865,13 +855,8 @@ async function installDotnet() {
     await downloadFile('https://dot.net/v1/dotnet-install.ps1', scriptPath);
     const dir = DOTNET_DIR();
     setupLog(step, `> dotnet-install.ps1 -Channel 10.0 -InstallDir "${dir}"`);
-    setupLog(step, '> the SDK download is large and runs quietly - give it a few minutes, it is not stuck');
     // dotnet-install.ps1 emits almost nothing during the big transfer, so keep a heartbeat going to prove the step is still alive in the log/UI.
-    const t0 = Date.now();
-    beat = setInterval(() => {
-      const s = Math.round((Date.now() - t0) / 1000);
-      setupPhase(step, 'running', { message: `Installing the .NET 10 SDK... (${s}s elapsed - downloading in the background)` });
-    }, 3000);
+    beat = setInterval(() => setupPhase(step, 'running', { message: 'downloading in the background' }), 3000);
     // -NoPath: the script's session-only PATH edit is useless to us; we persist it ourselves below. The install is a no-op if the SDK is already present.
     const ps = `& ${psQuote(scriptPath)} -Channel 10.0 -InstallDir ${psQuote(dir)} -Architecture x64 -NoPath`;
     const r = await runPwsh(ps, (l) => setupLog(step, l));
@@ -911,7 +896,7 @@ async function installMitmproxy() {
     await downloadFile(url, installer, (recv, total) => broadcast('setup:progress', { step, recv, total }));
 
     const dir = MITM_INSTALL_DIR();
-    setupPhase(step, 'running', { message: 'Installing mitmproxy (approve the elevation prompt)...' });
+    setupPhase(step, 'running', { message: 'Approve the elevation prompt' });
     setupLog(step, `> running installer silently into ${dir} (requires elevation)`);
     // Inno Setup silent switches; -Verb RunAs raises the one UAC prompt the requireAdministrator manifest forces.
     // ArgumentList as a single string is passed verbatim so /DIR="...with spaces..." reaches Inno intact.
@@ -1023,7 +1008,6 @@ function compressArchive(items, destZip) {
   });
 }
 
-// A plain-text snapshot of versions, resolved paths, process state and the environment readiness checks - the context that makes a log bundle actionable.
 async function buildDiagnosticInfo() {
   const p = resolvePaths();
   let env = null;
@@ -1062,7 +1046,6 @@ async function buildDiagnosticInfo() {
   ].join('\r\n');
 }
 
-// Prompt for a save location, then stage the logs + diagnostic file and zip them.
 async function exportLogs() {
   const p = resolvePaths();
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '');
@@ -1079,7 +1062,6 @@ async function exportLogs() {
     staging = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-logs-'));
     let count = 0;
 
-    // server logs - carry the gateway/metadata patch outcome + handshake errors
     const ld = logsDir();
     for (const name of ['log.txt', 'log-prev.txt']) {
       const src = path.join(ld, name);
@@ -1109,7 +1091,6 @@ async function exportLogs() {
 // The Control Center is a packaged Electron app, so its own exe/files can only be replaced by a newer packaged build - the source pull on the Updates page only updates the .NET server's source.
 // electron-updater pulls new Control Center builds from this repo's GitHub Releases (configured by the `publish` block in package.json), prompts before downloading, and installs on quit. Releases must carry the latest.yml + blockmap + installer assets that `npm run publish` uploads (set a GH_TOKEN env var first).
 // This repo's releases mix SERVER builds and Control Center builds, and electron-updater's GitHub provider only ever inspects the newest release - a server release on top would 404 the feed.
-// resolveSelfUpdateFeed() finds the newest release that actually carries latest.yml and points the generic provider at it; the embedded feed stays as a fallback.
 // Portable builds (and pre-2026.7.27 installs, which shipped without an embedded feed) cannot be swapped in place: they get a version check plus a link to the release page instead.
 
 let cachedAutoUpdater = null;
@@ -1209,7 +1190,7 @@ function setupAutoUpdate(win) {
         cancelId: 1,
         title: 'Control Center update available',
         message: `Shittim Control Center ${info.version} is available.`,
-        detail: `You are running ${app.getVersion()}. Download it now? The update installs when you close the app.`,
+        detail: `You are running ${app.getVersion()}. The update installs when you close the app.`,
       });
       if (response === 0) {
         broadcast('update:self', { phase: 'downloading', percent: 0 });
@@ -1228,7 +1209,6 @@ function setupAutoUpdate(win) {
         cancelId: 1,
         title: 'Update ready',
         message: `Shittim Control Center ${info.version} downloaded.`,
-        detail: 'Restart now to finish installing.',
       });
       if (response === 0) setImmediate(() => autoUpdater.quitAndInstall());
     });
@@ -1318,7 +1298,6 @@ ipcMain.handle('server:stop', () => stopServer());
 ipcMain.handle('mitm:start', () => startMitm());
 ipcMain.handle('mitm:stop', () => stopMitm());
 
-// combined power control - one action drives both the server and the proxy
 ipcMain.handle('system:start', () => {
   const server = startServer();
   const mitm = startMitm();
@@ -1346,11 +1325,9 @@ ipcMain.handle('project:status', () => projectStatus());
 ipcMain.handle('project:download', (_e, opts) => downloadProject(opts || {}));
 ipcMain.handle('project:setPath', (_e, dir) => setProjectPath(dir));
 
-// git-free self-update (compares against GitHub via the REST API)
 ipcMain.handle('updates:check', () => checkUpdates());
 ipcMain.handle('updates:apply', () => applyUpdate());
 ipcMain.handle('updates:rebuild', () => rebuildServer());
-// self-update for the packaged Control Center app (electron-updater / GitHub Releases)
 ipcMain.handle('updates:checkSelf', () => checkSelfUpdate());
 ipcMain.handle('proc:status', () => ({
   server: procs.server && !procs.server.killed ? 'running' : (spawnFailed.server ? 'failed' : 'stopped'),
@@ -1364,7 +1341,6 @@ ipcMain.handle('proc:status', () => ({
 
 ipcMain.handle('env:check', () => runEnvChecks());
 
-// one-click toolchain setup: 'dotnet' | 'mitmproxy' | 'certificate' | 'all'
 ipcMain.handle('setup:install', (_e, which) => runSetup(which || 'all'));
 
 ipcMain.handle('dialog:pickFolder', async () => {
@@ -1379,7 +1355,6 @@ ipcMain.handle('shell:openPath', (_e, p) => shell.openPath(p));
 ipcMain.handle('shell:openExternal', (_e, url) => shell.openExternal(url));
 ipcMain.handle('shell:showItem', (_e, p) => { try { shell.showItemInFolder(p); return true; } catch { return false; } });
 
-// bundle server logs + a diagnostic snapshot into a .zip for bug reports
 ipcMain.handle('logs:export', () => exportLogs());
 
 ipcMain.on('window:control', (e, action) => {
@@ -1392,7 +1367,6 @@ ipcMain.on('window:control', (e, action) => {
 
 app.whenReady().then(() => {
   createWindow();
-  // An update that was killed part-way through the merge left a journal behind. Put the install back on the version it was, before anything gets a chance to build or run it.
   try {
     const undone = resumeInterruptedInstall(resolvePaths().repoRoot);
     if (undone) {
@@ -1417,9 +1391,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Quit has to wait for the kills. Firing them and returning lets Electron tear this process down with taskkill still
-// in flight, and then dotnet and mitmdump outlive the window that started them - which is the state people find when
-// the next launch cannot bind the port. The 8s cap is so a child that refuses to die cannot hold the app open forever.
+// Quit has to wait for the kills. Firing them and returning lets Electron tear this process down with taskkill still in flight, and then dotnet and mitmdump outlive the window that started them - which is the state people find when the next launch cannot bind the port. The 8s cap is so a child that refuses to die cannot hold the app open forever.
 let quitting = false;
 app.on('before-quit', (e) => {
   if (quitting) return;

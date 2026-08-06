@@ -1,9 +1,6 @@
 'use strict';
 
-// Archive install for the .NET server source, and the writes around it that must not leave a half-state.
-// Kept out of main.js because it has to be runnable without electron: an update that half-applies produces
-// a tree whose handlers no longer compile against its models, and the only way to know this stays fixed is
-// to drive it from a test.
+// Archive install for the .NET server source, and the writes around it that must not leave a half-state. Kept out of main.js because it has to be runnable without electron: an update that half-applies produces a tree whose handlers no longer compile against its models, and the only way to know this stays fixed is to drive it from a test.
 
 const fs = require('fs');
 const path = require('path');
@@ -45,9 +42,7 @@ function listFiles(root, rel, out) {
   return out;
 }
 
-// Can this file be replaced right now? A running server holds its own binaries with FILE_SHARE_NONE,
-// which is the ordinary way an update used to strand a tree half-copied. Opening for write finds that
-// before anything has been touched.
+// Can this file be replaced right now? A running server holds its own binaries with FILE_SHARE_NONE, which is the ordinary way an update strands a tree half-copied. Opening for write finds that before anything has been touched.
 function blockedBy(dest) {
   let fd;
   try { fd = fs.openSync(dest, 'r+'); }
@@ -56,9 +51,7 @@ function blockedBy(dest) {
   return null;
 }
 
-// EBUSY is the server still holding its own binaries and closing it is the whole answer. EPERM/EACCES is a folder this
-// account cannot write - an install under Program Files, or one made by a different user - which closing things does not
-// fix, and being told to close the server and try again is how someone ends up running the update five times.
+// EBUSY is the server still holding its own binaries and closing it is the whole answer. EPERM/EACCES is a folder this account cannot write - an install under Program Files, or one made by a different user - which closing things does not fix, and being told to close the server and try again is how someone ends up running the update five times.
 function blockerAdvice(blockers) {
   const codes = new Set(blockers.map((b) => String(b.error)));
   if (codes.has('EPERM') || codes.has('EACCES')) {
@@ -91,20 +84,14 @@ function discard(journal) {
   try { fs.rmSync(path.join(journal.destRoot, JOURNAL), { force: true }); } catch { /* ignore */ }
 }
 
-// Merge the extracted archive over the install so the tree ends up entirely on the new version or
-// entirely on the old one. Every file the archive would overwrite is copied aside first and the list
-// is written to disk before the first write, so a failure - or the app being killed mid-merge - can be
-// undone. Only paths the archive itself carries are ever touched; the database, Config/ and build
-// output are not in the archive and are never candidates for rollback.
+// Merge the extracted archive over the install so the tree ends up entirely on the new version or entirely on the old one. Every file the archive would overwrite is copied aside first and the list is written to disk before the first write, so a failure - or the app being killed mid-merge - can be undone. Only paths the archive itself carries are ever touched; the database, Config/ and build output are not in the archive and are never candidates for rollback.
 function installTree(srcRoot, destRoot, { onProgress, previousManifest } = {}) {
   const manifest = listFiles(srcRoot, '', []);
   const carries = new Set(manifest);
   const files = manifest.filter((rel) =>
     !(MERGE_PRESERVE.some((re) => re.test(rel)) && fs.existsSync(path.join(destRoot, rel))));
 
-  // Only files a previous archive put here are candidates for removal. A rename upstream otherwise leaves
-  // the old .cs behind, the SDK globs both, and the build stops on CS0101. The database, Config/ and build
-  // output have never been in a manifest, so nothing here can reach them.
+  // Only files a previous archive put here are candidates for removal. A rename upstream otherwise leaves the old .cs behind, the SDK globs both, and the build stops on CS0101. The database, Config/ and build output have never been in a manifest, so nothing here can reach them.
   const obsolete = (previousManifest || []).filter((rel) => !carries.has(rel) && fs.existsSync(path.join(destRoot, rel)));
 
   const blockers = [];
@@ -170,8 +157,7 @@ function installTree(srcRoot, destRoot, { onProgress, previousManifest } = {}) {
   return { ok: true, copied, removed: journal.removed.length, manifest, blockers: [], rolledBack: false, changed: true };
 }
 
-// An update that was killed part-way leaves its journal behind. Roll it back at startup so the install
-// is the version it was before, rather than a tree that no longer compiles.
+// An update that was killed part-way leaves its journal behind. Roll it back at startup so the install is the version it was before, rather than a tree that no longer compiles.
 function resumeInterruptedInstall(destRoot) {
   let journal;
   try { journal = JSON.parse(fs.readFileSync(path.join(destRoot, JOURNAL), 'utf8')); }
@@ -187,9 +173,7 @@ function resumeInterruptedInstall(destRoot) {
   return { restored: rollback.restored, stuck: rollback.stuck, startedAt: journal.startedAt || null };
 }
 
-// Copy the database and Config/ aside before an update or a migration touches the tree. Backups go
-// somewhere outside the install so an install-wide operation cannot take them with it, and the old
-// ones are kept - nothing here is a recovery step that deletes account data.
+// Copy the database and Config/ aside before an update or a migration touches the tree. Backups go somewhere outside the install so an install-wide operation cannot take them with it, and the old ones are kept - nothing here is a recovery step that deletes account data.
 function backupUserData(backupRoot, files, stamp) {
   const dir = path.join(backupRoot, stamp);
   const saved = [];
@@ -199,8 +183,7 @@ function backupUserData(backupRoot, files, stamp) {
     if (!fs.existsSync(src)) { skipped.push({ path: src, error: 'ENOENT' }); continue; }
     const dest = path.join(dir, path.basename(src));
     try {
-      // Not cpSync: on node 24 it aborts the process outright - no exception to catch - when the source path contains a
-      // non-ASCII character, which for a backup means the one operation that must never fail quietly kills the app instead.
+      // Not cpSync: on node 24 it aborts the process outright - no exception to catch - when the source path contains a non-ASCII character, which for a backup means the one operation that must never fail quietly kills the app instead.
       if (fs.statSync(src).isDirectory()) {
         for (const rel of listFiles(src, '', [])) {
           const to = path.join(dest, rel);
@@ -216,9 +199,7 @@ function backupUserData(backupRoot, files, stamp) {
   return { dir, saved, skipped };
 }
 
-// Replace a file's contents with no window in which it is truncated or half-written. Config.json carries the
-// gateway key paths, the game version and the SQLCipher key, and a plain writeFileSync that dies partway through
-// leaves the user with none of them.
+// Replace a file's contents with no window in which it is truncated or half-written. Config.json carries the gateway key paths, the game version and the SQLCipher key, and a plain writeFileSync that dies partway through leaves the user with none of them.
 function writeFileAtomic(dest, text) {
   const tmp = dest + '.tmp';
   try {
@@ -230,9 +211,7 @@ function writeFileAtomic(dest, text) {
   }
 }
 
-// How the Control Center can update itself. A portable exe has no install for electron-updater to patch, and a
-// build packaged without a publish config carries no app-update.yml - either one silently does nothing if it is
-// handed to electron-updater, so both fall back to the version check plus a link to the releases page.
+// How the Control Center can update itself. A portable exe has no install for electron-updater to patch, and a build packaged without a publish config carries no app-update.yml - either one silently does nothing if it is handed to electron-updater, so both fall back to the version check plus a link to the releases page.
 function selfUpdateMode({ packaged, portableDir, portableFile, resourcesPath }) {
   if (!packaged) return 'dev';
   if (portableDir || portableFile) return 'manual';

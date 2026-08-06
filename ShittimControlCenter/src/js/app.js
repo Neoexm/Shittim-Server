@@ -76,7 +76,6 @@ function buildShell() {
   }
   rail.appendChild(nav);
 
-  // main - a slim target bar (only for account-scoped pages) above the scroller
   const main = el('div.main', {},
     el('div.page-bar', { id: 'pageBar' }),
     el('div.page-scroll', { id: 'pageScroll' }));
@@ -140,7 +139,7 @@ function repaintLog() {
   if (logFeed) logFeed.discard(); // lines waiting on a frame were filtered under the old selection
   clear(consoleEl);
   const rows = logBuffer.filter((e) => logFilter === 'all' || e.source === logFilter);
-  if (!rows.length) { consoleEl.appendChild(frag('<div class="ln muted">- no output yet - start the server to see logs -</div>')); return; }
+  if (!rows.length) { consoleEl.appendChild(frag('<div class="ln muted">- no output yet -</div>')); return; }
   // one reflow for the whole buffer instead of one per line
   const batch = document.createDocumentFragment();
   for (const e of rows) batch.appendChild(lineNode(e));
@@ -293,7 +292,7 @@ function paintStatusBar() {
   } else if (h === 'failed') {
     cls = 'bad'; title = 'Start failed'; sub = 'The server process did not spawn - see the console';
   } else {
-    cls = 'down'; title = 'Offline'; sub = 'Not running';
+    cls = 'down'; title = 'Offline'; sub = '';
   }
   sbLed.className = 'sb-led ' + cls;
   sbTitle.textContent = title;
@@ -361,10 +360,10 @@ let pollBusy = false;
 
 function pollDelay() {
   const s = store.get();
-  if (document.hidden) return 15000;                       // minimized - relax
-  if (health(s) === 'starting') return 1500;               // booting - tight loop
-  if (s.online) return 5000;                               // stable online
-  return 7000;                                             // offline idle
+  if (document.hidden) return 15000;
+  if (health(s) === 'starting') return 1500;
+  if (s.online) return 5000;
+  return 7000;
 }
 
 function schedulePoll(immediate = false) {
@@ -372,25 +371,21 @@ function schedulePoll(immediate = false) {
   pollTimer = setTimeout(async () => {
     if (pollBusy) { schedulePoll(); return; }
     pollBusy = true;
-    try { await poll(); } catch { /* probe never throws, but stay safe */ }
+    try { await poll(); } catch { /* ignore */ }
     pollBusy = false;
     schedulePoll();
   }, immediate ? 0 : pollDelay());
 }
 
-// When the window comes back, refresh immediately instead of waiting out a long hidden-state delay.
 document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePoll(true); });
 
 async function boot() {
-  // dock geometry is remembered between sessions
   try {
     const s = await window.host.settingsRead();
     if (s && Number.isFinite(s.dockHeight)) dockHeight = Math.max(64, s.dockHeight);
     if (s && typeof s.dockCollapsed === 'boolean') dockCollapsed = s.dockCollapsed;
   } catch { /* defaults */ }
 
-  // First-run gate: with no server project present there is nothing for the shell to drive, so offer to download it from GitHub or locate an existing copy.
-  // The gate reloads the app once a project is set.
   let project = null;
   try { project = await window.host.projectStatus(); } catch { /* treat as found */ }
   if (project && !project.found) {
@@ -413,7 +408,7 @@ async function boot() {
   // Passive "server update available" notice (checked at launch + every few hours by the main process). Applying stays manual on the Updates page.
   window.host.onServerUpdate((d) => {
     const n = d.behind === 1 ? '1 commit' : `${d.behind} commits`;
-    toast(`Server update available - ${n} behind (${d.remoteShort}: ${d.remoteSubject}). Open the Updates page to install.`, 'good', 'Server update');
+    toast(`${n} behind (${d.remoteShort}: ${d.remoteSubject})`, 'good', 'Server update');
   });
 
   store.subscribe(paintStatusBar);

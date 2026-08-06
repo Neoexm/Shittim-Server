@@ -1,4 +1,4 @@
-// Clean stroke icon set. Each entry is the inner markup of an <svg>.
+// Each entry is the inner markup of an <svg>.
 // Most live on a 24x24 grid; the window-caption glyphs use their own 10x10 grid (see VB) so they render crisp and centered at the small caption-button size instead of shrinking into a corner of a 24-unit box.
 const P = {
   dashboard: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
@@ -39,7 +39,6 @@ const P = {
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v9.5A1.5 1.5 0 0 0 5 16h3"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M4.4 4.4l1.8 1.8M17.8 17.8l1.8 1.8M2.5 12H5M19 12h2.5M4.4 19.6l1.8-1.8M17.8 6.2l1.8-1.8"/>',
   moon: '<path d="M20.5 14.8A8.5 8.5 0 1 1 9.2 3.5a6.6 6.6 0 0 0 11.3 11.3z"/>',
-  // window-caption glyphs (10x10 grid)
   win_min: '<path d="M1 5h8"/>',
   win_max: '<rect x="1.3" y="1.3" width="7.4" height="7.4" rx="0.8"/>',
   win_close: '<path d="M1.4 1.4l7.2 7.2"/><path d="M8.6 1.4L1.4 8.6"/>',

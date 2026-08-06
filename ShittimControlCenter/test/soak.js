@@ -1,12 +1,8 @@
 'use strict';
 
-// A007. Runs the real page under a sustained log flood and fails if anything that should be bounded is not, or if the
-// console goes back to laying out once per frame. Not part of npm test: it needs Electron and a minute of wall clock,
-// and the numbers it reads are only meaningful on an idle machine. npm run soak.
+// A007. Runs the real page under a sustained log flood and fails if anything that should be bounded is not, or if the console goes back to laying out once per frame. Not part of npm test: it needs Electron and a minute of wall clock, and the numbers it reads are only meaningful on an idle machine. npm run soak.
 //
-// The counts come from CDP Performance.getMetrics, which is the only place live node/listener/document counts are
-// exposed. performance.memory is quantized to uselessness and process._getActiveHandles() reports 0 under Electron,
-// so neither says anything about a leak here.
+// The counts come from CDP Performance.getMetrics, which is the only place live node/listener/document counts are exposed. performance.memory is quantized to uselessness and process._getActiveHandles() reports 0 under Electron, so neither says anything about a leak here.
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
@@ -57,10 +53,7 @@ const SAMPLE = `(() => {
 
 const WANT = ['TaskDuration', 'LayoutCount', 'Nodes', 'JSEventListeners', 'Documents', 'DetachedScriptStates'];
 
-// Measured on the current code at 400 lines a second: 10 layouts a second, 1400 rows, 38 listeners, and a node count
-// swinging between 4k and 24k with no trend - Nodes counts text nodes, so it moves with where in the repaint cycle the
-// sample lands rather than with anything that accumulates. Taking the throttle back out of the console feed puts
-// layouts at 108 a second, which is the number this is really here to catch.
+// Measured on the current code at 400 lines a second: 10 layouts a second, 1400 rows, 38 listeners, and a node count swinging between 4k and 24k with no trend - Nodes counts text nodes, so it moves with where in the repaint cycle the sample lands rather than with anything that accumulates. Taking the throttle back out of the console feed puts layouts at 108 a second, which is the number this is really here to catch.
 const LIMITS = { layoutsPerSecond: 40, rows: 1400, nodes: 40000, listeners: 400, documents: 8, detached: 0, worstBlock: 2000, growthMb: 40 };
 
 app.whenReady().then(async () => {

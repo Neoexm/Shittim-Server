@@ -44,7 +44,7 @@ test('a clean run puts every file on the new version', () => {
   } finally { cleanup(root); }
 });
 
-// The reported failure: the server is running, so it holds its own binaries with FILE_SHARE_NONE and one file cannot be replaced. The install used to end up part v1 and part v2, which is what produced CS1061 on the next build.
+// The reported failure: the server is running, so it holds its own binaries with FILE_SHARE_NONE and one file cannot be replaced. An install that ends up part v1 and part v2 is what produces CS1061 on the next build.
 test('a file locked by a running server stops the update with the install untouched', () => {
   const { root, install, archive } = scratch();
   const locked = path.join(install, 'Shittim-Server', 'Model.cs');
@@ -259,8 +259,7 @@ test('the packaging config still produces both an installer and a portable build
   assert.ok((pkg.build.publish || []).length > 0, 'no publish config, so no app-update.yml and no in-place update');
 });
 
-// An install under Program Files, or one made by another account, fails the pre-flight with EPERM on every file. The
-// advice that used to be printed unconditionally - close the server and try again - is the one thing that cannot work.
+// An install under Program Files, or one made by another account, fails the pre-flight with EPERM on every file, and being told to close the server and try again is the one piece of advice that cannot possibly work.
 test('a folder we have no right to write is not blamed on the server being open', () => {
   const advice = blockerAdvice([{ path: 'Shittim-Server/Program.cs', error: 'EPERM' }]);
   assert.match(advice, /write access|user profile/);
@@ -281,8 +280,7 @@ test('a full disk is not a permissions problem', () => {
   assert.match(blockerAdvice([{ path: 'a', error: 'ENOSPC' }]), /out of space/i);
 });
 
-// The step that exists to protect account data used to take the whole process down instead of reporting: node 24's cpSync
-// aborts outright, with nothing to catch, when the source path holds a non-ASCII character.
+// node 24's cpSync aborts the process outright, with nothing to catch, when the source path holds a non-ASCII character, and the step that exists to protect account data is the last one that should be taking the app down instead of reporting.
 test('a config directory under a japanese path is backed up', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-i18n-'));
   try {
@@ -305,9 +303,7 @@ function zipOf(dir, zip) {
     `$ProgressPreference='SilentlyContinue'; Compress-Archive -LiteralPath ${q(dir)} -DestinationPath ${q(zip)} -Force`], { windowsHide: true });
 }
 
-// tar converts its argv to the ANSI codepage and then cannot chdir, so a non-ASCII destination always lands on the
-// Expand-Archive fallback - whose -DestinationPath is wildcard-interpreted, which is the second name. A machine with no
-// tar.exe at all takes that fallback for every path, brackets or not.
+// tar converts its argv to the ANSI codepage and then cannot chdir, so a non-ASCII destination always lands on the Expand-Archive fallback - whose -DestinationPath is wildcard-interpreted, which is the second name. A machine with no tar.exe at all takes that fallback for every path, brackets or not.
 for (const name of ['ゲーム サーバー', 'ブルアカ [EN]']) {
   test(`an archive extracts into ${name}`, { skip: process.platform !== 'win32' }, async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-zipdest-'));
@@ -326,9 +322,7 @@ for (const name of ['ゲーム サーバー', 'ブルアカ [EN]']) {
   });
 }
 
-// build.files is an allowlist that replaces the default **/*, so a new root module is absent from the asar until it is
-// named here and the packaged app dies on require before it can show a window. Neither npm test nor a dev launch sees it,
-// because both run from the source tree where the file is right there.
+// build.files is an allowlist that replaces the default **/*, so a new root module is absent from the asar until it is named here and the packaged app dies on require before it can show a window. Neither npm test nor a dev launch sees it, because both run from the source tree where the file is right there.
 test('every root module main.js requires is packaged', () => {
   const dir = path.join(__dirname, '..');
   const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));

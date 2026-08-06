@@ -15,11 +15,7 @@ function alive(pid, run) {
   });
 }
 
-// Always by pid and never by image name: /IM dotnet.exe would take out whatever else on the machine happens to be a
-// dotnet process, and this runs on the user's own desktop. /T because `dotnet run` holds the actual server as a
-// grandchild, so killing what we spawned leaves the thing that owns port 5000 behind.
-// taskkill can also simply refuse - an elevated server cannot be killed by a Control Center running as the user - and
-// its exit code arrives long before the process is gone either way, so the answer comes from looking afterwards.
+// Always by pid and never by image name: /IM dotnet.exe would take out whatever else on the machine happens to be a dotnet process, and this runs on the user's own desktop. /T because `dotnet run` holds the actual server as a grandchild, so killing what we spawned leaves the thing that owns port 5000 behind. taskkill can also simply refuse - an elevated server cannot be killed by a Control Center running as the user - and its exit code arrives long before the process is gone either way, so the answer comes from looking afterwards.
 async function killTree(pid, opts = {}) {
   const run = opts.run || execFile;
   const tries = opts.tries || 12;
@@ -40,9 +36,7 @@ async function killTree(pid, opts = {}) {
     if (!(await alive(pid, run))) return { ok: true };
     await sleep(gap);
   }
-  // Access is denied from taskkill means the target is running with rights we do not have, which is what a server
-  // started from an elevated shell looks like. There is nothing to retry and nothing in here that fixes it, so the
-  // message has to send the user somewhere that does rather than repeating that the pid is still running.
+  // Access is denied from taskkill means the target is running with rights we do not have, which is what a server started from an elevated shell looks like. There is nothing to retry and nothing in here that fixes it, so the message has to send the user somewhere that does rather than repeating that the pid is still running.
   if (/access is denied/i.test(said)) {
     return { ok: false, error: `${said} - it is running with administrator rights this Control Center does not have. End it from Task Manager, or start the Control Center as administrator.` };
   }

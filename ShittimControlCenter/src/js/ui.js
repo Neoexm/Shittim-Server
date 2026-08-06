@@ -31,7 +31,6 @@ export function el(spec, props = {}, ...children) {
   return node;
 }
 
-// Parse an HTML string into a single node (or fragment's first element).
 export function frag(html) {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
@@ -104,7 +103,6 @@ export function toast(message, kind = '', title) {
   }, 3400);
 }
 
-// Reminder that the game client only loads account data at login - shown after any edit that touches a live account (currency, roster, unlocks, ...).
 // Sticky until dismissed so it survives a batch of edits; repeat calls re-flash the existing banner instead of stacking a new one.
 let restartNoteEl = null;
 export function notifyRestart() {
@@ -177,7 +175,6 @@ export function confirmDialog({ title = 'Confirm', message, confirmLabel = 'Conf
   });
 }
 
-// Generic searchable picker backed by an async loader returning [{id,name,sub}].
 export function openPicker({ title, loader, onPick }) {
   const list = el('div.picker-list', {});
   const search = input({ placeholder: 'Search by name or ID...', className: 'input picker-search' });
