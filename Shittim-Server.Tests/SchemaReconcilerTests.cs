@@ -72,6 +72,31 @@ public class SchemaReconcilerTests : IDisposable
     }
 
     [Fact]
+    public async Task BackfillsAJsonColumnWithSomethingItsConverterCanRead()
+    {
+        // SQLite wants a default for a NOT NULL column added to a populated table and the only one that fits TEXT is '', which is not JSON, so the rows that predate the column are the ones at risk.
+        using (var seed = NewContext())
+        {
+            seed.Database.EnsureCreated();
+            seed.Accounts.Add(new Schale.Data.GameModel.AccountDBServer { ServerId = 1, Nickname = "Sensei" });
+            seed.CampaignMainStageSaves.Add(new Schale.Data.GameModel.CampaignMainStageSaveDBServer
+            {
+                AccountServerId = 1,
+                StageUniqueId = 1011101,
+                SelectedBuffDict = new Dictionary<long, long> { [7] = 3 }
+            });
+            await seed.SaveChangesAsync();
+            await seed.Database.ExecuteSqlRawAsync("ALTER TABLE \"CampaignMainStageSaves\" DROP COLUMN \"SelectedBuffDict\"");
+        }
+
+        using var db = NewContext();
+        var applied = await SchemaReconciler.ReconcileAsync(db);
+
+        Assert.Contains("added column CampaignMainStageSaves.SelectedBuffDict", applied);
+        Assert.Empty(db.CampaignMainStageSaves.Single().SelectedBuffDict);
+    }
+
+    [Fact]
     public async Task IsANoOpOnAnUpToDateDatabase()
     {
         using var db = NewContext();
