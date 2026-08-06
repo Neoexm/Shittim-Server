@@ -40,6 +40,8 @@ namespace Shittim.CLI
             try
             {
                 Config.Load();
+                Shittim_Server.Services.ServerNoticeService.Load();
+                Shittim_Server.Services.EventScheduleService.Load();
 
                 Shittim_Server.Core.Diagnostics.GatewayWireLog.Configure(
                     Config.Instance.ServerConfiguration.PacketLogging.WireDump);
@@ -196,6 +198,13 @@ namespace Shittim.CLI
 
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);
+
+                    // A client update replaces ExcelDB.db and takes the forced dates with it, so re-apply whatever the operator left switched on.
+                    if (Shittim_Server.Services.EventScheduleService.Configured)
+                    {
+                        try { Shittim_Server.Services.EventScheduleService.Apply(excelService); }
+                        catch (Exception ex) { Log.Warning(ex, "Could not re-apply the event schedule override"); }
+                    }
 
                     if (console)
                     {
