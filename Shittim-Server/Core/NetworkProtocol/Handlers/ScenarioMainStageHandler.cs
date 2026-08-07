@@ -71,4 +71,22 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_DeployEchelon)]
+    public async Task<ScenarioDeployEchelonResponse> DeployEchelon(
+        SchaleDataContext db,
+        ScenarioDeployEchelonRequest request,
+        ScenarioDeployEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.DeployEchelon(db, account, new CampaignDeployEchelonRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            DeployedEchelons = request.DeployedEchelons
+        });
+
+        response.SaveDataDB = Wire(stageSave);
+        return response;
+    }
+
 }
