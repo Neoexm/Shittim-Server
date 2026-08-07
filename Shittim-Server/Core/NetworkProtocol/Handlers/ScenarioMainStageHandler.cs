@@ -247,4 +247,17 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_SkipMainStage)]
+    public async Task<ScenarioSkipMainStageResponse> SkipMainStage(
+        SchaleDataContext db,
+        ScenarioSkipMainStageRequest request,
+        ScenarioSkipMainStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Close the run so a half-open save cannot haunt ContentSave_Get after the skip.
+        await _concentrateCampaignManager.CloseConcentrateCampaigns(db, account, request.StageUniqueId);
+
+        return response;
+    }
 }

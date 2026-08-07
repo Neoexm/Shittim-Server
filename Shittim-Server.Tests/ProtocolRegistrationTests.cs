@@ -87,6 +87,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Scenario_Retreat)]
     [InlineData(Protocol.Scenario_Portal)]
     [InlineData(Protocol.Scenario_RestartMainStage)]
+    [InlineData(Protocol.Scenario_SkipMainStage)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
     [InlineData(Protocol.Campaign_Portal)]
     [InlineData(Protocol.Campaign_WithdrawEchelon)]
