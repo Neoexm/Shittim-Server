@@ -32,6 +32,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_CheckYostar)]
     [InlineData(Protocol.Account_PassCheck)]
     [InlineData(Protocol.Account_DetachNexon)]
+    [InlineData(Protocol.Account_RequestBirthdayMail)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

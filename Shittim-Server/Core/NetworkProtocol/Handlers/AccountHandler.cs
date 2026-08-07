@@ -778,6 +778,57 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_RequestBirthdayMail)]
+    public async Task<AccountRequestBirthdayMailResponse> RequestBirthdayMail(
+        SchaleDataContext db,
+        AccountRequestBirthdayMailRequest request,
+        AccountRequestBirthdayMailResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (account.BirthDay == null
+            || account.BirthDay.Value.Month != request.Birthday.Month
+            || account.BirthDay.Value.Day != request.Birthday.Day)
+        {
+            throw new WebAPIException(WebAPIErrorCode.AccountUpdateBirthdayFailed,
+                "Requested birthday does not match the account's");
+        }
+
+        var now = account.GameSettings.ServerDateTime();
+        // One birthday mail per year; the client only offers the flow on the birthday itself.
+        if (account.GameSettings.LastBirthdayMailYear == now.Year)
+            return response;
+
+        var constCommon = _excelService.GetTable<ConstCommonExcelT>().First();
+        db.Mails.Add(new MailDBServer
+        {
+            AccountServerId = account.ServerId,
+            Type = MailType.BirthdayMail,
+            SendDate = now,
+            ExpireDate = now.AddDays(constCommon.BirthdayMailRemainDate > 0 ? constCommon.BirthdayMailRemainDate : 7),
+            ParcelInfos =
+            [
+                new ParcelInfo
+                {
+                    Key = new ParcelKeyPair
+                    {
+                        Type = constCommon.BirthdayMailParcelType,
+                        Id = constCommon.BirthdayMailParcelId
+                    },
+                    Amount = constCommon.BirthdayMailParcelAmount
+                }
+            ],
+            RemainParcelInfos = new List<ParcelInfo>()
+        });
+
+        account.GameSettings.LastBirthdayMailYear = now.Year;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+        MailNotificationService.MarkNewMail(account.ServerId);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
