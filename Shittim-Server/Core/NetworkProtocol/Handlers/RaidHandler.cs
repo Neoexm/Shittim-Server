@@ -415,4 +415,43 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_RewardAll)]
+    public async Task<RaidRewardAllResponse> RewardAll(
+        SchaleDataContext db,
+        RaidRewardAllRequest request,
+        RaidRewardAllResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raids = db.Raids.Where(x =>
+            x.AccountServerId == account.ServerId &&
+            x.ContentType == ContentType.Raid &&
+            !x.IsPractice &&
+            !x.IsRewardReceived &&
+            (x.RaidState == RaidStatus.Clear || x.RaidState == RaidStatus.Close)).ToList()
+            .Where(RaidService.IsCleared).ToList();
+
+        var stageExcels = _excelService.GetTable<RaidStageExcelT>();
+        var rewardExcels = _excelService.GetTable<RaidStageRewardExcelT>();
+
+        var allRewards = new List<ParcelResult>();
+        foreach (var raid in raids)
+        {
+            var stage = stageExcels.FirstOrDefault(x => x.Id == raid.UniqueId);
+            if (stage == null) continue;
+
+            allRewards.AddRange(RaidService.RollStageRewards(
+                rewardExcels.Where(x => x.GroupId == stage.RaidRewardGroupId)));
+            raid.IsRewardReceived = true;
+            db.Raids.Update(raid);
+        }
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, allRewards);
+        await db.SaveChangesAsync();
+
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
