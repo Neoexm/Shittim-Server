@@ -224,6 +224,18 @@ public class FriendHandler : ProtocolHandlerBase
         throw new WebAPIException(WebAPIErrorCode.FriendUserIsNotFriend, "No friends to remove");
     }
 
+    [ProtocolHandler(Protocol.Friend_AcceptFriendRequest)]
+    public async Task<FriendAcceptFriendRequestResponse> AcceptFriendRequest(
+        SchaleDataContext db,
+        FriendAcceptFriendRequestRequest request,
+        FriendAcceptFriendRequestResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Requests can never exist here - SendFriendRequest always refuses - so any accept targets nothing.
+        throw new WebAPIException(WebAPIErrorCode.FriendRequestNotFound, "No pending request");
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
