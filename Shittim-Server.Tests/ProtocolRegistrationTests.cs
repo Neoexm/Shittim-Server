@@ -61,6 +61,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Clan_Search)]
     [InlineData(Protocol.Clan_MemberList)]
     [InlineData(Protocol.Clan_Member)]
+    [InlineData(Protocol.Clan_Applicant)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

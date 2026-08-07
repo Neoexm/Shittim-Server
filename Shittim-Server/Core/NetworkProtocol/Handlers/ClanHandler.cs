@@ -575,6 +575,19 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Applicant)]
+    public async Task<ClanApplicantResponse> Applicant(
+        SchaleDataContext db,
+        ClanApplicantRequest request,
+        ClanApplicantResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Join option Free means applications never exist.
+        response.ClanMemberDBs = [];
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
