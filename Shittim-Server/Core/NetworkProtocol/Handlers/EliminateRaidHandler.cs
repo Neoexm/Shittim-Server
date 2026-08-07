@@ -300,4 +300,44 @@ public class EliminateRaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.EliminateRaid_RankingReward)]
+    public async Task<EliminateRaidRankingRewardResponse> RankingReward(
+        SchaleDataContext db,
+        EliminateRaidRankingRewardRequest request,
+        EliminateRaidRankingRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        if (lobby.ReceivedRankingRewardId != 0)
+            throw new WebAPIException(WebAPIErrorCode.RaidSeasonAlreadyReceiveReward, "Ranking reward already received this season");
+
+        var season = _excelService.GetTable<EliminateRaidSeasonManageExcelT>()
+            .FirstOrDefault(x => x.SeasonId == account.ContentInfo.EliminateRaidDataInfo.SeasonId);
+        if (season == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Eliminate raid season {account.ContentInfo.EliminateRaidDataInfo.SeasonId} not found");
+
+        var rows = _excelService.GetTable<EliminateRaidRankingRewardExcelT>()
+            .Where(x => x.RankingRewardGroupId == season.RankingRewardGroupId)
+            .ToList();
+        // Solo server: everyone is rank 1. Regional data may leave the base pair 0, hence the Global fallback.
+        var row = rows.FirstOrDefault(x => x.RankStart <= 1 && 1 <= x.RankEnd)
+               ?? rows.FirstOrDefault(x => x.RankStartGlobal <= 1 && 1 <= x.RankEndGlobal);
+        if (row == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidRankingNotFound, $"No rank-1 reward row in group {season.RankingRewardGroupId}");
+
+        var parcels = RaidService.ZipParcelColumns(row.RewardParcelType, row.RewardParcelUniqueId, row.RewardParcelAmount);
+        lobby.ReceivedRankingRewardId = row.Id;
+        lobby.CanReceiveRankingReward = false;
+        db.EliminateRaidLobbyInfos.Update(lobby);
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, parcels);
+        await db.SaveChangesAsync();
+
+        response.ReceivedRankingRewardId = row.Id;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
