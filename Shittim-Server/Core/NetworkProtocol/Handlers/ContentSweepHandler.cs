@@ -378,6 +378,27 @@ public class ContentSweepHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.ContentSweep_SetMultiSweepPresetName)]
+    public async Task<ContentSweepSetMultiSweepPresetNameResponse> SetMultiSweepPresetName(
+        SchaleDataContext db,
+        ContentSweepSetMultiSweepPresetNameRequest request,
+        ContentSweepSetMultiSweepPresetNameResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var preset = (account.GameSettings.MultiSweepPresetDBs ?? [])
+            .FirstOrDefault(x => x.PresetId == request.PresetId);
+        if (preset != null)
+        {
+            preset.PresetName = request.PresetName;
+            db.Accounts.Update(account);
+            await db.SaveChangesAsync();
+        }
+
+        response.MultiSweepPresetDBs = account.GameSettings.MultiSweepPresetDBs ?? [];
+        return response;
+    }
+
     private static bool GenerateProbability(long probability)
     {
         if (probability == 0) return true;

@@ -36,6 +36,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.ClearDeck_List)]
     [InlineData(Protocol.Campaign_Heal)]
     [InlineData(Protocol.Campaign_PurchasePlayCountHardStage)]
+    [InlineData(Protocol.ContentSweep_SetMultiSweepPresetName)]
     [InlineData(Protocol.Character_FavorGrowth)]
     [InlineData(Protocol.Character_SetCostume)]
     [InlineData(Protocol.Cafe_Travel)]
