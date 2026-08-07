@@ -27,6 +27,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_BirthDay)]
     [InlineData(Protocol.Account_SetCheckAdultAgree)]
     [InlineData(Protocol.Account_VerifyCheckAdultAgree)]
+    [InlineData(Protocol.Account_DismissRepurchasablePopup)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

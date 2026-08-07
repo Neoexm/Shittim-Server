@@ -680,6 +680,16 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_DismissRepurchasablePopup)]
+    public async Task<AccountDismissRepurchasablePopupResponse> DismissRepurchasablePopup(
+        SchaleDataContext db,
+        AccountDismissRepurchasablePopupRequest request,
+        AccountDismissRepurchasablePopupResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
