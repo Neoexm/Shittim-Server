@@ -79,6 +79,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Conquest_DeployEchelon)]
     [InlineData(Protocol.Conquest_NormalizeEchelon)]
     [InlineData(Protocol.Conquest_ReceiveCalculateRewards)]
+    [InlineData(Protocol.Conquest_ErosionBattleStart)]
     [InlineData(Protocol.Conquest_MainStoryGetInfo)]
     [InlineData(Protocol.Conquest_MainStoryCheck)]
     [InlineData(Protocol.Conquest_MainStoryConquer)]

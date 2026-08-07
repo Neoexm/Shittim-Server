@@ -474,6 +474,21 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    // Nothing spawns event objects in the minimal machine, so the object battles and pickups are
+    // guard-only: an id that does not exist answers ConquestObjectNotFound instead of a 500.
+    [ProtocolHandler(Protocol.Conquest_ErosionBattleStart)]
+    public async Task<ConquestErosionBattleStartResponse> ErosionBattleStart(
+        SchaleDataContext db,
+        ConquestErosionBattleStartRequest request,
+        ConquestErosionBattleStartResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        _conquestManager.Require(db, account, request.EventContentId);
+
+        throw new WebAPIException(WebAPIErrorCode.ConquestObjectNotFound,
+            $"Object {request.ConquestObjectDBId} does not exist");
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
