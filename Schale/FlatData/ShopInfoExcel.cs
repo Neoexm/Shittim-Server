@@ -117,34 +117,34 @@ public struct ShopInfoExcel : IFlatbufferObject
       bool IsShopVisible = false,
       int DisplayOrder = 0,
       int ShopUpdateDate = 0,
-      int ShopUpdateGroupId1 = 0,
-      int ShopUpdateGroupId2 = 0,
-      int ShopUpdateGroupId3 = 0,
-      int ShopUpdateGroupId4 = 0,
-      int ShopUpdateGroupId5 = 0,
-      int ShopUpdateGroupId6 = 0,
-      int ShopUpdateGroupId7 = 0,
-      int ShopUpdateGroupId8 = 0,
-      int ShopUpdateGroupId9 = 0,
-      int ShopUpdateGroupId10 = 0,
-      int ShopUpdateGroupId11 = 0,
-      int ShopUpdateGroupId12 = 0) {
+      int ShopUpdateGroupId_1 = 0,
+      int ShopUpdateGroupId_2 = 0,
+      int ShopUpdateGroupId_3 = 0,
+      int ShopUpdateGroupId_4 = 0,
+      int ShopUpdateGroupId_5 = 0,
+      int ShopUpdateGroupId_6 = 0,
+      int ShopUpdateGroupId_7 = 0,
+      int ShopUpdateGroupId_8 = 0,
+      int ShopUpdateGroupId_9 = 0,
+      int ShopUpdateGroupId_10 = 0,
+      int ShopUpdateGroupId_11 = 0,
+      int ShopUpdateGroupId_12 = 0) {
     builder.StartTable(31);
     ShopInfoExcel.AddDisplayParcelId(builder, DisplayParcelId);
     ShopInfoExcel.AddRefreshAbleCount(builder, RefreshAbleCount);
     ShopInfoExcel.AddAutoRefreshCoolTime(builder, AutoRefreshCoolTime);
-    ShopInfoExcel.AddShopUpdateGroupId12(builder, ShopUpdateGroupId12);
-    ShopInfoExcel.AddShopUpdateGroupId11(builder, ShopUpdateGroupId11);
-    ShopInfoExcel.AddShopUpdateGroupId10(builder, ShopUpdateGroupId10);
-    ShopInfoExcel.AddShopUpdateGroupId9(builder, ShopUpdateGroupId9);
-    ShopInfoExcel.AddShopUpdateGroupId8(builder, ShopUpdateGroupId8);
-    ShopInfoExcel.AddShopUpdateGroupId7(builder, ShopUpdateGroupId7);
-    ShopInfoExcel.AddShopUpdateGroupId6(builder, ShopUpdateGroupId6);
-    ShopInfoExcel.AddShopUpdateGroupId5(builder, ShopUpdateGroupId5);
-    ShopInfoExcel.AddShopUpdateGroupId4(builder, ShopUpdateGroupId4);
-    ShopInfoExcel.AddShopUpdateGroupId3(builder, ShopUpdateGroupId3);
-    ShopInfoExcel.AddShopUpdateGroupId2(builder, ShopUpdateGroupId2);
-    ShopInfoExcel.AddShopUpdateGroupId1(builder, ShopUpdateGroupId1);
+    ShopInfoExcel.AddShopUpdateGroupId12(builder, ShopUpdateGroupId_12);
+    ShopInfoExcel.AddShopUpdateGroupId11(builder, ShopUpdateGroupId_11);
+    ShopInfoExcel.AddShopUpdateGroupId10(builder, ShopUpdateGroupId_10);
+    ShopInfoExcel.AddShopUpdateGroupId9(builder, ShopUpdateGroupId_9);
+    ShopInfoExcel.AddShopUpdateGroupId8(builder, ShopUpdateGroupId_8);
+    ShopInfoExcel.AddShopUpdateGroupId7(builder, ShopUpdateGroupId_7);
+    ShopInfoExcel.AddShopUpdateGroupId6(builder, ShopUpdateGroupId_6);
+    ShopInfoExcel.AddShopUpdateGroupId5(builder, ShopUpdateGroupId_5);
+    ShopInfoExcel.AddShopUpdateGroupId4(builder, ShopUpdateGroupId_4);
+    ShopInfoExcel.AddShopUpdateGroupId3(builder, ShopUpdateGroupId_3);
+    ShopInfoExcel.AddShopUpdateGroupId2(builder, ShopUpdateGroupId_2);
+    ShopInfoExcel.AddShopUpdateGroupId1(builder, ShopUpdateGroupId_1);
     ShopInfoExcel.AddShopUpdateDate(builder, ShopUpdateDate);
     ShopInfoExcel.AddDisplayOrder(builder, DisplayOrder);
     ShopInfoExcel.AddDisplayParcelType(builder, DisplayParcelType);

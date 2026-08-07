@@ -26,6 +26,14 @@ public enum FieldDialogType : int
   Evidence = 16,
   Chat = 17,
   Keyword_843 = 18,
+  Angry_Nobubble = 19,
+  Sad_Nobubble = 20,
+  Steam_Nobubble = 21,
+  Respond_Nobubble = 22,
+  Sweat_Nobubble = 23,
+  Twinkle_Nobubble = 24,
+  ZZZ_Nobubble = 25,
+  Chat_Nobubble = 26,
 };
 
 

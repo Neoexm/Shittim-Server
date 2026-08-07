@@ -21,6 +21,7 @@ public class ParcelResolver
     private AccountDBServer Account { get; set; }
     private IMapper Mapper { get; set; }
     private bool IsConsume { get; set; }
+    private List<CurrencyExcelT> CurrencyExcels { get; set; }
 
     public ParcelResultDB ParcelResult { get; set; }
     public List<ParcelInfo> ParcelInfos { get; set; } = [];
@@ -41,12 +42,14 @@ public class ParcelResolver
         AccountDBServer account,
         IMapper mapper,
         ParcelResultDB? parcelResult,
-        bool isConsume)
+        bool isConsume,
+        List<CurrencyExcelT> currencyExcels)
     {
         Context = context;
         Account = account;
         Mapper = mapper;
         IsConsume = isConsume;
+        CurrencyExcels = currencyExcels;
         ParcelResult = parcelResult ?? new ParcelResultDB
         {
             // AccountDB is deliberately not pre-filled: FinalizeUpdates adds it only if the reward actually modified the account row.
@@ -79,16 +82,25 @@ public class ParcelResolver
     public async Task UpdateCharacter(ParcelResult parcel, List<CharacterExcelT> characterExcels)
     {
         if (IsConsume) return;
+
+        // a character row whose id has no excel entry aborts the client's login sync, so never write one
+        var characterExcel = characterExcels.FirstOrDefault(x => x.Id == parcel.Id);
+        if (characterExcel == null)
+        {
+            Log.Warning("Refusing character parcel with unknown id {characterUniqueId}", parcel.Id);
+            return;
+        }
+
         var character = Context.Characters.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.UniqueId == parcel.Id);
 
         if (character != null)
         {
-            var characterExcel = characterExcels.GetCharacter(character.UniqueId);
             await UpdateItem(new ParcelResult(ParcelType.Item, characterExcel.CharacterPieceItemId, characterExcel.CharacterPieceItemAmount));
             return;
         }
 
         character = new CharacterDBServer(Account.ServerId, parcel.Id);
+        character.StarGrade = characterExcel.DefaultStarGrade;
         Context.Characters.Add(character);
 
         _updatedCharacters[character.UniqueId] = character;
@@ -122,6 +134,27 @@ public class ParcelResolver
 
         accountCurrencyDB.UpdateCurrency(type, amount, dateTime);
         accountCurrencyDB.UpdateGem(dateTime);
+
+        // AP held past OverChargeLimit is invisible to the player - the client clamps the counter at 999, so a stored 1400 spends down without the number ever moving. Official never stores the excess: it goes out as an InventoryFull mail.
+        if (!IsConsume && type == CurrencyTypes.ActionPoint)
+        {
+            var overChargeLimit = CurrencyExcels.First(x => x.CurrencyType == CurrencyTypes.ActionPoint).OverChargeLimit;
+            var held = accountCurrencyDB.CurrencyDict[type];
+            if (held > overChargeLimit)
+            {
+                accountCurrencyDB.CurrencyDict[type] = overChargeLimit;
+                Context.Mails.Add(new MailDBServer
+                {
+                    AccountServerId = Account.ServerId,
+                    Type = MailType.InventoryFull,
+                    SendDate = dateTime,
+                    ExpireDate = dateTime.AddDays(7),
+                    ParcelInfos = [new ParcelInfo { Key = new ParcelKeyPair { Type = ParcelType.Currency, Id = (long)CurrencyTypes.ActionPoint }, Amount = held - overChargeLimit }],
+                    RemainParcelInfos = new List<ParcelInfo>()
+                });
+                MailNotificationService.MarkNewMail(Account.ServerId);
+            }
+        }
 
         accountCurrencyDB.UpdateAcademyLocationRankSum(Context.GetAccountAcademyLocations(Account.ServerId).ToList());
 

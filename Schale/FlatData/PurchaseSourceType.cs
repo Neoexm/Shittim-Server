@@ -13,6 +13,7 @@ public enum PurchaseSourceType : int
   ProductBattlePass = 3,
   ProductSelect = 4,
   ProductGooglePoint = 5,
+  ProductDailyRecord = 6,
 };
 
 

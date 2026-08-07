@@ -5,7 +5,11 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const https = require('https');
-const { spawn, exec, execFile } = require('child_process');
+const { spawn, execFile } = require('child_process');
+const { extractZip, installTree, resumeInterruptedInstall, backupUserData, writeFileAtomic, selfUpdateMode, blockerAdvice } = require('./updater');
+const { resolveRepoRoot, pathsFor, firstExisting, componentVersions, findMitmBinDir, mitmExe, dotnetExe } = require('./paths');
+const { killTree: killPidTree, streamLines } = require('./procs');
+const { thumbprint, trustedRoot } = require('./certs');
 
 // The control center lives at <repoRoot>/ShittimControlCenter. Everything it drives (the server project, the database, the mitm scripts) is resolved relative to <repoRoot> so the app is portable as long as the layout holds.
 
@@ -19,55 +23,16 @@ function loadSettings() {
     return {};
   }
 }
+// Throws when the settings cannot be persisted. A silent failure here is how a located project folder is forgotten by the next launch after the app has already said it was set.
 function saveSettings(patch) {
   const next = { ...loadSettings(), ...patch };
-  try {
-    fs.mkdirSync(app.getPath('userData'), { recursive: true });
-    fs.writeFileSync(SETTINGS_PATH(), JSON.stringify(next, null, 2));
-  } catch (e) {
-    /* non-fatal */
-  }
+  fs.mkdirSync(app.getPath('userData'), { recursive: true });
+  writeFileAtomic(SETTINGS_PATH(), JSON.stringify(next, null, 2));
   return next;
 }
 
-function resolveRepoRoot() {
-  const settings = loadSettings();
-  if (settings.repoRoot && fs.existsSync(path.join(settings.repoRoot, 'Shittim-Server'))) {
-    return settings.repoRoot;
-  }
-  // ShittimControlCenter sits directly inside the repo.
-  return path.resolve(APP_DIR, '..');
-}
-
-function firstExisting(paths) {
-  for (const p of paths) if (p && fs.existsSync(p)) return p;
-  return null;
-}
-
 function resolvePaths() {
-  const repoRoot = resolveRepoRoot();
-  const serverDir = path.join(repoRoot, 'Shittim-Server');
-  const csproj = path.join(serverDir, 'Shittim-Server.csproj');
-
-  const debugExe = path.join(serverDir, 'bin', 'Debug', 'net10.0', 'Shittim-Server.exe');
-  const releaseExe = path.join(serverDir, 'bin', 'Release', 'net10.0', 'Shittim-Server.exe');
-  const exePath = firstExisting([debugExe, releaseExe]);
-
-  // The server reads its config from <exeBaseDir>/Config/Config.json and the gacha overrides from <exeBaseDir>/../gacha_config.json.
-  const exeBaseDir = exePath ? path.dirname(exePath) : path.join(serverDir, 'bin', 'Debug', 'net10.0');
-  const configPath = path.join(exeBaseDir, 'Config', 'Config.json');
-  const gachaConfigPath = path.resolve(path.join(exeBaseDir, '..', 'gacha_config.json'));
-
-  // DB lives in the working directory the server runs from (serverDir).
-  const dbPath = path.join(serverDir, 'shittim.sqlite3');
-
-  const scriptsDir = path.join(repoRoot, 'Scripts', 'redirect_server_mitmproxy');
-  const redirectScript = path.join(scriptsDir, 'redirect_server.py');
-
-  return {
-    repoRoot, serverDir, csproj, exePath, exeBaseDir,
-    configPath, gachaConfigPath, dbPath, scriptsDir, redirectScript,
-  };
+  return pathsFor(resolveRepoRoot(loadSettings(), APP_DIR).repoRoot);
 }
 
 function readConfig() {
@@ -86,7 +51,7 @@ function writeConfig(payload) {
     const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
     JSON.parse(text); // validate
     fs.mkdirSync(path.dirname(configPath), { recursive: true });
-    fs.writeFileSync(configPath, text);
+    writeFileAtomic(configPath, text);
     return { ok: true, path: configPath };
   } catch (e) {
     return { ok: false, error: String(e.message || e) };
@@ -94,6 +59,11 @@ function writeConfig(payload) {
 }
 
 const procs = { server: null, mitm: null };
+// when each child was spawned, and how long the server gets to bind its port before silence counts as a symptom. A source run compiles first, so it gets no deadline at all - there is no telling a long build from a hang.
+const started = { server: null, mitm: null, serverGraceMs: null };
+const LISTEN_GRACE_MS = 90_000;
+// a child that never spawned leaves nothing to ask about, so the failure has to outlive it or the next poll reports a tidy "stopped"
+const spawnFailed = { server: false, mitm: false };
 
 function broadcast(channel, payload) {
   for (const w of BrowserWindow.getAllWindows()) {
@@ -102,36 +72,28 @@ function broadcast(channel, payload) {
 }
 
 function pipeLines(child, source) {
-  let buf = '';
-  const onData = (chunk) => {
-    buf += chunk.toString();
-    let idx;
-    while ((idx = buf.indexOf('\n')) >= 0) {
-      const line = buf.slice(0, idx).replace(/\r$/, '');
-      buf = buf.slice(idx + 1);
-      if (line.length) broadcast('proc:log', { source, line });
-    }
-  };
-  if (child.stdout) child.stdout.on('data', onData);
-  if (child.stderr) child.stderr.on('data', onData);
+  streamLines(child, (line) => broadcast('proc:log', { source, line }));
 }
 
 function killTree(child) {
-  if (!child || child.killed) return;
-  if (process.platform === 'win32') {
-    try { exec(`taskkill /pid ${child.pid} /T /F`); } catch { /* ignore */ }
-  } else {
-    try { child.kill('SIGTERM'); } catch { /* ignore */ }
-  }
+  if (!child || child.killed) return Promise.resolve({ ok: true, already: true });
+  return killPidTree(child.pid);
+}
+
+// Every child that is not the server or the proxy: builds, installers, the cert probe. Quit has to take these down too, or a rebuild's msbuild nodes outlive the window that started them.
+const helpers = new Set();
+function track(child) {
+  helpers.add(child);
+  const drop = () => helpers.delete(child);
+  child.on('exit', drop);
+  child.on('error', drop);
+  return child;
 }
 
 // Resolve the dotnet host to launch. Prefer the per-user SDK our setup installs and launch it by ABSOLUTE PATH so machine-PATH ordering can't shadow it with a runtime-only host - the classic "SDK 'Microsoft.NET.Sdk.Web' could not be found" build failure on an otherwise-working machine.
 // Falls back to whatever 'dotnet' is on PATH when we never installed our own.
 function resolveDotnet() {
-  const exe = process.platform === 'win32' ? 'dotnet.exe' : 'dotnet';
-  const ours = path.join(DOTNET_DIR(), exe);
-  if (fs.existsSync(ours)) return { cmd: ours, root: DOTNET_DIR() };
-  return { cmd: exe, root: null };
+  return dotnetExe(DOTNET_DIR());
 }
 
 // Child env that forces the chosen dotnet: DOTNET_ROOT points at the install and its dir is prepended to PATH so nested 'dotnet' calls (run, build, exec) all resolve to the same host instead of a shadowing one earlier on PATH.
@@ -156,11 +118,19 @@ function hasWebSdk(dir) {
   } catch { return false; }
 }
 
-function startServer() {
+function startServer(offline) {
   if (procs.server && !procs.server.killed) return { ok: false, error: 'Server already running' };
   const p = resolvePaths();
   const dn = resolveDotnet();
   const env = dotnetEnv(dn.root);
+  if (offline) env.SHITTIM_AUTO_PATCH_STEAM_OFFLINE = 'true';
+
+  // An update replaces the sources, the patch definitions and the schema but never bin/, so the already-built server is still sitting there and is the thing this would launch. It runs against the new everything else and the update looks like it did nothing.
+  const stale = componentVersions(p.repoRoot, null, readVersionMarker(p.repoRoot)).buildStale;
+  if (p.exePath && stale) {
+    broadcast('proc:log', { source: 'server', line: `> ${stale}` });
+    return { ok: false, error: stale, staleBuild: true };
+  }
 
   let cmd, args, cwd;
   if (p.exePath) {
@@ -178,92 +148,186 @@ function startServer() {
   broadcast('proc:log', { source: 'server', line: `> launching ${path.basename(cmd)} (cwd: ${cwd})` });
   const child = spawn(cmd, args, { cwd, windowsHide: true, env });
   procs.server = child;
+  started.server = Date.now();
+  started.serverGraceMs = p.exePath ? LISTEN_GRACE_MS : null;
+  spawnFailed.server = false;
   broadcast('proc:state', { server: 'starting', serverPid: child.pid });
   pipeLines(child, 'server');
 
   child.on('exit', (code) => {
     broadcast('proc:log', { source: 'server', line: `> server exited (code ${code})` });
     procs.server = null;
+    started.server = null;
     broadcast('proc:state', { server: 'stopped' });
   });
   child.on('error', (err) => {
     broadcast('proc:log', { source: 'server', line: `> spawn error: ${err.message}` });
     procs.server = null;
+    started.server = null;
+    spawnFailed.server = true;
     broadcast('proc:state', { server: 'failed' });
   });
 
   return { ok: true, pid: child.pid };
 }
 
-function stopServer() {
+async function stopServer() {
   if (!procs.server) return { ok: false, error: 'Server not running' };
-  killTree(procs.server);
+  const child = procs.server;
+  const r = await killTree(child);
+  if (!r.ok) {
+    broadcast('proc:log', { source: 'server', line: `> could not stop pid ${child.pid}: ${r.error}` });
+    return { ok: false, error: `pid ${child.pid} is still running - ${r.error}` };
+  }
   procs.server = null;
   broadcast('proc:state', { server: 'stopped' });
   return { ok: true };
 }
 
-function startMitm() {
+function startMitm(offline) {
   if (procs.mitm && !procs.mitm.killed) return { ok: false, error: 'mitmproxy already running' };
   const p = resolvePaths();
   if (!fs.existsSync(p.redirectScript)) return { ok: false, error: 'redirect_server.py not found' };
 
-  const args = ['-m', 'wireguard', '--no-http2', '-s', 'redirect_server.py',
-    '--set', 'termlog_verbosity=warn', '--mode', 'local:BlueArchive.exe'];
-  const cmd = process.platform === 'win32' ? 'mitmweb.exe' : 'mitmweb';
+  // local mode never sees these connections - the hosts file sends them to loopback and WinDivert does not divert loopback - so offline mitmproxy owns the ports itself. reverse:http:// still terminates the client's TLS, since next_layer inserts a client TLS layer when the first bytes are a ClientHello, where reverse:https:// would force TLS upstream onto a plaintext Kestrel; keep_host_header leaves the Host the addon routes on alone.
+  const args = offline
+    ? ['--no-http2', '-s', 'redirect_server.py', '--set', 'termlog_verbosity=warn', '--set', 'keep_host_header=true',
+      '--mode', 'reverse:http://127.0.0.3:5000@127.0.0.2:443',
+      '--mode', 'reverse:http://127.0.0.3:5000@127.0.0.2:5000',
+      '--mode', 'reverse:http://127.0.0.3:5100@127.0.0.2:5100']
+    : ['-m', 'wireguard', '--no-http2', '-s', 'redirect_server.py',
+      '--set', 'termlog_verbosity=warn', '--mode', 'local:BlueArchive.exe'];
+  const cmd = mitmTool('mitmweb');
 
-  broadcast('proc:log', { source: 'mitm', line: `> launching mitmweb (cwd: ${p.scriptsDir})` });
+  // the addon reads this at import time and answers anything it has no local route for with a 502 instead of forwarding it, so a missed host shows up as a logged failure rather than a connection that hangs until it times out.
+  const env = { ...process.env };
+  if (offline) env.SHITTIM_OFFLINE_MODE = '1';
+  // otherwise Python picks the ANSI codepage for open() and for its own stdio, and on a Chinese or Japanese install that is cp936/cp932 - the addon then dies reading a UTF-8 file with "'gbk' codec can't decode byte ... illegal multibyte sequence"
+  env.PYTHONUTF8 = '1';
+  env.PYTHONIOENCODING = 'utf-8';
+
+  broadcast('proc:log', { source: 'mitm', line: `> launching mitmweb (cwd: ${p.scriptsDir})${offline ? ' in offline mode' : ''}` });
   let child;
   try {
-    child = spawn(cmd, args, { cwd: p.scriptsDir, windowsHide: true, env: { ...process.env } });
+    child = spawn(cmd, args, { cwd: p.scriptsDir, windowsHide: true, env });
   } catch (e) {
     return { ok: false, error: String(e.message || e) };
   }
   procs.mitm = child;
+  started.mitm = Date.now();
+  spawnFailed.mitm = false;
   broadcast('proc:state', { mitm: 'starting' });
   pipeLines(child, 'mitm');
 
   child.on('exit', (code) => {
     broadcast('proc:log', { source: 'mitm', line: `> mitmproxy exited (code ${code})` });
     procs.mitm = null;
+    started.mitm = null;
     broadcast('proc:state', { mitm: 'stopped' });
   });
   child.on('error', (err) => {
     broadcast('proc:log', { source: 'mitm', line: `> spawn error: ${err.message} (is mitmproxy installed?)` });
     procs.mitm = null;
+    started.mitm = null;
+    spawnFailed.mitm = true;
     broadcast('proc:state', { mitm: 'failed' });
   });
 
   return { ok: true, pid: child.pid };
 }
 
-function stopMitm() {
+async function stopMitm() {
   if (!procs.mitm) return { ok: false, error: 'mitmproxy not running' };
-  killTree(procs.mitm);
+  const child = procs.mitm;
+  const r = await killTree(child);
+  if (!r.ok) {
+    broadcast('proc:log', { source: 'mitm', line: `> could not stop pid ${child.pid}: ${r.error}` });
+    return { ok: false, error: `pid ${child.pid} is still running - ${r.error}` };
+  }
   procs.mitm = null;
   broadcast('proc:state', { mitm: 'stopped' });
   return { ok: true };
 }
 
-function execCheck(command, timeout = 6000) {
+const HOSTS_PATH = () => path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'drivers', 'etc', 'hosts');
+const HOSTS_MARK = '# shittim offline';
+
+// every host the client reaches for across a full boot, read off the redirect log. mitmproxy's local mode can only divert a connection the client actually manages to open, and with no route out the name lookup fails before that - so these have to resolve on their own. 127.0.0.2 and not .1 because that is where the reverse listeners sit, and mitmproxy refuses to forward to a port it is itself listening on at 127.0.0.1.
+const OFFLINE_HOSTS = [
+  'public.api.nexon.com',
+  'nxm-th-bagl.nexon.com',
+  'nxm-eu-bagl.nexon.com',
+  'config.na.nexon.com',
+  'platform.gamescale.nexon.com',
+  'toy.log.nexon.io',
+  'psm-log.ngs.nexon.com',
+  'd2vaidpni345rp.cloudfront.net',
+  'bolo7yechd.execute-api.ap-northeast-1.amazonaws.com',
+];
+
+function offlineHostsApplied() {
+  try { return fs.readFileSync(HOSTS_PATH(), 'utf8').includes(`${HOSTS_MARK} begin`); } catch { return false; }
+}
+
+function hostsWithBlock(text, on) {
+  const kept = [];
+  let inBlock = false;
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    if (t === `${HOSTS_MARK} begin`) { inBlock = true; continue; }
+    if (t === `${HOSTS_MARK} end`) { inBlock = false; continue; }
+    if (!inBlock) kept.push(line);
+  }
+  while (kept.length && !kept[kept.length - 1].trim()) kept.pop();
+  if (!on) return `${kept.join('\r\n')}\r\n`;
+  return `${[...kept, '', `${HOSTS_MARK} begin`, ...OFFLINE_HOSTS.map((h) => `127.0.0.2 ${h}`), `${HOSTS_MARK} end`].join('\r\n')}\r\n`;
+}
+
+// hosts sits under System32, so staging the finished file next to it and copying it across keeps the elevated half down to one copy and a resolver cache flush - the cache matters because a name the client already looked up stays pointed at the real address until it is dropped.
+async function setOfflineHosts(on) {
+  if (process.platform !== 'win32') return { ok: false, error: 'Offline hosts entries are wired up for Windows only.' };
+  const hosts = HOSTS_PATH();
+  let cur;
+  try {
+    cur = fs.readFileSync(hosts, 'utf8');
+  } catch (e) {
+    return { ok: false, error: `could not read ${hosts}: ${e.message}` };
+  }
+
+  const next = hostsWithBlock(cur, on);
+  if (next === cur) return { ok: true, changed: false, applied: on };
+
+  const staged = path.join(os.tmpdir(), `scc-hosts-${process.pid}.txt`);
+  fs.writeFileSync(staged, next, 'utf8');
+  const inner = `Copy-Item -LiteralPath ${psQuote(staged)} -Destination ${psQuote(hosts)} -Force; ipconfig /flushdns | Out-Null`;
+  const ps = `$p = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-Command', ${psQuote(inner)}) -Verb RunAs -PassThru -Wait -WindowStyle Hidden; exit $p.ExitCode`;
+  const r = await runPwsh(ps, (l) => broadcast('proc:log', { source: 'mitm', line: l }));
+  try { fs.unlinkSync(staged); } catch { /* ignore */ }
+
+  if (!r.ok) return { ok: false, error: 'the hosts file was not written - elevation was declined or the copy failed' };
+  broadcast('proc:log', { source: 'mitm', line: on ? `> pointed ${OFFLINE_HOSTS.length} hosts at 127.0.0.2` : '> removed the offline hosts entries' });
+  return { ok: true, changed: true, applied: on };
+}
+
+// execFile and not exec: the argument is a path we resolved, and putting it through cmd.exe means cmd gets an opinion about it. Double quotes stop it splitting on spaces but not expanding %NAME%, so an install under a directory with a percent sign in it reports the SDK as missing when it is sitting right there.
+function execCheck(cmd, args, timeout = 6000) {
   return new Promise((resolve) => {
-    exec(command, { timeout, windowsHide: true }, (err, stdout, stderr) => {
+    execFile(cmd, args, { timeout, windowsHide: true }, (err, stdout, stderr) => {
       const out = (stdout || stderr || '').toString().trim();
       resolve({ ok: !err, detail: out.split('\n')[0] || (err ? String(err.message) : '') });
     });
   });
 }
 
-function execOut(command, timeout = 8000) {
+function execOut(cmd, args, timeout = 8000) {
   return new Promise((resolve) => {
-    exec(command, { timeout, windowsHide: true }, (err, stdout) => resolve({ ok: !err, out: (stdout || '').toString() }));
+    execFile(cmd, args, { timeout, windowsHide: true }, (err, stdout) => resolve({ ok: !err, out: (stdout || '').toString() }));
   });
 }
 
 // For a PATH-resolved dotnet (we didn't install our own), parse `--list-sdks` and check each listed SDK dir for the Web SDK.
 async function pathDotnetHasWeb(dn) {
-  const q = process.platform === 'win32' ? `"${dn.cmd}" --list-sdks` : `${dn.cmd} --list-sdks`;
-  const r = await execOut(q);
+  const r = await execOut(dn.cmd, ['--list-sdks']);
   if (!r.ok) return false;
   for (const line of r.out.split(/\r?\n/)) {
     const m = line.match(/^(\S+)\s+\[(.+)\]\s*$/); // "10.0.301 [C:\...\sdk]"
@@ -275,30 +339,57 @@ async function pathDotnetHasWeb(dn) {
 // Report on the exact dotnet host the server will launch, including whether its SDK carries the ASP.NET Core Web SDK - a base SDK alone yields the "Sdk.Web could not be found" build failure even though `dotnet --version` works.
 async function checkDotnet() {
   const dn = resolveDotnet();
-  const verCmd = process.platform === 'win32' ? `"${dn.cmd}" --version` : `${dn.cmd} --version`;
-  const ver = await execCheck(verCmd);
+  const ver = await execCheck(dn.cmd, ['--version']);
   if (!ver.ok) return { status: 'missing', detail: '.NET SDK not found - click Install' };
-  const where = dn.root ? 'per-user' : 'system';
+  const where = dn.root ? dn.cmd : `${dn.cmd} on PATH`;
   const webOk = dn.root ? hasWebSdk(dn.root) : await pathDotnetHasWeb(dn);
   if (!webOk) return { status: 'warning', detail: `SDK ${ver.detail} (${where}) - ASP.NET Core Web SDK missing; click Install` };
   return { status: 'ready', detail: `SDK ${ver.detail} (${where})` };
 }
 
+// The CA the client has to accept, and whether the machine actually accepts it. A file check passes in two states that break every handshake: the certutil step was declined, or mitmproxy regenerated its CA after that step ran and the store still holds the old one.
+async function checkCertificate() {
+  const certPath = CERT_PATH();
+  if (!fs.existsSync(certPath)) return { status: 'warning', detail: 'CA certificate not generated yet' };
+  if (process.platform !== 'win32') return { status: 'warning', detail: `${certPath} - trust it in the system store yourself on this platform` };
+  const thumb = thumbprint(certPath);
+  if (await trustedRoot(thumb)) return { status: 'ready', detail: `${certPath} (${thumb.slice(0, 8)}, trusted)` };
+  return { status: 'warning', detail: `${certPath} exists but ${thumb.slice(0, 8)} is not in the root store - click Trust cert` };
+}
+
 async function runEnvChecks() {
   const p = resolvePaths();
-  const certPath = path.join(os.homedir(), '.mitmproxy', 'mitmproxy-ca-cert.cer');
 
-  const [dotnet, mitm] = await Promise.all([
+  const mitmPath = mitmTool('mitmweb');
+  const [dotnet, mitm, certificate] = await Promise.all([
     checkDotnet(),
-    execCheck('mitmweb --version'),
+    execCheck(mitmPath, ['--version']),
+    checkCertificate(),
   ]);
+
+  let ccVersion = null;
+  try { ccVersion = app.getVersion(); } catch { /* not packaged */ }
+  const vs = componentVersions(p.repoRoot, ccVersion, readVersionMarker(p.repoRoot));
+  const serverDetail = vs.buildStale ? vs.buildStale
+    : p.exePath ? (vs.releaseSkew ? `${p.exePath} - ${vs.releaseSkew}` : p.exePath)
+    : fs.existsSync(p.csproj) ? 'source only - will build on launch'
+    : 'server project not found';
+
+  // The gateway RSA pair is not generated - it is shipped and copied next to the exe by the csproj. A clean rebuild wipes bin/Config, and without the private key the 50001 handshake cannot be decrypted, which the client shows as a hang on "Unpacking game resources" rather than as anything to do with keys.
+  const keyDir = path.dirname(p.configPath);
+  const gatewayKey = path.join(keyDir, 'GatewayPrivateKey.pem');
+  const shippedKey = path.join(p.serverDir, 'config', 'GatewayPrivateKey.pem');
+  const gateway = fs.existsSync(gatewayKey) ? { status: 'ready', detail: gatewayKey }
+    : fs.existsSync(shippedKey) ? { status: 'ready', detail: `${shippedKey} - copied next to the exe on build` }
+    : { status: 'missing', detail: `GatewayPrivateKey.pem is in neither ${keyDir} nor ${path.dirname(shippedKey)} - login cannot be decrypted` };
 
   return {
     dotnet,
-    mitmproxy: { status: mitm.ok ? 'ready' : 'missing', detail: mitm.ok ? mitm.detail : 'mitmproxy not found in PATH' },
-    certificate: { status: fs.existsSync(certPath) ? 'ready' : 'warning', detail: fs.existsSync(certPath) ? certPath : 'CA certificate not generated yet' },
+    mitmproxy: { status: mitm.ok ? 'ready' : 'missing', detail: mitm.ok ? `${mitm.detail} - ${mitmPath}` : `${mitmPath} did not answer --version - click Install` },
+    certificate,
+    gateway,
     database: { status: fs.existsSync(p.dbPath) ? 'ready' : 'warning', detail: fs.existsSync(p.dbPath) ? p.dbPath : 'created on first server run' },
-    server: { status: p.exePath ? 'ready' : (fs.existsSync(p.csproj) ? 'warning' : 'missing'), detail: p.exePath ? p.exePath : (fs.existsSync(p.csproj) ? 'source only - will build on launch' : 'server project not found') },
+    server: { status: vs.buildStale ? 'warning' : p.exePath ? 'ready' : (fs.existsSync(p.csproj) ? 'warning' : 'missing'), detail: serverDetail },
     redirect: { status: fs.existsSync(p.redirectScript) ? 'ready' : 'missing', detail: fs.existsSync(p.redirectScript) ? p.redirectScript : 'redirect_server.py missing' },
   };
 }
@@ -360,7 +451,11 @@ function downloadFile(url, destPath, onProgress, redirects = 6) {
       res.on('data', (c) => { received += c.length; if (onProgress) onProgress(received, total); });
       res.on('error', reject);
       out.on('error', reject);
-      out.on('finish', () => out.close(() => resolve({ total, received })));
+      // A connection cut mid-body still ends the stream cleanly, so the short read has to be caught here or a truncated archive gets treated as a download.
+      out.on('finish', () => out.close(() => {
+        if (total > 0 && received !== total) reject(new Error(`download was cut short (${received} of ${total} bytes)`));
+        else resolve({ total, received });
+      }));
       res.pipe(out);
     });
     req.on('error', reject);
@@ -369,70 +464,6 @@ function downloadFile(url, destPath, onProgress, redirects = 6) {
 }
 
 function psQuote(s) { return `'${String(s).replace(/'/g, "''")}'`; }
-
-// Extract a .zip into destDir - no third-party dependency is bundled. Windows prefers the in-box tar.exe (bsdtar, present since Win10 1803): it handles long paths and exits non-zero when ANY entry fails.
-// The Expand-Archive fallback runs under $ErrorActionPreference='Stop' for the same reason - by default it reports per-file failures as non-terminating errors and still exits 0, which hands the caller a silently PARTIAL tree.
-function extractZip(zipPath, destDir) {
-  const run = (cmd, args) => new Promise((resolve, reject) => {
-    execFile(cmd, args, { windowsHide: true, maxBuffer: 64 * 1024 * 1024 },
-      (err, _so, se) => err ? reject(new Error((se || '').toString().trim() || err.message)) : resolve());
-  });
-  fs.mkdirSync(destDir, { recursive: true });
-  if (process.platform !== 'win32') return run('unzip', ['-o', zipPath, '-d', destDir]);
-  const strictPs = `$ProgressPreference='SilentlyContinue'; $ErrorActionPreference='Stop'; ` +
-    `try { Expand-Archive -LiteralPath ${psQuote(zipPath)} -DestinationPath ${psQuote(destDir)} -Force } ` +
-    `catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }`;
-  const psFallback = () => run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', strictPs]);
-  const tar = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
-  if (!fs.existsSync(tar)) return psFallback();
-  return run(tar, ['-xf', zipPath, '-C', destDir]).catch(psFallback);
-}
-
-// Files whose on-disk copy must survive an update merge: the gateway keypair is what the user's patched client metadata expects, so silently replacing it with the repo copy would strand the install until the next metadata re-patch.
-const MERGE_PRESERVE = [/^Shittim-Server[\\/]config[\\/].*\.pem$/i];
-
-function sleepMs(ms) {
-  try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); } catch { /* best effort */ }
-}
-
-// Merge the extracted archive over the install.
-// fs.cpSync aborts at the first error and leaves a half-updated tree behind, so walk it ourselves: transient locks (AV sweeps, an open editor) get retried with the read-only bit cleared.
-// Remaining failures are collected so an incomplete update fails LOUDLY instead of stamping the new version marker over a mixed tree.
-function mergeTree(srcRoot, destRoot) {
-  const failures = [];
-  let copied = 0;
-  const walk = (rel) => {
-    const src = rel ? path.join(srcRoot, rel) : srcRoot;
-    const dest = rel ? path.join(destRoot, rel) : destRoot;
-    let entries;
-    try { entries = fs.readdirSync(src, { withFileTypes: true }); }
-    catch (e) { failures.push({ path: rel || '.', error: String(e.code || e.message) }); return; }
-    try { fs.mkdirSync(dest, { recursive: true }); }
-    catch (e) { failures.push({ path: rel || '.', error: String(e.code || e.message) }); return; }
-    for (const ent of entries) {
-      const entRel = rel ? path.join(rel, ent.name) : ent.name;
-      if (ent.isDirectory()) { walk(entRel); continue; }
-      if (!ent.isFile()) continue; // release archives carry no symlinks
-      if (MERGE_PRESERVE.some((re) => re.test(entRel)) && fs.existsSync(path.join(destRoot, entRel))) continue;
-      const from = path.join(srcRoot, entRel);
-      const to = path.join(destRoot, entRel);
-      let lastErr = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          if (attempt > 0) {
-            try { fs.chmodSync(to, 0o666); } catch { /* may not exist yet */ }
-            sleepMs(150 * attempt);
-          }
-          fs.copyFileSync(from, to);
-          lastErr = null; copied++; break;
-        } catch (e) { lastErr = e; }
-      }
-      if (lastErr) failures.push({ path: entRel, error: String(lastErr.code || lastErr.message) });
-    }
-  };
-  walk('');
-  return { copied, failures };
-}
 
 function readVersionMarker(repoRoot) {
   try { return JSON.parse(fs.readFileSync(path.join(repoRoot, VERSION_FILE), 'utf8')); } catch { return null; }
@@ -447,9 +478,15 @@ function defaultDownloadDir() {
   return path.join(docs, 'Shittim-Server');
 }
 
+// Backups live outside the install so that whatever an update, a migration or a repair does to the folder, the copy of the database is somewhere else.
+function userBackupRoot() {
+  return path.join(app.getPath('userData'), 'backups');
+}
+
 // Is a usable server project present at the currently-resolved location?
 function projectStatus() {
-  const p = resolvePaths();
+  const where = resolveRepoRoot(loadSettings(), APP_DIR);
+  const p = pathsFor(where.repoRoot);
   const hasCsproj = fs.existsSync(p.csproj);
   const hasExe = !!p.exePath;
   const marker = readVersionMarker(p.repoRoot);
@@ -459,6 +496,7 @@ function projectStatus() {
     found: hasCsproj || hasExe,
     repoRoot: p.repoRoot, serverDir: p.serverDir, csproj: p.csproj,
     hasCsproj, hasExe, source, version: marker, defaultDir: defaultDownloadDir(),
+    configured: where.configured, configuredMissing: where.missing,
   };
 }
 
@@ -471,7 +509,8 @@ function setProjectPath(dir) {
   else if (fs.existsSync(path.join(dir, 'Shittim-Server.csproj'))) repoRoot = path.dirname(dir);
   else if (fs.existsSync(path.join(dir, 'Shittim-Server'))) repoRoot = dir;
   else return { ok: false, error: 'No Shittim-Server project was found in that folder.' };
-  saveSettings({ repoRoot });
+  try { saveSettings({ repoRoot }); }
+  catch (e) { return { ok: false, error: `Found the project, but could not remember the folder: ${e.message}` }; }
   return { ok: true, repoRoot, status: projectStatus() };
 }
 
@@ -510,24 +549,47 @@ async function downloadProject({ targetDir, branch } = {}) {
       }
     }
 
-    send('install', { message: 'Installing files...' });
     fs.mkdirSync(targetDir, { recursive: true });
-    const merged = mergeTree(top, targetDir);
-    if (merged.failures.length) {
-      const shown = merged.failures.slice(0, 5).map((f) => `${f.path} (${f.error})`).join(', ');
-      const more = merged.failures.length > 5 ? ` and ${merged.failures.length - 5} more` : '';
-      throw new Error(`PARTIAL UPDATE - ${merged.failures.length} file(s) could not be replaced: ${shown}${more}. ` +
-        'Close the server and anything else using the folder, then run the update again. ' +
-        'Do not rebuild until an update completes cleanly.');
+
+    // An update over an existing install copies the database and Config/ aside first. Neither is in the archive, so neither can be overwritten by the merge, but a migration on the next launch can rewrite the database and there is otherwise nothing to go back to.
+    if (fs.existsSync(path.join(targetDir, 'Shittim-Server'))) {
+      send('backup', { message: 'Backing up your database and config...' });
+      const p = pathsFor(targetDir);
+      const kept = backupUserData(userBackupRoot(), [p.dbPath, path.dirname(p.configPath), p.gachaConfigPath], `pre-update-${sha.slice(0, 7)}-${Date.now()}`);
+      broadcast('proc:log', { source: 'server', line: `> backed up ${kept.saved.length} item(s) to ${kept.dir}` });
     }
+
+    send('install', { message: 'Installing files...' });
+    const previous = readVersionMarker(targetDir);
+    const merged = installTree(top, targetDir, {
+      previousManifest: previous && previous.manifest,
+      onProgress: (done, total) => send('install', { message: 'Installing files...', recv: done, total }),
+    });
+    if (!merged.ok) {
+      const shown = merged.blockers.slice(0, 5).map((f) => `${f.path} (${f.error})`).join(', ');
+      const more = merged.blockers.length > 5 ? ` and ${merged.blockers.length - 5} more` : '';
+      const state = merged.changed
+        ? 'The install is in a MIXED state and could not be rolled back fully - restore from a backup before running the server.'
+        : 'Nothing in your install was changed; it is still on the previous version.';
+      throw new Error(`Update stopped - ${merged.blockers.length} file(s) could not be replaced: ${shown}${more}. ` +
+        `${state} ${blockerAdvice(merged.blockers)}`);
+    }
+    if (merged.removed) broadcast('proc:log', { source: 'server', line: `> removed ${merged.removed} file(s) this release no longer ships` });
     writeVersionMarker(targetDir, {
       sha, shortSha: sha.slice(0, 7), branch, subject,
       date: date || null, source: 'download', updatedAt: new Date().toISOString(),
+      manifest: merged.manifest,
     });
 
-    saveSettings({ repoRoot: targetDir });
+    // The files are installed by this point, so a settings write that fails is worth saying out loud but is not a failed update.
+    let remembered = true;
+    try { saveSettings({ repoRoot: targetDir }); }
+    catch (e) {
+      remembered = false;
+      broadcast('proc:log', { source: 'server', line: `> installed to ${targetDir}, but the folder could not be remembered: ${e.message}` });
+    }
     send('done', { message: 'Done', repoRoot: targetDir, sha: sha.slice(0, 7) });
-    return { ok: true, repoRoot: targetDir, sha: sha.slice(0, 7) };
+    return { ok: true, repoRoot: targetDir, sha: sha.slice(0, 7), remembered };
   } catch (e) {
     send('error', { message: String(e.message || e) });
     return { ok: false, error: String(e.message || e) };
@@ -595,7 +657,8 @@ async function checkUpdates() {
   if (!localSha) return { ...base, versionKnown: false };
 
   const head = { head: localSha.slice(0, 7), headSubject: localSubject || '' };
-  if (localSha === remoteSha) return { ...base, ...head, versionKnown: true, behind: 0, ahead: 0, commits: [] };
+  // Whether an update exists is decided by the two commit ids differing, never by the commit count. This branch has been rewritten and force-pushed before, and after that the installed commit is not an ancestor of the tip - the count below is a changelog, not the test.
+  if (localSha === remoteSha) return { ...base, ...head, versionKnown: true, differs: false, behind: 0, ahead: 0, commits: [] };
 
   // Diff local..remote through the compare API; its commit list is the changelog.
   try {
@@ -606,10 +669,14 @@ async function checkUpdates() {
       author: (c.commit.author && c.commit.author.name) || (c.author && c.author.login) || '',
       when: isoToRel(c.commit.author && c.commit.author.date),
     })).reverse();
-    return { ...base, ...head, versionKnown: true, behind: cmp.ahead_by || 0, ahead: cmp.behind_by || 0, commits, status: cmp.status };
+    return {
+      ...base, ...head, versionKnown: true, differs: true,
+      behind: cmp.ahead_by || 0, ahead: cmp.behind_by || 0, commits, status: cmp.status,
+      rewritten: cmp.status === 'diverged',
+    };
   } catch (e) {
-    // Local commit isn't an ancestor the API can diff (a local build, or a diverged history). We still know the tip differs - offer a refresh.
-    return { ...base, ...head, versionKnown: true, behind: null, compareFailed: true };
+    // The installed commit is not something the compare API can reach from the branch - a rewritten history, or a local build. The changelog is gone but the tip still differs.
+    return { ...base, ...head, versionKnown: true, differs: true, behind: null, compareFailed: true, rewritten: true };
   }
 }
 
@@ -622,6 +689,19 @@ async function applyUpdate() {
   // A real git checkout (no download marker) keeps the safe ff-only pull.
   if (isGit && !marker) {
     const branch = ((await execGit(['rev-parse', '--abbrev-ref', 'HEAD'], repoRoot)).out || 'main').trim() || 'main';
+
+    // Upstream gets rewritten, and after that a fast-forward is impossible - git exits 128 and the useful part of the message is buried under merge advice. Recovering means discarding local commits, so it is described here and left to the user rather than run.
+    await execGit(['fetch', 'origin', branch], repoRoot, 120000);
+    const ancestor = await execGit(['merge-base', '--is-ancestor', 'HEAD', `origin/${branch}`], repoRoot);
+    if (!ancestor.ok) {
+      const local = (await execGit(['rev-parse', '--short', 'HEAD'], repoRoot)).out.trim();
+      const upstream = (await execGit(['rev-parse', '--short', `origin/${branch}`], repoRoot)).out.trim();
+      const message = `This checkout is at ${local}, which is not in origin/${branch} (now ${upstream}) - the branch was rewritten, or you have local commits. ` +
+        `An update cannot fast-forward past that. Keep anything you want from this tree first, then run: git fetch origin && git reset --hard origin/${branch}`;
+      broadcast('proc:log', { source: 'server', line: `> ${message}` });
+      return { ok: false, method: 'git', rewritten: true, error: message, head: local };
+    }
+
     broadcast('proc:log', { source: 'server', line: `> git pull --ff-only origin ${branch}` });
     const r = await execGit(['pull', '--ff-only', 'origin', branch], repoRoot, 120000);
     const output = `${r.out}\n${r.err}`.trim();
@@ -639,7 +719,7 @@ async function applyUpdate() {
 }
 
 // Check-and-notify only: runs once shortly after launch and every few hours while the app stays open, toasting the renderer when the server source is behind origin.
-// Applying + rebuilding stays a user action on the Updates page - the server may be live mid-session, and an apply can need files closed.
+// Applying stays a user action on the Updates page - the server may be live mid-session, and an apply can need files closed.
 
 const SERVER_UPDATE_CHECK_EVERY_MS = 4 * 60 * 60 * 1000;
 let lastNotifiedServerSha = null;
@@ -648,33 +728,56 @@ async function watchServerUpdates() {
   try {
     const r = await checkUpdates();
     if (!r || !r.ok || !r.versionKnown) return;        // no project or offline - stay quiet
-    if (!(r.behind > 0)) return;                        // up to date; compareFailed (local dev builds) also lands here
+    if (!r.differs) return;                            // same commit id - up to date
     if (r.remoteSha === lastNotifiedServerSha) return;  // already announced this tip this session
     lastNotifiedServerSha = r.remoteSha;
     broadcast('update:server', {
       behind: r.behind,
+      rewritten: !!r.rewritten,
       remoteShort: r.remoteShort,
       remoteSubject: r.remoteSubject,
       remoteWhen: r.remoteWhen,
     });
-    broadcast('proc:log', { source: 'server', line: `> server update available: ${r.behind} commit(s) behind - ${r.remoteShort} "${r.remoteSubject}" (apply it from the Updates page)` });
+    const how = r.behind > 0 ? `${r.behind} commit(s) behind` : 'a different version of the branch';
+    broadcast('proc:log', { source: 'server', line: `> server update available: ${how} - ${r.remoteShort} "${r.remoteSubject}" (apply it from the Updates page)` });
   } catch { /* offline or rate-limited - the next cycle retries */ }
 }
 
-function rebuildServer() {
+async function rebuildServer() {
   const p = resolvePaths();
-  if (!fs.existsSync(p.csproj)) return Promise.resolve({ ok: false, error: 'Server project not found' });
-  return new Promise((resolve) => {
+  if (!fs.existsSync(p.csproj)) return { ok: false, error: 'Server project not found' };
+
+  // The build can't replace Shittim-Server.exe or Schale.dll while the server holds them open, so a live one comes down for it and goes back up after. Under `dotnet run` the server is a grandchild of the process we wait on and outlives it slightly, hence the settle.
+  const running = procs.server && !procs.server.killed ? procs.server : null;
+  if (running) {
+    broadcast('proc:log', { source: 'server', line: '> stopping the server so the build can replace its binaries...' });
+    const down = await stopServer();
+    if (!down.ok) return { ok: false, error: `the server is still running, so the build would fail to replace its binaries: ${down.error}` };
+    await new Promise((resolve) => {
+      const bail = setTimeout(resolve, 10000);
+      running.once('exit', () => { clearTimeout(bail); setTimeout(resolve, 500); });
+    });
+  }
+
+  const res = await new Promise((resolve) => {
     broadcast('proc:log', { source: 'server', line: '> dotnet build -c Debug (rebuilding after update)...' });
     broadcast('proc:state', { rebuild: 'building' });
     const dn = resolveDotnet();
     let child;
-    try { child = spawn(dn.cmd, ['build', '-c', 'Debug', p.csproj], { cwd: p.serverDir, windowsHide: true, env: dotnetEnv(dn.root) }); }
+    try { child = track(spawn(dn.cmd, ['build', '-c', 'Debug', p.csproj], { cwd: p.serverDir, windowsHide: true, env: dotnetEnv(dn.root) })); }
     catch (e) { resolve({ ok: false, error: String(e.message || e) }); return; }
     pipeLines(child, 'server');
     child.on('exit', (code) => { broadcast('proc:state', { rebuild: 'done' }); broadcast('proc:log', { source: 'server', line: `> build exited (code ${code})` }); resolve({ ok: code === 0, code }); });
     child.on('error', (err) => { broadcast('proc:state', { rebuild: 'failed' }); resolve({ ok: false, error: err.message }); });
   });
+
+  // Back up even on a failed build, on the old binaries, rather than leaving the server down.
+  if (running) {
+    const back = startServer();
+    if (!back.ok) broadcast('proc:log', { source: 'server', line: `> could not restart the server: ${back.error}` });
+  }
+
+  return { ...res, restarted: !!running };
 }
 
 // One-click acquisition of the three host prerequisites the readiness card reports on: the .NET 10 SDK, mitmproxy, and a trusted mitmproxy CA cert.
@@ -689,12 +792,7 @@ const MITM_VERSION = '12.2.3';
 const MITM_INSTALLER_URL = (v) => `https://downloads.mitmproxy.org/${v}/mitmproxy-${v}-windows-x86_64-installer.exe`;
 const MITM_INSTALL_DIR = () => path.join(process.env.ProgramFiles || 'C:\\Program Files', 'mitmproxy');
 
-// Resolve a mitmproxy tool (mitmdump/mitmweb) from the install dir, else PATH.
-function mitmExe(name) {
-  const dir = findMitmBinDir(MITM_INSTALL_DIR());
-  const cand = dir ? path.join(dir, `${name}.exe`) : null;
-  return firstExisting([cand]) || (process.platform === 'win32' ? `${name}.exe` : name);
-}
+const mitmTool = (name) => mitmExe(name, MITM_INSTALL_DIR());
 
 function setupLog(step, line) { broadcast('setup:progress', { step, line }); }
 function setupPhase(step, status, extra) { broadcast('setup:progress', { step, status, ...(extra || {}) }); }
@@ -704,9 +802,9 @@ function runPwsh(script, onLine) {
   return new Promise((resolve) => {
     let child;
     try {
-      child = spawn('powershell.exe',
+      child = track(spawn('powershell.exe',
         ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', script],
-        { windowsHide: true, env: { ...process.env } });
+        { windowsHide: true, env: { ...process.env } }));
     } catch (e) { resolve({ ok: false, code: -1, out: String(e.message || e) }); return; }
     let out = '';
     const onData = (c) => {
@@ -747,7 +845,7 @@ async function installDotnet() {
   if (process.platform !== 'win32') {
     return { ok: false, error: 'Automated .NET install is wired up for Windows only - install the .NET 10 SDK from https://dotnet.microsoft.com/download/dotnet/10.0.' };
   }
-  setupPhase(step, 'running', { message: 'Downloading & installing the .NET 10 SDK (~250 MB) - this can take a few minutes' });
+  setupPhase(step, 'running', { message: '~250 MB, this can take a few minutes' });
   let tmp = null;
   let beat = null;
   try {
@@ -757,13 +855,8 @@ async function installDotnet() {
     await downloadFile('https://dot.net/v1/dotnet-install.ps1', scriptPath);
     const dir = DOTNET_DIR();
     setupLog(step, `> dotnet-install.ps1 -Channel 10.0 -InstallDir "${dir}"`);
-    setupLog(step, '> the SDK download is large and runs quietly - give it a few minutes, it is not stuck');
     // dotnet-install.ps1 emits almost nothing during the big transfer, so keep a heartbeat going to prove the step is still alive in the log/UI.
-    const t0 = Date.now();
-    beat = setInterval(() => {
-      const s = Math.round((Date.now() - t0) / 1000);
-      setupPhase(step, 'running', { message: `Installing the .NET 10 SDK... (${s}s elapsed - downloading in the background)` });
-    }, 3000);
+    beat = setInterval(() => setupPhase(step, 'running', { message: 'downloading in the background' }), 3000);
     // -NoPath: the script's session-only PATH edit is useless to us; we persist it ourselves below. The install is a no-op if the SDK is already present.
     const ps = `& ${psQuote(scriptPath)} -Channel 10.0 -InstallDir ${psQuote(dir)} -Architecture x64 -NoPath`;
     const r = await runPwsh(ps, (l) => setupLog(step, l));
@@ -787,25 +880,6 @@ async function installDotnet() {
   }
 }
 
-// Find the directory holding mitmweb.exe under `root` (the install root, or one of its sub-dirs like bin/), searching up to `depth` levels deep.
-function findMitmBinDir(root, depth = 2) {
-  const hit = (d) => fs.existsSync(path.join(d, 'mitmweb.exe'));
-  if (hit(root)) return root;
-  if (depth <= 0) return null;
-  try {
-    for (const n of fs.readdirSync(root)) {
-      const sub = path.join(root, n);
-      try {
-        if (fs.statSync(sub).isDirectory()) {
-          const found = findMitmBinDir(sub, depth - 1);
-          if (found) return found;
-        }
-      } catch { /* ignore */ }
-    }
-  } catch { /* ignore */ }
-  return null;
-}
-
 // mitmproxy: download the official pinned Windows installer and run it silently+elevated into Program Files, then add the install dir to PATH (the installer itself never modifies PATH).
 async function installMitmproxy() {
   const step = 'mitmproxy';
@@ -822,7 +896,7 @@ async function installMitmproxy() {
     await downloadFile(url, installer, (recv, total) => broadcast('setup:progress', { step, recv, total }));
 
     const dir = MITM_INSTALL_DIR();
-    setupPhase(step, 'running', { message: 'Installing mitmproxy (approve the elevation prompt)...' });
+    setupPhase(step, 'running', { message: 'Approve the elevation prompt' });
     setupLog(step, `> running installer silently into ${dir} (requires elevation)`);
     // Inno Setup silent switches; -Verb RunAs raises the one UAC prompt the requireAdministrator manifest forces.
     // ArgumentList as a single string is passed verbatim so /DIR="...with spaces..." reaches Inno intact.
@@ -848,9 +922,9 @@ async function installMitmproxy() {
 function generateMitmCert(step) {
   return new Promise((resolve, reject) => {
     const certPath = CERT_PATH();
-    const exe = mitmExe('mitmdump');
+    const exe = mitmTool('mitmdump');
     let child;
-    try { child = spawn(exe, ['--listen-port', '48080', '-q'], { windowsHide: true, env: { ...process.env } }); }
+    try { child = track(spawn(exe, ['--listen-port', '48080', '-q'], { windowsHide: true, env: { ...process.env } })); }
     catch (e) { reject(e); return; }
     let done = false;
     const finish = (err) => {
@@ -934,18 +1008,21 @@ function compressArchive(items, destZip) {
   });
 }
 
-// A plain-text snapshot of versions, resolved paths, process state and the environment readiness checks - the context that makes a log bundle actionable.
 async function buildDiagnosticInfo() {
   const p = resolvePaths();
   let env = null;
   try { env = await runEnvChecks(); } catch (e) { env = { error: String(e.message || e) }; }
   let appVersion = '';
   try { appVersion = app.getVersion(); } catch { /* ignore */ }
+  const vs = componentVersions(p.repoRoot, appVersion, readVersionMarker(p.repoRoot));
 
   return [
     '# Shittim Control Center diagnostic snapshot',
     `generated:     ${new Date().toISOString()}`,
     `controlCenter: ${appVersion}`,
+    `serverFiles:   ${vs.sources || '(no Directory.Build.props)'}`,
+    `serverBuild:   ${vs.built || '(not built)'}`,
+    `mismatch:      ${vs.buildStale || vs.releaseSkew || 'none'}`,
     `packaged:      ${app.isPackaged}`,
     `electron:      ${process.versions.electron}`,
     `node:          ${process.versions.node}`,
@@ -969,7 +1046,6 @@ async function buildDiagnosticInfo() {
   ].join('\r\n');
 }
 
-// Prompt for a save location, then stage the logs + diagnostic file and zip them.
 async function exportLogs() {
   const p = resolvePaths();
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '');
@@ -986,7 +1062,6 @@ async function exportLogs() {
     staging = fs.mkdtempSync(path.join(os.tmpdir(), 'scc-logs-'));
     let count = 0;
 
-    // server logs - carry the gateway/metadata patch outcome + handshake errors
     const ld = logsDir();
     for (const name of ['log.txt', 'log-prev.txt']) {
       const src = path.join(ld, name);
@@ -1016,7 +1091,6 @@ async function exportLogs() {
 // The Control Center is a packaged Electron app, so its own exe/files can only be replaced by a newer packaged build - the source pull on the Updates page only updates the .NET server's source.
 // electron-updater pulls new Control Center builds from this repo's GitHub Releases (configured by the `publish` block in package.json), prompts before downloading, and installs on quit. Releases must carry the latest.yml + blockmap + installer assets that `npm run publish` uploads (set a GH_TOKEN env var first).
 // This repo's releases mix SERVER builds and Control Center builds, and electron-updater's GitHub provider only ever inspects the newest release - a server release on top would 404 the feed.
-// resolveSelfUpdateFeed() finds the newest release that actually carries latest.yml and points the generic provider at it; the embedded feed stays as a fallback.
 // Portable builds (and pre-2026.7.27 installs, which shipped without an embedded feed) cannot be swapped in place: they get a version check plus a link to the release page instead.
 
 let cachedAutoUpdater = null;
@@ -1040,11 +1114,13 @@ async function resolveSelfUpdateFeed() {
   return null;
 }
 
-// Can electron-updater service this build in place? Only the NSIS install can: portable exes have no install to patch, and builds packaged without a publish config carry no app-update.yml.
 function hasInPlaceUpdater() {
-  if (!app.isPackaged) return false;
-  if (process.env.PORTABLE_EXECUTABLE_DIR || process.env.PORTABLE_EXECUTABLE_FILE) return false;
-  try { return fs.existsSync(path.join(process.resourcesPath, 'app-update.yml')); } catch { return false; }
+  return selfUpdateMode({
+    packaged: app.isPackaged,
+    portableDir: process.env.PORTABLE_EXECUTABLE_DIR,
+    portableFile: process.env.PORTABLE_EXECUTABLE_FILE,
+    resourcesPath: process.resourcesPath,
+  }) === 'in-place';
 }
 
 // Manual-download flow for builds electron-updater can't patch: read the feed's latest.yml, compare versions, and offer the release page.
@@ -1114,7 +1190,7 @@ function setupAutoUpdate(win) {
         cancelId: 1,
         title: 'Control Center update available',
         message: `Shittim Control Center ${info.version} is available.`,
-        detail: `You are running ${app.getVersion()}. Download it now? The update installs when you close the app.`,
+        detail: `You are running ${app.getVersion()}. The update installs when you close the app.`,
       });
       if (response === 0) {
         broadcast('update:self', { phase: 'downloading', percent: 0 });
@@ -1133,7 +1209,6 @@ function setupAutoUpdate(win) {
         cancelId: 1,
         title: 'Update ready',
         message: `Shittim Control Center ${info.version} downloaded.`,
-        detail: 'Restart now to finish installing.',
       });
       if (response === 0) setImmediate(() => autoUpdater.quitAndInstall());
     });
@@ -1209,7 +1284,11 @@ function createWindow() {
 
 ipcMain.handle('paths:resolve', () => resolvePaths());
 ipcMain.handle('settings:read', () => loadSettings());
-ipcMain.handle('settings:write', (_e, patch) => saveSettings(patch || {}));
+// The renderer writes window geometry through here and does not wait on it, so a failure is reported rather than thrown back at it.
+ipcMain.handle('settings:write', (_e, patch) => {
+  try { return saveSettings(patch || {}); }
+  catch (e) { return { error: String(e.message || e) }; }
+});
 
 ipcMain.handle('config:read', () => readConfig());
 ipcMain.handle('config:write', (_e, payload) => writeConfig(payload));
@@ -1219,38 +1298,49 @@ ipcMain.handle('server:stop', () => stopServer());
 ipcMain.handle('mitm:start', () => startMitm());
 ipcMain.handle('mitm:stop', () => stopMitm());
 
-// combined power control - one action drives both the server and the proxy
 ipcMain.handle('system:start', () => {
   const server = startServer();
   const mitm = startMitm();
   return { ok: server.ok || mitm.ok, server, mitm };
 });
-ipcMain.handle('system:stop', () => {
-  const server = procs.server ? stopServer() : { ok: true, error: 'Server not running' };
-  const mitm = procs.mitm ? stopMitm() : { ok: true, error: 'mitmproxy not running' };
-  return { ok: true, server, mitm };
+ipcMain.handle('system:stop', async () => {
+  const server = procs.server ? await stopServer() : { ok: true, error: 'Server not running' };
+  const mitm = procs.mitm ? await stopMitm() : { ok: true, error: 'mitmproxy not running' };
+  const hosts = offlineHostsApplied() ? await setOfflineHosts(false) : { ok: true, changed: false };
+  return { ok: server.ok && mitm.ok, server, mitm, hosts };
 });
+
+// offline start: the hosts entries have to land before anything else, since the client resolves its first name within seconds of launch and a stale cache entry would send it out to the real address.
+ipcMain.handle('system:startOffline', async () => {
+  const hosts = await setOfflineHosts(true);
+  if (!hosts.ok) return { ok: false, error: hosts.error, hosts };
+  const server = startServer(true);
+  const mitm = startMitm(true);
+  return { ok: server.ok || mitm.ok, hosts, server, mitm };
+});
+ipcMain.handle('offline:status', () => ({ hosts: offlineHostsApplied(), hostnames: OFFLINE_HOSTS }));
+ipcMain.handle('offline:hosts', (_e, on) => setOfflineHosts(!!on));
 
 ipcMain.handle('project:status', () => projectStatus());
 ipcMain.handle('project:download', (_e, opts) => downloadProject(opts || {}));
 ipcMain.handle('project:setPath', (_e, dir) => setProjectPath(dir));
 
-// git-free self-update (compares against GitHub via the REST API)
 ipcMain.handle('updates:check', () => checkUpdates());
 ipcMain.handle('updates:apply', () => applyUpdate());
 ipcMain.handle('updates:rebuild', () => rebuildServer());
-// self-update for the packaged Control Center app (electron-updater / GitHub Releases)
 ipcMain.handle('updates:checkSelf', () => checkSelfUpdate());
 ipcMain.handle('proc:status', () => ({
-  server: procs.server && !procs.server.killed ? 'running' : 'stopped',
-  mitm: procs.mitm && !procs.mitm.killed ? 'running' : 'stopped',
+  server: procs.server && !procs.server.killed ? 'running' : (spawnFailed.server ? 'failed' : 'stopped'),
+  mitm: procs.mitm && !procs.mitm.killed ? 'running' : (spawnFailed.mitm ? 'failed' : 'stopped'),
   serverPid: procs.server && !procs.server.killed ? procs.server.pid : null,
   mitmPid: procs.mitm && !procs.mitm.killed ? procs.mitm.pid : null,
+  serverStartedAt: started.server,
+  serverGraceMs: started.serverGraceMs,
+  mitmStartedAt: started.mitm,
 }));
 
 ipcMain.handle('env:check', () => runEnvChecks());
 
-// one-click toolchain setup: 'dotnet' | 'mitmproxy' | 'certificate' | 'all'
 ipcMain.handle('setup:install', (_e, which) => runSetup(which || 'all'));
 
 ipcMain.handle('dialog:pickFolder', async () => {
@@ -1265,7 +1355,6 @@ ipcMain.handle('shell:openPath', (_e, p) => shell.openPath(p));
 ipcMain.handle('shell:openExternal', (_e, url) => shell.openExternal(url));
 ipcMain.handle('shell:showItem', (_e, p) => { try { shell.showItemInFolder(p); return true; } catch { return false; } });
 
-// bundle server logs + a diagnostic snapshot into a .zip for bug reports
 ipcMain.handle('logs:export', () => exportLogs());
 
 ipcMain.on('window:control', (e, action) => {
@@ -1278,6 +1367,15 @@ ipcMain.on('window:control', (e, action) => {
 
 app.whenReady().then(() => {
   createWindow();
+  try {
+    const undone = resumeInterruptedInstall(resolvePaths().repoRoot);
+    if (undone) {
+      broadcast('proc:log', { source: 'server', line: `> a previous update was interrupted - rolled ${undone.restored} file(s) back to the version you were on` });
+      if (undone.stuck.length) broadcast('proc:log', { source: 'server', line: `> ${undone.stuck.length} file(s) could not be rolled back: ${undone.stuck.slice(0, 5).map((f) => f.path).join(', ')}` });
+    }
+  } catch (e) {
+    broadcast('proc:log', { source: 'server', line: `> could not check for an interrupted update: ${e.message}` });
+  }
   // On launch, check GitHub Releases for a newer packaged Control Center build and prompt to install. Installed builds go through electron-updater; portable/feedless builds get a manual-download notice.
   // Dev runs skip this, and offline errors stay quiet (manual checks still surface them).
   checkSelfUpdate().catch(() => { /* offline or no releases yet - stay quiet */ });
@@ -1290,12 +1388,15 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  killTree(procs.server);
-  killTree(procs.mitm);
   if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('before-quit', () => {
-  killTree(procs.server);
-  killTree(procs.mitm);
+// Quit has to wait for the kills. Firing them and returning lets Electron tear this process down with taskkill still in flight, and then dotnet and mitmdump outlive the window that started them - which is the state people find when the next launch cannot bind the port. The 8s cap is so a child that refuses to die cannot hold the app open forever.
+let quitting = false;
+app.on('before-quit', (e) => {
+  if (quitting) return;
+  quitting = true;
+  e.preventDefault();
+  const all = [killTree(procs.server), killTree(procs.mitm), ...[...helpers].map((c) => killPidTree(c.pid))];
+  Promise.race([Promise.all(all), new Promise((r) => setTimeout(r, 8000))]).then(() => app.quit());
 });

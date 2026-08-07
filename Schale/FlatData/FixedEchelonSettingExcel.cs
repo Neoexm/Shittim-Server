@@ -274,12 +274,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       VectorOffset MainGradeOffset = default(VectorOffset),
       VectorOffset MainExSkillLevelOffset = default(VectorOffset),
       VectorOffset MainNoneExSkillLevelOffset = default(VectorOffset),
-      VectorOffset MainEquipment1TierOffset = default(VectorOffset),
-      VectorOffset MainEquipment1LevelOffset = default(VectorOffset),
-      VectorOffset MainEquipment2TierOffset = default(VectorOffset),
-      VectorOffset MainEquipment2LevelOffset = default(VectorOffset),
-      VectorOffset MainEquipment3TierOffset = default(VectorOffset),
-      VectorOffset MainEquipment3LevelOffset = default(VectorOffset),
+      VectorOffset MainEquipment1_TierOffset = default(VectorOffset),
+      VectorOffset MainEquipment1_levelOffset = default(VectorOffset),
+      VectorOffset MainEquipment2_TierOffset = default(VectorOffset),
+      VectorOffset MainEquipment2_levelOffset = default(VectorOffset),
+      VectorOffset MainEquipment3_TierOffset = default(VectorOffset),
+      VectorOffset MainEquipment3_levelOffset = default(VectorOffset),
       VectorOffset MainCharacterWeaponGradeOffset = default(VectorOffset),
       VectorOffset MainCharacterWeaponLevelOffset = default(VectorOffset),
       VectorOffset MainCharacterGearTierOffset = default(VectorOffset),
@@ -289,12 +289,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       VectorOffset SupportGradeOffset = default(VectorOffset),
       VectorOffset SupportExSkillLevelOffset = default(VectorOffset),
       VectorOffset SupportNoneExSkillLevelOffset = default(VectorOffset),
-      VectorOffset SupportEquipment1TierOffset = default(VectorOffset),
-      VectorOffset SupportEquipment1LevelOffset = default(VectorOffset),
-      VectorOffset SupportEquipment2TierOffset = default(VectorOffset),
-      VectorOffset SupportEquipment2LevelOffset = default(VectorOffset),
-      VectorOffset SupportEquipment3TierOffset = default(VectorOffset),
-      VectorOffset SupportEquipment3LevelOffset = default(VectorOffset),
+      VectorOffset SupportEquipment1_TierOffset = default(VectorOffset),
+      VectorOffset SupportEquipment1_levelOffset = default(VectorOffset),
+      VectorOffset SupportEquipment2_TierOffset = default(VectorOffset),
+      VectorOffset SupportEquipment2_levelOffset = default(VectorOffset),
+      VectorOffset SupportEquipment3_TierOffset = default(VectorOffset),
+      VectorOffset SupportEquipment3_levelOffset = default(VectorOffset),
       VectorOffset SupportCharacterWeaponGradeOffset = default(VectorOffset),
       VectorOffset SupportCharacterWeaponLevelOffset = default(VectorOffset),
       VectorOffset SupportCharacterGearTierOffset = default(VectorOffset),
@@ -307,12 +307,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
     FixedEchelonSettingExcel.AddSupportCharacterGearTier(builder, SupportCharacterGearTierOffset);
     FixedEchelonSettingExcel.AddSupportCharacterWeaponLevel(builder, SupportCharacterWeaponLevelOffset);
     FixedEchelonSettingExcel.AddSupportCharacterWeaponGrade(builder, SupportCharacterWeaponGradeOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment3Level(builder, SupportEquipment3LevelOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment3Tier(builder, SupportEquipment3TierOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment2Level(builder, SupportEquipment2LevelOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment2Tier(builder, SupportEquipment2TierOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment1Level(builder, SupportEquipment1LevelOffset);
-    FixedEchelonSettingExcel.AddSupportEquipment1Tier(builder, SupportEquipment1TierOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment3Level(builder, SupportEquipment3_levelOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment3Tier(builder, SupportEquipment3_TierOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment2Level(builder, SupportEquipment2_levelOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment2Tier(builder, SupportEquipment2_TierOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment1Level(builder, SupportEquipment1_levelOffset);
+    FixedEchelonSettingExcel.AddSupportEquipment1Tier(builder, SupportEquipment1_TierOffset);
     FixedEchelonSettingExcel.AddSupportNoneExSkillLevel(builder, SupportNoneExSkillLevelOffset);
     FixedEchelonSettingExcel.AddSupportExSkillLevel(builder, SupportExSkillLevelOffset);
     FixedEchelonSettingExcel.AddSupportGrade(builder, SupportGradeOffset);
@@ -322,12 +322,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
     FixedEchelonSettingExcel.AddMainCharacterGearTier(builder, MainCharacterGearTierOffset);
     FixedEchelonSettingExcel.AddMainCharacterWeaponLevel(builder, MainCharacterWeaponLevelOffset);
     FixedEchelonSettingExcel.AddMainCharacterWeaponGrade(builder, MainCharacterWeaponGradeOffset);
-    FixedEchelonSettingExcel.AddMainEquipment3Level(builder, MainEquipment3LevelOffset);
-    FixedEchelonSettingExcel.AddMainEquipment3Tier(builder, MainEquipment3TierOffset);
-    FixedEchelonSettingExcel.AddMainEquipment2Level(builder, MainEquipment2LevelOffset);
-    FixedEchelonSettingExcel.AddMainEquipment2Tier(builder, MainEquipment2TierOffset);
-    FixedEchelonSettingExcel.AddMainEquipment1Level(builder, MainEquipment1LevelOffset);
-    FixedEchelonSettingExcel.AddMainEquipment1Tier(builder, MainEquipment1TierOffset);
+    FixedEchelonSettingExcel.AddMainEquipment3Level(builder, MainEquipment3_levelOffset);
+    FixedEchelonSettingExcel.AddMainEquipment3Tier(builder, MainEquipment3_TierOffset);
+    FixedEchelonSettingExcel.AddMainEquipment2Level(builder, MainEquipment2_levelOffset);
+    FixedEchelonSettingExcel.AddMainEquipment2Tier(builder, MainEquipment2_TierOffset);
+    FixedEchelonSettingExcel.AddMainEquipment1Level(builder, MainEquipment1_levelOffset);
+    FixedEchelonSettingExcel.AddMainEquipment1Tier(builder, MainEquipment1_TierOffset);
     FixedEchelonSettingExcel.AddMainNoneExSkillLevel(builder, MainNoneExSkillLevelOffset);
     FixedEchelonSettingExcel.AddMainExSkillLevel(builder, MainExSkillLevelOffset);
     FixedEchelonSettingExcel.AddMainGrade(builder, MainGradeOffset);
@@ -626,35 +626,35 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       var __MainNoneExSkillLevel = _o.MainNoneExSkillLevel.ToArray();
       _MainNoneExSkillLevel = CreateMainNoneExSkillLevelVector(builder, __MainNoneExSkillLevel);
     }
-    var _MainEquipment1Tier = default(VectorOffset);
+    var _MainEquipment1_Tier = default(VectorOffset);
     if (_o.MainEquipment1Tier != null) {
-      var __MainEquipment1Tier = _o.MainEquipment1Tier.ToArray();
-      _MainEquipment1Tier = CreateMainEquipment1TierVector(builder, __MainEquipment1Tier);
+      var __MainEquipment1_Tier = _o.MainEquipment1Tier.ToArray();
+      _MainEquipment1_Tier = CreateMainEquipment1TierVector(builder, __MainEquipment1_Tier);
     }
-    var _MainEquipment1Level = default(VectorOffset);
+    var _MainEquipment1_level = default(VectorOffset);
     if (_o.MainEquipment1Level != null) {
-      var __MainEquipment1Level = _o.MainEquipment1Level.ToArray();
-      _MainEquipment1Level = CreateMainEquipment1LevelVector(builder, __MainEquipment1Level);
+      var __MainEquipment1_level = _o.MainEquipment1Level.ToArray();
+      _MainEquipment1_level = CreateMainEquipment1LevelVector(builder, __MainEquipment1_level);
     }
-    var _MainEquipment2Tier = default(VectorOffset);
+    var _MainEquipment2_Tier = default(VectorOffset);
     if (_o.MainEquipment2Tier != null) {
-      var __MainEquipment2Tier = _o.MainEquipment2Tier.ToArray();
-      _MainEquipment2Tier = CreateMainEquipment2TierVector(builder, __MainEquipment2Tier);
+      var __MainEquipment2_Tier = _o.MainEquipment2Tier.ToArray();
+      _MainEquipment2_Tier = CreateMainEquipment2TierVector(builder, __MainEquipment2_Tier);
     }
-    var _MainEquipment2Level = default(VectorOffset);
+    var _MainEquipment2_level = default(VectorOffset);
     if (_o.MainEquipment2Level != null) {
-      var __MainEquipment2Level = _o.MainEquipment2Level.ToArray();
-      _MainEquipment2Level = CreateMainEquipment2LevelVector(builder, __MainEquipment2Level);
+      var __MainEquipment2_level = _o.MainEquipment2Level.ToArray();
+      _MainEquipment2_level = CreateMainEquipment2LevelVector(builder, __MainEquipment2_level);
     }
-    var _MainEquipment3Tier = default(VectorOffset);
+    var _MainEquipment3_Tier = default(VectorOffset);
     if (_o.MainEquipment3Tier != null) {
-      var __MainEquipment3Tier = _o.MainEquipment3Tier.ToArray();
-      _MainEquipment3Tier = CreateMainEquipment3TierVector(builder, __MainEquipment3Tier);
+      var __MainEquipment3_Tier = _o.MainEquipment3Tier.ToArray();
+      _MainEquipment3_Tier = CreateMainEquipment3TierVector(builder, __MainEquipment3_Tier);
     }
-    var _MainEquipment3Level = default(VectorOffset);
+    var _MainEquipment3_level = default(VectorOffset);
     if (_o.MainEquipment3Level != null) {
-      var __MainEquipment3Level = _o.MainEquipment3Level.ToArray();
-      _MainEquipment3Level = CreateMainEquipment3LevelVector(builder, __MainEquipment3Level);
+      var __MainEquipment3_level = _o.MainEquipment3Level.ToArray();
+      _MainEquipment3_level = CreateMainEquipment3LevelVector(builder, __MainEquipment3_level);
     }
     var _MainCharacterWeaponGrade = default(VectorOffset);
     if (_o.MainCharacterWeaponGrade != null) {
@@ -701,35 +701,35 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       var __SupportNoneExSkillLevel = _o.SupportNoneExSkillLevel.ToArray();
       _SupportNoneExSkillLevel = CreateSupportNoneExSkillLevelVector(builder, __SupportNoneExSkillLevel);
     }
-    var _SupportEquipment1Tier = default(VectorOffset);
+    var _SupportEquipment1_Tier = default(VectorOffset);
     if (_o.SupportEquipment1Tier != null) {
-      var __SupportEquipment1Tier = _o.SupportEquipment1Tier.ToArray();
-      _SupportEquipment1Tier = CreateSupportEquipment1TierVector(builder, __SupportEquipment1Tier);
+      var __SupportEquipment1_Tier = _o.SupportEquipment1Tier.ToArray();
+      _SupportEquipment1_Tier = CreateSupportEquipment1TierVector(builder, __SupportEquipment1_Tier);
     }
-    var _SupportEquipment1Level = default(VectorOffset);
+    var _SupportEquipment1_level = default(VectorOffset);
     if (_o.SupportEquipment1Level != null) {
-      var __SupportEquipment1Level = _o.SupportEquipment1Level.ToArray();
-      _SupportEquipment1Level = CreateSupportEquipment1LevelVector(builder, __SupportEquipment1Level);
+      var __SupportEquipment1_level = _o.SupportEquipment1Level.ToArray();
+      _SupportEquipment1_level = CreateSupportEquipment1LevelVector(builder, __SupportEquipment1_level);
     }
-    var _SupportEquipment2Tier = default(VectorOffset);
+    var _SupportEquipment2_Tier = default(VectorOffset);
     if (_o.SupportEquipment2Tier != null) {
-      var __SupportEquipment2Tier = _o.SupportEquipment2Tier.ToArray();
-      _SupportEquipment2Tier = CreateSupportEquipment2TierVector(builder, __SupportEquipment2Tier);
+      var __SupportEquipment2_Tier = _o.SupportEquipment2Tier.ToArray();
+      _SupportEquipment2_Tier = CreateSupportEquipment2TierVector(builder, __SupportEquipment2_Tier);
     }
-    var _SupportEquipment2Level = default(VectorOffset);
+    var _SupportEquipment2_level = default(VectorOffset);
     if (_o.SupportEquipment2Level != null) {
-      var __SupportEquipment2Level = _o.SupportEquipment2Level.ToArray();
-      _SupportEquipment2Level = CreateSupportEquipment2LevelVector(builder, __SupportEquipment2Level);
+      var __SupportEquipment2_level = _o.SupportEquipment2Level.ToArray();
+      _SupportEquipment2_level = CreateSupportEquipment2LevelVector(builder, __SupportEquipment2_level);
     }
-    var _SupportEquipment3Tier = default(VectorOffset);
+    var _SupportEquipment3_Tier = default(VectorOffset);
     if (_o.SupportEquipment3Tier != null) {
-      var __SupportEquipment3Tier = _o.SupportEquipment3Tier.ToArray();
-      _SupportEquipment3Tier = CreateSupportEquipment3TierVector(builder, __SupportEquipment3Tier);
+      var __SupportEquipment3_Tier = _o.SupportEquipment3Tier.ToArray();
+      _SupportEquipment3_Tier = CreateSupportEquipment3TierVector(builder, __SupportEquipment3_Tier);
     }
-    var _SupportEquipment3Level = default(VectorOffset);
+    var _SupportEquipment3_level = default(VectorOffset);
     if (_o.SupportEquipment3Level != null) {
-      var __SupportEquipment3Level = _o.SupportEquipment3Level.ToArray();
-      _SupportEquipment3Level = CreateSupportEquipment3LevelVector(builder, __SupportEquipment3Level);
+      var __SupportEquipment3_level = _o.SupportEquipment3Level.ToArray();
+      _SupportEquipment3_level = CreateSupportEquipment3LevelVector(builder, __SupportEquipment3_level);
     }
     var _SupportCharacterWeaponGrade = default(VectorOffset);
     if (_o.SupportCharacterWeaponGrade != null) {
@@ -761,12 +761,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       _MainGrade,
       _MainExSkillLevel,
       _MainNoneExSkillLevel,
-      _MainEquipment1Tier,
-      _MainEquipment1Level,
-      _MainEquipment2Tier,
-      _MainEquipment2Level,
-      _MainEquipment3Tier,
-      _MainEquipment3Level,
+      _MainEquipment1_Tier,
+      _MainEquipment1_level,
+      _MainEquipment2_Tier,
+      _MainEquipment2_level,
+      _MainEquipment3_Tier,
+      _MainEquipment3_level,
       _MainCharacterWeaponGrade,
       _MainCharacterWeaponLevel,
       _MainCharacterGearTier,
@@ -776,12 +776,12 @@ public struct FixedEchelonSettingExcel : IFlatbufferObject
       _SupportGrade,
       _SupportExSkillLevel,
       _SupportNoneExSkillLevel,
-      _SupportEquipment1Tier,
-      _SupportEquipment1Level,
-      _SupportEquipment2Tier,
-      _SupportEquipment2Level,
-      _SupportEquipment3Tier,
-      _SupportEquipment3Level,
+      _SupportEquipment1_Tier,
+      _SupportEquipment1_level,
+      _SupportEquipment2_Tier,
+      _SupportEquipment2_level,
+      _SupportEquipment3_Tier,
+      _SupportEquipment3_level,
       _SupportCharacterWeaponGrade,
       _SupportCharacterWeaponLevel,
       _SupportCharacterGearTier,

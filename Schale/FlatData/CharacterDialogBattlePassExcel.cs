@@ -110,8 +110,8 @@ public struct CharacterDialogBattlePassExcel : IFlatbufferObject
       long Duration = 0,
       long DurationKr = 0,
       StringOffset AnimationNameOffset = default(StringOffset),
-      StringOffset LocalizeKROffset = default(StringOffset),
-      StringOffset LocalizeJPOffset = default(StringOffset),
+      StringOffset Localize_KROffset = default(StringOffset),
+      StringOffset Localize_JPOffset = default(StringOffset),
       StringOffset LocalizeTHOffset = default(StringOffset),
       StringOffset LocalizeTWOffset = default(StringOffset),
       StringOffset LocalizeENOffset = default(StringOffset),
@@ -137,8 +137,8 @@ public struct CharacterDialogBattlePassExcel : IFlatbufferObject
     CharacterDialogBattlePassExcel.AddLocalizeEN(builder, LocalizeENOffset);
     CharacterDialogBattlePassExcel.AddLocalizeTW(builder, LocalizeTWOffset);
     CharacterDialogBattlePassExcel.AddLocalizeTH(builder, LocalizeTHOffset);
-    CharacterDialogBattlePassExcel.AddLocalizeJP(builder, LocalizeJPOffset);
-    CharacterDialogBattlePassExcel.AddLocalizeKR(builder, LocalizeKROffset);
+    CharacterDialogBattlePassExcel.AddLocalizeJP(builder, Localize_JPOffset);
+    CharacterDialogBattlePassExcel.AddLocalizeKR(builder, Localize_KROffset);
     CharacterDialogBattlePassExcel.AddAnimationName(builder, AnimationNameOffset);
     CharacterDialogBattlePassExcel.AddDialogType(builder, DialogType);
     CharacterDialogBattlePassExcel.AddDialogConditionDetail(builder, DialogConditionDetail);
@@ -222,8 +222,8 @@ public struct CharacterDialogBattlePassExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.CharacterDialogBattlePassExcel> Pack(FlatBufferBuilder builder, CharacterDialogBattlePassExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CharacterDialogBattlePassExcel>);
     var _AnimationName = _o.AnimationName == null ? default(StringOffset) : builder.CreateString(_o.AnimationName);
-    var _LocalizeKR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
-    var _LocalizeJP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
+    var _Localize_KR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
+    var _Localize_JP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
     var _LocalizeTH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
     var _LocalizeTW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
     var _LocalizeEN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
@@ -249,8 +249,8 @@ public struct CharacterDialogBattlePassExcel : IFlatbufferObject
       _o.Duration,
       _o.DurationKr,
       _AnimationName,
-      _LocalizeKR,
-      _LocalizeJP,
+      _Localize_KR,
+      _Localize_JP,
       _LocalizeTH,
       _LocalizeTW,
       _LocalizeEN,

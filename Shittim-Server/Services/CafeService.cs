@@ -1,3 +1,4 @@
+using BlueArchiveAPI.Configuration;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.FlatData;
@@ -10,6 +11,7 @@ namespace BlueArchiveAPI.Services
     {
         private readonly ILogger<CafeService> _logger;
         private static readonly Random _rng = new();
+        private const long KoyukiId = 10063;
 
         public CafeService(ILogger<CafeService> logger)
         {
@@ -20,26 +22,49 @@ namespace BlueArchiveAPI.Services
             List<CharacterDBServer> characters, List<CharacterExcelT> characterExcels)
         {
             var cafeVisitCharacterDBs = new Dictionary<long, CafeDBServer.CafeCharacterDBServer>();
-            var existingCharactersLookup = characters.ToDictionary(c => c.UniqueId);
+
+            if (Config.Instance.ServerConfiguration.KoyukiIncident)
+                return CreateKoyukiVisitors(characters);
+
+            // seats have to come out of the owned roster - a visitor with no CharacterDB goes out with ServerId 0 and login sync throws the whole cafe away.
+            var releasedIds = characterExcels.Select(x => x.Id).ToHashSet();
+            var ownedCharacters = characters.Where(c => releasedIds.Contains(c.UniqueId)).ToList();
             var numberOfCharacters = Random.Shared.Next(3, 6);
-            var randomCharacters = SelectRandomCharacters(characterExcels, numberOfCharacters);
+            var randomCharacters = SelectRandomCharacters(ownedCharacters, numberOfCharacters);
 
             foreach (var character in randomCharacters)
             {
-                existingCharactersLookup.TryGetValue(character.Id, out var existingCharacter);
-
                 cafeVisitCharacterDBs.Add(
-                    character.Id,
+                    character.UniqueId,
                     new CafeDBServer.CafeCharacterDBServer
                     {
                         IsSummon = false,
-                        UniqueId = character.Id,
-                        ServerId = existingCharacter?.ServerId ?? 0
+                        UniqueId = character.UniqueId,
+                        ServerId = character.ServerId
                     }
                 );
             }
 
             return cafeVisitCharacterDBs;
+        }
+
+        public static Dictionary<long, CafeDBServer.CafeCharacterDBServer> CreateKoyukiVisitors(List<CharacterDBServer> characters)
+        {
+            var koyuki = characters.FirstOrDefault(c => c.UniqueId == KoyukiId);
+            var visitors = new Dictionary<long, CafeDBServer.CafeCharacterDBServer>();
+
+            // every visit dictionary the client has ever been sent is keyed by character id, so the first seat is keyed the way it expects and the rest go under negative keys no student can collide with. if the cafe reads the student off the value's UniqueId all hundred land, and if it reads the key we still get the one.
+            for (var seat = 0; seat < 100; seat++)
+            {
+                visitors.Add(seat == 0 ? KoyukiId : -seat, new CafeDBServer.CafeCharacterDBServer
+                {
+                    IsSummon = false,
+                    UniqueId = KoyukiId,
+                    ServerId = koyuki?.ServerId ?? 0
+                });
+            }
+
+            return visitors;
         }
 
         public static List<FurnitureDBServer> AddToInventory(
@@ -49,12 +74,7 @@ namespace BlueArchiveAPI.Services
 
             foreach (var furniture in furnituresToPickup)
             {
-                var furnitureToRemove = context.Furnitures.FirstOrDefault(x =>
-                    x.AccountServerId == accountId && x.UniqueId == furniture.UniqueId && x.ItemDeploySequence != 0);
-
-                if (furnitureToRemove != null)
-                    context.Furnitures.Remove(furnitureToRemove);
-
+                // callers have already removed the exact deployed rows - matching by UniqueId here can hit the same furniture deployed in the other cafe
                 var inventoryFurniture = inventoryUpdates.FirstOrDefault(x => x.UniqueId == furniture.UniqueId) ??
                     context.Furnitures.FirstOrDefault(x => x.AccountServerId == accountId && x.UniqueId == furniture.UniqueId && x.ItemDeploySequence == 0);
 

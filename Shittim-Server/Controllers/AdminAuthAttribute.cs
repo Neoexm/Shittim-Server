@@ -42,7 +42,6 @@ public sealed class AdminAuthAttribute : Attribute, IAuthorizationFilter
         };
     }
 
-    /// <summary>Returns the configured key, or null when none is set.</summary>
     private static string? ResolveConfiguredKey()
     {
         var key = Environment.GetEnvironmentVariable("SHITTIM_ADMIN_API_KEY");

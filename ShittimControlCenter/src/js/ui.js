@@ -31,7 +31,6 @@ export function el(spec, props = {}, ...children) {
   return node;
 }
 
-// Parse an HTML string into a single node (or fragment's first element).
 export function frag(html) {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
@@ -104,7 +103,6 @@ export function toast(message, kind = '', title) {
   }, 3400);
 }
 
-// Reminder that the game client only loads account data at login - shown after any edit that touches a live account (currency, roster, unlocks, ...).
 // Sticky until dismissed so it survives a batch of edits; repeat calls re-flash the existing banner instead of stacking a new one.
 let restartNoteEl = null;
 export function notifyRestart() {
@@ -172,12 +170,11 @@ export function confirmDialog({ title = 'Confirm', message, confirmLabel = 'Conf
       footer: [no, yes],
       onClose: () => resolve(false),
     });
-    yes.addEventListener('click', () => { ref.close(); resolve(true); });
+    yes.addEventListener('click', () => { resolve(true); ref.close(); });
     no.addEventListener('click', () => { ref.close(); resolve(false); });
   });
 }
 
-// Generic searchable picker backed by an async loader returning [{id,name,sub}].
 export function openPicker({ title, loader, onPick }) {
   const list = el('div.picker-list', {});
   const search = input({ placeholder: 'Search by name or ID...', className: 'input picker-search' });
@@ -220,6 +217,28 @@ export function relTime(secs) {
   secs = Math.max(0, Math.floor(secs));
   const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
   return h ? `${h}h ${m}m` : m ? `${m}m ${s}s` : `${s}s`;
+}
+
+// Collect whatever arrives between animation frames and hand it over in one call. Appending a node and then reading scrollHeight back to stay pinned to the bottom is a forced layout, so doing it per log line costs 2.1s of main-thread time for 4000 lines against 116ms for the same lines flushed a frame at a time - during a battle the renderer never catches up and the window stops answering the button that would stop the server.
+// `cap` throws away the middle of a burst, which is only ever lines that would have scrolled past before a frame could show them.
+export function batched(flush, { cap = 1200, schedule = requestAnimationFrame } = {}) {
+  let queued = [];
+  let scheduled = false;
+  return {
+    push(item) {
+      queued.push(item);
+      if (queued.length > cap) queued.splice(0, queued.length - cap);
+      if (scheduled) return;
+      scheduled = true;
+      schedule(() => {
+        scheduled = false;
+        const batch = queued;
+        queued = [];
+        if (batch.length) flush(batch);
+      });
+    },
+    discard() { queued = []; },
+  };
 }
 
 export function card(title, { sub, actions, body, tight } = {}) {

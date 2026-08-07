@@ -60,7 +60,7 @@ public struct EventContentBuffExcel : IFlatbufferObject
       bool IsBuff = false,
       Schale.FlatData.Tag CharacterTag = Schale.FlatData.Tag.A,
       Schale.FlatData.EventContentBuffFindRule EnumType = Schale.FlatData.EventContentBuffFindRule.None,
-      VectorOffset enumTypeValueOffset = default(VectorOffset),
+      VectorOffset EnumTypeValueOffset = default(VectorOffset),
       StringOffset SkillGroupIdOffset = default(StringOffset),
       StringOffset IconPathOffset = default(StringOffset),
       StringOffset SpriteNameOffset = default(StringOffset),
@@ -71,7 +71,7 @@ public struct EventContentBuffExcel : IFlatbufferObject
     EventContentBuffExcel.AddSpriteName(builder, SpriteNameOffset);
     EventContentBuffExcel.AddIconPath(builder, IconPathOffset);
     EventContentBuffExcel.AddSkillGroupId(builder, SkillGroupIdOffset);
-    EventContentBuffExcel.AddEnumTypeValue(builder, enumTypeValueOffset);
+    EventContentBuffExcel.AddEnumTypeValue(builder, EnumTypeValueOffset);
     EventContentBuffExcel.AddEnumType(builder, EnumType);
     EventContentBuffExcel.AddCharacterTag(builder, CharacterTag);
     EventContentBuffExcel.AddIsBuff(builder, IsBuff);
@@ -117,11 +117,11 @@ public struct EventContentBuffExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentBuffExcel> Pack(FlatBufferBuilder builder, EventContentBuffExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentBuffExcel>);
-    var _enumTypeValue = default(VectorOffset);
+    var _EnumTypeValue = default(VectorOffset);
     if (_o.EnumTypeValue != null) {
-      var __enumTypeValue = new StringOffset[_o.EnumTypeValue.Count];
-      for (var _j = 0; _j < __enumTypeValue.Length; ++_j) { __enumTypeValue[_j] = builder.CreateString(_o.EnumTypeValue[_j]); }
-      _enumTypeValue = CreateEnumTypeValueVector(builder, __enumTypeValue);
+      var __EnumTypeValue = new StringOffset[_o.EnumTypeValue.Count];
+      for (var _j = 0; _j < __EnumTypeValue.Length; ++_j) { __EnumTypeValue[_j] = builder.CreateString(_o.EnumTypeValue[_j]); }
+      _EnumTypeValue = CreateEnumTypeValueVector(builder, __EnumTypeValue);
     }
     var _SkillGroupId = _o.SkillGroupId == null ? default(StringOffset) : builder.CreateString(_o.SkillGroupId);
     var _IconPath = _o.IconPath == null ? default(StringOffset) : builder.CreateString(_o.IconPath);
@@ -133,7 +133,7 @@ public struct EventContentBuffExcel : IFlatbufferObject
       _o.IsBuff,
       _o.CharacterTag,
       _o.EnumType,
-      _enumTypeValue,
+      _EnumTypeValue,
       _SkillGroupId,
       _IconPath,
       _SpriteName,

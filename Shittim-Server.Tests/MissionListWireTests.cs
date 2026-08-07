@@ -1,4 +1,5 @@
 using Schale.Data.GameModel;
+using Schale.FlatData;
 using Shittim_Server.Core.NetworkProtocol.Handlers;
 using Xunit;
 
@@ -85,5 +86,42 @@ public class MissionListWireTests
         var filtered = MissionHandler.FilterMissionScreenProgresses(progresses, []);
 
         Assert.Same(progresses, filtered);
+    }
+
+    [Fact]
+    public void DailyAndWeeklyClaimsExpireWithTheirResetWindow()
+    {
+        // The client has no time axis on MissionHistoryUniqueIds - membership alone renders a task as claimed. A daily claimed yesterday that still reaches the wire is a task that can never pay again.
+        var resetTypes = new Dictionary<long, MissionResetType>
+        {
+            [100] = MissionResetType.Daily,
+            [200] = MissionResetType.Weekly,
+            [300] = MissionResetType.None,
+        };
+
+        // Thursday 2026-07-30 12:00; the daily window opened at 04:00 that day, the weekly on Monday the 27th at 04:00.
+        var now = new DateTime(2026, 7, 30, 12, 0, 0);
+
+        var claims = MissionHandler.CurrentWindowClaims(
+        [
+            (100, new DateTime(2026, 7, 30, 5, 0, 0)),   // daily, claimed this window
+            (100, new DateTime(2026, 7, 29, 23, 0, 0)),  // daily, yesterday's claim of the same mission
+            (200, new DateTime(2026, 7, 26, 12, 0, 0)),  // weekly, last week
+            (300, new DateTime(2025, 1, 1, 0, 0, 0)),    // achievement, claims are forever
+            (999, new DateTime(2025, 1, 1, 0, 0, 0)),    // guide/event claim outside MissionExcel
+        ], resetTypes, now);
+
+        Assert.Equal(new long[] { 100, 300, 999 }, claims);
+    }
+
+    [Fact]
+    public void TheDailyClaimWindowRollsAtFourAm()
+    {
+        var resetTypes = new Dictionary<long, MissionResetType> { [100] = MissionResetType.Daily };
+        var claimedLateEvening = new[] { (100L, new DateTime(2026, 7, 29, 23, 0, 0)) };
+
+        // 03:00 is still the same game day as the 23:00 claim; 04:00 opens the next window and the claim expires.
+        Assert.Equal([100], MissionHandler.CurrentWindowClaims(claimedLateEvening, resetTypes, new DateTime(2026, 7, 30, 3, 0, 0)));
+        Assert.Empty(MissionHandler.CurrentWindowClaims(claimedLateEvening, resetTypes, new DateTime(2026, 7, 30, 4, 0, 0)));
     }
 }

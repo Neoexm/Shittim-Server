@@ -37,22 +37,6 @@ public class MomoTalkHandler : ProtocolHandlerBase
         _academyMessengers = _excelService.GetTable<AcademyMessangerExcelT>();
         _academyFavorSchedules = _excelService.GetTable<AcademyFavorScheduleExcelT>();
     }
-	
-	private static bool uwu(long candidateNextGroupId, long currentGroupId)
-		=> candidateNextGroupId > 0 && candidateNextGroupId != currentGroupId;
-
-	private long fckYouNxn(long characterUniqueId){
-		var myPorscheArrives = _academyMessengers
-			.Where(x => x.CharacterId == characterUniqueId && x.PreConditionGroupId == 0)
-			.OrderBy(x => x.MessageGroupId)
-			.ToList();
-		var sinFallen = _academyMessengers
-			.Where(x => x.CharacterId == characterUniqueId)
-			.Select(x => x.NextGroupId)
-			.ToHashSet();
-		var heavensBlue = myPorscheArrives.FirstOrDefault(x => !sinFallen.Contains(x.MessageGroupId));
-		return heavensBlue?.MessageGroupId ?? 0;
-	}
 
     [ProtocolHandler(Protocol.MomoTalk_MessageList)]
     public async Task<MomoTalkMessageListResponse> MessageList(
@@ -68,27 +52,8 @@ public class MomoTalkHandler : ProtocolHandlerBase
         if (momotalkOutline != null)
         {
             response.MomoTalkOutLineDB = _mapper.Map<MomoTalkOutLineDB>(momotalkOutline);
-        } else {
-			var peroroHeGotBugatti = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
-			if(peroroHeGotBugatti != null){
-				var loveItOne = fckYouNxn(peroroHeGotBugatti.UniqueId);
-				var sinFall = loveItOne > 0;
+        }
 
-				if(sinFall){
-					var loveItOneMore = new MomoTalkOutLineDBServer{
-						AccountServerId = account.ServerId,
-						CharacterDBId = request.CharacterDBId,
-						CharacterId = peroroHeGotBugatti.UniqueId,
-						LatestMessageGroupId = loveItOne,
-						ChosenMessageId = null,
-						LastUpdateDate = account.GameSettings.ServerDateTime()
-					};
-					db.MomoTalkOutLines.Add(loveItOneMore);
-					await db.SaveChangesAsync();
-					response.MomoTalkOutLineDB = _mapper.Map<MomoTalkOutLineDB>(loveItOneMore);
-				}
-			}
-		}
         var choices = db.GetAccountMomoTalkChoices(account.ServerId)
             .Where(c => c.CharacterDBId == request.CharacterDBId)
             .OrderBy(c => c.MessageGroupId)
@@ -113,35 +78,30 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         if (momotalkOutline == null)
         {
-            // Fallback: Check if user owns the character and create outline
             var character = db.Characters.FirstOrDefault(c => c.ServerId == request.CharacterDBId && c.AccountServerId == account.ServerId);
             if (character == null) return response;
-
-			var sDesires = fckYouNxn(character.UniqueId);
 
             momotalkOutline = new MomoTalkOutLineDBServer
             {
                 AccountServerId = account.ServerId,
                 CharacterDBId = request.CharacterDBId,
                 CharacterId = character.UniqueId,
-                LatestMessageGroupId = sDesires > 0 ? sDesires:request.LastReadMessageGroupId,
+                LatestMessageGroupId = request.LastReadMessageGroupId,
                 LastUpdateDate = account.GameSettings.ServerDateTime()
             };
             db.MomoTalkOutLines.Add(momotalkOutline);
             // Not saved here - the SaveChanges at the end of the handler bundles it.
         }
 
-        // Logic to determine the NEXT message group
         long nextGroupId = 0;
-
-		var sPoisoning = _academyMessengers.Where(x => x.MessageGroupId == momotalkOutline.LatestMessageGroupId).ToList();
-        var ecchiNanoWaDame = sPoisoning.Any(x => x.MessageCondition == AcademyMessageConditions.Answer);
-        if (ecchiNanoWaDame){
-            var shike = request.ChosenMessageId.GetValueOrDefault();
-            if (shike  > 0 && sPoisoning.Any(x => x.NextGroupId == shike)){
-				nextGroupId = shike;
-
-                // Record the choice if not exists
+        
+        if (request.ChosenMessageId.GetValueOrDefault() > 0)
+        {
+            var chosenMessage = _academyMessengers.FirstOrDefault(x => x.Id == request.ChosenMessageId.Value);
+            if (chosenMessage != null)
+            {
+                nextGroupId = chosenMessage.NextGroupId;
+                
                 var existingChoice = db.MomoTalkChoices.FirstOrDefault(x => 
                     x.AccountServerId == account.ServerId && 
                     x.CharacterDBId == request.CharacterDBId && 
@@ -154,46 +114,45 @@ public class MomoTalkHandler : ProtocolHandlerBase
                         AccountServerId = account.ServerId,
                         CharacterDBId = request.CharacterDBId,
                         MessageGroupId = request.LastReadMessageGroupId,
-                        ChosenMessageId = shike,
+                        ChosenMessageId = request.ChosenMessageId.Value,
                         ChosenDate = DateTime.UtcNow
                     };
                     db.MomoTalkChoices.Add(choiceDB);
                 }
-                else if (existingChoice.ChosenMessageId != shike)
+                else if (existingChoice.ChosenMessageId != request.ChosenMessageId.Value)
                 {
-                    existingChoice.ChosenMessageId = shike;
+                    existingChoice.ChosenMessageId = request.ChosenMessageId.Value;
                     existingChoice.ChosenDate = DateTime.UtcNow;
                 }
             }
         }
         else
         {
-			var mmtChatProgression = sPoisoning
-				.Where(x => x.MessageCondition != AcademyMessageConditions.Answer && x.MessageCondition != AcademyMessageConditions.Feedback)
-				.ToList();
-			if (mmtChatProgression.Count != 0) {
-			var transitionMessage = mmtChatProgression.FirstOrDefault(x => uwu(x.NextGroupId, request.LastReadMessageGroupId));
-			if(transitionMessage != null) {
-				nextGroupId = transitionMessage.NextGroupId;
-			}
-			}
+            // No choice made, so the next group comes from the group being read.
+            var currentGroupMessages = _academyMessengers.Where(x => x.MessageGroupId == request.LastReadMessageGroupId).ToList();
+            if (currentGroupMessages.Count != 0)
+            {
+                // The transition is carried by whichever message points somewhere other than its own group. If none does, fall back to the first message's NextGroupId.
+                var transitionMessage = currentGroupMessages.FirstOrDefault(x => x.NextGroupId > 0 && x.NextGroupId != request.LastReadMessageGroupId);
+                nextGroupId = transitionMessage != null
+                    ? transitionMessage.NextGroupId
+                    : currentGroupMessages[0].NextGroupId;
+            }
         }
 
-        // A FavorRankUp-gated group only opens once the student's relationship rank reaches the
-        // condition value; advancing past it regardless hands every story out at rank 1.
+        // A FavorRankUp-gated group only opens once the student's relationship rank reaches the condition value; advancing past it regardless hands every story out at rank 1.
         if (nextGroupId > 0)
         {
             var nextGroupEntry = _academyMessengers
                 .FirstOrDefault(x => x.MessageGroupId == nextGroupId);
-            if (nextGroupEntry != null){
-				if (nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp) {
-					var favorRank = db.Characters .FirstOrDefault(c => c.AccountServerId == account.ServerId && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
-				if (favorRank < nextGroupEntry.ConditionValue)
+            if (nextGroupEntry != null
+                && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp)
+            {
+                var favorRank = db.Characters
+                    .FirstOrDefault(c => c.AccountServerId == account.ServerId
+                        && c.ServerId == momotalkOutline.CharacterDBId)?.FavorRank ?? 1;
+                if (favorRank < nextGroupEntry.ConditionValue)
                     nextGroupId = 0;
-				}
-				if (nextGroupId > 0 && nextGroupEntry.PreConditionFavorScheduleId > 0 && !momotalkOutline.ScheduleIds.Contains(nextGroupEntry.PreConditionFavorScheduleId)) {
-					nextGroupId = 0;
-				}
             }
         }
 
@@ -204,12 +163,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
             // Keep current outline choice null to prevent duplicate message bubbles.
             // Choice history is already represented by MomoTalkChoiceDBs.
             momotalkOutline.ChosenMessageId = null;
-        } else {
-			momotalkOutline.LatestMessageGroupId = request.LastReadMessageGroupId;
-			momotalkOutline.LastUpdateDate = account.GameSettings.ServerDateTime();
-			bool drynessSquad = request.ChosenMessageId.GetValueOrDefault() > 0;
-			momotalkOutline.ChosenMessageId = drynessSquad ? request.ChosenMessageId : null;
-		}
+        }
 
         await db.SaveChangesAsync();
 
@@ -261,17 +215,21 @@ public class MomoTalkHandler : ProtocolHandlerBase
         var targetOutline = outlines.FirstOrDefault(x => x.CharacterId == schedule.CharacterId);
         if (targetOutline == null)
             return response;
-	
-        var favorRank = db.Characters
-            .FirstOrDefault(c => c.AccountServerId == account.ServerId && c.ServerId == targetOutline.CharacterDBId)
-            ?.FavorRank ?? 1;
-        if (favorRank < schedule.FavorRank)
-            return response;
 
         if (targetOutline.ScheduleIds.Contains(request.ScheduleId))
             return response;
 
-        var parcelResults = new List<ParcelResult>();
+        var accountCurrency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (accountCurrency == null)
+            return response;
+
+        if (!accountCurrency.CurrencyDict.TryGetValue(CurrencyTypes.AcademyTicket, out var currentTicket) || currentTicket <= 0)
+            return response;
+
+        var parcelResults = new List<ParcelResult>
+        {
+            new(ParcelType.Currency, (long)CurrencyTypes.AcademyTicket, -1)
+        };
 
         var rewardCount = new[]
         {
@@ -307,6 +265,17 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         response.FavorScheduleRecords = MomoTalkService.GetAllFavorSchedules(db.GetAccountMomoTalkOutLines(account.ServerId).ToList());
 
+        return response;
+    }
+
+    // answers travel inside MomoTalk_Read's AnswerScenarioId; Reply is a leftover the client never sends.
+    [ProtocolHandler(Protocol.MomoTalk_Reply)]
+    public async Task<MomoTalkReplyResponse> Reply(
+        SchaleDataContext db,
+        MomoTalkReplyRequest request,
+        MomoTalkReplyResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }
 }

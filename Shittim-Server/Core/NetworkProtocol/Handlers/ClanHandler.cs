@@ -262,4 +262,390 @@ public class ClanHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Clan_Login)]
+    public async Task<ClanLoginResponse> Login(
+        SchaleDataContext db,
+        ClanLoginRequest request,
+        ClanLoginResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        // the president's represent-character field carries the character's UNIQUE id (16013 in the recovered official lobby), not a CharacterDB ServerId.
+        var aronaCharacter = aronaAccount != null
+            ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
+            : null;
+
+        // shape per the recovered official Clan_Lobby (clan 4775): channel name is "channel_<ClanDBId>", and no ClanPresidentRepresentCharacterCostumeId / ClanJoinOption keys go out (both stay at their defaults there).
+        response.AccountClanDB = new ClanDB
+        {
+            ClanDBId = 777,
+            ClanName = "Schale Network",
+            ClanChannelName = "channel_777",
+            ClanPresidentNickName = aronaAccount?.Nickname ?? "Arona",
+            ClanPresidentRepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+            ClanNotice = "Welcome to Schale Network\n\nEnjoy your stay, Sensei!",
+            ClanJoinOption = ClanJoinOption.Free,
+            ClanMemberCount = 2
+        };
+
+        var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
+
+        // official's own member entry carries no AttachmentDB; other members' do.
+        response.AccountClanMemberDB = new ClanMemberDB
+        {
+            AccountId = account.ServerId,
+            AccountLevel = account.Level,
+            ClanDBId = 777,
+            RepresentCharacterUniqueId = accountCharacter?.UniqueId ?? account.RepresentCharacterServerId,
+            ClanSocialGrade = ClanSocialGrade.Member,
+            AccountNickName = account.Nickname ?? "Sensei",
+            AttendanceCount = 33,
+            GameLoginDate = account.LastConnectTime,
+            LastLoginDate = account.LastConnectTime,
+            JoinDate = account.CreateDate
+        };
+
+        response.ClanAssistSlotDBs = [];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_Search)]
+    public async Task<ClanSearchResponse> Search(
+        SchaleDataContext db,
+        ClanSearchRequest request,
+        ClanSearchResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Schale Network is the only clan and the account is already in it, so a search never has anything to offer.
+        response.ClanDBs = [];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_Create)]
+    public async Task<ClanCreateResponse> Create(
+        SchaleDataContext db,
+        ClanCreateRequest request,
+        ClanCreateResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyJoinedClan);
+    }
+
+    [ProtocolHandler(Protocol.Clan_Member)]
+    public async Task<ClanMemberResponse> Member(
+        SchaleDataContext db,
+        ClanMemberRequest request,
+        ClanMemberResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        var target = request.MemberAccountId == account.ServerId ? account : aronaAccount;
+        if (target == null || target.ServerId != request.MemberAccountId)
+            throw new WebAPIException(WebAPIErrorCode.ClanMemberNotFound);
+
+        // the president's represent-character field carries the character's UNIQUE id (16013 in the recovered official lobby), not a CharacterDB ServerId.
+        var targetCharacter = db.Characters.FirstOrDefault(c => c.ServerId == target.RepresentCharacterServerId);
+        var targetAttachment = db.GetAccountAttachments(target.ServerId).FirstOrDefault();
+
+        response.ClanDB = new ClanDB
+        {
+            ClanDBId = 777,
+            ClanName = "Schale Network",
+            ClanChannelName = "channel_777",
+            ClanPresidentNickName = aronaAccount?.Nickname ?? "Arona",
+            ClanPresidentRepresentCharacterUniqueId = 19900006,
+            ClanNotice = "Welcome to Schale Network\n\nEnjoy your stay, Sensei!",
+            ClanJoinOption = ClanJoinOption.Free,
+            ClanMemberCount = 2
+        };
+
+        response.ClanMemberDB = new ClanMemberDB
+        {
+            AccountId = target.ServerId,
+            AccountLevel = target.Level,
+            ClanDBId = 777,
+            RepresentCharacterUniqueId = targetCharacter?.UniqueId ?? target.RepresentCharacterServerId,
+            ClanSocialGrade = target == account ? ClanSocialGrade.Member : ClanSocialGrade.President,
+            AccountNickName = target.Nickname ?? "Sensei",
+            GameLoginDate = target.LastConnectTime,
+            LastLoginDate = target.LastConnectTime,
+            JoinDate = target.CreateDate,
+            AttachmentDB = targetAttachment?.ToMap(_mapper)
+        };
+
+        response.DetailedAccountInfoDB = new DetailedAccountInfoDB
+        {
+            AccountId = target.ServerId,
+            Nickname = target.Nickname ?? "Sensei",
+            Level = target.Level,
+            ClanName = "Schale Network",
+            RepresentCharacterUniqueId = targetCharacter?.UniqueId ?? target.RepresentCharacterServerId,
+            CharacterCount = db.GetAccountCharacters(target.ServerId).Count(),
+            AssistCharacterDBs = []
+        };
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_MemberList)]
+    public async Task<ClanMemberListResponse> MemberList(
+        SchaleDataContext db,
+        ClanMemberListRequest request,
+        ClanMemberListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        // the president's represent-character field carries the character's UNIQUE id (16013 in the recovered official lobby), not a CharacterDB ServerId.
+        var aronaCharacter = aronaAccount != null
+            ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
+            : null;
+
+        response.ClanDB = new ClanDB
+        {
+            ClanDBId = 777,
+            ClanName = "Schale Network",
+            ClanChannelName = "channel_777",
+            ClanPresidentNickName = aronaAccount?.Nickname ?? "Arona",
+            ClanPresidentRepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+            ClanNotice = "Welcome to Schale Network\n\nEnjoy your stay, Sensei!",
+            ClanJoinOption = ClanJoinOption.Free,
+            ClanMemberCount = 2
+        };
+
+        var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
+        var aronaAttachment = aronaAccount != null ? db.GetAccountAttachments(aronaAccount.ServerId).FirstOrDefault() : null;
+        // every other member in the recovered official lobby carries a CafeComfortValue.
+        var aronaCafeComfort = aronaAccount != null
+            ? db.Cafes.FirstOrDefault(x => x.AccountServerId == aronaAccount.ServerId)?.ProductionDB?.ComfortValue ?? 0
+            : 0;
+
+        response.ClanMemberDBs = new List<ClanMemberDB>
+        {
+            new ClanMemberDB
+            {
+                AccountId = aronaAccount?.ServerId ?? 100000,
+                AccountLevel = aronaAccount?.Level ?? 90,
+                ClanDBId = 777,
+                RepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+                ClanSocialGrade = ClanSocialGrade.President,
+                AccountNickName = aronaAccount?.Nickname ?? "Arona",
+                CafeComfortValue = aronaCafeComfort,
+                GameLoginDate = aronaAccount?.LastConnectTime ?? DateTime.UtcNow,
+                LastLoginDate = aronaAccount?.LastConnectTime ?? DateTime.UtcNow,
+                JoinDate = aronaAccount?.CreateDate ?? DateTime.UtcNow,
+                AttachmentDB = aronaAttachment?.ToMap(_mapper) ?? new AccountAttachmentDB
+                {
+                    AccountId = aronaAccount?.ServerId ?? 100000,
+                    EmblemUniqueId = aronaAccount?.RepresentCharacterServerId ?? 19900006
+                }
+            },
+            // official's own member entry carries no AttachmentDB; other members' do.
+            new ClanMemberDB
+            {
+                AccountId = account.ServerId,
+                AccountLevel = account.Level,
+                ClanDBId = 777,
+                RepresentCharacterUniqueId = accountCharacter?.UniqueId ?? account.RepresentCharacterServerId,
+                ClanSocialGrade = ClanSocialGrade.Member,
+                AccountNickName = account.Nickname ?? "Sensei",
+                AttendanceCount = 33,
+                GameLoginDate = account.LastConnectTime,
+                LastLoginDate = account.LastConnectTime,
+                JoinDate = account.CreateDate
+            }
+        };
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_Applicant)]
+    public async Task<ClanApplicantResponse> Applicant(
+        SchaleDataContext db,
+        ClanApplicantRequest request,
+        ClanApplicantResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ClanMemberDBs = [];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_Join)]
+    public async Task<ClanJoinResponse> Join(
+        SchaleDataContext db,
+        ClanJoinRequest request,
+        ClanJoinResponse response)
+    {
+        // membership in Schale Network is not persisted anywhere - Clan_Login and Clan_Lobby always seat the account in clan 777 - so a join, however the client got itself into a state where it offers one, just hands back the same seat.
+        var (irc, clan, member) = await SchaleNetworkSeat(db, request.SessionKey);
+        response.IrcConfig = irc;
+        response.ClanDB = clan;
+        response.ClanMemberDB = member;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_AutoJoin)]
+    public async Task<ClanAutoJoinResponse> AutoJoin(
+        SchaleDataContext db,
+        ClanAutoJoinRequest request,
+        ClanAutoJoinResponse response)
+    {
+        var (irc, clan, member) = await SchaleNetworkSeat(db, request.SessionKey);
+        response.IrcConfig = irc;
+        response.ClanDB = clan;
+        response.ClanMemberDB = member;
+
+        return response;
+    }
+
+    private async Task<(IrcServerConfig, ClanDB, ClanMemberDB)> SchaleNetworkSeat(SchaleDataContext db, SessionKey? sessionKey)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, sessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        var irc = new IrcServerConfig
+        {
+            HostAddress = _configuration["Irc:Address"] ?? "localhost",
+            Port = int.Parse(_configuration["Irc:Port"] ?? "6667"),
+            Password = _configuration["Irc:Password"] ?? ""
+        };
+
+        // the president's represent-character field carries the character's UNIQUE id (16013 in the recovered official lobby), not a CharacterDB ServerId.
+        var aronaCharacter = aronaAccount != null
+            ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
+            : null;
+
+        var clan = new ClanDB
+        {
+            ClanDBId = 777,
+            ClanName = "Schale Network",
+            ClanChannelName = "channel_777",
+            ClanPresidentNickName = aronaAccount?.Nickname ?? "Arona",
+            ClanPresidentRepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+            ClanNotice = "Welcome to Schale Network\n\nEnjoy your stay, Sensei!",
+            ClanJoinOption = ClanJoinOption.Free,
+            ClanMemberCount = 2
+        };
+
+        var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
+
+        var member = new ClanMemberDB
+        {
+            AccountId = account.ServerId,
+            AccountLevel = account.Level,
+            ClanDBId = 777,
+            RepresentCharacterUniqueId = accountCharacter?.UniqueId ?? account.RepresentCharacterServerId,
+            ClanSocialGrade = ClanSocialGrade.Member,
+            AccountNickName = account.Nickname ?? "Sensei",
+            AttendanceCount = 33,
+            GameLoginDate = account.LastConnectTime,
+            LastLoginDate = account.LastConnectTime,
+            JoinDate = account.CreateDate
+        };
+
+        return (irc, clan, member);
+    }
+
+    [ProtocolHandler(Protocol.Clan_Quit)]
+    public async Task<ClanQuitResponse> Quit(
+        SchaleDataContext db,
+        ClanQuitRequest request,
+        ClanQuitResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // nothing to tear down - the next Clan_Login seats the account right back in clan 777.
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_CancelApply)]
+    public async Task<ClanCancelApplyResponse> CancelApply(
+        SchaleDataContext db,
+        ClanCancelApplyRequest request,
+        ClanCancelApplyResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Clan_Permit)]
+    public async Task<ClanPermitResponse> Permit(
+        SchaleDataContext db,
+        ClanPermitRequest request,
+        ClanPermitResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanTargetAccountIsNotApplicant);
+    }
+
+    // the account sits at Member grade under Arona, so the president-only operations refuse outright rather than pretending.
+    [ProtocolHandler(Protocol.Clan_Kick)]
+    public async Task<ClanKickResponse> Kick(
+        SchaleDataContext db,
+        ClanKickRequest request,
+        ClanKickResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission);
+    }
+
+    [ProtocolHandler(Protocol.Clan_Setting)]
+    public async Task<ClanSettingResponse> Setting(
+        SchaleDataContext db,
+        ClanSettingRequest request,
+        ClanSettingResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission);
+    }
+
+    [ProtocolHandler(Protocol.Clan_Confer)]
+    public async Task<ClanConferResponse> Confer(
+        SchaleDataContext db,
+        ClanConferRequest request,
+        ClanConferResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission);
+    }
+
+    [ProtocolHandler(Protocol.Clan_Dismiss)]
+    public async Task<ClanDismissResponse> Dismiss(
+        SchaleDataContext db,
+        ClanDismissRequest request,
+        ClanDismissResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.ClanCanNotDismiss);
+    }
+
+    [ProtocolHandler(Protocol.Clan_ChatLog)]
+    public async Task<ClanChatLogResponse> ChatLog(
+        SchaleDataContext db,
+        ClanChatLogRequest request,
+        ClanChatLogResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // no chat backlog is kept server-side; live chat rides the irc connection.
+        response.ClanChatLog = "";
+
+        return response;
+    }
 }

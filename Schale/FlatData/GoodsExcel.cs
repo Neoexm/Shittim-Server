@@ -38,69 +38,62 @@ public struct GoodsExcel : IFlatbufferObject
   public ArraySegment<byte>? GetConsumeParcelTypeBytes() { return __p.__vector_as_arraysegment(12); }
 #endif
   public Schale.FlatData.ParcelType[] GetConsumeParcelTypeArray() { int o = __p.__offset(12); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ConsumeParcelId(int j) { try { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ConsumeParcelIdLength { get { try { int o = __p.__offset(14); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ConsumeParcelId(int j) { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ConsumeParcelIdLength { get { int o = __p.__offset(14); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeParcelIdBytes() { return __p.__vector_as_span<long>(14, 8); }
 #else
   public ArraySegment<byte>? GetConsumeParcelIdBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
   public long[] GetConsumeParcelIdArray() { return __p.__vector_as_array<long>(14); }
-  public long ConsumeParcelAmount(int j) { try { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ConsumeParcelAmountLength { get { try { int o = __p.__offset(16); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ConsumeParcelAmount(int j) { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ConsumeParcelAmountLength { get { int o = __p.__offset(16); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeParcelAmountBytes() { return __p.__vector_as_span<long>(16, 8); }
 #else
   public ArraySegment<byte>? GetConsumeParcelAmountBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
   public long[] GetConsumeParcelAmountArray() { return __p.__vector_as_array<long>(16); }
-  public Schale.FlatData.ConsumeCondition ConsumeCondition(int j) { try { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ConsumeCondition)0; } catch { return (Schale.FlatData.ConsumeCondition)0; } }
-  public int ConsumeConditionLength { get { try { int o = __p.__offset(18); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public Schale.FlatData.ConsumeCondition ConsumeCondition(int j) { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ConsumeCondition)0; }
+  public int ConsumeConditionLength { get { int o = __p.__offset(18); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.ConsumeCondition> GetConsumeConditionBytes() { return __p.__vector_as_span<Schale.FlatData.ConsumeCondition>(18, 4); }
 #else
   public ArraySegment<byte>? GetConsumeConditionBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
   public Schale.FlatData.ConsumeCondition[] GetConsumeConditionArray() { int o = __p.__offset(18); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ConsumeCondition[] a = new Schale.FlatData.ConsumeCondition[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ConsumeCondition)__p.bb.GetInt(p + i * 4); } return a; }
-  public Schale.FlatData.GachaTicketType ConsumeGachaTicketType(int j) { try { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.GachaTicketType)0; } catch { return (Schale.FlatData.GachaTicketType)0; } }
-  public int ConsumeGachaTicketTypeLength { get { try { int o = __p.__offset(20); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public Schale.FlatData.GachaTicketType ConsumeGachaTicketType(int j) { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.GachaTicketType)0; }
+  public int ConsumeGachaTicketTypeLength { get { int o = __p.__offset(20); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.GachaTicketType> GetConsumeGachaTicketTypeBytes() { return __p.__vector_as_span<Schale.FlatData.GachaTicketType>(20, 4); }
 #else
   public ArraySegment<byte>? GetConsumeGachaTicketTypeBytes() { return __p.__vector_as_arraysegment(20); }
 #endif
   public Schale.FlatData.GachaTicketType[] GetConsumeGachaTicketTypeArray() { int o = __p.__offset(20); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.GachaTicketType[] a = new Schale.FlatData.GachaTicketType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.GachaTicketType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ConsumeGachaTicketTypeAmount(int j) { try { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ConsumeGachaTicketTypeAmountLength { get { try { int o = __p.__offset(22); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ConsumeGachaTicketTypeAmount(int j) { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ConsumeGachaTicketTypeAmountLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeGachaTicketTypeAmountBytes() { return __p.__vector_as_span<long>(22, 8); }
 #else
   public ArraySegment<byte>? GetConsumeGachaTicketTypeAmountBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
   public long[] GetConsumeGachaTicketTypeAmountArray() { return __p.__vector_as_array<long>(22); }
-  public long ProductIdAOS { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ProductIdiOS { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ProductIdONE { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ProductIdSGS { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ProductIdSTEAM { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  // Slot 15 was missing from this generated model, shifting every later field by one slot: the
-  // reward triple (ParcelType/ParcelId/ParcelAmount) then decoded neighbouring vectors - the AP
-  // shop's goods read "Currency 0x1_00000002 x5" instead of ActionPoint x120 while the consume
-  // block still decoded correctly. Recovered from the shipped ExcelDB vtables (8,359 of 8,440
-  // rows carry 22 slots): a sixth int64 in the platform product-id block, present only on the
-  // 56-58 cash rows. Which of the six ids is the new platform is not derivable from the data;
-  // only its slot position and type matter, and nothing server-side reads it.
-  public long ProductIdExtra { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ConsumeExtraStep(int j) { try { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ConsumeExtraStepLength { get { try { int o = __p.__offset(36); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long CombinedGachaCostId { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ProductIdAOS { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ProductIdiOS { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ProductIdONE { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ProductIdSGS { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ProductIdSTEAM { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ConsumeExtraStep(int j) { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ConsumeExtraStepLength { get { int o = __p.__offset(36); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeExtraStepBytes() { return __p.__vector_as_span<long>(36, 8); }
 #else
   public ArraySegment<byte>? GetConsumeExtraStepBytes() { return __p.__vector_as_arraysegment(36); }
 #endif
   public long[] GetConsumeExtraStepArray() { return __p.__vector_as_array<long>(36); }
-  public long ConsumeExtraAmount(int j) { try { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ConsumeExtraAmountLength { get { try { int o = __p.__offset(38); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ConsumeExtraAmount(int j) { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ConsumeExtraAmountLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetConsumeExtraAmountBytes() { return __p.__vector_as_span<long>(38, 8); }
 #else
@@ -108,24 +101,24 @@ public struct GoodsExcel : IFlatbufferObject
 #endif
   public long[] GetConsumeExtraAmountArray() { return __p.__vector_as_array<long>(38); }
   public int State { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.ParcelType ParcelType(int j) { try { int o = __p.__offset(42); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; } catch { return (Schale.FlatData.ParcelType)0; } }
-  public int ParcelTypeLength { get { try { int o = __p.__offset(42); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public Schale.FlatData.ParcelType ParcelType(int j) { int o = __p.__offset(42); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
+  public int ParcelTypeLength { get { int o = __p.__offset(42); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<Schale.FlatData.ParcelType> GetParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(42, 4); }
 #else
   public ArraySegment<byte>? GetParcelTypeBytes() { return __p.__vector_as_arraysegment(42); }
 #endif
   public Schale.FlatData.ParcelType[] GetParcelTypeArray() { int o = __p.__offset(42); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ParcelId(int j) { try { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ParcelIdLength { get { try { int o = __p.__offset(44); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ParcelId(int j) { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ParcelIdLength { get { int o = __p.__offset(44); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetParcelIdBytes() { return __p.__vector_as_span<long>(44, 8); }
 #else
   public ArraySegment<byte>? GetParcelIdBytes() { return __p.__vector_as_arraysegment(44); }
 #endif
   public long[] GetParcelIdArray() { return __p.__vector_as_array<long>(44); }
-  public long ParcelAmount(int j) { try { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; } catch { return 0; } }
-  public int ParcelAmountLength { get { try { int o = __p.__offset(46); if (o == 0) return 0; int len = __p.__vector_len(o); return len < 0 || len > 100 ? 0 : len; } catch { return 0; } } }
+  public long ParcelAmount(int j) { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ParcelAmountLength { get { int o = __p.__offset(46); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
   public Span<long> GetParcelAmountBytes() { return __p.__vector_as_span<long>(46, 8); }
 #else
@@ -144,12 +137,12 @@ public struct GoodsExcel : IFlatbufferObject
       VectorOffset ConsumeConditionOffset = default(VectorOffset),
       VectorOffset ConsumeGachaTicketTypeOffset = default(VectorOffset),
       VectorOffset ConsumeGachaTicketTypeAmountOffset = default(VectorOffset),
+      long CombinedGachaCostId = 0,
       long ProductIdAOS = 0,
       long ProductIdiOS = 0,
       long ProductIdONE = 0,
       long ProductIdSGS = 0,
       long ProductIdSTEAM = 0,
-      long ProductIdExtra = 0,
       VectorOffset ConsumeExtraStepOffset = default(VectorOffset),
       VectorOffset ConsumeExtraAmountOffset = default(VectorOffset),
       int State = 0,
@@ -157,12 +150,12 @@ public struct GoodsExcel : IFlatbufferObject
       VectorOffset ParcelIdOffset = default(VectorOffset),
       VectorOffset ParcelAmountOffset = default(VectorOffset)) {
     builder.StartTable(22);
-    GoodsExcel.AddProductIdExtra(builder, ProductIdExtra);
     GoodsExcel.AddProductIdSTEAM(builder, ProductIdSTEAM);
     GoodsExcel.AddProductIdSGS(builder, ProductIdSGS);
     GoodsExcel.AddProductIdONE(builder, ProductIdONE);
     GoodsExcel.AddProductIdiOS(builder, ProductIdiOS);
     GoodsExcel.AddProductIdAOS(builder, ProductIdAOS);
+    GoodsExcel.AddCombinedGachaCostId(builder, CombinedGachaCostId);
     GoodsExcel.AddId(builder, Id);
     GoodsExcel.AddParcelAmount(builder, ParcelAmountOffset);
     GoodsExcel.AddParcelId(builder, ParcelIdOffset);
@@ -223,12 +216,12 @@ public struct GoodsExcel : IFlatbufferObject
   public static VectorOffset CreateConsumeGachaTicketTypeAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateConsumeGachaTicketTypeAmountVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartConsumeGachaTicketTypeAmountVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddProductIdAOS(FlatBufferBuilder builder, long productIdAOS) { builder.AddLong(10, productIdAOS, 0); }
-  public static void AddProductIdiOS(FlatBufferBuilder builder, long productIdiOS) { builder.AddLong(11, productIdiOS, 0); }
-  public static void AddProductIdONE(FlatBufferBuilder builder, long productIdONE) { builder.AddLong(12, productIdONE, 0); }
-  public static void AddProductIdSGS(FlatBufferBuilder builder, long productIdSGS) { builder.AddLong(13, productIdSGS, 0); }
-  public static void AddProductIdSTEAM(FlatBufferBuilder builder, long productIdSTEAM) { builder.AddLong(14, productIdSTEAM, 0); }
-  public static void AddProductIdExtra(FlatBufferBuilder builder, long productIdExtra) { builder.AddLong(15, productIdExtra, 0); }
+  public static void AddCombinedGachaCostId(FlatBufferBuilder builder, long combinedGachaCostId) { builder.AddLong(10, combinedGachaCostId, 0); }
+  public static void AddProductIdAOS(FlatBufferBuilder builder, long productIdAOS) { builder.AddLong(11, productIdAOS, 0); }
+  public static void AddProductIdiOS(FlatBufferBuilder builder, long productIdiOS) { builder.AddLong(12, productIdiOS, 0); }
+  public static void AddProductIdONE(FlatBufferBuilder builder, long productIdONE) { builder.AddLong(13, productIdONE, 0); }
+  public static void AddProductIdSGS(FlatBufferBuilder builder, long productIdSGS) { builder.AddLong(14, productIdSGS, 0); }
+  public static void AddProductIdSTEAM(FlatBufferBuilder builder, long productIdSTEAM) { builder.AddLong(15, productIdSTEAM, 0); }
   public static void AddConsumeExtraStep(FlatBufferBuilder builder, VectorOffset consumeExtraStepOffset) { builder.AddOffset(16, consumeExtraStepOffset.Value, 0); }
   public static VectorOffset CreateConsumeExtraStepVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateConsumeExtraStepVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
@@ -287,12 +280,12 @@ public struct GoodsExcel : IFlatbufferObject
     for (var _j = 0; _j < this.ConsumeGachaTicketTypeLength; ++_j) {_o.ConsumeGachaTicketType.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ConsumeGachaTicketType(_j), key) : this.ConsumeGachaTicketType(_j));}
     _o.ConsumeGachaTicketTypeAmount = new List<long>();
     for (var _j = 0; _j < this.ConsumeGachaTicketTypeAmountLength; ++_j) {_o.ConsumeGachaTicketTypeAmount.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ConsumeGachaTicketTypeAmount(_j), key) : this.ConsumeGachaTicketTypeAmount(_j));}
+    _o.CombinedGachaCostId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CombinedGachaCostId, key) : this.CombinedGachaCostId;
     _o.ProductIdAOS = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdAOS, key) : this.ProductIdAOS;
     _o.ProductIdiOS = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdiOS, key) : this.ProductIdiOS;
     _o.ProductIdONE = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdONE, key) : this.ProductIdONE;
     _o.ProductIdSGS = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdSGS, key) : this.ProductIdSGS;
     _o.ProductIdSTEAM = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdSTEAM, key) : this.ProductIdSTEAM;
-    _o.ProductIdExtra = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductIdExtra, key) : this.ProductIdExtra;
     _o.ConsumeExtraStep = new List<long>();
     for (var _j = 0; _j < this.ConsumeExtraStepLength; ++_j) {_o.ConsumeExtraStep.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ConsumeExtraStep(_j), key) : this.ConsumeExtraStep(_j));}
     _o.ConsumeExtraAmount = new List<long>();
@@ -375,12 +368,12 @@ public struct GoodsExcel : IFlatbufferObject
       _ConsumeCondition,
       _ConsumeGachaTicketType,
       _ConsumeGachaTicketTypeAmount,
+      _o.CombinedGachaCostId,
       _o.ProductIdAOS,
       _o.ProductIdiOS,
       _o.ProductIdONE,
       _o.ProductIdSGS,
       _o.ProductIdSTEAM,
-      _o.ProductIdExtra,
       _ConsumeExtraStep,
       _ConsumeExtraAmount,
       _o.State,
@@ -402,12 +395,12 @@ public class GoodsExcelT
   public List<Schale.FlatData.ConsumeCondition> ConsumeCondition { get; set; }
   public List<Schale.FlatData.GachaTicketType> ConsumeGachaTicketType { get; set; }
   public List<long> ConsumeGachaTicketTypeAmount { get; set; }
+  public long CombinedGachaCostId { get; set; }
   public long ProductIdAOS { get; set; }
   public long ProductIdiOS { get; set; }
   public long ProductIdONE { get; set; }
   public long ProductIdSGS { get; set; }
   public long ProductIdSTEAM { get; set; }
-  public long ProductIdExtra { get; set; }
   public List<long> ConsumeExtraStep { get; set; }
   public List<long> ConsumeExtraAmount { get; set; }
   public int State { get; set; }
@@ -426,12 +419,12 @@ public class GoodsExcelT
     this.ConsumeCondition = null;
     this.ConsumeGachaTicketType = null;
     this.ConsumeGachaTicketTypeAmount = null;
+    this.CombinedGachaCostId = 0;
     this.ProductIdAOS = 0;
     this.ProductIdiOS = 0;
     this.ProductIdONE = 0;
     this.ProductIdSGS = 0;
     this.ProductIdSTEAM = 0;
-    this.ProductIdExtra = 0;
     this.ConsumeExtraStep = null;
     this.ConsumeExtraAmount = null;
     this.State = 0;
@@ -457,12 +450,12 @@ static public class GoodsExcelVerify
       && verifier.VerifyVectorOfData(tablePos, 18 /*ConsumeCondition*/, 4 /*Schale.FlatData.ConsumeCondition*/, false)
       && verifier.VerifyVectorOfData(tablePos, 20 /*ConsumeGachaTicketType*/, 4 /*Schale.FlatData.GachaTicketType*/, false)
       && verifier.VerifyVectorOfData(tablePos, 22 /*ConsumeGachaTicketTypeAmount*/, 8 /*long*/, false)
-      && verifier.VerifyField(tablePos, 24 /*ProductIdAOS*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 26 /*ProductIdiOS*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 28 /*ProductIdONE*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*ProductIdSGS*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 32 /*ProductIdSTEAM*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 34 /*ProductIdExtra*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 24 /*CombinedGachaCostId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 26 /*ProductIdAOS*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*ProductIdiOS*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 30 /*ProductIdONE*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*ProductIdSGS*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 34 /*ProductIdSTEAM*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 36 /*ConsumeExtraStep*/, 8 /*long*/, false)
       && verifier.VerifyVectorOfData(tablePos, 38 /*ConsumeExtraAmount*/, 8 /*long*/, false)
       && verifier.VerifyField(tablePos, 40 /*State*/, 4 /*int*/, 4, false)

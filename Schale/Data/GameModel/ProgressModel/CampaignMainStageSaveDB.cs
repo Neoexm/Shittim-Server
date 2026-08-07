@@ -65,6 +65,18 @@ namespace Schale.Data.GameModel
         public List<HexaDisplayInfo> DisplayInfos { get; set; } = new();
         
         public List<HexaUnit> DeployedEchelonInfos { get; set; } = new();
+
+        /// <summary>
+        /// Name of the strategymap dump this run is playing. Campaign stages sit on the map named after them, but event stages name theirs in EventContentStageExcel and a rerun replays the original event's file - stage 108013102 plays strategymap_8013102 - so deriving it from the stage id finds nothing. Null on rows written before the column existed; those are all campaign runs and fall back to the id. Server-only, no official wire member.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public string? StrategyMap { get; set; }
+
+        // Event main stages only, and the wire copy is EventContentMainStageSaveDB rather than this type's own. One buff group appears per cleared tactic on the stages whose EventContentStageExcel names a BuffContentId; the group stays open until EventContent_SelectBuff answers it.
+        public Dictionary<long, long> SelectedBuffDict { get; set; } = new();
+        public bool IsBuffSelectPopupOpen { get; set; }
+        public long CurrentAppearedBuffGroupId { get; set; }
     }
 
     public static class CampaignMainStageSaveDBServerExtensions

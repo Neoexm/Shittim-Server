@@ -32,23 +32,23 @@ public struct FixedStrategyExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.FixedStrategyExcel> CreateFixedStrategyExcel(FlatBufferBuilder builder,
       long Id = 0,
-      long StageEnterEchelon01FixedEchelonId = 0,
-      long StageEnterEchelon01Starttile = 0,
-      long StageEnterEchelon02FixedEchelonId = 0,
-      long StageEnterEchelon02Starttile = 0,
-      long StageEnterEchelon03FixedEchelonId = 0,
-      long StageEnterEchelon03Starttile = 0,
-      long StageEnterEchelon04FixedEchelonId = 0,
-      long StageEnterEchelon04Starttile = 0) {
+      long StageEnterEchelon01_FixedEchelonId = 0,
+      long StageEnterEchelon01_Starttile = 0,
+      long StageEnterEchelon02_FixedEchelonId = 0,
+      long StageEnterEchelon02_Starttile = 0,
+      long StageEnterEchelon03_FixedEchelonId = 0,
+      long StageEnterEchelon03_Starttile = 0,
+      long StageEnterEchelon04_FixedEchelonId = 0,
+      long StageEnterEchelon04_Starttile = 0) {
     builder.StartTable(9);
-    FixedStrategyExcel.AddStageEnterEchelon04Starttile(builder, StageEnterEchelon04Starttile);
-    FixedStrategyExcel.AddStageEnterEchelon04FixedEchelonId(builder, StageEnterEchelon04FixedEchelonId);
-    FixedStrategyExcel.AddStageEnterEchelon03Starttile(builder, StageEnterEchelon03Starttile);
-    FixedStrategyExcel.AddStageEnterEchelon03FixedEchelonId(builder, StageEnterEchelon03FixedEchelonId);
-    FixedStrategyExcel.AddStageEnterEchelon02Starttile(builder, StageEnterEchelon02Starttile);
-    FixedStrategyExcel.AddStageEnterEchelon02FixedEchelonId(builder, StageEnterEchelon02FixedEchelonId);
-    FixedStrategyExcel.AddStageEnterEchelon01Starttile(builder, StageEnterEchelon01Starttile);
-    FixedStrategyExcel.AddStageEnterEchelon01FixedEchelonId(builder, StageEnterEchelon01FixedEchelonId);
+    FixedStrategyExcel.AddStageEnterEchelon04Starttile(builder, StageEnterEchelon04_Starttile);
+    FixedStrategyExcel.AddStageEnterEchelon04FixedEchelonId(builder, StageEnterEchelon04_FixedEchelonId);
+    FixedStrategyExcel.AddStageEnterEchelon03Starttile(builder, StageEnterEchelon03_Starttile);
+    FixedStrategyExcel.AddStageEnterEchelon03FixedEchelonId(builder, StageEnterEchelon03_FixedEchelonId);
+    FixedStrategyExcel.AddStageEnterEchelon02Starttile(builder, StageEnterEchelon02_Starttile);
+    FixedStrategyExcel.AddStageEnterEchelon02FixedEchelonId(builder, StageEnterEchelon02_FixedEchelonId);
+    FixedStrategyExcel.AddStageEnterEchelon01Starttile(builder, StageEnterEchelon01_Starttile);
+    FixedStrategyExcel.AddStageEnterEchelon01FixedEchelonId(builder, StageEnterEchelon01_FixedEchelonId);
     FixedStrategyExcel.AddId(builder, Id);
     return FixedStrategyExcel.EndFixedStrategyExcel(builder);
   }

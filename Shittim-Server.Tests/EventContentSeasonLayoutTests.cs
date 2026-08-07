@@ -38,13 +38,13 @@ public class EventContentSeasonLayoutTests
     }
 
     [Fact]
-    public void FieldsBelowTheOnceMissingSlotStillLandOnTheirOwnValues()
+    public void FieldsInTheTimeBlockStillLandOnTheirOwnValues()
     {
-        // Slot 15 was the missing field, so everything from here down sat one slot off. The times have to read as "yyyy-MM-dd HH:mm:ss" in ascending order and the last two as asset paths.
+        // one slot of drift anywhere in here still decodes, just off by a field, so pin the values: the times have to read as "yyyy-MM-dd HH:mm:ss" in ascending order and the last two as asset paths.
         var row = Row("856");
 
         Assert.Equal("2026-07-21 11:00:00", row.EventContentOpenTime);
-        Assert.Equal("2026-08-03 04:00:00", row.EventContentPhaseCloseTime);
+        Assert.Equal("2026-08-03 04:00:00", row.EventContentCloseNoteTime);
         Assert.Equal("2026-08-04 10:59:59", row.EventContentCloseTime);
         Assert.Equal("2026-08-11 10:59:59", row.ExtensionTime);
 

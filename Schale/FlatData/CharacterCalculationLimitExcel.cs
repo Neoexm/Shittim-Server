@@ -49,12 +49,12 @@ public struct CharacterCalculationLimitExcel : IFlatbufferObject
       long MinValue = 0,
       long MaxValue = 0,
       VectorOffset LimitStartValueOffset = default(VectorOffset),
-      VectorOffset decreaseRateOffset = default(VectorOffset)) {
+      VectorOffset DecreaseRateOffset = default(VectorOffset)) {
     builder.StartTable(7);
     CharacterCalculationLimitExcel.AddMaxValue(builder, MaxValue);
     CharacterCalculationLimitExcel.AddMinValue(builder, MinValue);
     CharacterCalculationLimitExcel.AddId(builder, Id);
-    CharacterCalculationLimitExcel.AddDecreaseRate(builder, decreaseRateOffset);
+    CharacterCalculationLimitExcel.AddDecreaseRate(builder, DecreaseRateOffset);
     CharacterCalculationLimitExcel.AddLimitStartValue(builder, LimitStartValueOffset);
     CharacterCalculationLimitExcel.AddCalculationValue(builder, CalculationValue);
     CharacterCalculationLimitExcel.AddTacticEntityType(builder, TacticEntityType);
@@ -107,10 +107,10 @@ public struct CharacterCalculationLimitExcel : IFlatbufferObject
       var __LimitStartValue = _o.LimitStartValue.ToArray();
       _LimitStartValue = CreateLimitStartValueVector(builder, __LimitStartValue);
     }
-    var _decreaseRate = default(VectorOffset);
+    var _DecreaseRate = default(VectorOffset);
     if (_o.DecreaseRate != null) {
-      var __decreaseRate = _o.DecreaseRate.ToArray();
-      _decreaseRate = CreateDecreaseRateVector(builder, __decreaseRate);
+      var __DecreaseRate = _o.DecreaseRate.ToArray();
+      _DecreaseRate = CreateDecreaseRateVector(builder, __DecreaseRate);
     }
     return CreateCharacterCalculationLimitExcel(
       builder,
@@ -120,7 +120,7 @@ public struct CharacterCalculationLimitExcel : IFlatbufferObject
       _o.MinValue,
       _o.MaxValue,
       _LimitStartValue,
-      _decreaseRate);
+      _DecreaseRate);
   }
 }
 

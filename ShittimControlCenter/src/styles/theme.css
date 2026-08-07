@@ -1,5 +1,4 @@
-/* the wordmark is the only bundled face; everything else rides the OS ui font,
-   which has real weight steps we don't have to ship. */
+/* the wordmark is the only bundled face; everything else rides the OS ui font, which has real weight steps we don't have to ship. */
 @font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 800; font-display: swap; src: url('../fonts/mplus-800.woff2') format('woff2'); }
 
 :root {

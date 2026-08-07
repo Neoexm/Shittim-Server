@@ -80,7 +80,6 @@ public class CampaignHexaEventTests(ITestOutputHelper output)
     [Fact]
     public void AnEventWithAnUnhandledConditionIsNotFired()
     {
-        // And-semantics, conservatively: a condition type the evaluator does not understand counts as unsatisfied rather than being skipped, so a partly-understood event can never fire early.
         var map = BossMap();
         map.Events![1].HexaConditions!.Add(new HexaConditionArriveTile
         {

@@ -92,6 +92,7 @@ hosts.backup
 /protocol_dump.log
 /Scripts/tidy_protocol_dump.ps1
 /Scripts/cheatengine_protocol_dump.lua
+/startcontrol.ps1
 
 # Reverse-engineering / debugging artifacts
 Tools/procdump/

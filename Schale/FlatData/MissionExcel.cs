@@ -66,7 +66,7 @@ public struct MissionExcel : IFlatbufferObject
   public ArraySegment<byte>? GetPreMissionIdBytes() { return __p.__vector_as_arraysegment(32); }
 #endif
   public long[] GetPreMissionIdArray() { return __p.__vector_as_array<long>(32); }
-  public Schale.FlatData.AccountState AccountType { get { int o = __p.__offset(34); return o != 0 ? (Schale.FlatData.AccountState)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.AccountState.WaitingSignIn; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(34); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public long AccountLevel { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.SuddenMissionContentType ContentTags(int j) { int o = __p.__offset(38); return o != 0 ? (Schale.FlatData.SuddenMissionContentType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.SuddenMissionContentType)0; }
   public int ContentTagsLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
@@ -145,7 +145,7 @@ public struct MissionExcel : IFlatbufferObject
       Schale.FlatData.ContentType DateAutoRefer = Schale.FlatData.ContentType.None,
       long DisplayOrder = 0,
       VectorOffset PreMissionIdOffset = default(VectorOffset),
-      Schale.FlatData.AccountState AccountType = Schale.FlatData.AccountState.WaitingSignIn,
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       long AccountLevel = 0,
       VectorOffset ContentTagsOffset = default(VectorOffset),
       VectorOffset ShortcutUIOffset = default(VectorOffset),
@@ -174,7 +174,7 @@ public struct MissionExcel : IFlatbufferObject
     MissionExcel.AddCompleteConditionType(builder, CompleteConditionType);
     MissionExcel.AddShortcutUI(builder, ShortcutUIOffset);
     MissionExcel.AddContentTags(builder, ContentTagsOffset);
-    MissionExcel.AddAccountType(builder, AccountType);
+    MissionExcel.AddTargetGroup(builder, TargetGroup);
     MissionExcel.AddPreMissionId(builder, PreMissionIdOffset);
     MissionExcel.AddDateAutoRefer(builder, DateAutoRefer);
     MissionExcel.AddStartableEndDate(builder, StartableEndDateOffset);
@@ -211,7 +211,7 @@ public struct MissionExcel : IFlatbufferObject
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreatePreMissionIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartPreMissionIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddAccountType(FlatBufferBuilder builder, Schale.FlatData.AccountState accountType) { builder.AddInt(15, (int)accountType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(15, (int)targetGroup, 0); }
   public static void AddAccountLevel(FlatBufferBuilder builder, long accountLevel) { builder.AddLong(16, accountLevel, 0); }
   public static void AddContentTags(FlatBufferBuilder builder, VectorOffset contentTagsOffset) { builder.AddOffset(17, contentTagsOffset.Value, 0); }
   public static VectorOffset CreateContentTagsVector(FlatBufferBuilder builder, Schale.FlatData.SuddenMissionContentType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
@@ -286,7 +286,7 @@ public struct MissionExcel : IFlatbufferObject
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
     _o.PreMissionId = new List<long>();
     for (var _j = 0; _j < this.PreMissionIdLength; ++_j) {_o.PreMissionId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PreMissionId(_j), key) : this.PreMissionId(_j));}
-    _o.AccountType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountType, key) : this.AccountType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.AccountLevel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevel, key) : this.AccountLevel;
     _o.ContentTags = new List<Schale.FlatData.SuddenMissionContentType>();
     for (var _j = 0; _j < this.ContentTagsLength; ++_j) {_o.ContentTags.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ContentTags(_j), key) : this.ContentTags(_j));}
@@ -372,7 +372,7 @@ public struct MissionExcel : IFlatbufferObject
       _o.DateAutoRefer,
       _o.DisplayOrder,
       _PreMissionId,
-      _o.AccountType,
+      _o.TargetGroup,
       _o.AccountLevel,
       _ContentTags,
       _ShortcutUI,
@@ -405,7 +405,7 @@ public class MissionExcelT
   public Schale.FlatData.ContentType DateAutoRefer { get; set; }
   public long DisplayOrder { get; set; }
   public List<long> PreMissionId { get; set; }
-  public Schale.FlatData.AccountState AccountType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public long AccountLevel { get; set; }
   public List<Schale.FlatData.SuddenMissionContentType> ContentTags { get; set; }
   public List<string> ShortcutUI { get; set; }
@@ -435,7 +435,7 @@ public class MissionExcelT
     this.DateAutoRefer = Schale.FlatData.ContentType.None;
     this.DisplayOrder = 0;
     this.PreMissionId = null;
-    this.AccountType = Schale.FlatData.AccountState.WaitingSignIn;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.AccountLevel = 0;
     this.ContentTags = null;
     this.ShortcutUI = null;
@@ -472,7 +472,7 @@ static public class MissionExcelVerify
       && verifier.VerifyField(tablePos, 28 /*DateAutoRefer*/, 4 /*Schale.FlatData.ContentType*/, 4, false)
       && verifier.VerifyField(tablePos, 30 /*DisplayOrder*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 32 /*PreMissionId*/, 8 /*long*/, false)
-      && verifier.VerifyField(tablePos, 34 /*AccountType*/, 4 /*Schale.FlatData.AccountState*/, 4, false)
+      && verifier.VerifyField(tablePos, 34 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 36 /*AccountLevel*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 38 /*ContentTags*/, 4 /*Schale.FlatData.SuddenMissionContentType*/, false)
       && verifier.VerifyVectorOfStrings(tablePos, 40 /*ShortcutUI*/, false)

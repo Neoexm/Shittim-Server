@@ -42,7 +42,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
   public ArraySegment<byte>? GetInfomationLocalizeCodeBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
   public byte[] GetInfomationLocalizeCodeArray() { return __p.__vector_as_array<byte>(10); }
-  public Schale.FlatData.AccountState AccountType { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.AccountState)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.AccountState.WaitingSignIn; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public bool Enabled { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public string BannerOpenDate { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
@@ -75,55 +75,56 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
   public bool CloseBannerAfterCompletion { get { int o = __p.__offset(24); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public long MaximumLoginCount { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ExpiryDate { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long SpineCharacterId { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string RequirementParcelImage { get { int o = __p.__offset(32); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long IconOrder { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long SpineCharacterId { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string RequirementParcelImage { get { int o = __p.__offset(34); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetRequirementParcelImageBytes() { return __p.__vector_as_span<byte>(32, 1); }
+  public Span<byte> GetRequirementParcelImageBytes() { return __p.__vector_as_span<byte>(34, 1); }
 #else
-  public ArraySegment<byte>? GetRequirementParcelImageBytes() { return __p.__vector_as_arraysegment(32); }
+  public ArraySegment<byte>? GetRequirementParcelImageBytes() { return __p.__vector_as_arraysegment(34); }
 #endif
-  public byte[] GetRequirementParcelImageArray() { return __p.__vector_as_array<byte>(32); }
-  public string RewardImage { get { int o = __p.__offset(34); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetRequirementParcelImageArray() { return __p.__vector_as_array<byte>(34); }
+  public string RewardImage { get { int o = __p.__offset(36); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetRewardImageBytes() { return __p.__vector_as_span<byte>(34, 1); }
+  public Span<byte> GetRewardImageBytes() { return __p.__vector_as_span<byte>(36, 1); }
 #else
-  public ArraySegment<byte>? GetRewardImageBytes() { return __p.__vector_as_arraysegment(34); }
+  public ArraySegment<byte>? GetRewardImageBytes() { return __p.__vector_as_arraysegment(36); }
 #endif
-  public byte[] GetRewardImageArray() { return __p.__vector_as_array<byte>(34); }
-  public string LobbyBannerImage { get { int o = __p.__offset(36); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetRewardImageArray() { return __p.__vector_as_array<byte>(36); }
+  public string LobbyBannerImage { get { int o = __p.__offset(38); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLobbyBannerImageBytes() { return __p.__vector_as_span<byte>(36, 1); }
+  public Span<byte> GetLobbyBannerImageBytes() { return __p.__vector_as_span<byte>(38, 1); }
 #else
-  public ArraySegment<byte>? GetLobbyBannerImageBytes() { return __p.__vector_as_arraysegment(36); }
+  public ArraySegment<byte>? GetLobbyBannerImageBytes() { return __p.__vector_as_arraysegment(38); }
 #endif
-  public byte[] GetLobbyBannerImageArray() { return __p.__vector_as_array<byte>(36); }
-  public string BackgroundImage { get { int o = __p.__offset(38); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLobbyBannerImageArray() { return __p.__vector_as_array<byte>(38); }
+  public string BackgroundImage { get { int o = __p.__offset(40); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBackgroundImageBytes() { return __p.__vector_as_span<byte>(38, 1); }
+  public Span<byte> GetBackgroundImageBytes() { return __p.__vector_as_span<byte>(40, 1); }
 #else
-  public ArraySegment<byte>? GetBackgroundImageBytes() { return __p.__vector_as_arraysegment(38); }
+  public ArraySegment<byte>? GetBackgroundImageBytes() { return __p.__vector_as_arraysegment(40); }
 #endif
-  public byte[] GetBackgroundImageArray() { return __p.__vector_as_array<byte>(38); }
-  public string TitleImage { get { int o = __p.__offset(40); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBackgroundImageArray() { return __p.__vector_as_array<byte>(40); }
+  public string TitleImage { get { int o = __p.__offset(42); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTitleImageBytes() { return __p.__vector_as_span<byte>(40, 1); }
+  public Span<byte> GetTitleImageBytes() { return __p.__vector_as_span<byte>(42, 1); }
 #else
-  public ArraySegment<byte>? GetTitleImageBytes() { return __p.__vector_as_arraysegment(40); }
+  public ArraySegment<byte>? GetTitleImageBytes() { return __p.__vector_as_arraysegment(42); }
 #endif
-  public byte[] GetTitleImageArray() { return __p.__vector_as_array<byte>(40); }
-  public Schale.FlatData.ParcelType RequirementParcelType { get { int o = __p.__offset(42); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
-  public long RequirementParcelId { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int RequirementParcelAmount { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.GuideMissionTabType TabType { get { int o = __p.__offset(48); return o != 0 ? (Schale.FlatData.GuideMissionTabType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GuideMissionTabType.None; } }
-  public bool IsPermanent { get { int o = __p.__offset(50); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long PreSeasonId { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public byte[] GetTitleImageArray() { return __p.__vector_as_array<byte>(42); }
+  public Schale.FlatData.ParcelType RequirementParcelType { get { int o = __p.__offset(44); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long RequirementParcelId { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int RequirementParcelAmount { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.GuideMissionTabType TabType { get { int o = __p.__offset(50); return o != 0 ? (Schale.FlatData.GuideMissionTabType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GuideMissionTabType.None; } }
+  public bool IsPermanent { get { int o = __p.__offset(52); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long PreSeasonId { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.GuideMissionSeasonExcel> CreateGuideMissionSeasonExcel(FlatBufferBuilder builder,
       long Id = 0,
       StringOffset TitleLocalizeCodeOffset = default(StringOffset),
       StringOffset PermanentInfomationLocalizeCodeOffset = default(StringOffset),
       StringOffset InfomationLocalizeCodeOffset = default(StringOffset),
-      Schale.FlatData.AccountState AccountType = Schale.FlatData.AccountState.WaitingSignIn,
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       bool Enabled = false,
       StringOffset BannerOpenDateOffset = default(StringOffset),
       StringOffset StartDateOffset = default(StringOffset),
@@ -132,6 +133,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
       bool CloseBannerAfterCompletion = false,
       long MaximumLoginCount = 0,
       long ExpiryDate = 0,
+      long IconOrder = 0,
       long SpineCharacterId = 0,
       StringOffset RequirementParcelImageOffset = default(StringOffset),
       StringOffset RewardImageOffset = default(StringOffset),
@@ -144,10 +146,11 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
       Schale.FlatData.GuideMissionTabType TabType = Schale.FlatData.GuideMissionTabType.None,
       bool IsPermanent = false,
       long PreSeasonId = 0) {
-    builder.StartTable(25);
+    builder.StartTable(26);
     GuideMissionSeasonExcel.AddPreSeasonId(builder, PreSeasonId);
     GuideMissionSeasonExcel.AddRequirementParcelId(builder, RequirementParcelId);
     GuideMissionSeasonExcel.AddSpineCharacterId(builder, SpineCharacterId);
+    GuideMissionSeasonExcel.AddIconOrder(builder, IconOrder);
     GuideMissionSeasonExcel.AddExpiryDate(builder, ExpiryDate);
     GuideMissionSeasonExcel.AddMaximumLoginCount(builder, MaximumLoginCount);
     GuideMissionSeasonExcel.AddId(builder, Id);
@@ -163,7 +166,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
     GuideMissionSeasonExcel.AddStartableEndDate(builder, StartableEndDateOffset);
     GuideMissionSeasonExcel.AddStartDate(builder, StartDateOffset);
     GuideMissionSeasonExcel.AddBannerOpenDate(builder, BannerOpenDateOffset);
-    GuideMissionSeasonExcel.AddAccountType(builder, AccountType);
+    GuideMissionSeasonExcel.AddTargetGroup(builder, TargetGroup);
     GuideMissionSeasonExcel.AddInfomationLocalizeCode(builder, InfomationLocalizeCodeOffset);
     GuideMissionSeasonExcel.AddPermanentInfomationLocalizeCode(builder, PermanentInfomationLocalizeCodeOffset);
     GuideMissionSeasonExcel.AddTitleLocalizeCode(builder, TitleLocalizeCodeOffset);
@@ -173,12 +176,12 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
     return GuideMissionSeasonExcel.EndGuideMissionSeasonExcel(builder);
   }
 
-  public static void StartGuideMissionSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(25); }
+  public static void StartGuideMissionSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(26); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddTitleLocalizeCode(FlatBufferBuilder builder, StringOffset titleLocalizeCodeOffset) { builder.AddOffset(1, titleLocalizeCodeOffset.Value, 0); }
   public static void AddPermanentInfomationLocalizeCode(FlatBufferBuilder builder, StringOffset permanentInfomationLocalizeCodeOffset) { builder.AddOffset(2, permanentInfomationLocalizeCodeOffset.Value, 0); }
   public static void AddInfomationLocalizeCode(FlatBufferBuilder builder, StringOffset infomationLocalizeCodeOffset) { builder.AddOffset(3, infomationLocalizeCodeOffset.Value, 0); }
-  public static void AddAccountType(FlatBufferBuilder builder, Schale.FlatData.AccountState accountType) { builder.AddInt(4, (int)accountType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(4, (int)targetGroup, 0); }
   public static void AddEnabled(FlatBufferBuilder builder, bool enabled) { builder.AddBool(5, enabled, false); }
   public static void AddBannerOpenDate(FlatBufferBuilder builder, StringOffset bannerOpenDateOffset) { builder.AddOffset(6, bannerOpenDateOffset.Value, 0); }
   public static void AddStartDate(FlatBufferBuilder builder, StringOffset startDateOffset) { builder.AddOffset(7, startDateOffset.Value, 0); }
@@ -187,18 +190,19 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
   public static void AddCloseBannerAfterCompletion(FlatBufferBuilder builder, bool closeBannerAfterCompletion) { builder.AddBool(10, closeBannerAfterCompletion, false); }
   public static void AddMaximumLoginCount(FlatBufferBuilder builder, long maximumLoginCount) { builder.AddLong(11, maximumLoginCount, 0); }
   public static void AddExpiryDate(FlatBufferBuilder builder, long expiryDate) { builder.AddLong(12, expiryDate, 0); }
-  public static void AddSpineCharacterId(FlatBufferBuilder builder, long spineCharacterId) { builder.AddLong(13, spineCharacterId, 0); }
-  public static void AddRequirementParcelImage(FlatBufferBuilder builder, StringOffset requirementParcelImageOffset) { builder.AddOffset(14, requirementParcelImageOffset.Value, 0); }
-  public static void AddRewardImage(FlatBufferBuilder builder, StringOffset rewardImageOffset) { builder.AddOffset(15, rewardImageOffset.Value, 0); }
-  public static void AddLobbyBannerImage(FlatBufferBuilder builder, StringOffset lobbyBannerImageOffset) { builder.AddOffset(16, lobbyBannerImageOffset.Value, 0); }
-  public static void AddBackgroundImage(FlatBufferBuilder builder, StringOffset backgroundImageOffset) { builder.AddOffset(17, backgroundImageOffset.Value, 0); }
-  public static void AddTitleImage(FlatBufferBuilder builder, StringOffset titleImageOffset) { builder.AddOffset(18, titleImageOffset.Value, 0); }
-  public static void AddRequirementParcelType(FlatBufferBuilder builder, Schale.FlatData.ParcelType requirementParcelType) { builder.AddInt(19, (int)requirementParcelType, 0); }
-  public static void AddRequirementParcelId(FlatBufferBuilder builder, long requirementParcelId) { builder.AddLong(20, requirementParcelId, 0); }
-  public static void AddRequirementParcelAmount(FlatBufferBuilder builder, int requirementParcelAmount) { builder.AddInt(21, requirementParcelAmount, 0); }
-  public static void AddTabType(FlatBufferBuilder builder, Schale.FlatData.GuideMissionTabType tabType) { builder.AddInt(22, (int)tabType, 0); }
-  public static void AddIsPermanent(FlatBufferBuilder builder, bool isPermanent) { builder.AddBool(23, isPermanent, false); }
-  public static void AddPreSeasonId(FlatBufferBuilder builder, long preSeasonId) { builder.AddLong(24, preSeasonId, 0); }
+  public static void AddIconOrder(FlatBufferBuilder builder, long iconOrder) { builder.AddLong(13, iconOrder, 0); }
+  public static void AddSpineCharacterId(FlatBufferBuilder builder, long spineCharacterId) { builder.AddLong(14, spineCharacterId, 0); }
+  public static void AddRequirementParcelImage(FlatBufferBuilder builder, StringOffset requirementParcelImageOffset) { builder.AddOffset(15, requirementParcelImageOffset.Value, 0); }
+  public static void AddRewardImage(FlatBufferBuilder builder, StringOffset rewardImageOffset) { builder.AddOffset(16, rewardImageOffset.Value, 0); }
+  public static void AddLobbyBannerImage(FlatBufferBuilder builder, StringOffset lobbyBannerImageOffset) { builder.AddOffset(17, lobbyBannerImageOffset.Value, 0); }
+  public static void AddBackgroundImage(FlatBufferBuilder builder, StringOffset backgroundImageOffset) { builder.AddOffset(18, backgroundImageOffset.Value, 0); }
+  public static void AddTitleImage(FlatBufferBuilder builder, StringOffset titleImageOffset) { builder.AddOffset(19, titleImageOffset.Value, 0); }
+  public static void AddRequirementParcelType(FlatBufferBuilder builder, Schale.FlatData.ParcelType requirementParcelType) { builder.AddInt(20, (int)requirementParcelType, 0); }
+  public static void AddRequirementParcelId(FlatBufferBuilder builder, long requirementParcelId) { builder.AddLong(21, requirementParcelId, 0); }
+  public static void AddRequirementParcelAmount(FlatBufferBuilder builder, int requirementParcelAmount) { builder.AddInt(22, requirementParcelAmount, 0); }
+  public static void AddTabType(FlatBufferBuilder builder, Schale.FlatData.GuideMissionTabType tabType) { builder.AddInt(23, (int)tabType, 0); }
+  public static void AddIsPermanent(FlatBufferBuilder builder, bool isPermanent) { builder.AddBool(24, isPermanent, false); }
+  public static void AddPreSeasonId(FlatBufferBuilder builder, long preSeasonId) { builder.AddLong(25, preSeasonId, 0); }
   public static Offset<Schale.FlatData.GuideMissionSeasonExcel> EndGuideMissionSeasonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.GuideMissionSeasonExcel>(o);
@@ -214,7 +218,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
     _o.TitleLocalizeCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TitleLocalizeCode, key) : this.TitleLocalizeCode;
     _o.PermanentInfomationLocalizeCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PermanentInfomationLocalizeCode, key) : this.PermanentInfomationLocalizeCode;
     _o.InfomationLocalizeCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.InfomationLocalizeCode, key) : this.InfomationLocalizeCode;
-    _o.AccountType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountType, key) : this.AccountType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.Enabled = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Enabled, key) : this.Enabled;
     _o.BannerOpenDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BannerOpenDate, key) : this.BannerOpenDate;
     _o.StartDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.StartDate, key) : this.StartDate;
@@ -223,6 +227,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
     _o.CloseBannerAfterCompletion = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CloseBannerAfterCompletion, key) : this.CloseBannerAfterCompletion;
     _o.MaximumLoginCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MaximumLoginCount, key) : this.MaximumLoginCount;
     _o.ExpiryDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpiryDate, key) : this.ExpiryDate;
+    _o.IconOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconOrder, key) : this.IconOrder;
     _o.SpineCharacterId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SpineCharacterId, key) : this.SpineCharacterId;
     _o.RequirementParcelImage = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RequirementParcelImage, key) : this.RequirementParcelImage;
     _o.RewardImage = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RewardImage, key) : this.RewardImage;
@@ -256,7 +261,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
       _TitleLocalizeCode,
       _PermanentInfomationLocalizeCode,
       _InfomationLocalizeCode,
-      _o.AccountType,
+      _o.TargetGroup,
       _o.Enabled,
       _BannerOpenDate,
       _StartDate,
@@ -265,6 +270,7 @@ public struct GuideMissionSeasonExcel : IFlatbufferObject
       _o.CloseBannerAfterCompletion,
       _o.MaximumLoginCount,
       _o.ExpiryDate,
+      _o.IconOrder,
       _o.SpineCharacterId,
       _RequirementParcelImage,
       _RewardImage,
@@ -286,7 +292,7 @@ public class GuideMissionSeasonExcelT
   public string TitleLocalizeCode { get; set; }
   public string PermanentInfomationLocalizeCode { get; set; }
   public string InfomationLocalizeCode { get; set; }
-  public Schale.FlatData.AccountState AccountType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public bool Enabled { get; set; }
   public string BannerOpenDate { get; set; }
   public string StartDate { get; set; }
@@ -295,6 +301,7 @@ public class GuideMissionSeasonExcelT
   public bool CloseBannerAfterCompletion { get; set; }
   public long MaximumLoginCount { get; set; }
   public long ExpiryDate { get; set; }
+  public long IconOrder { get; set; }
   public long SpineCharacterId { get; set; }
   public string RequirementParcelImage { get; set; }
   public string RewardImage { get; set; }
@@ -313,7 +320,7 @@ public class GuideMissionSeasonExcelT
     this.TitleLocalizeCode = null;
     this.PermanentInfomationLocalizeCode = null;
     this.InfomationLocalizeCode = null;
-    this.AccountType = Schale.FlatData.AccountState.WaitingSignIn;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.Enabled = false;
     this.BannerOpenDate = null;
     this.StartDate = null;
@@ -322,6 +329,7 @@ public class GuideMissionSeasonExcelT
     this.CloseBannerAfterCompletion = false;
     this.MaximumLoginCount = 0;
     this.ExpiryDate = 0;
+    this.IconOrder = 0;
     this.SpineCharacterId = 0;
     this.RequirementParcelImage = null;
     this.RewardImage = null;
@@ -347,7 +355,7 @@ static public class GuideMissionSeasonExcelVerify
       && verifier.VerifyString(tablePos, 6 /*TitleLocalizeCode*/, false)
       && verifier.VerifyString(tablePos, 8 /*PermanentInfomationLocalizeCode*/, false)
       && verifier.VerifyString(tablePos, 10 /*InfomationLocalizeCode*/, false)
-      && verifier.VerifyField(tablePos, 12 /*AccountType*/, 4 /*Schale.FlatData.AccountState*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 14 /*Enabled*/, 1 /*bool*/, 1, false)
       && verifier.VerifyString(tablePos, 16 /*BannerOpenDate*/, false)
       && verifier.VerifyString(tablePos, 18 /*StartDate*/, false)
@@ -356,18 +364,19 @@ static public class GuideMissionSeasonExcelVerify
       && verifier.VerifyField(tablePos, 24 /*CloseBannerAfterCompletion*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 26 /*MaximumLoginCount*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 28 /*ExpiryDate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*SpineCharacterId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 32 /*RequirementParcelImage*/, false)
-      && verifier.VerifyString(tablePos, 34 /*RewardImage*/, false)
-      && verifier.VerifyString(tablePos, 36 /*LobbyBannerImage*/, false)
-      && verifier.VerifyString(tablePos, 38 /*BackgroundImage*/, false)
-      && verifier.VerifyString(tablePos, 40 /*TitleImage*/, false)
-      && verifier.VerifyField(tablePos, 42 /*RequirementParcelType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
-      && verifier.VerifyField(tablePos, 44 /*RequirementParcelId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 46 /*RequirementParcelAmount*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 48 /*TabType*/, 4 /*Schale.FlatData.GuideMissionTabType*/, 4, false)
-      && verifier.VerifyField(tablePos, 50 /*IsPermanent*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 52 /*PreSeasonId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 30 /*IconOrder*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*SpineCharacterId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 34 /*RequirementParcelImage*/, false)
+      && verifier.VerifyString(tablePos, 36 /*RewardImage*/, false)
+      && verifier.VerifyString(tablePos, 38 /*LobbyBannerImage*/, false)
+      && verifier.VerifyString(tablePos, 40 /*BackgroundImage*/, false)
+      && verifier.VerifyString(tablePos, 42 /*TitleImage*/, false)
+      && verifier.VerifyField(tablePos, 44 /*RequirementParcelType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 46 /*RequirementParcelId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 48 /*RequirementParcelAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 50 /*TabType*/, 4 /*Schale.FlatData.GuideMissionTabType*/, 4, false)
+      && verifier.VerifyField(tablePos, 52 /*IsPermanent*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 54 /*PreSeasonId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

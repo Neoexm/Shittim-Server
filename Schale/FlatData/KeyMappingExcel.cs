@@ -27,58 +27,132 @@ public struct KeyMappingExcel : IFlatbufferObject
   public ArraySegment<byte>? GetIdBytes() { return __p.__vector_as_arraysegment(4); }
 #endif
   public byte[] GetIdArray() { return __p.__vector_as_array<byte>(4); }
-  public string TargetKeyCode { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.DisplayGroupType DisplayGroupType { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.DisplayGroupType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.DisplayGroupType.None; } }
+  public string GroupId { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTargetKeyCodeBytes() { return __p.__vector_as_span<byte>(6, 1); }
+  public Span<byte> GetGroupIdBytes() { return __p.__vector_as_span<byte>(8, 1); }
 #else
-  public ArraySegment<byte>? GetTargetKeyCodeBytes() { return __p.__vector_as_arraysegment(6); }
+  public ArraySegment<byte>? GetGroupIdBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
-  public byte[] GetTargetKeyCodeArray() { return __p.__vector_as_array<byte>(6); }
-  public bool IsDisplay { get { int o = __p.__offset(8); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IsUsed { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IsLongPress { get { int o = __p.__offset(12); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IgnorePosCheck { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public float IconPositionX { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float IconPositionY { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float IconScaleX { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float IconScaleY { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public byte[] GetGroupIdArray() { return __p.__vector_as_array<byte>(8); }
+  public bool EnableCustomMapping { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool DisplayCustomMapping { get { int o = __p.__offset(12); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public uint LocalizeKeyMappingId { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public string TargetKeyCode { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetTargetKeyCodeBytes() { return __p.__vector_as_span<byte>(16, 1); }
+#else
+  public ArraySegment<byte>? GetTargetKeyCodeBytes() { return __p.__vector_as_arraysegment(16); }
+#endif
+  public byte[] GetTargetKeyCodeArray() { return __p.__vector_as_array<byte>(16); }
+  public bool ControllerCursorFocus { get { int o = __p.__offset(18); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public string ControllerKeyCode { get { int o = __p.__offset(20); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetControllerKeyCodeBytes() { return __p.__vector_as_span<byte>(20, 1); }
+#else
+  public ArraySegment<byte>? GetControllerKeyCodeBytes() { return __p.__vector_as_arraysegment(20); }
+#endif
+  public byte[] GetControllerKeyCodeArray() { return __p.__vector_as_array<byte>(20); }
+  public bool IsDisplay { get { int o = __p.__offset(22); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsDisplayController { get { int o = __p.__offset(24); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsUsed { get { int o = __p.__offset(26); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsUsedController { get { int o = __p.__offset(28); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsLongPress { get { int o = __p.__offset(30); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IgnorePosCheck { get { int o = __p.__offset(32); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public float IconPositionX { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float IconPositionY { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float IconScaleX { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float IconScaleY { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerIconPositionX { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerIconPositionY { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerIconScaleX { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerIconScaleY { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public string KeymappingIconBGName { get { int o = __p.__offset(50); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetKeymappingIconBGNameBytes() { return __p.__vector_as_span<byte>(50, 1); }
+#else
+  public ArraySegment<byte>? GetKeymappingIconBGNameBytes() { return __p.__vector_as_arraysegment(50); }
+#endif
+  public byte[] GetKeymappingIconBGNameArray() { return __p.__vector_as_array<byte>(50); }
 
   public static Offset<Schale.FlatData.KeyMappingExcel> CreateKeyMappingExcel(FlatBufferBuilder builder,
       StringOffset IdOffset = default(StringOffset),
+      Schale.FlatData.DisplayGroupType DisplayGroupType = Schale.FlatData.DisplayGroupType.None,
+      StringOffset GroupIdOffset = default(StringOffset),
+      bool EnableCustomMapping = false,
+      bool DisplayCustomMapping = false,
+      uint LocalizeKeyMappingId = 0,
       StringOffset TargetKeyCodeOffset = default(StringOffset),
-      bool isDisplay = false,
-      bool isUsed = false,
-      bool isLongPress = false,
+      bool ControllerCursorFocus = false,
+      StringOffset ControllerKeyCodeOffset = default(StringOffset),
+      bool IsDisplay = false,
+      bool IsDisplayController = false,
+      bool IsUsed = false,
+      bool IsUsedController = false,
+      bool IsLongPress = false,
       bool IgnorePosCheck = false,
       float IconPositionX = 0.0f,
       float IconPositionY = 0.0f,
       float IconScaleX = 0.0f,
-      float IconScaleY = 0.0f) {
-    builder.StartTable(10);
+      float IconScaleY = 0.0f,
+      float ControllerIconPositionX = 0.0f,
+      float ControllerIconPositionY = 0.0f,
+      float ControllerIconScaleX = 0.0f,
+      float ControllerIconScaleY = 0.0f,
+      StringOffset KeymappingIconBGNameOffset = default(StringOffset)) {
+    builder.StartTable(24);
+    KeyMappingExcel.AddKeymappingIconBGName(builder, KeymappingIconBGNameOffset);
+    KeyMappingExcel.AddControllerIconScaleY(builder, ControllerIconScaleY);
+    KeyMappingExcel.AddControllerIconScaleX(builder, ControllerIconScaleX);
+    KeyMappingExcel.AddControllerIconPositionY(builder, ControllerIconPositionY);
+    KeyMappingExcel.AddControllerIconPositionX(builder, ControllerIconPositionX);
     KeyMappingExcel.AddIconScaleY(builder, IconScaleY);
     KeyMappingExcel.AddIconScaleX(builder, IconScaleX);
     KeyMappingExcel.AddIconPositionY(builder, IconPositionY);
     KeyMappingExcel.AddIconPositionX(builder, IconPositionX);
+    KeyMappingExcel.AddControllerKeyCode(builder, ControllerKeyCodeOffset);
     KeyMappingExcel.AddTargetKeyCode(builder, TargetKeyCodeOffset);
+    KeyMappingExcel.AddLocalizeKeyMappingId(builder, LocalizeKeyMappingId);
+    KeyMappingExcel.AddGroupId(builder, GroupIdOffset);
+    KeyMappingExcel.AddDisplayGroupType(builder, DisplayGroupType);
     KeyMappingExcel.AddId(builder, IdOffset);
     KeyMappingExcel.AddIgnorePosCheck(builder, IgnorePosCheck);
-    KeyMappingExcel.AddIsLongPress(builder, isLongPress);
-    KeyMappingExcel.AddIsUsed(builder, isUsed);
-    KeyMappingExcel.AddIsDisplay(builder, isDisplay);
+    KeyMappingExcel.AddIsLongPress(builder, IsLongPress);
+    KeyMappingExcel.AddIsUsedController(builder, IsUsedController);
+    KeyMappingExcel.AddIsUsed(builder, IsUsed);
+    KeyMappingExcel.AddIsDisplayController(builder, IsDisplayController);
+    KeyMappingExcel.AddIsDisplay(builder, IsDisplay);
+    KeyMappingExcel.AddControllerCursorFocus(builder, ControllerCursorFocus);
+    KeyMappingExcel.AddDisplayCustomMapping(builder, DisplayCustomMapping);
+    KeyMappingExcel.AddEnableCustomMapping(builder, EnableCustomMapping);
     return KeyMappingExcel.EndKeyMappingExcel(builder);
   }
 
-  public static void StartKeyMappingExcel(FlatBufferBuilder builder) { builder.StartTable(10); }
+  public static void StartKeyMappingExcel(FlatBufferBuilder builder) { builder.StartTable(24); }
   public static void AddId(FlatBufferBuilder builder, StringOffset idOffset) { builder.AddOffset(0, idOffset.Value, 0); }
-  public static void AddTargetKeyCode(FlatBufferBuilder builder, StringOffset targetKeyCodeOffset) { builder.AddOffset(1, targetKeyCodeOffset.Value, 0); }
-  public static void AddIsDisplay(FlatBufferBuilder builder, bool isDisplay) { builder.AddBool(2, isDisplay, false); }
-  public static void AddIsUsed(FlatBufferBuilder builder, bool isUsed) { builder.AddBool(3, isUsed, false); }
-  public static void AddIsLongPress(FlatBufferBuilder builder, bool isLongPress) { builder.AddBool(4, isLongPress, false); }
-  public static void AddIgnorePosCheck(FlatBufferBuilder builder, bool ignorePosCheck) { builder.AddBool(5, ignorePosCheck, false); }
-  public static void AddIconPositionX(FlatBufferBuilder builder, float iconPositionX) { builder.AddFloat(6, iconPositionX, 0.0f); }
-  public static void AddIconPositionY(FlatBufferBuilder builder, float iconPositionY) { builder.AddFloat(7, iconPositionY, 0.0f); }
-  public static void AddIconScaleX(FlatBufferBuilder builder, float iconScaleX) { builder.AddFloat(8, iconScaleX, 0.0f); }
-  public static void AddIconScaleY(FlatBufferBuilder builder, float iconScaleY) { builder.AddFloat(9, iconScaleY, 0.0f); }
+  public static void AddDisplayGroupType(FlatBufferBuilder builder, Schale.FlatData.DisplayGroupType displayGroupType) { builder.AddInt(1, (int)displayGroupType, 0); }
+  public static void AddGroupId(FlatBufferBuilder builder, StringOffset groupIdOffset) { builder.AddOffset(2, groupIdOffset.Value, 0); }
+  public static void AddEnableCustomMapping(FlatBufferBuilder builder, bool enableCustomMapping) { builder.AddBool(3, enableCustomMapping, false); }
+  public static void AddDisplayCustomMapping(FlatBufferBuilder builder, bool displayCustomMapping) { builder.AddBool(4, displayCustomMapping, false); }
+  public static void AddLocalizeKeyMappingId(FlatBufferBuilder builder, uint localizeKeyMappingId) { builder.AddUint(5, localizeKeyMappingId, 0); }
+  public static void AddTargetKeyCode(FlatBufferBuilder builder, StringOffset targetKeyCodeOffset) { builder.AddOffset(6, targetKeyCodeOffset.Value, 0); }
+  public static void AddControllerCursorFocus(FlatBufferBuilder builder, bool controllerCursorFocus) { builder.AddBool(7, controllerCursorFocus, false); }
+  public static void AddControllerKeyCode(FlatBufferBuilder builder, StringOffset controllerKeyCodeOffset) { builder.AddOffset(8, controllerKeyCodeOffset.Value, 0); }
+  public static void AddIsDisplay(FlatBufferBuilder builder, bool isDisplay) { builder.AddBool(9, isDisplay, false); }
+  public static void AddIsDisplayController(FlatBufferBuilder builder, bool isDisplayController) { builder.AddBool(10, isDisplayController, false); }
+  public static void AddIsUsed(FlatBufferBuilder builder, bool isUsed) { builder.AddBool(11, isUsed, false); }
+  public static void AddIsUsedController(FlatBufferBuilder builder, bool isUsedController) { builder.AddBool(12, isUsedController, false); }
+  public static void AddIsLongPress(FlatBufferBuilder builder, bool isLongPress) { builder.AddBool(13, isLongPress, false); }
+  public static void AddIgnorePosCheck(FlatBufferBuilder builder, bool ignorePosCheck) { builder.AddBool(14, ignorePosCheck, false); }
+  public static void AddIconPositionX(FlatBufferBuilder builder, float iconPositionX) { builder.AddFloat(15, iconPositionX, 0.0f); }
+  public static void AddIconPositionY(FlatBufferBuilder builder, float iconPositionY) { builder.AddFloat(16, iconPositionY, 0.0f); }
+  public static void AddIconScaleX(FlatBufferBuilder builder, float iconScaleX) { builder.AddFloat(17, iconScaleX, 0.0f); }
+  public static void AddIconScaleY(FlatBufferBuilder builder, float iconScaleY) { builder.AddFloat(18, iconScaleY, 0.0f); }
+  public static void AddControllerIconPositionX(FlatBufferBuilder builder, float controllerIconPositionX) { builder.AddFloat(19, controllerIconPositionX, 0.0f); }
+  public static void AddControllerIconPositionY(FlatBufferBuilder builder, float controllerIconPositionY) { builder.AddFloat(20, controllerIconPositionY, 0.0f); }
+  public static void AddControllerIconScaleX(FlatBufferBuilder builder, float controllerIconScaleX) { builder.AddFloat(21, controllerIconScaleX, 0.0f); }
+  public static void AddControllerIconScaleY(FlatBufferBuilder builder, float controllerIconScaleY) { builder.AddFloat(22, controllerIconScaleY, 0.0f); }
+  public static void AddKeymappingIconBGName(FlatBufferBuilder builder, StringOffset keymappingIconBGNameOffset) { builder.AddOffset(23, keymappingIconBGNameOffset.Value, 0); }
   public static Offset<Schale.FlatData.KeyMappingExcel> EndKeyMappingExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.KeyMappingExcel>(o);
@@ -91,59 +165,118 @@ public struct KeyMappingExcel : IFlatbufferObject
   public void UnPackTo(KeyMappingExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("KeyMapping");
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
+    _o.DisplayGroupType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayGroupType, key) : this.DisplayGroupType;
+    _o.GroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GroupId, key) : this.GroupId;
+    _o.EnableCustomMapping = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnableCustomMapping, key) : this.EnableCustomMapping;
+    _o.DisplayCustomMapping = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayCustomMapping, key) : this.DisplayCustomMapping;
+    _o.LocalizeKeyMappingId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeKeyMappingId, key) : this.LocalizeKeyMappingId;
     _o.TargetKeyCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetKeyCode, key) : this.TargetKeyCode;
+    _o.ControllerCursorFocus = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerCursorFocus, key) : this.ControllerCursorFocus;
+    _o.ControllerKeyCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerKeyCode, key) : this.ControllerKeyCode;
     _o.IsDisplay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsDisplay, key) : this.IsDisplay;
+    _o.IsDisplayController = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsDisplayController, key) : this.IsDisplayController;
     _o.IsUsed = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsUsed, key) : this.IsUsed;
+    _o.IsUsedController = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsUsedController, key) : this.IsUsedController;
     _o.IsLongPress = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsLongPress, key) : this.IsLongPress;
     _o.IgnorePosCheck = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IgnorePosCheck, key) : this.IgnorePosCheck;
     _o.IconPositionX = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconPositionX, key) : this.IconPositionX;
     _o.IconPositionY = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconPositionY, key) : this.IconPositionY;
     _o.IconScaleX = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconScaleX, key) : this.IconScaleX;
     _o.IconScaleY = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconScaleY, key) : this.IconScaleY;
+    _o.ControllerIconPositionX = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerIconPositionX, key) : this.ControllerIconPositionX;
+    _o.ControllerIconPositionY = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerIconPositionY, key) : this.ControllerIconPositionY;
+    _o.ControllerIconScaleX = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerIconScaleX, key) : this.ControllerIconScaleX;
+    _o.ControllerIconScaleY = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerIconScaleY, key) : this.ControllerIconScaleY;
+    _o.KeymappingIconBGName = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.KeymappingIconBGName, key) : this.KeymappingIconBGName;
   }
   public static Offset<Schale.FlatData.KeyMappingExcel> Pack(FlatBufferBuilder builder, KeyMappingExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.KeyMappingExcel>);
     var _Id = _o.Id == null ? default(StringOffset) : builder.CreateString(_o.Id);
+    var _GroupId = _o.GroupId == null ? default(StringOffset) : builder.CreateString(_o.GroupId);
     var _TargetKeyCode = _o.TargetKeyCode == null ? default(StringOffset) : builder.CreateString(_o.TargetKeyCode);
+    var _ControllerKeyCode = _o.ControllerKeyCode == null ? default(StringOffset) : builder.CreateString(_o.ControllerKeyCode);
+    var _KeymappingIconBGName = _o.KeymappingIconBGName == null ? default(StringOffset) : builder.CreateString(_o.KeymappingIconBGName);
     return CreateKeyMappingExcel(
       builder,
       _Id,
+      _o.DisplayGroupType,
+      _GroupId,
+      _o.EnableCustomMapping,
+      _o.DisplayCustomMapping,
+      _o.LocalizeKeyMappingId,
       _TargetKeyCode,
+      _o.ControllerCursorFocus,
+      _ControllerKeyCode,
       _o.IsDisplay,
+      _o.IsDisplayController,
       _o.IsUsed,
+      _o.IsUsedController,
       _o.IsLongPress,
       _o.IgnorePosCheck,
       _o.IconPositionX,
       _o.IconPositionY,
       _o.IconScaleX,
-      _o.IconScaleY);
+      _o.IconScaleY,
+      _o.ControllerIconPositionX,
+      _o.ControllerIconPositionY,
+      _o.ControllerIconScaleX,
+      _o.ControllerIconScaleY,
+      _KeymappingIconBGName);
   }
 }
 
 public class KeyMappingExcelT
 {
   public string Id { get; set; }
+  public Schale.FlatData.DisplayGroupType DisplayGroupType { get; set; }
+  public string GroupId { get; set; }
+  public bool EnableCustomMapping { get; set; }
+  public bool DisplayCustomMapping { get; set; }
+  public uint LocalizeKeyMappingId { get; set; }
   public string TargetKeyCode { get; set; }
+  public bool ControllerCursorFocus { get; set; }
+  public string ControllerKeyCode { get; set; }
   public bool IsDisplay { get; set; }
+  public bool IsDisplayController { get; set; }
   public bool IsUsed { get; set; }
+  public bool IsUsedController { get; set; }
   public bool IsLongPress { get; set; }
   public bool IgnorePosCheck { get; set; }
   public float IconPositionX { get; set; }
   public float IconPositionY { get; set; }
   public float IconScaleX { get; set; }
   public float IconScaleY { get; set; }
+  public float ControllerIconPositionX { get; set; }
+  public float ControllerIconPositionY { get; set; }
+  public float ControllerIconScaleX { get; set; }
+  public float ControllerIconScaleY { get; set; }
+  public string KeymappingIconBGName { get; set; }
 
   public KeyMappingExcelT() {
     this.Id = null;
+    this.DisplayGroupType = Schale.FlatData.DisplayGroupType.None;
+    this.GroupId = null;
+    this.EnableCustomMapping = false;
+    this.DisplayCustomMapping = false;
+    this.LocalizeKeyMappingId = 0;
     this.TargetKeyCode = null;
+    this.ControllerCursorFocus = false;
+    this.ControllerKeyCode = null;
     this.IsDisplay = false;
+    this.IsDisplayController = false;
     this.IsUsed = false;
+    this.IsUsedController = false;
     this.IsLongPress = false;
     this.IgnorePosCheck = false;
     this.IconPositionX = 0.0f;
     this.IconPositionY = 0.0f;
     this.IconScaleX = 0.0f;
     this.IconScaleY = 0.0f;
+    this.ControllerIconPositionX = 0.0f;
+    this.ControllerIconPositionY = 0.0f;
+    this.ControllerIconScaleX = 0.0f;
+    this.ControllerIconScaleY = 0.0f;
+    this.KeymappingIconBGName = null;
   }
 }
 
@@ -154,15 +287,29 @@ static public class KeyMappingExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyString(tablePos, 4 /*Id*/, false)
-      && verifier.VerifyString(tablePos, 6 /*TargetKeyCode*/, false)
-      && verifier.VerifyField(tablePos, 8 /*IsDisplay*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 10 /*IsUsed*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 12 /*IsLongPress*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 14 /*IgnorePosCheck*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 16 /*IconPositionX*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 18 /*IconPositionY*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 20 /*IconScaleX*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 22 /*IconScaleY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 6 /*DisplayGroupType*/, 4 /*Schale.FlatData.DisplayGroupType*/, 4, false)
+      && verifier.VerifyString(tablePos, 8 /*GroupId*/, false)
+      && verifier.VerifyField(tablePos, 10 /*EnableCustomMapping*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 12 /*DisplayCustomMapping*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 14 /*LocalizeKeyMappingId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyString(tablePos, 16 /*TargetKeyCode*/, false)
+      && verifier.VerifyField(tablePos, 18 /*ControllerCursorFocus*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyString(tablePos, 20 /*ControllerKeyCode*/, false)
+      && verifier.VerifyField(tablePos, 22 /*IsDisplay*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 24 /*IsDisplayController*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 26 /*IsUsed*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 28 /*IsUsedController*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 30 /*IsLongPress*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 32 /*IgnorePosCheck*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 34 /*IconPositionX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 36 /*IconPositionY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 38 /*IconScaleX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*IconScaleY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 42 /*ControllerIconPositionX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 44 /*ControllerIconPositionY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 46 /*ControllerIconScaleX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 48 /*ControllerIconScaleY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyString(tablePos, 50 /*KeymappingIconBGName*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

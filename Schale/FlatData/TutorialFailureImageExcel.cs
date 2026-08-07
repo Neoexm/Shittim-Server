@@ -64,6 +64,13 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
   public ArraySegment<byte>? GetImagePathEnBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
   public byte[] GetImagePathEnArray() { return __p.__vector_as_array<byte>(18); }
+  public string ReplaceLocalizeKey { get { int o = __p.__offset(20); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetReplaceLocalizeKeyBytes() { return __p.__vector_as_span<byte>(20, 1); }
+#else
+  public ArraySegment<byte>? GetReplaceLocalizeKeyBytes() { return __p.__vector_as_arraysegment(20); }
+#endif
+  public byte[] GetReplaceLocalizeKeyArray() { return __p.__vector_as_array<byte>(20); }
 
   public static Offset<Schale.FlatData.TutorialFailureImageExcel> CreateTutorialFailureImageExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -73,9 +80,11 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
       StringOffset ImagePathJpOffset = default(StringOffset),
       StringOffset ImagePathThOffset = default(StringOffset),
       StringOffset ImagePathTwOffset = default(StringOffset),
-      StringOffset ImagePathEnOffset = default(StringOffset)) {
-    builder.StartTable(8);
+      StringOffset ImagePathEnOffset = default(StringOffset),
+      StringOffset ReplaceLocalizeKeyOffset = default(StringOffset)) {
+    builder.StartTable(9);
     TutorialFailureImageExcel.AddId(builder, Id);
+    TutorialFailureImageExcel.AddReplaceLocalizeKey(builder, ReplaceLocalizeKeyOffset);
     TutorialFailureImageExcel.AddImagePathEn(builder, ImagePathEnOffset);
     TutorialFailureImageExcel.AddImagePathTw(builder, ImagePathTwOffset);
     TutorialFailureImageExcel.AddImagePathTh(builder, ImagePathThOffset);
@@ -86,7 +95,7 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
     return TutorialFailureImageExcel.EndTutorialFailureImageExcel(builder);
   }
 
-  public static void StartTutorialFailureImageExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
+  public static void StartTutorialFailureImageExcel(FlatBufferBuilder builder) { builder.StartTable(9); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddContents(FlatBufferBuilder builder, Schale.FlatData.TutorialFailureContentType contents) { builder.AddInt(1, (int)contents, 0); }
   public static void AddType(FlatBufferBuilder builder, StringOffset typeOffset) { builder.AddOffset(2, typeOffset.Value, 0); }
@@ -95,6 +104,7 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
   public static void AddImagePathTh(FlatBufferBuilder builder, StringOffset imagePathThOffset) { builder.AddOffset(5, imagePathThOffset.Value, 0); }
   public static void AddImagePathTw(FlatBufferBuilder builder, StringOffset imagePathTwOffset) { builder.AddOffset(6, imagePathTwOffset.Value, 0); }
   public static void AddImagePathEn(FlatBufferBuilder builder, StringOffset imagePathEnOffset) { builder.AddOffset(7, imagePathEnOffset.Value, 0); }
+  public static void AddReplaceLocalizeKey(FlatBufferBuilder builder, StringOffset replaceLocalizeKeyOffset) { builder.AddOffset(8, replaceLocalizeKeyOffset.Value, 0); }
   public static Offset<Schale.FlatData.TutorialFailureImageExcel> EndTutorialFailureImageExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.TutorialFailureImageExcel>(o);
@@ -114,6 +124,7 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
     _o.ImagePathTh = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ImagePathTh, key) : this.ImagePathTh;
     _o.ImagePathTw = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ImagePathTw, key) : this.ImagePathTw;
     _o.ImagePathEn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ImagePathEn, key) : this.ImagePathEn;
+    _o.ReplaceLocalizeKey = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReplaceLocalizeKey, key) : this.ReplaceLocalizeKey;
   }
   public static Offset<Schale.FlatData.TutorialFailureImageExcel> Pack(FlatBufferBuilder builder, TutorialFailureImageExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.TutorialFailureImageExcel>);
@@ -123,6 +134,7 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
     var _ImagePathTh = _o.ImagePathTh == null ? default(StringOffset) : builder.CreateString(_o.ImagePathTh);
     var _ImagePathTw = _o.ImagePathTw == null ? default(StringOffset) : builder.CreateString(_o.ImagePathTw);
     var _ImagePathEn = _o.ImagePathEn == null ? default(StringOffset) : builder.CreateString(_o.ImagePathEn);
+    var _ReplaceLocalizeKey = _o.ReplaceLocalizeKey == null ? default(StringOffset) : builder.CreateString(_o.ReplaceLocalizeKey);
     return CreateTutorialFailureImageExcel(
       builder,
       _o.Id,
@@ -132,7 +144,8 @@ public struct TutorialFailureImageExcel : IFlatbufferObject
       _ImagePathJp,
       _ImagePathTh,
       _ImagePathTw,
-      _ImagePathEn);
+      _ImagePathEn,
+      _ReplaceLocalizeKey);
   }
 }
 
@@ -146,6 +159,7 @@ public class TutorialFailureImageExcelT
   public string ImagePathTh { get; set; }
   public string ImagePathTw { get; set; }
   public string ImagePathEn { get; set; }
+  public string ReplaceLocalizeKey { get; set; }
 
   public TutorialFailureImageExcelT() {
     this.Id = 0;
@@ -156,6 +170,7 @@ public class TutorialFailureImageExcelT
     this.ImagePathTh = null;
     this.ImagePathTw = null;
     this.ImagePathEn = null;
+    this.ReplaceLocalizeKey = null;
   }
 }
 
@@ -173,6 +188,7 @@ static public class TutorialFailureImageExcelVerify
       && verifier.VerifyString(tablePos, 14 /*ImagePathTh*/, false)
       && verifier.VerifyString(tablePos, 16 /*ImagePathTw*/, false)
       && verifier.VerifyString(tablePos, 18 /*ImagePathEn*/, false)
+      && verifier.VerifyString(tablePos, 20 /*ReplaceLocalizeKey*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

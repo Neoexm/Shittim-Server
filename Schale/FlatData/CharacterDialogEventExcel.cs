@@ -102,6 +102,7 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
   public ArraySegment<byte>? GetLocalizeCVGroupBytes() { return __p.__vector_as_arraysegment(56); }
 #endif
   public byte[] GetLocalizeCVGroupArray() { return __p.__vector_as_array<byte>(56); }
+  public Schale.FlatData.ScenarioCharacterShapes ScenarioCharacterShapes { get { int o = __p.__offset(58); return o != 0 ? (Schale.FlatData.ScenarioCharacterShapes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ScenarioCharacterShapes.None; } }
 
   public static Offset<Schale.FlatData.CharacterDialogEventExcel> CreateCharacterDialogEventExcel(FlatBufferBuilder builder,
       long CostumeUniqueId = 0,
@@ -119,8 +120,8 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
       long Duration = 0,
       long DurationKr = 0,
       StringOffset AnimationNameOffset = default(StringOffset),
-      StringOffset LocalizeKROffset = default(StringOffset),
-      StringOffset LocalizeJPOffset = default(StringOffset),
+      StringOffset Localize_KROffset = default(StringOffset),
+      StringOffset Localize_JPOffset = default(StringOffset),
       StringOffset LocalizeTHOffset = default(StringOffset),
       StringOffset LocalizeTWOffset = default(StringOffset),
       StringOffset LocalizeENOffset = default(StringOffset),
@@ -130,8 +131,9 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
       Schale.FlatData.CVUnlockScenarioType CVUnlockScenarioType = Schale.FlatData.CVUnlockScenarioType.Main,
       long UnlockEventSeason = 0,
       long ScenarioGroupId = 0,
-      StringOffset LocalizeCVGroupOffset = default(StringOffset)) {
-    builder.StartTable(27);
+      StringOffset LocalizeCVGroupOffset = default(StringOffset),
+      Schale.FlatData.ScenarioCharacterShapes ScenarioCharacterShapes = Schale.FlatData.ScenarioCharacterShapes.None) {
+    builder.StartTable(28);
     CharacterDialogEventExcel.AddScenarioGroupId(builder, ScenarioGroupId);
     CharacterDialogEventExcel.AddUnlockEventSeason(builder, UnlockEventSeason);
     CharacterDialogEventExcel.AddDurationKr(builder, DurationKr);
@@ -142,6 +144,7 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
     CharacterDialogEventExcel.AddDisplayOrder(builder, DisplayOrder);
     CharacterDialogEventExcel.AddOriginalCharacterId(builder, OriginalCharacterId);
     CharacterDialogEventExcel.AddCostumeUniqueId(builder, CostumeUniqueId);
+    CharacterDialogEventExcel.AddScenarioCharacterShapes(builder, ScenarioCharacterShapes);
     CharacterDialogEventExcel.AddLocalizeCVGroup(builder, LocalizeCVGroupOffset);
     CharacterDialogEventExcel.AddCVUnlockScenarioType(builder, CVUnlockScenarioType);
     CharacterDialogEventExcel.AddCVCollectionType(builder, CVCollectionType);
@@ -149,8 +152,8 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
     CharacterDialogEventExcel.AddLocalizeEN(builder, LocalizeENOffset);
     CharacterDialogEventExcel.AddLocalizeTW(builder, LocalizeTWOffset);
     CharacterDialogEventExcel.AddLocalizeTH(builder, LocalizeTHOffset);
-    CharacterDialogEventExcel.AddLocalizeJP(builder, LocalizeJPOffset);
-    CharacterDialogEventExcel.AddLocalizeKR(builder, LocalizeKROffset);
+    CharacterDialogEventExcel.AddLocalizeJP(builder, Localize_JPOffset);
+    CharacterDialogEventExcel.AddLocalizeKR(builder, Localize_KROffset);
     CharacterDialogEventExcel.AddAnimationName(builder, AnimationNameOffset);
     CharacterDialogEventExcel.AddActionName(builder, ActionNameOffset);
     CharacterDialogEventExcel.AddDialogType(builder, DialogType);
@@ -162,7 +165,7 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
     return CharacterDialogEventExcel.EndCharacterDialogEventExcel(builder);
   }
 
-  public static void StartCharacterDialogEventExcel(FlatBufferBuilder builder) { builder.StartTable(27); }
+  public static void StartCharacterDialogEventExcel(FlatBufferBuilder builder) { builder.StartTable(28); }
   public static void AddCostumeUniqueId(FlatBufferBuilder builder, long costumeUniqueId) { builder.AddLong(0, costumeUniqueId, 0); }
   public static void AddOriginalCharacterId(FlatBufferBuilder builder, long originalCharacterId) { builder.AddLong(1, originalCharacterId, 0); }
   public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(2, displayOrder, 0); }
@@ -195,6 +198,7 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
   public static void AddUnlockEventSeason(FlatBufferBuilder builder, long unlockEventSeason) { builder.AddLong(24, unlockEventSeason, 0); }
   public static void AddScenarioGroupId(FlatBufferBuilder builder, long scenarioGroupId) { builder.AddLong(25, scenarioGroupId, 0); }
   public static void AddLocalizeCVGroup(FlatBufferBuilder builder, StringOffset localizeCVGroupOffset) { builder.AddOffset(26, localizeCVGroupOffset.Value, 0); }
+  public static void AddScenarioCharacterShapes(FlatBufferBuilder builder, Schale.FlatData.ScenarioCharacterShapes scenarioCharacterShapes) { builder.AddInt(27, (int)scenarioCharacterShapes, 0); }
   public static Offset<Schale.FlatData.CharacterDialogEventExcel> EndCharacterDialogEventExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.CharacterDialogEventExcel>(o);
@@ -234,13 +238,14 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
     _o.UnlockEventSeason = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UnlockEventSeason, key) : this.UnlockEventSeason;
     _o.ScenarioGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioGroupId, key) : this.ScenarioGroupId;
     _o.LocalizeCVGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeCVGroup, key) : this.LocalizeCVGroup;
+    _o.ScenarioCharacterShapes = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioCharacterShapes, key) : this.ScenarioCharacterShapes;
   }
   public static Offset<Schale.FlatData.CharacterDialogEventExcel> Pack(FlatBufferBuilder builder, CharacterDialogEventExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CharacterDialogEventExcel>);
     var _ActionName = _o.ActionName == null ? default(StringOffset) : builder.CreateString(_o.ActionName);
     var _AnimationName = _o.AnimationName == null ? default(StringOffset) : builder.CreateString(_o.AnimationName);
-    var _LocalizeKR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
-    var _LocalizeJP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
+    var _Localize_KR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
+    var _Localize_JP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
     var _LocalizeTH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
     var _LocalizeTW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
     var _LocalizeEN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
@@ -267,8 +272,8 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
       _o.Duration,
       _o.DurationKr,
       _AnimationName,
-      _LocalizeKR,
-      _LocalizeJP,
+      _Localize_KR,
+      _Localize_JP,
       _LocalizeTH,
       _LocalizeTW,
       _LocalizeEN,
@@ -278,7 +283,8 @@ public struct CharacterDialogEventExcel : IFlatbufferObject
       _o.CVUnlockScenarioType,
       _o.UnlockEventSeason,
       _o.ScenarioGroupId,
-      _LocalizeCVGroup);
+      _LocalizeCVGroup,
+      _o.ScenarioCharacterShapes);
   }
 }
 
@@ -311,6 +317,7 @@ public class CharacterDialogEventExcelT
   public long UnlockEventSeason { get; set; }
   public long ScenarioGroupId { get; set; }
   public string LocalizeCVGroup { get; set; }
+  public Schale.FlatData.ScenarioCharacterShapes ScenarioCharacterShapes { get; set; }
 
   public CharacterDialogEventExcelT() {
     this.CostumeUniqueId = 0;
@@ -340,6 +347,7 @@ public class CharacterDialogEventExcelT
     this.UnlockEventSeason = 0;
     this.ScenarioGroupId = 0;
     this.LocalizeCVGroup = null;
+    this.ScenarioCharacterShapes = Schale.FlatData.ScenarioCharacterShapes.None;
   }
 }
 
@@ -376,6 +384,7 @@ static public class CharacterDialogEventExcelVerify
       && verifier.VerifyField(tablePos, 52 /*UnlockEventSeason*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 54 /*ScenarioGroupId*/, 8 /*long*/, 8, false)
       && verifier.VerifyString(tablePos, 56 /*LocalizeCVGroup*/, false)
+      && verifier.VerifyField(tablePos, 58 /*ScenarioCharacterShapes*/, 4 /*Schale.FlatData.ScenarioCharacterShapes*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

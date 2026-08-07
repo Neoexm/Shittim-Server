@@ -52,7 +52,7 @@ public struct EventContentStageTotalRewardExcel : IFlatbufferObject
       long Id = 0,
       long EventContentId = 0,
       long RequiredEventItemAmount = 0,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
       VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
     builder.StartTable(6);
@@ -61,7 +61,7 @@ public struct EventContentStageTotalRewardExcel : IFlatbufferObject
     EventContentStageTotalRewardExcel.AddId(builder, Id);
     EventContentStageTotalRewardExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
     EventContentStageTotalRewardExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
-    EventContentStageTotalRewardExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
+    EventContentStageTotalRewardExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     return EventContentStageTotalRewardExcel.EndEventContentStageTotalRewardExcel(builder);
   }
 
@@ -110,10 +110,10 @@ public struct EventContentStageTotalRewardExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentStageTotalRewardExcel> Pack(FlatBufferBuilder builder, EventContentStageTotalRewardExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentStageTotalRewardExcel>);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
     var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
@@ -130,7 +130,7 @@ public struct EventContentStageTotalRewardExcel : IFlatbufferObject
       _o.Id,
       _o.EventContentId,
       _o.RequiredEventItemAmount,
-      _rewardParcelType,
+      _RewardParcelType,
       _RewardParcelId,
       _RewardParcelAmount);
   }

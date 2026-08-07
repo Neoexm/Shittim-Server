@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Shittim_Server.Controllers.SDK
 {
-    // Nexon's stamp (IAP/cash-shop) service, redirected here by mitm. The client calls it on every lobby entry and any failure surfaces as a modal over the loaded lobby.
+    // Nexon's stamp (IAP/cash-shop) service. The client calls it on every lobby entry and any failure surfaces as a modal over the loaded lobby.
     // gamescale.core.dll's response handler (sub_1800F0490) accepts only HTTP 200: 400/500 map to 0x2FCDB394, anything else including 404 to 0x2FCDB396, both remapped to 801010009 on screen. The body must parse as JSON (else 0x2FCDB395) but field lookups are lenient, so {} answers anything unmodelled - hence the catch-all instead of per-path routes.
     // Prefixes vary by environment (/stamp/live, /stamp/live01, /stamp/pre, /stamp/{alpha,qa,qa02}/public), so the match is on the suffix.
     [ApiController]

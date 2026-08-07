@@ -59,6 +59,11 @@ public enum Club : int
   AbydosStudentCouncil = 49,
   CentralControlCenter = 50,
   FreightLogisticsDepartment = 51,
+  OccultClub = 52,
+  PrefectBrigade = 53,
+  FreeTradeCartel = 54,
+  NicomediasTroop = 55,
+  PublishingDepartment = 56,
 };
 
 

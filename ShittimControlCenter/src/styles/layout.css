@@ -1,4 +1,3 @@
-/* window shell: titlebar, nav rail, content frame, console dock, status bar */
 
 #app {
   display: grid;
@@ -185,6 +184,7 @@
 .statusbar .sb-led { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--led-idle); }
 .statusbar .sb-led.up { background: var(--good); }
 .statusbar .sb-led.starting { background: var(--gold); }
+.statusbar .sb-led.bad { background: var(--bad); }
 .statusbar .sb-title { font-family: var(--font-round); font-weight: 600; font-size: 12px; color: var(--ink); flex: none; }
 .statusbar .sb-sub { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .statusbar .spacer { flex: 1; }

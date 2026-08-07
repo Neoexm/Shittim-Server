@@ -31,42 +31,66 @@ public struct CharacterDialogEmojiExcel : IFlatbufferObject
   public byte[] GetDialogTypeArray() { return __p.__vector_as_array<byte>(8); }
   public long Duration { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long DurationKr { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool HideUI { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public string LocalizeKR { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long DurationAdd { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool HideUI { get { int o = __p.__offset(16); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public string LocalizeKR { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeKRBytes() { return __p.__vector_as_span<byte>(16, 1); }
+  public Span<byte> GetLocalizeKRBytes() { return __p.__vector_as_span<byte>(18, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeKRBytes() { return __p.__vector_as_arraysegment(16); }
+  public ArraySegment<byte>? GetLocalizeKRBytes() { return __p.__vector_as_arraysegment(18); }
 #endif
-  public byte[] GetLocalizeKRArray() { return __p.__vector_as_array<byte>(16); }
-  public string LocalizeJP { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLocalizeKRArray() { return __p.__vector_as_array<byte>(18); }
+  public string LocalizeJP { get { int o = __p.__offset(20); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeJPBytes() { return __p.__vector_as_span<byte>(18, 1); }
+  public Span<byte> GetLocalizeJPBytes() { return __p.__vector_as_span<byte>(20, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeJPBytes() { return __p.__vector_as_arraysegment(18); }
+  public ArraySegment<byte>? GetLocalizeJPBytes() { return __p.__vector_as_arraysegment(20); }
 #endif
-  public byte[] GetLocalizeJPArray() { return __p.__vector_as_array<byte>(18); }
-  public string LocalizeTH { get { int o = __p.__offset(20); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLocalizeJPArray() { return __p.__vector_as_array<byte>(20); }
+  public string LocalizeTH { get { int o = __p.__offset(22); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeTHBytes() { return __p.__vector_as_span<byte>(20, 1); }
+  public Span<byte> GetLocalizeTHBytes() { return __p.__vector_as_span<byte>(22, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeTHBytes() { return __p.__vector_as_arraysegment(20); }
+  public ArraySegment<byte>? GetLocalizeTHBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
-  public byte[] GetLocalizeTHArray() { return __p.__vector_as_array<byte>(20); }
-  public string LocalizeTW { get { int o = __p.__offset(22); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLocalizeTHArray() { return __p.__vector_as_array<byte>(22); }
+  public string LocalizeTW { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeTWBytes() { return __p.__vector_as_span<byte>(22, 1); }
+  public Span<byte> GetLocalizeTWBytes() { return __p.__vector_as_span<byte>(24, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeTWBytes() { return __p.__vector_as_arraysegment(22); }
+  public ArraySegment<byte>? GetLocalizeTWBytes() { return __p.__vector_as_arraysegment(24); }
 #endif
-  public byte[] GetLocalizeTWArray() { return __p.__vector_as_array<byte>(22); }
-  public string LocalizeEN { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetLocalizeTWArray() { return __p.__vector_as_array<byte>(24); }
+  public string LocalizeEN { get { int o = __p.__offset(26); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetLocalizeENBytes() { return __p.__vector_as_span<byte>(24, 1); }
+  public Span<byte> GetLocalizeENBytes() { return __p.__vector_as_span<byte>(26, 1); }
 #else
-  public ArraySegment<byte>? GetLocalizeENBytes() { return __p.__vector_as_arraysegment(24); }
+  public ArraySegment<byte>? GetLocalizeENBytes() { return __p.__vector_as_arraysegment(26); }
 #endif
-  public byte[] GetLocalizeENArray() { return __p.__vector_as_array<byte>(24); }
+  public byte[] GetLocalizeENArray() { return __p.__vector_as_array<byte>(26); }
+  public uint VoiceId(int j) { int o = __p.__offset(28); return o != 0 ? __p.bb.GetUint(__p.__vector(o) + j * 4) : (uint)0; }
+  public int VoiceIdLength { get { int o = __p.__offset(28); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<uint> GetVoiceIdBytes() { return __p.__vector_as_span<uint>(28, 4); }
+#else
+  public ArraySegment<byte>? GetVoiceIdBytes() { return __p.__vector_as_arraysegment(28); }
+#endif
+  public uint[] GetVoiceIdArray() { return __p.__vector_as_array<uint>(28); }
+  public long CharacterId { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CostumeUniqueId { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long DisplayOrder { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool CollectionVisible { get { int o = __p.__offset(36); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.CVCollectionType CVCollectionType { get { int o = __p.__offset(38); return o != 0 ? (Schale.FlatData.CVCollectionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.CVCollectionType.CVNormal; } }
+  public Schale.FlatData.CVUnlockScenarioType CVUnlockScenarioType { get { int o = __p.__offset(40); return o != 0 ? (Schale.FlatData.CVUnlockScenarioType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.CVUnlockScenarioType.Main; } }
+  public long ScenarioGroupId { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long UnlockEventSeason { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string LocalizeCVGroup { get { int o = __p.__offset(46); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetLocalizeCVGroupBytes() { return __p.__vector_as_span<byte>(46, 1); }
+#else
+  public ArraySegment<byte>? GetLocalizeCVGroupBytes() { return __p.__vector_as_arraysegment(46); }
+#endif
+  public byte[] GetLocalizeCVGroupArray() { return __p.__vector_as_array<byte>(46); }
 
   public static Offset<Schale.FlatData.CharacterDialogEmojiExcel> CreateCharacterDialogEmojiExcel(FlatBufferBuilder builder,
       long GroupId = 0,
@@ -74,39 +98,77 @@ public struct CharacterDialogEmojiExcel : IFlatbufferObject
       StringOffset DialogTypeOffset = default(StringOffset),
       long Duration = 0,
       long DurationKr = 0,
+      long DurationAdd = 0,
       bool HideUI = false,
-      StringOffset LocalizeKROffset = default(StringOffset),
-      StringOffset LocalizeJPOffset = default(StringOffset),
-      StringOffset LocalizeTHOffset = default(StringOffset),
-      StringOffset LocalizeTWOffset = default(StringOffset),
-      StringOffset LocalizeENOffset = default(StringOffset)) {
-    builder.StartTable(11);
+      StringOffset Localize_KROffset = default(StringOffset),
+      StringOffset Localize_JPOffset = default(StringOffset),
+      StringOffset Localize_THOffset = default(StringOffset),
+      StringOffset Localize_TWOffset = default(StringOffset),
+      StringOffset Localize_ENOffset = default(StringOffset),
+      VectorOffset VoiceIdOffset = default(VectorOffset),
+      long CharacterId = 0,
+      long CostumeUniqueId = 0,
+      long DisplayOrder = 0,
+      bool CollectionVisible = false,
+      Schale.FlatData.CVCollectionType CVCollectionType = Schale.FlatData.CVCollectionType.CVNormal,
+      Schale.FlatData.CVUnlockScenarioType CVUnlockScenarioType = Schale.FlatData.CVUnlockScenarioType.Main,
+      long ScenarioGroupId = 0,
+      long UnlockEventSeason = 0,
+      StringOffset LocalizeCVGroupOffset = default(StringOffset)) {
+    builder.StartTable(22);
+    CharacterDialogEmojiExcel.AddUnlockEventSeason(builder, UnlockEventSeason);
+    CharacterDialogEmojiExcel.AddScenarioGroupId(builder, ScenarioGroupId);
+    CharacterDialogEmojiExcel.AddDisplayOrder(builder, DisplayOrder);
+    CharacterDialogEmojiExcel.AddCostumeUniqueId(builder, CostumeUniqueId);
+    CharacterDialogEmojiExcel.AddCharacterId(builder, CharacterId);
+    CharacterDialogEmojiExcel.AddDurationAdd(builder, DurationAdd);
     CharacterDialogEmojiExcel.AddDurationKr(builder, DurationKr);
     CharacterDialogEmojiExcel.AddDuration(builder, Duration);
     CharacterDialogEmojiExcel.AddGroupId(builder, GroupId);
-    CharacterDialogEmojiExcel.AddLocalizeEN(builder, LocalizeENOffset);
-    CharacterDialogEmojiExcel.AddLocalizeTW(builder, LocalizeTWOffset);
-    CharacterDialogEmojiExcel.AddLocalizeTH(builder, LocalizeTHOffset);
-    CharacterDialogEmojiExcel.AddLocalizeJP(builder, LocalizeJPOffset);
-    CharacterDialogEmojiExcel.AddLocalizeKR(builder, LocalizeKROffset);
+    CharacterDialogEmojiExcel.AddLocalizeCVGroup(builder, LocalizeCVGroupOffset);
+    CharacterDialogEmojiExcel.AddCVUnlockScenarioType(builder, CVUnlockScenarioType);
+    CharacterDialogEmojiExcel.AddCVCollectionType(builder, CVCollectionType);
+    CharacterDialogEmojiExcel.AddVoiceId(builder, VoiceIdOffset);
+    CharacterDialogEmojiExcel.AddLocalizeEN(builder, Localize_ENOffset);
+    CharacterDialogEmojiExcel.AddLocalizeTW(builder, Localize_TWOffset);
+    CharacterDialogEmojiExcel.AddLocalizeTH(builder, Localize_THOffset);
+    CharacterDialogEmojiExcel.AddLocalizeJP(builder, Localize_JPOffset);
+    CharacterDialogEmojiExcel.AddLocalizeKR(builder, Localize_KROffset);
     CharacterDialogEmojiExcel.AddDialogType(builder, DialogTypeOffset);
     CharacterDialogEmojiExcel.AddTargetIndex(builder, TargetIndex);
+    CharacterDialogEmojiExcel.AddCollectionVisible(builder, CollectionVisible);
     CharacterDialogEmojiExcel.AddHideUI(builder, HideUI);
     return CharacterDialogEmojiExcel.EndCharacterDialogEmojiExcel(builder);
   }
 
-  public static void StartCharacterDialogEmojiExcel(FlatBufferBuilder builder) { builder.StartTable(11); }
+  public static void StartCharacterDialogEmojiExcel(FlatBufferBuilder builder) { builder.StartTable(22); }
   public static void AddGroupId(FlatBufferBuilder builder, long groupId) { builder.AddLong(0, groupId, 0); }
   public static void AddTargetIndex(FlatBufferBuilder builder, int targetIndex) { builder.AddInt(1, targetIndex, 0); }
   public static void AddDialogType(FlatBufferBuilder builder, StringOffset dialogTypeOffset) { builder.AddOffset(2, dialogTypeOffset.Value, 0); }
   public static void AddDuration(FlatBufferBuilder builder, long duration) { builder.AddLong(3, duration, 0); }
   public static void AddDurationKr(FlatBufferBuilder builder, long durationKr) { builder.AddLong(4, durationKr, 0); }
-  public static void AddHideUI(FlatBufferBuilder builder, bool hideUI) { builder.AddBool(5, hideUI, false); }
-  public static void AddLocalizeKR(FlatBufferBuilder builder, StringOffset localizeKROffset) { builder.AddOffset(6, localizeKROffset.Value, 0); }
-  public static void AddLocalizeJP(FlatBufferBuilder builder, StringOffset localizeJPOffset) { builder.AddOffset(7, localizeJPOffset.Value, 0); }
-  public static void AddLocalizeTH(FlatBufferBuilder builder, StringOffset localizeTHOffset) { builder.AddOffset(8, localizeTHOffset.Value, 0); }
-  public static void AddLocalizeTW(FlatBufferBuilder builder, StringOffset localizeTWOffset) { builder.AddOffset(9, localizeTWOffset.Value, 0); }
-  public static void AddLocalizeEN(FlatBufferBuilder builder, StringOffset localizeENOffset) { builder.AddOffset(10, localizeENOffset.Value, 0); }
+  public static void AddDurationAdd(FlatBufferBuilder builder, long durationAdd) { builder.AddLong(5, durationAdd, 0); }
+  public static void AddHideUI(FlatBufferBuilder builder, bool hideUI) { builder.AddBool(6, hideUI, false); }
+  public static void AddLocalizeKR(FlatBufferBuilder builder, StringOffset localizeKROffset) { builder.AddOffset(7, localizeKROffset.Value, 0); }
+  public static void AddLocalizeJP(FlatBufferBuilder builder, StringOffset localizeJPOffset) { builder.AddOffset(8, localizeJPOffset.Value, 0); }
+  public static void AddLocalizeTH(FlatBufferBuilder builder, StringOffset localizeTHOffset) { builder.AddOffset(9, localizeTHOffset.Value, 0); }
+  public static void AddLocalizeTW(FlatBufferBuilder builder, StringOffset localizeTWOffset) { builder.AddOffset(10, localizeTWOffset.Value, 0); }
+  public static void AddLocalizeEN(FlatBufferBuilder builder, StringOffset localizeENOffset) { builder.AddOffset(11, localizeENOffset.Value, 0); }
+  public static void AddVoiceId(FlatBufferBuilder builder, VectorOffset voiceIdOffset) { builder.AddOffset(12, voiceIdOffset.Value, 0); }
+  public static VectorOffset CreateVoiceIdVector(FlatBufferBuilder builder, uint[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddUint(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateVoiceIdVectorBlock(FlatBufferBuilder builder, uint[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateVoiceIdVectorBlock(FlatBufferBuilder builder, ArraySegment<uint> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateVoiceIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<uint>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartVoiceIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddCharacterId(FlatBufferBuilder builder, long characterId) { builder.AddLong(13, characterId, 0); }
+  public static void AddCostumeUniqueId(FlatBufferBuilder builder, long costumeUniqueId) { builder.AddLong(14, costumeUniqueId, 0); }
+  public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(15, displayOrder, 0); }
+  public static void AddCollectionVisible(FlatBufferBuilder builder, bool collectionVisible) { builder.AddBool(16, collectionVisible, false); }
+  public static void AddCVCollectionType(FlatBufferBuilder builder, Schale.FlatData.CVCollectionType cVCollectionType) { builder.AddInt(17, (int)cVCollectionType, 0); }
+  public static void AddCVUnlockScenarioType(FlatBufferBuilder builder, Schale.FlatData.CVUnlockScenarioType cVUnlockScenarioType) { builder.AddInt(18, (int)cVUnlockScenarioType, 0); }
+  public static void AddScenarioGroupId(FlatBufferBuilder builder, long scenarioGroupId) { builder.AddLong(19, scenarioGroupId, 0); }
+  public static void AddUnlockEventSeason(FlatBufferBuilder builder, long unlockEventSeason) { builder.AddLong(20, unlockEventSeason, 0); }
+  public static void AddLocalizeCVGroup(FlatBufferBuilder builder, StringOffset localizeCVGroupOffset) { builder.AddOffset(21, localizeCVGroupOffset.Value, 0); }
   public static Offset<Schale.FlatData.CharacterDialogEmojiExcel> EndCharacterDialogEmojiExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.CharacterDialogEmojiExcel>(o);
@@ -123,21 +185,39 @@ public struct CharacterDialogEmojiExcel : IFlatbufferObject
     _o.DialogType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DialogType, key) : this.DialogType;
     _o.Duration = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Duration, key) : this.Duration;
     _o.DurationKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DurationKr, key) : this.DurationKr;
+    _o.DurationAdd = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DurationAdd, key) : this.DurationAdd;
     _o.HideUI = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HideUI, key) : this.HideUI;
     _o.LocalizeKR = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeKR, key) : this.LocalizeKR;
     _o.LocalizeJP = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeJP, key) : this.LocalizeJP;
     _o.LocalizeTH = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeTH, key) : this.LocalizeTH;
     _o.LocalizeTW = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeTW, key) : this.LocalizeTW;
     _o.LocalizeEN = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeEN, key) : this.LocalizeEN;
+    _o.VoiceId = new List<uint>();
+    for (var _j = 0; _j < this.VoiceIdLength; ++_j) {_o.VoiceId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.VoiceId(_j), key) : this.VoiceId(_j));}
+    _o.CharacterId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CharacterId, key) : this.CharacterId;
+    _o.CostumeUniqueId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CostumeUniqueId, key) : this.CostumeUniqueId;
+    _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
+    _o.CollectionVisible = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CollectionVisible, key) : this.CollectionVisible;
+    _o.CVCollectionType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CVCollectionType, key) : this.CVCollectionType;
+    _o.CVUnlockScenarioType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CVUnlockScenarioType, key) : this.CVUnlockScenarioType;
+    _o.ScenarioGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioGroupId, key) : this.ScenarioGroupId;
+    _o.UnlockEventSeason = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UnlockEventSeason, key) : this.UnlockEventSeason;
+    _o.LocalizeCVGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeCVGroup, key) : this.LocalizeCVGroup;
   }
   public static Offset<Schale.FlatData.CharacterDialogEmojiExcel> Pack(FlatBufferBuilder builder, CharacterDialogEmojiExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.CharacterDialogEmojiExcel>);
     var _DialogType = _o.DialogType == null ? default(StringOffset) : builder.CreateString(_o.DialogType);
-    var _LocalizeKR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
-    var _LocalizeJP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
-    var _LocalizeTH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
-    var _LocalizeTW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
-    var _LocalizeEN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
+    var _Localize_KR = _o.LocalizeKR == null ? default(StringOffset) : builder.CreateString(_o.LocalizeKR);
+    var _Localize_JP = _o.LocalizeJP == null ? default(StringOffset) : builder.CreateString(_o.LocalizeJP);
+    var _Localize_TH = _o.LocalizeTH == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTH);
+    var _Localize_TW = _o.LocalizeTW == null ? default(StringOffset) : builder.CreateString(_o.LocalizeTW);
+    var _Localize_EN = _o.LocalizeEN == null ? default(StringOffset) : builder.CreateString(_o.LocalizeEN);
+    var _VoiceId = default(VectorOffset);
+    if (_o.VoiceId != null) {
+      var __VoiceId = _o.VoiceId.ToArray();
+      _VoiceId = CreateVoiceIdVector(builder, __VoiceId);
+    }
+    var _LocalizeCVGroup = _o.LocalizeCVGroup == null ? default(StringOffset) : builder.CreateString(_o.LocalizeCVGroup);
     return CreateCharacterDialogEmojiExcel(
       builder,
       _o.GroupId,
@@ -145,12 +225,23 @@ public struct CharacterDialogEmojiExcel : IFlatbufferObject
       _DialogType,
       _o.Duration,
       _o.DurationKr,
+      _o.DurationAdd,
       _o.HideUI,
-      _LocalizeKR,
-      _LocalizeJP,
-      _LocalizeTH,
-      _LocalizeTW,
-      _LocalizeEN);
+      _Localize_KR,
+      _Localize_JP,
+      _Localize_TH,
+      _Localize_TW,
+      _Localize_EN,
+      _VoiceId,
+      _o.CharacterId,
+      _o.CostumeUniqueId,
+      _o.DisplayOrder,
+      _o.CollectionVisible,
+      _o.CVCollectionType,
+      _o.CVUnlockScenarioType,
+      _o.ScenarioGroupId,
+      _o.UnlockEventSeason,
+      _LocalizeCVGroup);
   }
 }
 
@@ -161,12 +252,23 @@ public class CharacterDialogEmojiExcelT
   public string DialogType { get; set; }
   public long Duration { get; set; }
   public long DurationKr { get; set; }
+  public long DurationAdd { get; set; }
   public bool HideUI { get; set; }
   public string LocalizeKR { get; set; }
   public string LocalizeJP { get; set; }
   public string LocalizeTH { get; set; }
   public string LocalizeTW { get; set; }
   public string LocalizeEN { get; set; }
+  public List<uint> VoiceId { get; set; }
+  public long CharacterId { get; set; }
+  public long CostumeUniqueId { get; set; }
+  public long DisplayOrder { get; set; }
+  public bool CollectionVisible { get; set; }
+  public Schale.FlatData.CVCollectionType CVCollectionType { get; set; }
+  public Schale.FlatData.CVUnlockScenarioType CVUnlockScenarioType { get; set; }
+  public long ScenarioGroupId { get; set; }
+  public long UnlockEventSeason { get; set; }
+  public string LocalizeCVGroup { get; set; }
 
   public CharacterDialogEmojiExcelT() {
     this.GroupId = 0;
@@ -174,12 +276,23 @@ public class CharacterDialogEmojiExcelT
     this.DialogType = null;
     this.Duration = 0;
     this.DurationKr = 0;
+    this.DurationAdd = 0;
     this.HideUI = false;
     this.LocalizeKR = null;
     this.LocalizeJP = null;
     this.LocalizeTH = null;
     this.LocalizeTW = null;
     this.LocalizeEN = null;
+    this.VoiceId = null;
+    this.CharacterId = 0;
+    this.CostumeUniqueId = 0;
+    this.DisplayOrder = 0;
+    this.CollectionVisible = false;
+    this.CVCollectionType = Schale.FlatData.CVCollectionType.CVNormal;
+    this.CVUnlockScenarioType = Schale.FlatData.CVUnlockScenarioType.Main;
+    this.ScenarioGroupId = 0;
+    this.UnlockEventSeason = 0;
+    this.LocalizeCVGroup = null;
   }
 }
 
@@ -194,12 +307,23 @@ static public class CharacterDialogEmojiExcelVerify
       && verifier.VerifyString(tablePos, 8 /*DialogType*/, false)
       && verifier.VerifyField(tablePos, 10 /*Duration*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 12 /*DurationKr*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 14 /*HideUI*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyString(tablePos, 16 /*LocalizeKR*/, false)
-      && verifier.VerifyString(tablePos, 18 /*LocalizeJP*/, false)
-      && verifier.VerifyString(tablePos, 20 /*LocalizeTH*/, false)
-      && verifier.VerifyString(tablePos, 22 /*LocalizeTW*/, false)
-      && verifier.VerifyString(tablePos, 24 /*LocalizeEN*/, false)
+      && verifier.VerifyField(tablePos, 14 /*DurationAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 16 /*HideUI*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyString(tablePos, 18 /*LocalizeKR*/, false)
+      && verifier.VerifyString(tablePos, 20 /*LocalizeJP*/, false)
+      && verifier.VerifyString(tablePos, 22 /*LocalizeTH*/, false)
+      && verifier.VerifyString(tablePos, 24 /*LocalizeTW*/, false)
+      && verifier.VerifyString(tablePos, 26 /*LocalizeEN*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 28 /*VoiceId*/, 4 /*uint*/, false)
+      && verifier.VerifyField(tablePos, 30 /*CharacterId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*CostumeUniqueId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 34 /*DisplayOrder*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 36 /*CollectionVisible*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 38 /*CVCollectionType*/, 4 /*Schale.FlatData.CVCollectionType*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*CVUnlockScenarioType*/, 4 /*Schale.FlatData.CVUnlockScenarioType*/, 4, false)
+      && verifier.VerifyField(tablePos, 42 /*ScenarioGroupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*UnlockEventSeason*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 46 /*LocalizeCVGroup*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

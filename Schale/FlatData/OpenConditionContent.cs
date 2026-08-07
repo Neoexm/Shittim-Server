@@ -65,7 +65,6 @@ public enum OpenConditionContent : int
   MinigameDreamMaker = 55,
   MiniGameDefense = 56,
   MiniGameCCG = 57,
-  // v1.90 client addition (present in official StaticOpenConditions).
   Main_L_1_5 = 58,
 };
 

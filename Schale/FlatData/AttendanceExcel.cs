@@ -30,7 +30,7 @@ public struct AttendanceExcel : IFlatbufferObject
 #endif
   public byte[] GetCountdownPrefabArray() { return __p.__vector_as_array<byte>(8); }
   public long DisplayOrder { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.AccountState AccountType { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.AccountState)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.AccountState.WaitingSignIn; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public long AccountLevelLimit { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public string Title { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
@@ -100,7 +100,7 @@ public struct AttendanceExcel : IFlatbufferObject
       Schale.FlatData.AttendanceType Type = Schale.FlatData.AttendanceType.Basic,
       StringOffset CountdownPrefabOffset = default(StringOffset),
       long DisplayOrder = 0,
-      Schale.FlatData.AccountState AccountType = Schale.FlatData.AccountState.WaitingSignIn,
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       long AccountLevelLimit = 0,
       StringOffset TitleOffset = default(StringOffset),
       StringOffset InfomationLocalizeCodeOffset = default(StringOffset),
@@ -134,7 +134,7 @@ public struct AttendanceExcel : IFlatbufferObject
     AttendanceExcel.AddCountRule(builder, CountRule);
     AttendanceExcel.AddInfomationLocalizeCode(builder, InfomationLocalizeCodeOffset);
     AttendanceExcel.AddTitle(builder, TitleOffset);
-    AttendanceExcel.AddAccountType(builder, AccountType);
+    AttendanceExcel.AddTargetGroup(builder, TargetGroup);
     AttendanceExcel.AddCountdownPrefab(builder, CountdownPrefabOffset);
     AttendanceExcel.AddType(builder, Type);
     return AttendanceExcel.EndAttendanceExcel(builder);
@@ -145,7 +145,7 @@ public struct AttendanceExcel : IFlatbufferObject
   public static void AddType(FlatBufferBuilder builder, Schale.FlatData.AttendanceType type) { builder.AddInt(1, (int)type, 0); }
   public static void AddCountdownPrefab(FlatBufferBuilder builder, StringOffset countdownPrefabOffset) { builder.AddOffset(2, countdownPrefabOffset.Value, 0); }
   public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(3, displayOrder, 0); }
-  public static void AddAccountType(FlatBufferBuilder builder, Schale.FlatData.AccountState accountType) { builder.AddInt(4, (int)accountType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(4, (int)targetGroup, 0); }
   public static void AddAccountLevelLimit(FlatBufferBuilder builder, long accountLevelLimit) { builder.AddLong(5, accountLevelLimit, 0); }
   public static void AddTitle(FlatBufferBuilder builder, StringOffset titleOffset) { builder.AddOffset(6, titleOffset.Value, 0); }
   public static void AddInfomationLocalizeCode(FlatBufferBuilder builder, StringOffset infomationLocalizeCodeOffset) { builder.AddOffset(7, infomationLocalizeCodeOffset.Value, 0); }
@@ -176,7 +176,7 @@ public struct AttendanceExcel : IFlatbufferObject
     _o.Type = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Type, key) : this.Type;
     _o.CountdownPrefab = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CountdownPrefab, key) : this.CountdownPrefab;
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
-    _o.AccountType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountType, key) : this.AccountType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.AccountLevelLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevelLimit, key) : this.AccountLevelLimit;
     _o.Title = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Title, key) : this.Title;
     _o.InfomationLocalizeCode = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.InfomationLocalizeCode, key) : this.InfomationLocalizeCode;
@@ -210,7 +210,7 @@ public struct AttendanceExcel : IFlatbufferObject
       _o.Type,
       _CountdownPrefab,
       _o.DisplayOrder,
-      _o.AccountType,
+      _o.TargetGroup,
       _o.AccountLevelLimit,
       _Title,
       _InfomationLocalizeCode,
@@ -235,7 +235,7 @@ public class AttendanceExcelT
   public Schale.FlatData.AttendanceType Type { get; set; }
   public string CountdownPrefab { get; set; }
   public long DisplayOrder { get; set; }
-  public Schale.FlatData.AccountState AccountType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public long AccountLevelLimit { get; set; }
   public string Title { get; set; }
   public string InfomationLocalizeCode { get; set; }
@@ -257,7 +257,7 @@ public class AttendanceExcelT
     this.Type = Schale.FlatData.AttendanceType.Basic;
     this.CountdownPrefab = null;
     this.DisplayOrder = 0;
-    this.AccountType = Schale.FlatData.AccountState.WaitingSignIn;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.AccountLevelLimit = 0;
     this.Title = null;
     this.InfomationLocalizeCode = null;
@@ -286,7 +286,7 @@ static public class AttendanceExcelVerify
       && verifier.VerifyField(tablePos, 6 /*Type*/, 4 /*Schale.FlatData.AttendanceType*/, 4, false)
       && verifier.VerifyString(tablePos, 8 /*CountdownPrefab*/, false)
       && verifier.VerifyField(tablePos, 10 /*DisplayOrder*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 12 /*AccountType*/, 4 /*Schale.FlatData.AccountState*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 14 /*AccountLevelLimit*/, 8 /*long*/, 8, false)
       && verifier.VerifyString(tablePos, 16 /*Title*/, false)
       && verifier.VerifyString(tablePos, 18 /*InfomationLocalizeCode*/, false)

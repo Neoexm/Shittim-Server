@@ -68,21 +68,21 @@ public struct MemoryLobby_GlobalExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.MemoryLobby_GlobalExcel> CreateMemoryLobby_GlobalExcel(FlatBufferBuilder builder,
       long Id = 0,
       long CharacterId = 0,
-      StringOffset PrefabNameKrOffset = default(StringOffset),
-      StringOffset PrefabNameTwOffset = default(StringOffset),
-      StringOffset PrefabNameAsiaOffset = default(StringOffset),
-      StringOffset PrefabNameNaOffset = default(StringOffset),
-      StringOffset PrefabNameGlobalOffset = default(StringOffset),
-      StringOffset PrefabNameTeenOffset = default(StringOffset)) {
+      StringOffset PrefabName_KrOffset = default(StringOffset),
+      StringOffset PrefabName_TwOffset = default(StringOffset),
+      StringOffset PrefabName_AsiaOffset = default(StringOffset),
+      StringOffset PrefabName_NaOffset = default(StringOffset),
+      StringOffset PrefabName_GlobalOffset = default(StringOffset),
+      StringOffset PrefabName_TeenOffset = default(StringOffset)) {
     builder.StartTable(8);
     MemoryLobby_GlobalExcel.AddCharacterId(builder, CharacterId);
     MemoryLobby_GlobalExcel.AddId(builder, Id);
-    MemoryLobby_GlobalExcel.AddPrefabNameTeen(builder, PrefabNameTeenOffset);
-    MemoryLobby_GlobalExcel.AddPrefabNameGlobal(builder, PrefabNameGlobalOffset);
-    MemoryLobby_GlobalExcel.AddPrefabNameNa(builder, PrefabNameNaOffset);
-    MemoryLobby_GlobalExcel.AddPrefabNameAsia(builder, PrefabNameAsiaOffset);
-    MemoryLobby_GlobalExcel.AddPrefabNameTw(builder, PrefabNameTwOffset);
-    MemoryLobby_GlobalExcel.AddPrefabNameKr(builder, PrefabNameKrOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameTeen(builder, PrefabName_TeenOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameGlobal(builder, PrefabName_GlobalOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameNa(builder, PrefabName_NaOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameAsia(builder, PrefabName_AsiaOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameTw(builder, PrefabName_TwOffset);
+    MemoryLobby_GlobalExcel.AddPrefabNameKr(builder, PrefabName_KrOffset);
     return MemoryLobby_GlobalExcel.EndMemoryLobby_GlobalExcel(builder);
   }
 
@@ -117,22 +117,22 @@ public struct MemoryLobby_GlobalExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.MemoryLobby_GlobalExcel> Pack(FlatBufferBuilder builder, MemoryLobby_GlobalExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.MemoryLobby_GlobalExcel>);
-    var _PrefabNameKr = _o.PrefabNameKr == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameKr);
-    var _PrefabNameTw = _o.PrefabNameTw == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameTw);
-    var _PrefabNameAsia = _o.PrefabNameAsia == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameAsia);
-    var _PrefabNameNa = _o.PrefabNameNa == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameNa);
-    var _PrefabNameGlobal = _o.PrefabNameGlobal == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameGlobal);
-    var _PrefabNameTeen = _o.PrefabNameTeen == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameTeen);
+    var _PrefabName_Kr = _o.PrefabNameKr == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameKr);
+    var _PrefabName_Tw = _o.PrefabNameTw == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameTw);
+    var _PrefabName_Asia = _o.PrefabNameAsia == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameAsia);
+    var _PrefabName_Na = _o.PrefabNameNa == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameNa);
+    var _PrefabName_Global = _o.PrefabNameGlobal == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameGlobal);
+    var _PrefabName_Teen = _o.PrefabNameTeen == null ? default(StringOffset) : builder.CreateString(_o.PrefabNameTeen);
     return CreateMemoryLobby_GlobalExcel(
       builder,
       _o.Id,
       _o.CharacterId,
-      _PrefabNameKr,
-      _PrefabNameTw,
-      _PrefabNameAsia,
-      _PrefabNameNa,
-      _PrefabNameGlobal,
-      _PrefabNameTeen);
+      _PrefabName_Kr,
+      _PrefabName_Tw,
+      _PrefabName_Asia,
+      _PrefabName_Na,
+      _PrefabName_Global,
+      _PrefabName_Teen);
   }
 }
 

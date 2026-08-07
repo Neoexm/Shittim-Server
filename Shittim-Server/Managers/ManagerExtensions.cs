@@ -28,6 +28,9 @@ namespace Shittim.Managers
             services.AddSingleton<EventContentCampaignManager>();
             services.AddSingleton<MissionService>();
             services.AddSingleton<AttendanceService>();
+            services.AddSingleton<EventContentCollectionService>();
+            services.AddSingleton<MiniGameMissionService>();
+            services.AddSingleton<TableBoardMapService>();
         }
     }
 }

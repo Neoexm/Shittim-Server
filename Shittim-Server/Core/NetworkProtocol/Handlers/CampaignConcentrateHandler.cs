@@ -114,15 +114,6 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
             NewbieBoostAccountExp = 0
         };
         response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
-        response.StageInfo = await _concentrateCampaignManager.GetStageInfo(stageSave.StageUniqueId);
-
-        // Same as EnterMainStage: body dump only when Debug is actually on.
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("[SHITTIM] ConfirmMainStage - StageInfo:\n{Json}",
-                JsonSerializer.Serialize(response.StageInfo, new JsonSerializerOptions { WriteIndented = true }));
-        }
-        _logger.LogDebug("[SHITTIM] ConfirmMainStage - StrategySkipGroundId: {StrategySkipGroundId}", response.StageInfo?.StrategySkipGroundId ?? 0);
 
         return response;
     }
@@ -210,6 +201,88 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         var stageSave = await _concentrateCampaignManager.EndTurn(db, account, request);
 
         response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Campaign_WithdrawEchelon)]
+    public async Task<CampaignWithdrawEchelonResponse> WithdrawEchelon(
+        SchaleDataContext db,
+        CampaignWithdrawEchelonRequest request,
+        CampaignWithdrawEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.GetConcentrateCampaign(db, account, request.StageUniqueId);
+        if (stageSave == null)
+            throw new InvalidOperationException($"Campaign stage save not found for stage {request.StageUniqueId}");
+
+        response.WithdrawEchelonDBs = new();
+
+        // the save keeps which students left with each slot; the client syncs it, nothing server-side reads it back - a redeploy through Campaign_DeployEchelon starts fresh
+        foreach (var entityId in request.WithdrawEchelonEntityId ?? new List<long>())
+        {
+            if (stageSave.EchelonInfos == null || !stageSave.EchelonInfos.TryGetValue(entityId, out var unit))
+                continue;
+
+            stageSave.WithdrawInfos ??= new Dictionary<long, List<long>>();
+            stageSave.WithdrawInfos[entityId] = unit.HpInfos?.Keys.ToList() ?? new List<long>();
+            stageSave.EchelonInfos.Remove(entityId);
+
+            var echelon = await EchelonService.GetConcentratedCampaignEchelon(db, account.ServerId, entityId);
+            if (echelon != null)
+                response.WithdrawEchelonDBs.Add(echelon.ToMap(_mapper));
+        }
+
+        db.CampaignMainStageSaves.Update(stageSave);
+        await db.SaveChangesAsync();
+
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Campaign_Heal)]
+    public async Task<CampaignHealResponse> Heal(
+        SchaleDataContext db,
+        CampaignHealRequest request,
+        CampaignHealResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.GetConcentrateCampaign(db, account, request.CampaignStageUniqueId);
+        if (stageSave == null)
+            throw new InvalidOperationException($"Campaign stage save not found for stage {request.CampaignStageUniqueId}");
+
+        // heal tiles restore one student at a time: a downed one comes off the dying ledger, everyone else goes back to the full 10000 rate
+        if (stageSave.EchelonInfos != null && stageSave.EchelonInfos.TryGetValue(request.EchelonIndex, out var echelon))
+        {
+            echelon.DyingInfos?.Remove(request.CharacterServerId);
+            echelon.HpInfos ??= new Dictionary<long, long>();
+            echelon.HpInfos[request.CharacterServerId] = 10000;
+        }
+
+        db.CampaignMainStageSaves.Update(stageSave);
+        await db.SaveChangesAsync();
+
+        response.AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new();
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Campaign_Portal)]
+    public async Task<CampaignPortalResponse> Portal(
+        SchaleDataContext db,
+        CampaignPortalRequest request,
+        CampaignPortalResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.UsePortal(db, account, request);
+
+        // the one campaign response whose save rides under the type name rather than SaveDataDB
+        response.CampaignMainStageSaveDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
 
         return response;
     }

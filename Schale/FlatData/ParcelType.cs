@@ -36,6 +36,9 @@ public enum ParcelType : int
   SelectedCharacter = 26,
   UnSelectedCharacter = 27,
   ProductBattlePass = 28,
+  ProductSelect = 29,
+  SNSPost = 30,
+  ProductDailyRecord = 31,
 };
 
 

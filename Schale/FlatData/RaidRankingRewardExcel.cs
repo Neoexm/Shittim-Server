@@ -65,14 +65,14 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
       long Id = 0,
       long RankStart = 0,
       long RankEnd = 0,
-      long RankStartTw = 0,
-      long RankEndTw = 0,
-      long RankStartAsia = 0,
-      long RankEndAsia = 0,
-      long RankStartNa = 0,
-      long RankEndNa = 0,
-      long RankStartGlobal = 0,
-      long RankEndGlobal = 0,
+      long RankStart_Tw = 0,
+      long RankEnd_Tw = 0,
+      long RankStart_Asia = 0,
+      long RankEnd_Asia = 0,
+      long RankStart_Na = 0,
+      long RankEnd_Na = 0,
+      long RankStart_Global = 0,
+      long RankEnd_Global = 0,
       long PercentRankStart = 0,
       long PercentRankEnd = 0,
       int Tier = 0,
@@ -82,14 +82,14 @@ public struct RaidRankingRewardExcel : IFlatbufferObject
     builder.StartTable(18);
     RaidRankingRewardExcel.AddPercentRankEnd(builder, PercentRankEnd);
     RaidRankingRewardExcel.AddPercentRankStart(builder, PercentRankStart);
-    RaidRankingRewardExcel.AddRankEndGlobal(builder, RankEndGlobal);
-    RaidRankingRewardExcel.AddRankStartGlobal(builder, RankStartGlobal);
-    RaidRankingRewardExcel.AddRankEndNa(builder, RankEndNa);
-    RaidRankingRewardExcel.AddRankStartNa(builder, RankStartNa);
-    RaidRankingRewardExcel.AddRankEndAsia(builder, RankEndAsia);
-    RaidRankingRewardExcel.AddRankStartAsia(builder, RankStartAsia);
-    RaidRankingRewardExcel.AddRankEndTw(builder, RankEndTw);
-    RaidRankingRewardExcel.AddRankStartTw(builder, RankStartTw);
+    RaidRankingRewardExcel.AddRankEndGlobal(builder, RankEnd_Global);
+    RaidRankingRewardExcel.AddRankStartGlobal(builder, RankStart_Global);
+    RaidRankingRewardExcel.AddRankEndNa(builder, RankEnd_Na);
+    RaidRankingRewardExcel.AddRankStartNa(builder, RankStart_Na);
+    RaidRankingRewardExcel.AddRankEndAsia(builder, RankEnd_Asia);
+    RaidRankingRewardExcel.AddRankStartAsia(builder, RankStart_Asia);
+    RaidRankingRewardExcel.AddRankEndTw(builder, RankEnd_Tw);
+    RaidRankingRewardExcel.AddRankStartTw(builder, RankStart_Tw);
     RaidRankingRewardExcel.AddRankEnd(builder, RankEnd);
     RaidRankingRewardExcel.AddRankStart(builder, RankStart);
     RaidRankingRewardExcel.AddId(builder, Id);

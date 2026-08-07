@@ -54,15 +54,15 @@ public struct EventContentDiceRaceTotalRewardExcel : IFlatbufferObject
       long RewardID = 0,
       int RequiredLapFinishCount = 0,
       int DisplayLapFinishCount = 0,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
-      VectorOffset rewardParcelIdOffset = default(VectorOffset),
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelIdOffset = default(VectorOffset),
       VectorOffset RewardParcelAmountOffset = default(VectorOffset)) {
     builder.StartTable(7);
     EventContentDiceRaceTotalRewardExcel.AddRewardID(builder, RewardID);
     EventContentDiceRaceTotalRewardExcel.AddEventContentId(builder, EventContentId);
     EventContentDiceRaceTotalRewardExcel.AddRewardParcelAmount(builder, RewardParcelAmountOffset);
-    EventContentDiceRaceTotalRewardExcel.AddRewardParcelId(builder, rewardParcelIdOffset);
-    EventContentDiceRaceTotalRewardExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
+    EventContentDiceRaceTotalRewardExcel.AddRewardParcelId(builder, RewardParcelIdOffset);
+    EventContentDiceRaceTotalRewardExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     EventContentDiceRaceTotalRewardExcel.AddDisplayLapFinishCount(builder, DisplayLapFinishCount);
     EventContentDiceRaceTotalRewardExcel.AddRequiredLapFinishCount(builder, RequiredLapFinishCount);
     return EventContentDiceRaceTotalRewardExcel.EndEventContentDiceRaceTotalRewardExcel(builder);
@@ -115,15 +115,15 @@ public struct EventContentDiceRaceTotalRewardExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentDiceRaceTotalRewardExcel> Pack(FlatBufferBuilder builder, EventContentDiceRaceTotalRewardExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentDiceRaceTotalRewardExcel>);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
-    var _rewardParcelId = default(VectorOffset);
+    var _RewardParcelId = default(VectorOffset);
     if (_o.RewardParcelId != null) {
-      var __rewardParcelId = _o.RewardParcelId.ToArray();
-      _rewardParcelId = CreateRewardParcelIdVector(builder, __rewardParcelId);
+      var __RewardParcelId = _o.RewardParcelId.ToArray();
+      _RewardParcelId = CreateRewardParcelIdVector(builder, __RewardParcelId);
     }
     var _RewardParcelAmount = default(VectorOffset);
     if (_o.RewardParcelAmount != null) {
@@ -136,8 +136,8 @@ public struct EventContentDiceRaceTotalRewardExcel : IFlatbufferObject
       _o.RewardID,
       _o.RequiredLapFinishCount,
       _o.DisplayLapFinishCount,
-      _rewardParcelType,
-      _rewardParcelId,
+      _RewardParcelType,
+      _RewardParcelId,
       _RewardParcelAmount);
   }
 }

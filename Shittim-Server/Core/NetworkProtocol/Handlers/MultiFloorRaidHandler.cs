@@ -45,6 +45,17 @@ public class MultiFloorRaidHandler : ProtocolHandlerBase
         return account.GameSettings.ServerDateTime();
     }
 
+    // 49004 has no request class in the protocol assembly; it only ever appears as the empty LoginSync child, so this can never dispatch off the wire
+    [ProtocolHandler(Protocol.MultiFloorRaid_Login)]
+    public async Task<MultiFloorRaidLoginResponse> Login(
+        SchaleDataContext db,
+        RequestPacket request,
+        MultiFloorRaidLoginResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.MultiFloorRaid_Sync)]
     public async Task<MultiFloorRaidSyncResponse> Sync(
         SchaleDataContext db,

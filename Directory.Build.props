@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- One version for everything that ships. The Control Center carries the same number in its package.json because electron-updater compares that field to decide an update exists, and VersionConsistencyTests fails if the two drift. Bump both together. -->
+  <PropertyGroup>
+    <Version>2026.8.5</Version>
+    <FileVersion>2026.8.5.0</FileVersion>
+    <AssemblyVersion>2026.8.5.0</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>

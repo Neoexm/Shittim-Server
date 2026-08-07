@@ -29,6 +29,22 @@ public class CharacterHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.Character_List)]
+    public async Task<CharacterListResponse> List(
+        SchaleDataContext db,
+        CharacterListRequest request,
+        CharacterListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.CharacterDBs = db.GetAccountCharacters(account.ServerId).ToMapList(_mapper);
+        response.TSSCharacterDBs = [];
+        response.WeaponDBs = db.GetAccountWeapons(account.ServerId).ToMapList(_mapper);
+        response.CostumeDBs = db.GetAccountCostumes(account.ServerId).ToMapList(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Character_SetFavorites)]
     public async Task<CharacterSetFavoritesResponse> SetFavorites(
         SchaleDataContext db,
@@ -118,6 +134,54 @@ public class CharacterHandler : ProtocolHandlerBase
         response.ConsumeResultDB = consumeResult;
         response.AccountCurrencyDB = accountCurrency.ToMap(_mapper);
         
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Character_FavorGrowth)]
+    public async Task<CharacterFavorGrowthResponse> FavorGrowth(
+        SchaleDataContext db,
+        CharacterFavorGrowthRequest request,
+        CharacterFavorGrowthResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (targetCharacter, consumedItems, parcelResult) = await _characterManager.CharacterFavorGrowth(db, account, request);
+
+        response.CharacterDB = targetCharacter.ToMap(_mapper);
+        response.ConsumeStackableItemDBResult = consumedItems;
+        response.ParcelResultDB = parcelResult;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Character_SetCostume)]
+    public async Task<CharacterSetCostumeResponse> SetCostume(
+        SchaleDataContext db,
+        CharacterSetCostumeRequest request,
+        CharacterSetCostumeResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var character = db.Characters.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.UniqueId == request.CharacterUniqueId);
+
+        var currentCostume = db.Costumes.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.BoundCharacterServerId == character.ServerId);
+        if (currentCostume != null)
+        {
+            currentCostume.BoundCharacterServerId = 0;
+            db.Costumes.Update(currentCostume);
+            response.UnsetCostumeDB = currentCostume.ToMap(_mapper);
+        }
+
+        if (request.CostumeIdToSet != null)
+        {
+            var newCostume = db.Costumes.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.UniqueId == request.CostumeIdToSet);
+            newCostume.BoundCharacterServerId = character.ServerId;
+            db.Costumes.Update(newCostume);
+            response.SetCostumeDB = newCostume.ToMap(_mapper);
+        }
+
+        await db.SaveChangesAsync();
+
         return response;
     }
 

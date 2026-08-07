@@ -67,9 +67,9 @@ public struct MinigameCCGLevelStageExcel : IFlatbufferObject
       int RewardCount = 0,
       long RewardCardGroupId = 0,
       long CardRarityGroupId = 0,
-      bool isSkipIntroScenario = false,
+      bool IsSkipIntroScenario = false,
       long IntroScenarioGroupId = 0,
-      bool isSkipOutroScenario = false,
+      bool IsSkipOutroScenario = false,
       long OutroScenarioGroupId = 0) {
     builder.StartTable(15);
     MinigameCCGLevelStageExcel.AddOutroScenarioGroupId(builder, OutroScenarioGroupId);
@@ -85,8 +85,8 @@ public struct MinigameCCGLevelStageExcel : IFlatbufferObject
     MinigameCCGLevelStageExcel.AddCampDiscardCardCount(builder, CampDiscardCardCount);
     MinigameCCGLevelStageExcel.AddStageType(builder, StageType);
     MinigameCCGLevelStageExcel.AddEnemyGroupId(builder, EnemyGroupIdOffset);
-    MinigameCCGLevelStageExcel.AddIsSkipOutroScenario(builder, isSkipOutroScenario);
-    MinigameCCGLevelStageExcel.AddIsSkipIntroScenario(builder, isSkipIntroScenario);
+    MinigameCCGLevelStageExcel.AddIsSkipOutroScenario(builder, IsSkipOutroScenario);
+    MinigameCCGLevelStageExcel.AddIsSkipIntroScenario(builder, IsSkipIntroScenario);
     return MinigameCCGLevelStageExcel.EndMinigameCCGLevelStageExcel(builder);
   }
 

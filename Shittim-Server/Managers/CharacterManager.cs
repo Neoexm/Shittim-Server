@@ -134,6 +134,26 @@ namespace Shittim_Server.Managers
             return (targetCharacter, consumeResultDatas.ConsumeResult, accountCurrency);
         }
 
+        public async Task<(CharacterDBServer, List<ItemDB>, ParcelResultDB)> CharacterFavorGrowth(
+            SchaleDataContext context, AccountDBServer account, CharacterFavorGrowthRequest req)
+        {
+            var targetCharacter = context.Characters.FirstOrDefault(x => x.ServerId == req.TargetCharacterDBId);
+
+            // the resolver iterates all three dicts without null checks, so the two we don't use still have to exist
+            var consumeRequest = new ConsumeRequestDB()
+            {
+                ConsumeItemServerIdAndCounts = (req.ConsumeItemDBIdsAndCounts ?? new()).ToDictionary(x => x.Key, x => (long)x.Value),
+                ConsumeEquipmentServerIdAndCounts = new(),
+                ConsumeFurnitureServerIdAndCounts = new()
+            };
+            var consumeResultData = await consumeHandler.BuildConsumeResult(context, account, consumeRequest);
+            var favorParcel = new ParcelResult(ParcelType.FavorExp, targetCharacter.UniqueId, consumeResultData.AccumulatedExp);
+            var parcelResolver = await parcelHandler.BuildParcel(context, account, favorParcel);
+            await context.SaveChangesAsync();
+
+            return (targetCharacter, consumeResultData.ParcelResult.ItemDBs.Values.ToList(), parcelResolver.ParcelResult);
+        }
+
         public async Task<WeaponDBServer> UnlockWeapon(
             SchaleDataContext context, AccountDBServer account, long targetCharacterServerId)
         {

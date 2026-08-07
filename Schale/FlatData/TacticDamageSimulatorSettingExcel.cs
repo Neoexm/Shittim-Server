@@ -62,14 +62,14 @@ public struct TacticDamageSimulatorSettingExcel : IFlatbufferObject
       int OverrideFavorLevel = 0,
       bool ApplyOverrideFavorLevel = false,
       long GroundId = 0,
-      VectorOffset fixedCharacterOffset = default(VectorOffset)) {
+      VectorOffset FixedCharacterOffset = default(VectorOffset)) {
     builder.StartTable(17);
     TacticDamageSimulatorSettingExcel.AddGroundId(builder, GroundId);
     TacticDamageSimulatorSettingExcel.AddSpecialSquard(builder, SpecialSquard);
     TacticDamageSimulatorSettingExcel.AddStrikerSquard(builder, StrikerSquard);
     TacticDamageSimulatorSettingExcel.AddTestBattleTime(builder, TestBattleTime);
     TacticDamageSimulatorSettingExcel.AddTestPreset(builder, TestPreset);
-    TacticDamageSimulatorSettingExcel.AddFixedCharacter(builder, fixedCharacterOffset);
+    TacticDamageSimulatorSettingExcel.AddFixedCharacter(builder, FixedCharacterOffset);
     TacticDamageSimulatorSettingExcel.AddOverrideFavorLevel(builder, OverrideFavorLevel);
     TacticDamageSimulatorSettingExcel.AddOverrideIndoorAdaptation(builder, OverrideIndoorAdaptation);
     TacticDamageSimulatorSettingExcel.AddOverrideOutdoorAdaptation(builder, OverrideOutdoorAdaptation);
@@ -139,10 +139,10 @@ public struct TacticDamageSimulatorSettingExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.TacticDamageSimulatorSettingExcel> Pack(FlatBufferBuilder builder, TacticDamageSimulatorSettingExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.TacticDamageSimulatorSettingExcel>);
-    var _fixedCharacter = default(VectorOffset);
+    var _FixedCharacter = default(VectorOffset);
     if (_o.FixedCharacter != null) {
-      var __fixedCharacter = _o.FixedCharacter.ToArray();
-      _fixedCharacter = CreateFixedCharacterVector(builder, __fixedCharacter);
+      var __FixedCharacter = _o.FixedCharacter.ToArray();
+      _FixedCharacter = CreateFixedCharacterVector(builder, __FixedCharacter);
     }
     return CreateTacticDamageSimulatorSettingExcel(
       builder,
@@ -162,7 +162,7 @@ public struct TacticDamageSimulatorSettingExcel : IFlatbufferObject
       _o.OverrideFavorLevel,
       _o.ApplyOverrideFavorLevel,
       _o.GroundId,
-      _fixedCharacter);
+      _FixedCharacter);
   }
 }
 

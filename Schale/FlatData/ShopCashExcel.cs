@@ -10,26 +10,6 @@ using global::System.Collections.Generic;
 using global::Schale.Crypto;
 using global::Google.FlatBuffers;
 
-// The shipped ExcelDB writes 25 field slots here, not the 20 this model declares, and the five it
-// does not declare sit in the MIDDLE rather than at the end (data slots 3, 5, 6, 12 and 15). The
-// slot indices below are therefore the data's, not 0..19 -- the gaps are deliberate. Read
-// consecutively the model decoded IconPath off data slot 4, a 32-bit hash whose value is not a
-// valid string offset, so UnPack threw on all 1345 rows and ExcelTableService dropped every one:
-// the table loaded empty and every cash-shop lookup returned null.
-//
-// The layout was recovered from the data rather than guessed. Field width and buffer alignment
-// pin 18 of the 20 assignments uniquely; the two string pairs confirm themselves by decoding
-// ("UIs/01_Common/26_ShopContent/Goods_Icon_..." at 7, "2020-07-31 00:00:00" / "2023-01-31
-// 10:59:59" at 13 and 14), and slot 4's 228 distinct full-range values identify LocalizeEtcId.
-// CategoryType and DisplayTag are placed on value shape: slot 10 is populated in all 1345 rows
-// over the range ProductCategory declares, and slot 11 in 931 with the range ProductDisplayTag
-// declares, leaving None as the omitted default.
-//
-// PackageType is the one assignment that is inferred rather than proven: data slots 2 and 3 are
-// both 4-byte fields populated in every row, so either could be it. Slot 2 is used because it is
-// the smaller change. No handler reads PackageType -- only Id and CashProductId are consumed, and
-// both are proven -- so a wrong choice here is latent. Resolving it needs the field names from the
-// client's global-metadata; do not "fix" it by guessing again.
 public struct ShopCashExcel : IFlatbufferObject
 {
   private Table __p;
@@ -43,7 +23,10 @@ public struct ShopCashExcel : IFlatbufferObject
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long CashProductId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.PurchaseSourceType PackageType { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.PurchaseSourceType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchaseSourceType.None; } }
+  public Schale.FlatData.TargetGroup TargetGroup { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.TargetGroup)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetGroup.WaitingSignIn; } }
   public uint LocalizeEtcId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool InMailPurchaseLock { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool UseMailParcel { get { int o = __p.__offset(16); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public string IconPath { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
   public Span<byte> GetIconPathBytes() { return __p.__vector_as_span<byte>(18, 1); }
@@ -55,6 +38,7 @@ public struct ShopCashExcel : IFlatbufferObject
   public long RenewalDisplayOrder { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.ProductCategory CategoryType { get { int o = __p.__offset(24); return o != 0 ? (Schale.FlatData.ProductCategory)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductCategory.None; } }
   public Schale.FlatData.ProductDisplayTag DisplayTag { get { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.ProductDisplayTag)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductDisplayTag.None; } }
+  public Schale.FlatData.ProductSaleType ProductSaleType { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.ProductSaleType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductSaleType.Limited; } }
   public string SalePeriodFrom { get { int o = __p.__offset(30); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
   public Span<byte> GetSalePeriodFromBytes() { return __p.__vector_as_span<byte>(30, 1); }
@@ -69,6 +53,7 @@ public struct ShopCashExcel : IFlatbufferObject
   public ArraySegment<byte>? GetSalePeriodToBytes() { return __p.__vector_as_arraysegment(32); }
 #endif
   public byte[] GetSalePeriodToArray() { return __p.__vector_as_array<byte>(32); }
+  public long ProductSaleDay { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public bool PeriodTag { get { int o = __p.__offset(36); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public long AccountLevelLimit { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public bool AccountLevelHide { get { int o = __p.__offset(40); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
@@ -89,14 +74,19 @@ public struct ShopCashExcel : IFlatbufferObject
       long Id = 0,
       long CashProductId = 0,
       Schale.FlatData.PurchaseSourceType PackageType = Schale.FlatData.PurchaseSourceType.None,
+      Schale.FlatData.TargetGroup TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn,
       uint LocalizeEtcId = 0,
+      bool InMailPurchaseLock = false,
+      bool UseMailParcel = false,
       StringOffset IconPathOffset = default(StringOffset),
       long DisplayOrder = 0,
       long RenewalDisplayOrder = 0,
       Schale.FlatData.ProductCategory CategoryType = Schale.FlatData.ProductCategory.None,
       Schale.FlatData.ProductDisplayTag DisplayTag = Schale.FlatData.ProductDisplayTag.None,
+      Schale.FlatData.ProductSaleType ProductSaleType = Schale.FlatData.ProductSaleType.Limited,
       StringOffset SalePeriodFromOffset = default(StringOffset),
       StringOffset SalePeriodToOffset = default(StringOffset),
+      long ProductSaleDay = 0,
       bool PeriodTag = false,
       long AccountLevelLimit = 0,
       bool AccountLevelHide = false,
@@ -109,6 +99,7 @@ public struct ShopCashExcel : IFlatbufferObject
     builder.StartTable(25);
     ShopCashExcel.AddClearMissionLimit(builder, ClearMissionLimit);
     ShopCashExcel.AddAccountLevelLimit(builder, AccountLevelLimit);
+    ShopCashExcel.AddProductSaleDay(builder, ProductSaleDay);
     ShopCashExcel.AddRenewalDisplayOrder(builder, RenewalDisplayOrder);
     ShopCashExcel.AddDisplayOrder(builder, DisplayOrder);
     ShopCashExcel.AddCashProductId(builder, CashProductId);
@@ -117,16 +108,20 @@ public struct ShopCashExcel : IFlatbufferObject
     ShopCashExcel.AddPurchaseReportEventName(builder, PurchaseReportEventNameOffset);
     ShopCashExcel.AddSalePeriodTo(builder, SalePeriodToOffset);
     ShopCashExcel.AddSalePeriodFrom(builder, SalePeriodFromOffset);
+    ShopCashExcel.AddProductSaleType(builder, ProductSaleType);
     ShopCashExcel.AddDisplayTag(builder, DisplayTag);
     ShopCashExcel.AddCategoryType(builder, CategoryType);
     ShopCashExcel.AddIconPath(builder, IconPathOffset);
     ShopCashExcel.AddLocalizeEtcId(builder, LocalizeEtcId);
+    ShopCashExcel.AddTargetGroup(builder, TargetGroup);
     ShopCashExcel.AddPackageType(builder, PackageType);
     ShopCashExcel.AddViewFlag(builder, ViewFlag);
     ShopCashExcel.AddIsStartDash(builder, IsStartDash);
     ShopCashExcel.AddClearMissionHide(builder, ClearMissionHide);
     ShopCashExcel.AddAccountLevelHide(builder, AccountLevelHide);
     ShopCashExcel.AddPeriodTag(builder, PeriodTag);
+    ShopCashExcel.AddUseMailParcel(builder, UseMailParcel);
+    ShopCashExcel.AddInMailPurchaseLock(builder, InMailPurchaseLock);
     return ShopCashExcel.EndShopCashExcel(builder);
   }
 
@@ -134,14 +129,19 @@ public struct ShopCashExcel : IFlatbufferObject
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddCashProductId(FlatBufferBuilder builder, long cashProductId) { builder.AddLong(1, cashProductId, 0); }
   public static void AddPackageType(FlatBufferBuilder builder, Schale.FlatData.PurchaseSourceType packageType) { builder.AddInt(2, (int)packageType, 0); }
+  public static void AddTargetGroup(FlatBufferBuilder builder, Schale.FlatData.TargetGroup targetGroup) { builder.AddInt(3, (int)targetGroup, 0); }
   public static void AddLocalizeEtcId(FlatBufferBuilder builder, uint localizeEtcId) { builder.AddUint(4, localizeEtcId, 0); }
+  public static void AddInMailPurchaseLock(FlatBufferBuilder builder, bool inMailPurchaseLock) { builder.AddBool(5, inMailPurchaseLock, false); }
+  public static void AddUseMailParcel(FlatBufferBuilder builder, bool useMailParcel) { builder.AddBool(6, useMailParcel, false); }
   public static void AddIconPath(FlatBufferBuilder builder, StringOffset iconPathOffset) { builder.AddOffset(7, iconPathOffset.Value, 0); }
   public static void AddDisplayOrder(FlatBufferBuilder builder, long displayOrder) { builder.AddLong(8, displayOrder, 0); }
   public static void AddRenewalDisplayOrder(FlatBufferBuilder builder, long renewalDisplayOrder) { builder.AddLong(9, renewalDisplayOrder, 0); }
   public static void AddCategoryType(FlatBufferBuilder builder, Schale.FlatData.ProductCategory categoryType) { builder.AddInt(10, (int)categoryType, 0); }
   public static void AddDisplayTag(FlatBufferBuilder builder, Schale.FlatData.ProductDisplayTag displayTag) { builder.AddInt(11, (int)displayTag, 0); }
+  public static void AddProductSaleType(FlatBufferBuilder builder, Schale.FlatData.ProductSaleType productSaleType) { builder.AddInt(12, (int)productSaleType, 0); }
   public static void AddSalePeriodFrom(FlatBufferBuilder builder, StringOffset salePeriodFromOffset) { builder.AddOffset(13, salePeriodFromOffset.Value, 0); }
   public static void AddSalePeriodTo(FlatBufferBuilder builder, StringOffset salePeriodToOffset) { builder.AddOffset(14, salePeriodToOffset.Value, 0); }
+  public static void AddProductSaleDay(FlatBufferBuilder builder, long productSaleDay) { builder.AddLong(15, productSaleDay, 0); }
   public static void AddPeriodTag(FlatBufferBuilder builder, bool periodTag) { builder.AddBool(16, periodTag, false); }
   public static void AddAccountLevelLimit(FlatBufferBuilder builder, long accountLevelLimit) { builder.AddLong(17, accountLevelLimit, 0); }
   public static void AddAccountLevelHide(FlatBufferBuilder builder, bool accountLevelHide) { builder.AddBool(18, accountLevelHide, false); }
@@ -165,14 +165,19 @@ public struct ShopCashExcel : IFlatbufferObject
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
     _o.CashProductId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CashProductId, key) : this.CashProductId;
     _o.PackageType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PackageType, key) : this.PackageType;
+    _o.TargetGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGroup, key) : this.TargetGroup;
     _o.LocalizeEtcId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeEtcId, key) : this.LocalizeEtcId;
+    _o.InMailPurchaseLock = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.InMailPurchaseLock, key) : this.InMailPurchaseLock;
+    _o.UseMailParcel = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UseMailParcel, key) : this.UseMailParcel;
     _o.IconPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IconPath, key) : this.IconPath;
     _o.DisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayOrder, key) : this.DisplayOrder;
     _o.RenewalDisplayOrder = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RenewalDisplayOrder, key) : this.RenewalDisplayOrder;
     _o.CategoryType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CategoryType, key) : this.CategoryType;
     _o.DisplayTag = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayTag, key) : this.DisplayTag;
+    _o.ProductSaleType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductSaleType, key) : this.ProductSaleType;
     _o.SalePeriodFrom = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SalePeriodFrom, key) : this.SalePeriodFrom;
     _o.SalePeriodTo = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SalePeriodTo, key) : this.SalePeriodTo;
+    _o.ProductSaleDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductSaleDay, key) : this.ProductSaleDay;
     _o.PeriodTag = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PeriodTag, key) : this.PeriodTag;
     _o.AccountLevelLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevelLimit, key) : this.AccountLevelLimit;
     _o.AccountLevelHide = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccountLevelHide, key) : this.AccountLevelHide;
@@ -194,14 +199,19 @@ public struct ShopCashExcel : IFlatbufferObject
       _o.Id,
       _o.CashProductId,
       _o.PackageType,
+      _o.TargetGroup,
       _o.LocalizeEtcId,
+      _o.InMailPurchaseLock,
+      _o.UseMailParcel,
       _IconPath,
       _o.DisplayOrder,
       _o.RenewalDisplayOrder,
       _o.CategoryType,
       _o.DisplayTag,
+      _o.ProductSaleType,
       _SalePeriodFrom,
       _SalePeriodTo,
+      _o.ProductSaleDay,
       _o.PeriodTag,
       _o.AccountLevelLimit,
       _o.AccountLevelHide,
@@ -219,14 +229,19 @@ public class ShopCashExcelT
   public long Id { get; set; }
   public long CashProductId { get; set; }
   public Schale.FlatData.PurchaseSourceType PackageType { get; set; }
+  public Schale.FlatData.TargetGroup TargetGroup { get; set; }
   public uint LocalizeEtcId { get; set; }
+  public bool InMailPurchaseLock { get; set; }
+  public bool UseMailParcel { get; set; }
   public string IconPath { get; set; }
   public long DisplayOrder { get; set; }
   public long RenewalDisplayOrder { get; set; }
   public Schale.FlatData.ProductCategory CategoryType { get; set; }
   public Schale.FlatData.ProductDisplayTag DisplayTag { get; set; }
+  public Schale.FlatData.ProductSaleType ProductSaleType { get; set; }
   public string SalePeriodFrom { get; set; }
   public string SalePeriodTo { get; set; }
+  public long ProductSaleDay { get; set; }
   public bool PeriodTag { get; set; }
   public long AccountLevelLimit { get; set; }
   public bool AccountLevelHide { get; set; }
@@ -241,14 +256,19 @@ public class ShopCashExcelT
     this.Id = 0;
     this.CashProductId = 0;
     this.PackageType = Schale.FlatData.PurchaseSourceType.None;
+    this.TargetGroup = Schale.FlatData.TargetGroup.WaitingSignIn;
     this.LocalizeEtcId = 0;
+    this.InMailPurchaseLock = false;
+    this.UseMailParcel = false;
     this.IconPath = null;
     this.DisplayOrder = 0;
     this.RenewalDisplayOrder = 0;
     this.CategoryType = Schale.FlatData.ProductCategory.None;
     this.DisplayTag = Schale.FlatData.ProductDisplayTag.None;
+    this.ProductSaleType = Schale.FlatData.ProductSaleType.Limited;
     this.SalePeriodFrom = null;
     this.SalePeriodTo = null;
+    this.ProductSaleDay = 0;
     this.PeriodTag = false;
     this.AccountLevelLimit = 0;
     this.AccountLevelHide = false;
@@ -270,14 +290,19 @@ static public class ShopCashExcelVerify
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*CashProductId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 8 /*PackageType*/, 4 /*Schale.FlatData.PurchaseSourceType*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*TargetGroup*/, 4 /*Schale.FlatData.TargetGroup*/, 4, false)
       && verifier.VerifyField(tablePos, 12 /*LocalizeEtcId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*InMailPurchaseLock*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 16 /*UseMailParcel*/, 1 /*bool*/, 1, false)
       && verifier.VerifyString(tablePos, 18 /*IconPath*/, false)
       && verifier.VerifyField(tablePos, 20 /*DisplayOrder*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 22 /*RenewalDisplayOrder*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 24 /*CategoryType*/, 4 /*Schale.FlatData.ProductCategory*/, 4, false)
       && verifier.VerifyField(tablePos, 26 /*DisplayTag*/, 4 /*Schale.FlatData.ProductDisplayTag*/, 4, false)
+      && verifier.VerifyField(tablePos, 28 /*ProductSaleType*/, 4 /*Schale.FlatData.ProductSaleType*/, 4, false)
       && verifier.VerifyString(tablePos, 30 /*SalePeriodFrom*/, false)
       && verifier.VerifyString(tablePos, 32 /*SalePeriodTo*/, false)
+      && verifier.VerifyField(tablePos, 34 /*ProductSaleDay*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 36 /*PeriodTag*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 38 /*AccountLevelLimit*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 40 /*AccountLevelHide*/, 1 /*bool*/, 1, false)

@@ -15,9 +15,13 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string GatewayRsaPrivateKeyPath { get; set; } = "";
         public string GatewayRsaPublicKeyPem { get; set; } = "";
         public string GatewayRsaPublicKeyPath { get; set; } = "";
+        // The Blue Archive install every client path below is derived from. Blank means find it: Steam's own libraries, then the conventional locations. Set it when there are two installs, or when the game is somewhere Steam does not know about.
+        public string ClientInstallDirectory { get; set; } = "";
         public bool AutoPatchClientMetadata { get; set; } = true;
         public string ClientMetadataPath { get; set; } = "";
         public bool AutoPatchClientGameAssemblyIas { get; set; } = false;
+        // Lets the client hand out an external ticket with Steam offline or not running. Off by default because it rewrites GameAssembly.dll, which Steam restores on a file verify.
+        public bool AutoPatchClientSteamOffline { get; set; } = false;
         public string ClientGameAssemblyPath { get; set; } = "";
         public bool AutoPatchClientGamescaleIas { get; set; } = true;
         public string ClientGamescaleCorePath { get; set; } = "";
@@ -32,14 +36,22 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string ClientGrap64Path { get; set; } = "";
         public bool AutoPatchClientBanners { get; set; } = true;
         public string ClientExcelDbPath { get; set; } = "";
+        // Sends the client's steam store lookup to this server instead, so the shop currency check still answers with no route out.
+        public bool AutoPatchClientStoreUrl { get; set; } = true;
+        // Replaces the title-screen region label, which the client builds from its own metadata rather than from anything on the wire. Blank puts the stock region name back.
+        public string RegionDisplayText { get; set; } = "";
         public string SQLProvider { get; set; } = "SQLite3";
         public string SQLConnectionString { get; set; } = "Data Source=shittim.sqlite3";
         public bool UseEncryption { get; set; } = false;
         public bool BypassAuthentication { get; set; } = false;
+        // When nonzero, logins are answered with this account regardless of which publisher identity connects. Set from the Control Center accounts page, 0 disables.
+        public long SelectedAccountId { get; set; } = 0;
         public bool UseCustomExcel { get; set; } = false;
+        // Fills every cafe with Koyuki and swaps the lobby banner list for the single webview banner. Off means stock random visitors and no banners.
+        public bool KoyukiIncident { get; set; } = false;
         public bool AutoCheckVersion { get; set; } = true;
         public bool AutoUpdateVersion { get; set; } = true;
-        public bool AutoUpdateResources { get; set; } = false;
+        public bool AutoUpdateResources { get; set; } = true;
         public string? OverrideVersionId { get; set; }
         public string? OverrideCdnBaseUrl { get; set; }
         // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and overridable per-machine with SHITTIM_ADMIN_API_KEY.
@@ -68,7 +80,6 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool RequestPacket { get; set; } = true;
         public bool ResponsePacket { get; set; } = false;
         public bool ErrorPacket = false;
-        // Writes every gateway exchange to logs/wire-{date}.txt in the same format as the reference captures, so a session can be diffed against official traffic.
         // On by default: the client reports protocol faults as opaque popups, and without the response bytes there is nothing to compare. Costs one buffered append per request.
         public bool WireDump { get; set; } = true;
     }

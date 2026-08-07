@@ -45,7 +45,14 @@ public struct BattleExcel : IFlatbufferObject
   public Schale.FlatData.ReArrangeTargetType AllySelf { get { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.ReArrangeTargetType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ReArrangeTargetType.AllySelf; } }
   public Schale.FlatData.ArmorType LightArmor { get { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.ArmorType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ArmorType.LightArmor; } }
   public Schale.FlatData.EntityMaterialType Wood { get { int o = __p.__offset(24); return o != 0 ? (Schale.FlatData.EntityMaterialType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EntityMaterialType.Wood; } }
-  public Schale.FlatData.CoverMotionType All { get { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.CoverMotionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.CoverMotionType.All; } }
+  public Schale.FlatData.CoverMotionType All(int j) { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.CoverMotionType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.CoverMotionType)0; }
+  public int AllLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<Schale.FlatData.CoverMotionType> GetAllBytes() { return __p.__vector_as_span<Schale.FlatData.CoverMotionType>(26, 4); }
+#else
+  public ArraySegment<byte>? GetAllBytes() { return __p.__vector_as_arraysegment(26); }
+#endif
+  public Schale.FlatData.CoverMotionType[] GetAllArray() { int o = __p.__offset(26); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.CoverMotionType[] a = new Schale.FlatData.CoverMotionType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.CoverMotionType)__p.bb.GetInt(p + i * 4); } return a; }
   public Schale.FlatData.TargetSortBy DISTANCE { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.TargetSortBy)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TargetSortBy.DISTANCE; } }
   public Schale.FlatData.PositioningType CloseToObstacle { get { int o = __p.__offset(30); return o != 0 ? (Schale.FlatData.PositioningType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PositioningType.CloseToObstacle; } }
   public Schale.FlatData.FormationLine Students { get { int o = __p.__offset(32); return o != 0 ? (Schale.FlatData.FormationLine)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.FormationLine.Students; } }
@@ -81,7 +88,7 @@ public struct BattleExcel : IFlatbufferObject
       Schale.FlatData.ReArrangeTargetType AllySelf = Schale.FlatData.ReArrangeTargetType.AllySelf,
       Schale.FlatData.ArmorType LightArmor = Schale.FlatData.ArmorType.LightArmor,
       Schale.FlatData.EntityMaterialType Wood = Schale.FlatData.EntityMaterialType.Wood,
-      Schale.FlatData.CoverMotionType All = Schale.FlatData.CoverMotionType.All,
+      VectorOffset AllOffset = default(VectorOffset),
       Schale.FlatData.TargetSortBy DISTANCE = Schale.FlatData.TargetSortBy.DISTANCE,
       Schale.FlatData.PositioningType CloseToObstacle = Schale.FlatData.PositioningType.CloseToObstacle,
       Schale.FlatData.FormationLine Students = Schale.FlatData.FormationLine.Students,
@@ -127,7 +134,7 @@ public struct BattleExcel : IFlatbufferObject
     BattleExcel.AddStudents(builder, Students);
     BattleExcel.AddCloseToObstacle(builder, CloseToObstacle);
     BattleExcel.AddDISTANCE(builder, DISTANCE);
-    BattleExcel.AddAll(builder, All);
+    BattleExcel.AddAll(builder, AllOffset);
     BattleExcel.AddWood(builder, Wood);
     BattleExcel.AddLightArmor(builder, LightArmor);
     BattleExcel.AddAllySelf(builder, AllySelf);
@@ -164,7 +171,12 @@ public struct BattleExcel : IFlatbufferObject
   public static void AddAllySelf(FlatBufferBuilder builder, Schale.FlatData.ReArrangeTargetType allySelf) { builder.AddInt(8, (int)allySelf, 0); }
   public static void AddLightArmor(FlatBufferBuilder builder, Schale.FlatData.ArmorType lightArmor) { builder.AddInt(9, (int)lightArmor, 0); }
   public static void AddWood(FlatBufferBuilder builder, Schale.FlatData.EntityMaterialType wood) { builder.AddInt(10, (int)wood, 0); }
-  public static void AddAll(FlatBufferBuilder builder, Schale.FlatData.CoverMotionType all) { builder.AddInt(11, (int)all, 0); }
+  public static void AddAll(FlatBufferBuilder builder, VectorOffset allOffset) { builder.AddOffset(11, allOffset.Value, 0); }
+  public static VectorOffset CreateAllVector(FlatBufferBuilder builder, Schale.FlatData.CoverMotionType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateAllVectorBlock(FlatBufferBuilder builder, Schale.FlatData.CoverMotionType[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateAllVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.CoverMotionType> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateAllVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.CoverMotionType>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartAllVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static void AddDISTANCE(FlatBufferBuilder builder, Schale.FlatData.TargetSortBy dISTANCE) { builder.AddInt(12, (int)dISTANCE, 0); }
   public static void AddCloseToObstacle(FlatBufferBuilder builder, Schale.FlatData.PositioningType closeToObstacle) { builder.AddInt(13, (int)closeToObstacle, 0); }
   public static void AddStudents(FlatBufferBuilder builder, Schale.FlatData.FormationLine students) { builder.AddInt(14, (int)students, 0); }
@@ -211,7 +223,8 @@ public struct BattleExcel : IFlatbufferObject
     _o.AllySelf = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AllySelf, key) : this.AllySelf;
     _o.LightArmor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LightArmor, key) : this.LightArmor;
     _o.Wood = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Wood, key) : this.Wood;
-    _o.All = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.All, key) : this.All;
+    _o.All = new List<Schale.FlatData.CoverMotionType>();
+    for (var _j = 0; _j < this.AllLength; ++_j) {_o.All.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.All(_j), key) : this.All(_j));}
     _o.DISTANCE = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DISTANCE, key) : this.DISTANCE;
     _o.CloseToObstacle = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CloseToObstacle, key) : this.CloseToObstacle;
     _o.Students = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Students, key) : this.Students;
@@ -247,6 +260,11 @@ public struct BattleExcel : IFlatbufferObject
       var __Normal = _o.Normal.ToArray();
       _Normal = CreateNormalVector(builder, __Normal);
     }
+    var _All = default(VectorOffset);
+    if (_o.All != null) {
+      var __All = _o.All.ToArray();
+      _All = CreateAllVector(builder, __All);
+    }
     return CreateBattleExcel(
       builder,
       _None,
@@ -260,7 +278,7 @@ public struct BattleExcel : IFlatbufferObject
       _o.AllySelf,
       _o.LightArmor,
       _o.Wood,
-      _o.All,
+      _All,
       _o.DISTANCE,
       _o.CloseToObstacle,
       _o.Students,
@@ -299,7 +317,7 @@ public class BattleExcelT
   public Schale.FlatData.ReArrangeTargetType AllySelf { get; set; }
   public Schale.FlatData.ArmorType LightArmor { get; set; }
   public Schale.FlatData.EntityMaterialType Wood { get; set; }
-  public Schale.FlatData.CoverMotionType All { get; set; }
+  public List<Schale.FlatData.CoverMotionType> All { get; set; }
   public Schale.FlatData.TargetSortBy DISTANCE { get; set; }
   public Schale.FlatData.PositioningType CloseToObstacle { get; set; }
   public Schale.FlatData.FormationLine Students { get; set; }
@@ -335,7 +353,7 @@ public class BattleExcelT
     this.AllySelf = Schale.FlatData.ReArrangeTargetType.AllySelf;
     this.LightArmor = Schale.FlatData.ArmorType.LightArmor;
     this.Wood = Schale.FlatData.EntityMaterialType.Wood;
-    this.All = Schale.FlatData.CoverMotionType.All;
+    this.All = null;
     this.DISTANCE = Schale.FlatData.TargetSortBy.DISTANCE;
     this.CloseToObstacle = Schale.FlatData.PositioningType.CloseToObstacle;
     this.Students = Schale.FlatData.FormationLine.Students;
@@ -378,7 +396,7 @@ static public class BattleExcelVerify
       && verifier.VerifyField(tablePos, 20 /*AllySelf*/, 4 /*Schale.FlatData.ReArrangeTargetType*/, 4, false)
       && verifier.VerifyField(tablePos, 22 /*LightArmor*/, 4 /*Schale.FlatData.ArmorType*/, 4, false)
       && verifier.VerifyField(tablePos, 24 /*Wood*/, 4 /*Schale.FlatData.EntityMaterialType*/, 4, false)
-      && verifier.VerifyField(tablePos, 26 /*All*/, 4 /*Schale.FlatData.CoverMotionType*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 26 /*All*/, 4 /*Schale.FlatData.CoverMotionType*/, false)
       && verifier.VerifyField(tablePos, 28 /*DISTANCE*/, 4 /*Schale.FlatData.TargetSortBy*/, 4, false)
       && verifier.VerifyField(tablePos, 30 /*CloseToObstacle*/, 4 /*Schale.FlatData.PositioningType*/, 4, false)
       && verifier.VerifyField(tablePos, 32 /*Students*/, 4 /*Schale.FlatData.FormationLine*/, 4, false)

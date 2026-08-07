@@ -18,16 +18,22 @@ public class WorldRaidHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly WorldRaidManager _worldRaidManager;
     private readonly IMapper _mapper;
+    private readonly ExcelTableService _excelService;
+    private readonly ParcelHandler _parcelHandler;
 
     public WorldRaidHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         WorldRaidManager worldRaidManager,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ExcelTableService excelService,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _worldRaidManager = worldRaidManager;
         _mapper = mapper;
+        _excelService = excelService;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.WorldRaid_Lobby)]
@@ -44,7 +50,7 @@ public class WorldRaidHandler : ProtocolHandlerBase
             .Where(x => x.SeasonId == request.SeasonId)
             .ToMapList(_mapper);
         response.LocalBossDBs = localBoss.ToMapList(_mapper);
-        response.BossGroups = [];
+        response.BossGroups = new();
 
         return response;
     }
@@ -118,6 +124,24 @@ public class WorldRaidHandler : ProtocolHandlerBase
         WorldRaidReceiveRewardResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.WorldRaid_UpdateCarrierSkill)]
+    public async Task<WorldRaidUpdateCarrierSkillResponse> UpdateCarrierSkill(
+        SchaleDataContext db,
+        WorldRaidUpdateCarrierSkillRequest request,
+        WorldRaidUpdateCarrierSkillResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var cost = new List<ParcelResult>();
+        CharacterService.CreateRecipes(cost, _excelService.GetTable<RecipeIngredientExcelT>(), request.RecipeIngredientId);
+        response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account, cost, isConsume: true)).ParcelResult;
+
+        // No per-season carrier state is kept; echoing the requested levels back is what the client applies.
+        response.CarrierSkills = request.CarrierSkills;
 
         return response;
     }

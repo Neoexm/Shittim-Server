@@ -21,66 +21,68 @@ public struct ProductSelectExcel : IFlatbufferObject
   public ProductSelectExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string ProductId { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.ProductSelectSubType ProductSelectSubType { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.ProductSelectSubType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ProductSelectSubType.Select; } }
+  public string ProductId { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProductIdBytes() { return __p.__vector_as_span<byte>(6, 1); }
+  public Span<byte> GetProductIdBytes() { return __p.__vector_as_span<byte>(8, 1); }
 #else
-  public ArraySegment<byte>? GetProductIdBytes() { return __p.__vector_as_arraysegment(6); }
+  public ArraySegment<byte>? GetProductIdBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
-  public byte[] GetProductIdArray() { return __p.__vector_as_array<byte>(6); }
-  public string TeenProductId { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetProductIdArray() { return __p.__vector_as_array<byte>(8); }
+  public string TeenProductId { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTeenProductIdBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<byte> GetTeenProductIdBytes() { return __p.__vector_as_span<byte>(10, 1); }
 #else
-  public ArraySegment<byte>? GetTeenProductIdBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetTeenProductIdBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public byte[] GetTeenProductIdArray() { return __p.__vector_as_array<byte>(8); }
-  public Schale.FlatData.StoreType StoreType { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.StoreType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StoreType.None; } }
-  public long Price { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string PriceReference { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetTeenProductIdArray() { return __p.__vector_as_array<byte>(10); }
+  public Schale.FlatData.StoreType StoreType { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.StoreType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StoreType.None; } }
+  public long Price { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string PriceReference { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetPriceReferenceBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetPriceReferenceBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetPriceReferenceBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetPriceReferenceBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetPriceReferenceArray() { return __p.__vector_as_array<byte>(14); }
-  public Schale.FlatData.PurchasePeriodType PurchasePeriodType { get { int o = __p.__offset(16); return o != 0 ? (Schale.FlatData.PurchasePeriodType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchasePeriodType.None; } }
-  public long PurchasePeriodLimit { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.ParcelType ParcelType(int j) { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
-  public int ParcelTypeLength { get { int o = __p.__offset(20); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte[] GetPriceReferenceArray() { return __p.__vector_as_array<byte>(16); }
+  public Schale.FlatData.PurchasePeriodType PurchasePeriodType { get { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.PurchasePeriodType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.PurchasePeriodType.None; } }
+  public long PurchasePeriodLimit { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ParcelType ParcelType(int j) { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
+  public int ParcelTypeLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.ParcelType> GetParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(20, 4); }
+  public Span<Schale.FlatData.ParcelType> GetParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(22, 4); }
 #else
-  public ArraySegment<byte>? GetParcelTypeBytes() { return __p.__vector_as_arraysegment(20); }
+  public ArraySegment<byte>? GetParcelTypeBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
-  public Schale.FlatData.ParcelType[] GetParcelTypeArray() { int o = __p.__offset(20); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long ParcelId(int j) { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ParcelIdLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.ParcelType[] GetParcelTypeArray() { int o = __p.__offset(22); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
+  public long ParcelId(int j) { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ParcelIdLength { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetParcelIdBytes() { return __p.__vector_as_span<long>(22, 8); }
+  public Span<long> GetParcelIdBytes() { return __p.__vector_as_span<long>(24, 8); }
 #else
-  public ArraySegment<byte>? GetParcelIdBytes() { return __p.__vector_as_arraysegment(22); }
+  public ArraySegment<byte>? GetParcelIdBytes() { return __p.__vector_as_arraysegment(24); }
 #endif
-  public long[] GetParcelIdArray() { return __p.__vector_as_array<long>(22); }
-  public long ParcelAmount(int j) { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ParcelAmountLength { get { int o = __p.__offset(24); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long[] GetParcelIdArray() { return __p.__vector_as_array<long>(24); }
+  public long ParcelAmount(int j) { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ParcelAmountLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetParcelAmountBytes() { return __p.__vector_as_span<long>(24, 8); }
+  public Span<long> GetParcelAmountBytes() { return __p.__vector_as_span<long>(26, 8); }
 #else
-  public ArraySegment<byte>? GetParcelAmountBytes() { return __p.__vector_as_arraysegment(24); }
+  public ArraySegment<byte>? GetParcelAmountBytes() { return __p.__vector_as_arraysegment(26); }
 #endif
-  public long[] GetParcelAmountArray() { return __p.__vector_as_array<long>(24); }
-  public long ProductSelectionSlot(int j) { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ProductSelectionSlotLength { get { int o = __p.__offset(26); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long[] GetParcelAmountArray() { return __p.__vector_as_array<long>(26); }
+  public long ProductSelectionSlot(int j) { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ProductSelectionSlotLength { get { int o = __p.__offset(28); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetProductSelectionSlotBytes() { return __p.__vector_as_span<long>(26, 8); }
+  public Span<long> GetProductSelectionSlotBytes() { return __p.__vector_as_span<long>(28, 8); }
 #else
-  public ArraySegment<byte>? GetProductSelectionSlotBytes() { return __p.__vector_as_arraysegment(26); }
+  public ArraySegment<byte>? GetProductSelectionSlotBytes() { return __p.__vector_as_arraysegment(28); }
 #endif
-  public long[] GetProductSelectionSlotArray() { return __p.__vector_as_array<long>(26); }
+  public long[] GetProductSelectionSlotArray() { return __p.__vector_as_array<long>(28); }
 
   public static Offset<Schale.FlatData.ProductSelectExcel> CreateProductSelectExcel(FlatBufferBuilder builder,
       long Id = 0,
+      Schale.FlatData.ProductSelectSubType ProductSelectSubType = Schale.FlatData.ProductSelectSubType.Select,
       StringOffset ProductIdOffset = default(StringOffset),
       StringOffset TeenProductIdOffset = default(StringOffset),
       Schale.FlatData.StoreType StoreType = Schale.FlatData.StoreType.None,
@@ -92,7 +94,7 @@ public struct ProductSelectExcel : IFlatbufferObject
       VectorOffset ParcelIdOffset = default(VectorOffset),
       VectorOffset ParcelAmountOffset = default(VectorOffset),
       VectorOffset ProductSelectionSlotOffset = default(VectorOffset)) {
-    builder.StartTable(12);
+    builder.StartTable(13);
     ProductSelectExcel.AddPurchasePeriodLimit(builder, PurchasePeriodLimit);
     ProductSelectExcel.AddPrice(builder, Price);
     ProductSelectExcel.AddId(builder, Id);
@@ -105,37 +107,39 @@ public struct ProductSelectExcel : IFlatbufferObject
     ProductSelectExcel.AddStoreType(builder, StoreType);
     ProductSelectExcel.AddTeenProductId(builder, TeenProductIdOffset);
     ProductSelectExcel.AddProductId(builder, ProductIdOffset);
+    ProductSelectExcel.AddProductSelectSubType(builder, ProductSelectSubType);
     return ProductSelectExcel.EndProductSelectExcel(builder);
   }
 
-  public static void StartProductSelectExcel(FlatBufferBuilder builder) { builder.StartTable(12); }
+  public static void StartProductSelectExcel(FlatBufferBuilder builder) { builder.StartTable(13); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
-  public static void AddProductId(FlatBufferBuilder builder, StringOffset productIdOffset) { builder.AddOffset(1, productIdOffset.Value, 0); }
-  public static void AddTeenProductId(FlatBufferBuilder builder, StringOffset teenProductIdOffset) { builder.AddOffset(2, teenProductIdOffset.Value, 0); }
-  public static void AddStoreType(FlatBufferBuilder builder, Schale.FlatData.StoreType storeType) { builder.AddInt(3, (int)storeType, 0); }
-  public static void AddPrice(FlatBufferBuilder builder, long price) { builder.AddLong(4, price, 0); }
-  public static void AddPriceReference(FlatBufferBuilder builder, StringOffset priceReferenceOffset) { builder.AddOffset(5, priceReferenceOffset.Value, 0); }
-  public static void AddPurchasePeriodType(FlatBufferBuilder builder, Schale.FlatData.PurchasePeriodType purchasePeriodType) { builder.AddInt(6, (int)purchasePeriodType, 0); }
-  public static void AddPurchasePeriodLimit(FlatBufferBuilder builder, long purchasePeriodLimit) { builder.AddLong(7, purchasePeriodLimit, 0); }
-  public static void AddParcelType(FlatBufferBuilder builder, VectorOffset parcelTypeOffset) { builder.AddOffset(8, parcelTypeOffset.Value, 0); }
+  public static void AddProductSelectSubType(FlatBufferBuilder builder, Schale.FlatData.ProductSelectSubType productSelectSubType) { builder.AddInt(1, (int)productSelectSubType, 0); }
+  public static void AddProductId(FlatBufferBuilder builder, StringOffset productIdOffset) { builder.AddOffset(2, productIdOffset.Value, 0); }
+  public static void AddTeenProductId(FlatBufferBuilder builder, StringOffset teenProductIdOffset) { builder.AddOffset(3, teenProductIdOffset.Value, 0); }
+  public static void AddStoreType(FlatBufferBuilder builder, Schale.FlatData.StoreType storeType) { builder.AddInt(4, (int)storeType, 0); }
+  public static void AddPrice(FlatBufferBuilder builder, long price) { builder.AddLong(5, price, 0); }
+  public static void AddPriceReference(FlatBufferBuilder builder, StringOffset priceReferenceOffset) { builder.AddOffset(6, priceReferenceOffset.Value, 0); }
+  public static void AddPurchasePeriodType(FlatBufferBuilder builder, Schale.FlatData.PurchasePeriodType purchasePeriodType) { builder.AddInt(7, (int)purchasePeriodType, 0); }
+  public static void AddPurchasePeriodLimit(FlatBufferBuilder builder, long purchasePeriodLimit) { builder.AddLong(8, purchasePeriodLimit, 0); }
+  public static void AddParcelType(FlatBufferBuilder builder, VectorOffset parcelTypeOffset) { builder.AddOffset(9, parcelTypeOffset.Value, 0); }
   public static VectorOffset CreateParcelTypeVector(FlatBufferBuilder builder, Schale.FlatData.ParcelType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateParcelTypeVectorBlock(FlatBufferBuilder builder, Schale.FlatData.ParcelType[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelTypeVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.ParcelType> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelTypeVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.ParcelType>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartParcelTypeVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddParcelId(FlatBufferBuilder builder, VectorOffset parcelIdOffset) { builder.AddOffset(9, parcelIdOffset.Value, 0); }
+  public static void AddParcelId(FlatBufferBuilder builder, VectorOffset parcelIdOffset) { builder.AddOffset(10, parcelIdOffset.Value, 0); }
   public static VectorOffset CreateParcelIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateParcelIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartParcelIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddParcelAmount(FlatBufferBuilder builder, VectorOffset parcelAmountOffset) { builder.AddOffset(10, parcelAmountOffset.Value, 0); }
+  public static void AddParcelAmount(FlatBufferBuilder builder, VectorOffset parcelAmountOffset) { builder.AddOffset(11, parcelAmountOffset.Value, 0); }
   public static VectorOffset CreateParcelAmountVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateParcelAmountVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateParcelAmountVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartParcelAmountVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddProductSelectionSlot(FlatBufferBuilder builder, VectorOffset productSelectionSlotOffset) { builder.AddOffset(11, productSelectionSlotOffset.Value, 0); }
+  public static void AddProductSelectionSlot(FlatBufferBuilder builder, VectorOffset productSelectionSlotOffset) { builder.AddOffset(12, productSelectionSlotOffset.Value, 0); }
   public static VectorOffset CreateProductSelectionSlotVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateProductSelectionSlotVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateProductSelectionSlotVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
@@ -153,6 +157,7 @@ public struct ProductSelectExcel : IFlatbufferObject
   public void UnPackTo(ProductSelectExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("ProductSelect");
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
+    _o.ProductSelectSubType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductSelectSubType, key) : this.ProductSelectSubType;
     _o.ProductId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProductId, key) : this.ProductId;
     _o.TeenProductId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TeenProductId, key) : this.TeenProductId;
     _o.StoreType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.StoreType, key) : this.StoreType;
@@ -197,6 +202,7 @@ public struct ProductSelectExcel : IFlatbufferObject
     return CreateProductSelectExcel(
       builder,
       _o.Id,
+      _o.ProductSelectSubType,
       _ProductId,
       _TeenProductId,
       _o.StoreType,
@@ -214,6 +220,7 @@ public struct ProductSelectExcel : IFlatbufferObject
 public class ProductSelectExcelT
 {
   public long Id { get; set; }
+  public Schale.FlatData.ProductSelectSubType ProductSelectSubType { get; set; }
   public string ProductId { get; set; }
   public string TeenProductId { get; set; }
   public Schale.FlatData.StoreType StoreType { get; set; }
@@ -228,6 +235,7 @@ public class ProductSelectExcelT
 
   public ProductSelectExcelT() {
     this.Id = 0;
+    this.ProductSelectSubType = Schale.FlatData.ProductSelectSubType.Select;
     this.ProductId = null;
     this.TeenProductId = null;
     this.StoreType = Schale.FlatData.StoreType.None;
@@ -249,17 +257,18 @@ static public class ProductSelectExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 6 /*ProductId*/, false)
-      && verifier.VerifyString(tablePos, 8 /*TeenProductId*/, false)
-      && verifier.VerifyField(tablePos, 10 /*StoreType*/, 4 /*Schale.FlatData.StoreType*/, 4, false)
-      && verifier.VerifyField(tablePos, 12 /*Price*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 14 /*PriceReference*/, false)
-      && verifier.VerifyField(tablePos, 16 /*PurchasePeriodType*/, 4 /*Schale.FlatData.PurchasePeriodType*/, 4, false)
-      && verifier.VerifyField(tablePos, 18 /*PurchasePeriodLimit*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfData(tablePos, 20 /*ParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 22 /*ParcelId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 24 /*ParcelAmount*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 26 /*ProductSelectionSlot*/, 8 /*long*/, false)
+      && verifier.VerifyField(tablePos, 6 /*ProductSelectSubType*/, 4 /*Schale.FlatData.ProductSelectSubType*/, 4, false)
+      && verifier.VerifyString(tablePos, 8 /*ProductId*/, false)
+      && verifier.VerifyString(tablePos, 10 /*TeenProductId*/, false)
+      && verifier.VerifyField(tablePos, 12 /*StoreType*/, 4 /*Schale.FlatData.StoreType*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*Price*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 16 /*PriceReference*/, false)
+      && verifier.VerifyField(tablePos, 18 /*PurchasePeriodType*/, 4 /*Schale.FlatData.PurchasePeriodType*/, 4, false)
+      && verifier.VerifyField(tablePos, 20 /*PurchasePeriodLimit*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 22 /*ParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 24 /*ParcelId*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 26 /*ParcelAmount*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 28 /*ProductSelectionSlot*/, 8 /*long*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

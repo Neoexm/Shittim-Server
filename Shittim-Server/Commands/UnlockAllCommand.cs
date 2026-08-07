@@ -94,9 +94,12 @@ namespace Shittim.Commands
                         if (mode.EventContentId != 0)
                             continue;
 
+                        // SpecialOperation is the "Ex." tab (Decagrammaton etc.), Mini the short stories - both permanent content, same clear mechanism.
                         if (mode.ModeType != ScenarioModeTypes.Main &&
                             mode.ModeType != ScenarioModeTypes.Sub &&
-                            mode.ModeType != ScenarioModeTypes.Prologue)
+                            mode.ModeType != ScenarioModeTypes.Prologue &&
+                            mode.ModeType != ScenarioModeTypes.SpecialOperation &&
+                            mode.ModeType != ScenarioModeTypes.Mini)
                             continue;
 
                         if (!existingScenarioIds.Add(mode.ModeId))
@@ -112,7 +115,7 @@ namespace Shittim.Commands
                     }
 
                     await context.SaveChangesAsync();
-                    await connection.SendChatMessage($"Cleared {newScenarioCount} story episodes (main/sub/prologue)!");
+                    await connection.SendChatMessage($"Cleared {newScenarioCount} story episodes (main/sub/prologue/ex/mini)!");
                     break;
 
                 case "weekdungeon":
@@ -208,7 +211,7 @@ namespace Shittim.Commands
                                 MissionUniqueId = mission.Id,
                                 Complete = true,
                                 StartTime = DateTime.Now,
-                                ProgressParameters = new Dictionary<long,long>()
+                                ProgressParameters = new Dictionary<long,long> { [mission.CompleteConditionParameter?.Count == 1 ? mission.CompleteConditionParameter[0] : 0] = mission.CompleteConditionCount }
                             };
                             context.MissionProgresses.Add(progress);
                             newMissionsCount++;

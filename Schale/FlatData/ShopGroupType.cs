@@ -17,6 +17,7 @@ public enum ShopGroupType : int
   TimeAttack = 7,
   EliminateRaid = 8,
   Gem = 9,
+  Chaser = 10,
 };
 
 

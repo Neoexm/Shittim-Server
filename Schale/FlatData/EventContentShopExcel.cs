@@ -66,7 +66,7 @@ public struct EventContentShopExcel : IFlatbufferObject
       uint LocalizeEtcId = 0,
       Schale.FlatData.ShopCategoryType CategoryType = Schale.FlatData.ShopCategoryType.General,
       bool IsLegacy = false,
-      VectorOffset goodsIdOffset = default(VectorOffset),
+      VectorOffset GoodsIdOffset = default(VectorOffset),
       long DisplayOrder = 0,
       StringOffset SalePeriodFromOffset = default(StringOffset),
       StringOffset SalePeriodToOffset = default(StringOffset),
@@ -85,7 +85,7 @@ public struct EventContentShopExcel : IFlatbufferObject
     EventContentShopExcel.AddPurchaseCountResetType(builder, PurchaseCountResetType);
     EventContentShopExcel.AddSalePeriodTo(builder, SalePeriodToOffset);
     EventContentShopExcel.AddSalePeriodFrom(builder, SalePeriodFromOffset);
-    EventContentShopExcel.AddGoodsId(builder, goodsIdOffset);
+    EventContentShopExcel.AddGoodsId(builder, GoodsIdOffset);
     EventContentShopExcel.AddCategoryType(builder, CategoryType);
     EventContentShopExcel.AddLocalizeEtcId(builder, LocalizeEtcId);
     EventContentShopExcel.AddRestrictBuyWhenInventoryFull(builder, RestrictBuyWhenInventoryFull);
@@ -142,10 +142,10 @@ public struct EventContentShopExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentShopExcel> Pack(FlatBufferBuilder builder, EventContentShopExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentShopExcel>);
-    var _goodsId = default(VectorOffset);
+    var _GoodsId = default(VectorOffset);
     if (_o.GoodsId != null) {
-      var __goodsId = _o.GoodsId.ToArray();
-      _goodsId = CreateGoodsIdVector(builder, __goodsId);
+      var __GoodsId = _o.GoodsId.ToArray();
+      _GoodsId = CreateGoodsIdVector(builder, __GoodsId);
     }
     var _SalePeriodFrom = _o.SalePeriodFrom == null ? default(StringOffset) : builder.CreateString(_o.SalePeriodFrom);
     var _SalePeriodTo = _o.SalePeriodTo == null ? default(StringOffset) : builder.CreateString(_o.SalePeriodTo);
@@ -157,7 +157,7 @@ public struct EventContentShopExcel : IFlatbufferObject
       _o.LocalizeEtcId,
       _o.CategoryType,
       _o.IsLegacy,
-      _goodsId,
+      _GoodsId,
       _o.DisplayOrder,
       _SalePeriodFrom,
       _SalePeriodTo,

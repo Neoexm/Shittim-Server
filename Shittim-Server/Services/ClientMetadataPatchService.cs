@@ -42,14 +42,18 @@ namespace Shittim_Server.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var config = Config.Instance.ServerConfiguration;
-
-            if (!config.EnableGateway || !config.AutoPatchClientMetadata)
-                return Task.CompletedTask;
-
             try
             {
                 metadataPath = GetMetadataPath();
+
+                if (!IsEnabled())
+                {
+                    // Turning the patch off is how someone goes back to the official client, so it has to mean putting the key back rather than merely not patching again. A global-metadata.dat left carrying our gateway key hangs the client on "Unpacking game resources" with nothing on screen to say why, and the usual guess is to verify the files through Steam.
+                    RestoreMetadata();
+                    logger.LogInformation("Client metadata auto-patch disabled");
+                    return Task.CompletedTask;
+                }
+
                 if (string.IsNullOrWhiteSpace(metadataPath))
                 {
                     logger.LogWarning("Client metadata auto-patch is enabled, but no metadata path was configured");
@@ -305,7 +309,17 @@ namespace Shittim_Server.Services
             File.WriteAllText(statePath, JsonSerializer.Serialize(state, JsonOptions));
         }
 
-        private static string GetMetadataPath()
+        private static bool IsEnabled()
+        {
+            var env = Environment.GetEnvironmentVariable("SHITTIM_AUTO_PATCH_METADATA");
+            if (!string.IsNullOrWhiteSpace(env) && bool.TryParse(env, out var enabled))
+                return enabled;
+
+            var config = Config.Instance.ServerConfiguration;
+            return config.EnableGateway && config.AutoPatchClientMetadata;
+        }
+
+        internal static string GetMetadataPath()
         {
             var configuredPath = Environment.GetEnvironmentVariable("SHITTIM_CLIENT_METADATA_PATH");
             if (string.IsNullOrWhiteSpace(configuredPath))
@@ -315,17 +329,7 @@ namespace Shittim_Server.Services
                 return ResolvePath(configuredPath);
 
             // Any Steam library can hold the install.
-            var located = SteamGameLocator.FindGameFile(Path.Combine("BlueArchive_Data", "il2cpp_data", "Metadata", "global-metadata.dat"));
-            if (!string.IsNullOrWhiteSpace(located))
-                return located;
-
-            var candidates = new[]
-            {
-                @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\il2cpp_data\Metadata\global-metadata.dat",
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "il2cpp_data", "Metadata", "global-metadata.dat")
-            };
-
-            return candidates.FirstOrDefault(File.Exists);
+            return SteamGameLocator.FindGameFile(Path.Combine("BlueArchive_Data", "il2cpp_data", "Metadata", "global-metadata.dat"));
         }
 
         private static string GetGatewayPublicKey()

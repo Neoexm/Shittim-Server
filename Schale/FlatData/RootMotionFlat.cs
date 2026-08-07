@@ -24,17 +24,17 @@ public struct RootMotionFlat : IFlatbufferObject
   public int FormsLength { get { int o = __p.__offset(4); return o != 0 ? __p.__vector_len(o) : 0; } }
   public Schale.FlatData.Motion? ExSkills(int j) { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(__p.__vector(o) + j * 4), __p.bb) : null; }
   public int ExSkillsLength { get { int o = __p.__offset(6); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Schale.FlatData.Motion? MoveLeftOffset { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
-  public Schale.FlatData.Motion? MoveRightOffset { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? MoveLeft { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? MoveRight { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
 
   public static Offset<Schale.FlatData.RootMotionFlat> CreateRootMotionFlat(FlatBufferBuilder builder,
       VectorOffset FormsOffset = default(VectorOffset),
       VectorOffset ExSkillsOffset = default(VectorOffset),
-      Offset<Schale.FlatData.Motion> MoveLeftOffsetOffset = default(Offset<Schale.FlatData.Motion>),
-      Offset<Schale.FlatData.Motion> MoveRightOffsetOffset = default(Offset<Schale.FlatData.Motion>)) {
+      Offset<Schale.FlatData.Motion> MoveLeftOffset = default(Offset<Schale.FlatData.Motion>),
+      Offset<Schale.FlatData.Motion> MoveRightOffset = default(Offset<Schale.FlatData.Motion>)) {
     builder.StartTable(4);
-    RootMotionFlat.AddMoveRightOffset(builder, MoveRightOffsetOffset);
-    RootMotionFlat.AddMoveLeftOffset(builder, MoveLeftOffsetOffset);
+    RootMotionFlat.AddMoveRight(builder, MoveRightOffset);
+    RootMotionFlat.AddMoveLeft(builder, MoveLeftOffset);
     RootMotionFlat.AddExSkills(builder, ExSkillsOffset);
     RootMotionFlat.AddForms(builder, FormsOffset);
     return RootMotionFlat.EndRootMotionFlat(builder);
@@ -53,8 +53,8 @@ public struct RootMotionFlat : IFlatbufferObject
   public static VectorOffset CreateExSkillsVectorBlock(FlatBufferBuilder builder, ArraySegment<Offset<Schale.FlatData.Motion>> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateExSkillsVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Offset<Schale.FlatData.Motion>>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartExSkillsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddMoveLeftOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> moveLeftOffsetOffset) { builder.AddOffset(2, moveLeftOffsetOffset.Value, 0); }
-  public static void AddMoveRightOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> moveRightOffsetOffset) { builder.AddOffset(3, moveRightOffsetOffset.Value, 0); }
+  public static void AddMoveLeft(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> moveLeftOffset) { builder.AddOffset(2, moveLeftOffset.Value, 0); }
+  public static void AddMoveRight(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> moveRightOffset) { builder.AddOffset(3, moveRightOffset.Value, 0); }
   public static Offset<Schale.FlatData.RootMotionFlat> EndRootMotionFlat(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.RootMotionFlat>(o);
@@ -70,8 +70,8 @@ public struct RootMotionFlat : IFlatbufferObject
     for (var _j = 0; _j < this.FormsLength; ++_j) {_o.Forms.Add(this.Forms(_j).HasValue ? this.Forms(_j).Value.UnPack() : null);}
     _o.ExSkills = new List<Schale.FlatData.MotionT>();
     for (var _j = 0; _j < this.ExSkillsLength; ++_j) {_o.ExSkills.Add(this.ExSkills(_j).HasValue ? this.ExSkills(_j).Value.UnPack() : null);}
-    _o.MoveLeftOffset = this.MoveLeftOffset.HasValue ? this.MoveLeftOffset.Value.UnPack() : null;
-    _o.MoveRightOffset = this.MoveRightOffset.HasValue ? this.MoveRightOffset.Value.UnPack() : null;
+    _o.MoveLeft = this.MoveLeft.HasValue ? this.MoveLeft.Value.UnPack() : null;
+    _o.MoveRight = this.MoveRight.HasValue ? this.MoveRight.Value.UnPack() : null;
   }
   public static Offset<Schale.FlatData.RootMotionFlat> Pack(FlatBufferBuilder builder, RootMotionFlatT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.RootMotionFlat>);
@@ -87,14 +87,14 @@ public struct RootMotionFlat : IFlatbufferObject
       for (var _j = 0; _j < __ExSkills.Length; ++_j) { __ExSkills[_j] = Schale.FlatData.Motion.Pack(builder, _o.ExSkills[_j]); }
       _ExSkills = CreateExSkillsVector(builder, __ExSkills);
     }
-    var _MoveLeftOffset = _o.MoveLeftOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.MoveLeftOffset);
-    var _MoveRightOffset = _o.MoveRightOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.MoveRightOffset);
+    var _MoveLeft = _o.MoveLeft == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.MoveLeft);
+    var _MoveRight = _o.MoveRight == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.MoveRight);
     return CreateRootMotionFlat(
       builder,
       _Forms,
       _ExSkills,
-      _MoveLeftOffset,
-      _MoveRightOffset);
+      _MoveLeft,
+      _MoveRight);
   }
 }
 
@@ -102,14 +102,14 @@ public class RootMotionFlatT
 {
   public List<Schale.FlatData.FormT> Forms { get; set; }
   public List<Schale.FlatData.MotionT> ExSkills { get; set; }
-  public Schale.FlatData.MotionT MoveLeftOffset { get; set; }
-  public Schale.FlatData.MotionT MoveRightOffset { get; set; }
+  public Schale.FlatData.MotionT MoveLeft { get; set; }
+  public Schale.FlatData.MotionT MoveRight { get; set; }
 
   public RootMotionFlatT() {
     this.Forms = null;
     this.ExSkills = null;
-    this.MoveLeftOffset = null;
-    this.MoveRightOffset = null;
+    this.MoveLeft = null;
+    this.MoveRight = null;
   }
 }
 
@@ -121,8 +121,8 @@ static public class RootMotionFlatVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyVectorOfTables(tablePos, 4 /*Forms*/, Schale.FlatData.FormVerify.Verify, false)
       && verifier.VerifyVectorOfTables(tablePos, 6 /*ExSkills*/, Schale.FlatData.MotionVerify.Verify, false)
-      && verifier.VerifyTable(tablePos, 8 /*MoveLeftOffset*/, Schale.FlatData.MotionVerify.Verify, false)
-      && verifier.VerifyTable(tablePos, 10 /*MoveRightOffset*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 8 /*MoveLeft*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 10 /*MoveRight*/, Schale.FlatData.MotionVerify.Verify, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

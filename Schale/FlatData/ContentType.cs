@@ -30,6 +30,8 @@ public enum ContentType : int
   FieldContentStage = 20,
   MultiFloorRaid = 21,
   MinigameDefense = 22,
+  InteractiveWorldRaid = 23,
+  PermanentRaid = 24,
 };
 
 

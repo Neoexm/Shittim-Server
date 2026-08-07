@@ -44,7 +44,7 @@ export default {
         const q = itemSearch.value.trim().toLowerCase();
         const rows = itemRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(itemsBody);
-        if (!rows.length) { itemsBody.appendChild(emptyState('No items', 'Grant some with "Give item"')); return; }
+        if (!rows.length) { itemsBody.appendChild(emptyState('No items')); return; }
         // 64px = 36px trash button + the 28px of cell padding (border-box) - narrower and the button overflows the fixed column, dragging a horizontal scrollbar into the list
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:72px">Qty</th><th style="width:64px"></th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
@@ -83,12 +83,22 @@ export default {
         const q = charSearch.value.trim().toLowerCase();
         const rows = charRows.filter((r) => !q || r.name.toLowerCase().includes(q) || String(r.uniqueId).includes(q));
         clear(charsBody);
-        if (!rows.length) { charsBody.appendChild(emptyState('No characters', 'Add students with the button above')); return; }
+        if (!rows.length) { charsBody.appendChild(emptyState('No characters')); return; }
         const tbl = frag('<table class="tbl" style="table-layout:fixed"><thead><tr><th style="width:74px">ID</th><th>Name</th><th style="width:84px">Grade</th><th style="width:54px">Lvl</th></tr></thead><tbody></tbody></table>');
         const tb = tbl.querySelector('tbody');
         for (const r of rows) {
-          const tr = frag(`<tr><td class="num mono" data-selectable>${r.uniqueId}</td><td style="min-width:0;max-width:0"><b style="font-family:var(--font-round);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</b></td><td class="stars">${stars(r.starGrade)}</td><td class="num">${r.level}</td></tr>`);
+          const tr = frag(`<tr><td class="num mono" data-selectable>${r.uniqueId}</td><td style="min-width:0;max-width:0"><b style="font-family:var(--font-round);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</b></td><td class="stars"></td><td class="num">${r.level}</td></tr>`);
           tr.title = 'Click to max this student';
+          const starCell = tr.querySelector('.stars');
+          for (let i = 1; i <= 5; i++) {
+            const s = el('span', { text: i <= r.starGrade ? '★' : '☆', title: `Set to ${i}★`, style: { cursor: 'pointer' } });
+            s.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              try { await api.command(uid, `character modify ${r.uniqueId} star ${i}`); toast(`${r.name} set to ${i}★`, 'good'); notifyRestart(); reloadChars(); }
+              catch (err) { toast(err.message, 'bad'); }
+            });
+            starCell.appendChild(s);
+          }
           tr.addEventListener('click', async () => {
             const ok = await confirmDialog({ title: 'Max student', confirmLabel: 'Max out', message: `Max ${r.name} (level 90, max stars, skills, gear)?` });
             if (!ok) return;
@@ -105,7 +115,7 @@ export default {
       function addChar() {
         openPicker({ title: 'Pick a student', loader: (q) => api.staticCharacters(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: `★${x.maxStar}` }))),
           onPick: (it) => {
-            const lvl = input({ value: 'max', placeholder: 'max / basic / ue30 / ue50' });
+            const lvl = input({ value: 'max' });
             const add = button('Add', { variant: 'primary', iconName: 'plus' });
             const cancel = button('Cancel', { variant: 'ghost' });
             const ref = modal({ title: `Add ${it.name}`, body: el('div', {}, field('Preset', lvl, 'barebone - basic - ue30 - ue50 - max')), footer: [cancel, add] });

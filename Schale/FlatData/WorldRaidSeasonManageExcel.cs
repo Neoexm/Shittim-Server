@@ -21,7 +21,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
   public WorldRaidSeasonManageExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public long SeasonId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EventContentId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PhaseId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public Schale.FlatData.CurrencyTypes EnterTicket { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.CurrencyTypes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.CurrencyTypes.Invalid; } }
   public string WorldRaidLobbyScene { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
@@ -99,7 +99,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.WorldRaidSeasonManageExcel> CreateWorldRaidSeasonManageExcel(FlatBufferBuilder builder,
       long SeasonId = 0,
-      long EventContentId = 0,
+      long PhaseId = 0,
       Schale.FlatData.CurrencyTypes EnterTicket = Schale.FlatData.CurrencyTypes.Invalid,
       StringOffset WorldRaidLobbySceneOffset = default(StringOffset),
       StringOffset WorldRaidLobbyBannerOffset = default(StringOffset),
@@ -124,7 +124,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
     builder.StartTable(23);
     WorldRaidSeasonManageExcel.AddWorldRaidLobbyEnterScenario(builder, WorldRaidLobbyEnterScenario);
     WorldRaidSeasonManageExcel.AddSeasonOpenCondition(builder, SeasonOpenCondition);
-    WorldRaidSeasonManageExcel.AddEventContentId(builder, EventContentId);
+    WorldRaidSeasonManageExcel.AddPhaseId(builder, PhaseId);
     WorldRaidSeasonManageExcel.AddSeasonId(builder, SeasonId);
     WorldRaidSeasonManageExcel.AddWorldRaidMapEnterOperator(builder, WorldRaidMapEnterOperatorOffset);
     WorldRaidSeasonManageExcel.AddConditionScenarioGroupid(builder, ConditionScenarioGroupidOffset);
@@ -150,7 +150,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
 
   public static void StartWorldRaidSeasonManageExcel(FlatBufferBuilder builder) { builder.StartTable(23); }
   public static void AddSeasonId(FlatBufferBuilder builder, long seasonId) { builder.AddLong(0, seasonId, 0); }
-  public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(1, eventContentId, 0); }
+  public static void AddPhaseId(FlatBufferBuilder builder, long phaseId) { builder.AddLong(1, phaseId, 0); }
   public static void AddEnterTicket(FlatBufferBuilder builder, Schale.FlatData.CurrencyTypes enterTicket) { builder.AddInt(2, (int)enterTicket, 0); }
   public static void AddWorldRaidLobbyScene(FlatBufferBuilder builder, StringOffset worldRaidLobbySceneOffset) { builder.AddOffset(3, worldRaidLobbySceneOffset.Value, 0); }
   public static void AddWorldRaidLobbyBanner(FlatBufferBuilder builder, StringOffset worldRaidLobbyBannerOffset) { builder.AddOffset(4, worldRaidLobbyBannerOffset.Value, 0); }
@@ -209,7 +209,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
   public void UnPackTo(WorldRaidSeasonManageExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("WorldRaidSeasonManage");
     _o.SeasonId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SeasonId, key) : this.SeasonId;
-    _o.EventContentId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentId, key) : this.EventContentId;
+    _o.PhaseId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PhaseId, key) : this.PhaseId;
     _o.EnterTicket = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnterTicket, key) : this.EnterTicket;
     _o.WorldRaidLobbyScene = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WorldRaidLobbyScene, key) : this.WorldRaidLobbyScene;
     _o.WorldRaidLobbyBanner = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WorldRaidLobbyBanner, key) : this.WorldRaidLobbyBanner;
@@ -274,7 +274,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
     return CreateWorldRaidSeasonManageExcel(
       builder,
       _o.SeasonId,
-      _o.EventContentId,
+      _o.PhaseId,
       _o.EnterTicket,
       _WorldRaidLobbyScene,
       _WorldRaidLobbyBanner,
@@ -302,7 +302,7 @@ public struct WorldRaidSeasonManageExcel : IFlatbufferObject
 public class WorldRaidSeasonManageExcelT
 {
   public long SeasonId { get; set; }
-  public long EventContentId { get; set; }
+  public long PhaseId { get; set; }
   public Schale.FlatData.CurrencyTypes EnterTicket { get; set; }
   public string WorldRaidLobbyScene { get; set; }
   public string WorldRaidLobbyBanner { get; set; }
@@ -327,7 +327,7 @@ public class WorldRaidSeasonManageExcelT
 
   public WorldRaidSeasonManageExcelT() {
     this.SeasonId = 0;
-    this.EventContentId = 0;
+    this.PhaseId = 0;
     this.EnterTicket = Schale.FlatData.CurrencyTypes.Invalid;
     this.WorldRaidLobbyScene = null;
     this.WorldRaidLobbyBanner = null;
@@ -359,7 +359,7 @@ static public class WorldRaidSeasonManageExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*SeasonId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 6 /*EventContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 6 /*PhaseId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 8 /*EnterTicket*/, 4 /*Schale.FlatData.CurrencyTypes*/, 4, false)
       && verifier.VerifyString(tablePos, 10 /*WorldRaidLobbyScene*/, false)
       && verifier.VerifyString(tablePos, 12 /*WorldRaidLobbyBanner*/, false)

@@ -1,5 +1,8 @@
+using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
 using Schale.Data;
+using Schale.MX.Data;
+using Schale.MX.GameLogic.DBModel;
 using Schale.MX.NetworkProtocol;
 using Schale.FlatData;
 using Shittim_Server.Core;
@@ -25,7 +28,31 @@ public class ManagementHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        response.BannerDBs = [];
+        var server = Config.Instance.ServerConfiguration;
+
+        if (!server.KoyukiIncident)
+        {
+            response.BannerDBs = [];
+
+            return response;
+        }
+
+        // OpenWebView is the one banner type with no content behind it, so the tap goes straight to WebViewUrl instead of resolving a stage/shop/raid id.
+        response.BannerDBs =
+        [
+            new BannerDB
+            {
+                BannerOrder = 1,
+                StartDate = DateTime.Now.AddYears(-1),
+                EndDate = DateTime.Now.AddYears(1),
+                Url = $"http://{server.HostAddress}:{server.HostPort}/banner/",
+                FileName = "koyuki.png",
+                WebViewTitle = "nihahahaha",
+                WebViewUrl = "https://zerofps-hk.github.io/koyuki-clicker/",
+                BannerType = EventContentType.OpenWebView,
+                BannerDisplayType = BannerDisplayType.Lobby
+            }
+        ];
 
         return response;
     }

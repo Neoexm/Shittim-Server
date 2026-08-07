@@ -53,21 +53,13 @@ public struct EventContentSeasonExcel : IFlatbufferObject
   public ArraySegment<byte>? GetEventContentOpenTimeBytes() { return __p.__vector_as_arraysegment(32); }
 #endif
   public byte[] GetEventContentOpenTimeArray() { return __p.__vector_as_array<byte>(32); }
-  // Slot 15 was missing from this generated model, which shifted every field below it by one
-  // slot: reading the shipped ExcelDB, all 477 EventContentSeason rows decoded their path and
-  // prefab strings out of a long, and ShiftMainBgImagePath needed a try/catch to stay quiet.
-  // Recovered from the vtables: a "yyyy-MM-dd HH:mm:ss" string carried by 60 of 477 rows (13
-  // distinct values, all 2026 events, hence its absence from the older dump this file came
-  // from), always strictly between EventContentOpenTime and EventContentCloseTime and always at
-  // 04:00:00, the daily-reset boundary. The upstream field name is unknown; nothing reads it,
-  // only its slot position and type matter.
-  public string EventContentPhaseCloseTime { get { int o = __p.__offset(34); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string EventContentCloseNoteTime { get { int o = __p.__offset(34); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetEventContentPhaseCloseTimeBytes() { return __p.__vector_as_span<byte>(34, 1); }
+  public Span<byte> GetEventContentCloseNoteTimeBytes() { return __p.__vector_as_span<byte>(34, 1); }
 #else
-  public ArraySegment<byte>? GetEventContentPhaseCloseTimeBytes() { return __p.__vector_as_arraysegment(34); }
+  public ArraySegment<byte>? GetEventContentCloseNoteTimeBytes() { return __p.__vector_as_arraysegment(34); }
 #endif
-  public byte[] GetEventContentPhaseCloseTimeArray() { return __p.__vector_as_array<byte>(34); }
+  public byte[] GetEventContentCloseNoteTimeArray() { return __p.__vector_as_array<byte>(34); }
   public string EventContentCloseTime { get { int o = __p.__offset(36); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
   public Span<byte> GetEventContentCloseTimeBytes() { return __p.__vector_as_span<byte>(36, 1); }
@@ -192,14 +184,14 @@ public struct EventContentSeasonExcel : IFlatbufferObject
       long EventChangeOpenCondition = 0,
       StringOffset BeforehandExposedTimeOffset = default(StringOffset),
       StringOffset EventContentOpenTimeOffset = default(StringOffset),
-      StringOffset EventContentPhaseCloseTimeOffset = default(StringOffset),
+      StringOffset EventContentCloseNoteTimeOffset = default(StringOffset),
       StringOffset EventContentCloseTimeOffset = default(StringOffset),
       StringOffset ExtensionTimeOffset = default(StringOffset),
       StringOffset MainIconParcelPathOffset = default(StringOffset),
       StringOffset SubIconParcelPathOffset = default(StringOffset),
       StringOffset BeforehandBgImagePathOffset = default(StringOffset),
       long MinigamePrologScenarioGroupId = 0,
-      VectorOffset beforehandScenarioGroupIdOffset = default(VectorOffset),
+      VectorOffset BeforehandScenarioGroupIdOffset = default(VectorOffset),
       StringOffset MainBannerImagePathOffset = default(StringOffset),
       StringOffset MainBgImagePathOffset = default(StringOffset),
       long ShiftTriggerStageId = 0,
@@ -236,13 +228,13 @@ public struct EventContentSeasonExcel : IFlatbufferObject
     EventContentSeasonExcel.AddShiftMainBgImagePath(builder, ShiftMainBgImagePathOffset);
     EventContentSeasonExcel.AddMainBgImagePath(builder, MainBgImagePathOffset);
     EventContentSeasonExcel.AddMainBannerImagePath(builder, MainBannerImagePathOffset);
-    EventContentSeasonExcel.AddBeforehandScenarioGroupId(builder, beforehandScenarioGroupIdOffset);
+    EventContentSeasonExcel.AddBeforehandScenarioGroupId(builder, BeforehandScenarioGroupIdOffset);
     EventContentSeasonExcel.AddBeforehandBgImagePath(builder, BeforehandBgImagePathOffset);
     EventContentSeasonExcel.AddSubIconParcelPath(builder, SubIconParcelPathOffset);
     EventContentSeasonExcel.AddMainIconParcelPath(builder, MainIconParcelPathOffset);
     EventContentSeasonExcel.AddExtensionTime(builder, ExtensionTimeOffset);
     EventContentSeasonExcel.AddEventContentCloseTime(builder, EventContentCloseTimeOffset);
-    EventContentSeasonExcel.AddEventContentPhaseCloseTime(builder, EventContentPhaseCloseTimeOffset);
+    EventContentSeasonExcel.AddEventContentCloseNoteTime(builder, EventContentCloseNoteTimeOffset);
     EventContentSeasonExcel.AddEventContentOpenTime(builder, EventContentOpenTimeOffset);
     EventContentSeasonExcel.AddBeforehandExposedTime(builder, BeforehandExposedTimeOffset);
     EventContentSeasonExcel.AddSubEventType(builder, SubEventType);
@@ -273,7 +265,7 @@ public struct EventContentSeasonExcel : IFlatbufferObject
   public static void AddEventChangeOpenCondition(FlatBufferBuilder builder, long eventChangeOpenCondition) { builder.AddLong(12, eventChangeOpenCondition, 0); }
   public static void AddBeforehandExposedTime(FlatBufferBuilder builder, StringOffset beforehandExposedTimeOffset) { builder.AddOffset(13, beforehandExposedTimeOffset.Value, 0); }
   public static void AddEventContentOpenTime(FlatBufferBuilder builder, StringOffset eventContentOpenTimeOffset) { builder.AddOffset(14, eventContentOpenTimeOffset.Value, 0); }
-  public static void AddEventContentPhaseCloseTime(FlatBufferBuilder builder, StringOffset eventContentPhaseCloseTimeOffset) { builder.AddOffset(15, eventContentPhaseCloseTimeOffset.Value, 0); }
+  public static void AddEventContentCloseNoteTime(FlatBufferBuilder builder, StringOffset eventContentCloseNoteTimeOffset) { builder.AddOffset(15, eventContentCloseNoteTimeOffset.Value, 0); }
   public static void AddEventContentCloseTime(FlatBufferBuilder builder, StringOffset eventContentCloseTimeOffset) { builder.AddOffset(16, eventContentCloseTimeOffset.Value, 0); }
   public static void AddExtensionTime(FlatBufferBuilder builder, StringOffset extensionTimeOffset) { builder.AddOffset(17, extensionTimeOffset.Value, 0); }
   public static void AddMainIconParcelPath(FlatBufferBuilder builder, StringOffset mainIconParcelPathOffset) { builder.AddOffset(18, mainIconParcelPathOffset.Value, 0); }
@@ -327,7 +319,7 @@ public struct EventContentSeasonExcel : IFlatbufferObject
     _o.EventChangeOpenCondition = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventChangeOpenCondition, key) : this.EventChangeOpenCondition;
     _o.BeforehandExposedTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BeforehandExposedTime, key) : this.BeforehandExposedTime;
     _o.EventContentOpenTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentOpenTime, key) : this.EventContentOpenTime;
-    _o.EventContentPhaseCloseTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentPhaseCloseTime, key) : this.EventContentPhaseCloseTime;
+    _o.EventContentCloseNoteTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentCloseNoteTime, key) : this.EventContentCloseNoteTime;
     _o.EventContentCloseTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentCloseTime, key) : this.EventContentCloseTime;
     _o.ExtensionTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExtensionTime, key) : this.ExtensionTime;
     _o.MainIconParcelPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MainIconParcelPath, key) : this.MainIconParcelPath;
@@ -357,16 +349,16 @@ public struct EventContentSeasonExcel : IFlatbufferObject
     var _Name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
     var _BeforehandExposedTime = _o.BeforehandExposedTime == null ? default(StringOffset) : builder.CreateString(_o.BeforehandExposedTime);
     var _EventContentOpenTime = _o.EventContentOpenTime == null ? default(StringOffset) : builder.CreateString(_o.EventContentOpenTime);
-    var _EventContentPhaseCloseTime = _o.EventContentPhaseCloseTime == null ? default(StringOffset) : builder.CreateString(_o.EventContentPhaseCloseTime);
+    var _EventContentCloseNoteTime = _o.EventContentCloseNoteTime == null ? default(StringOffset) : builder.CreateString(_o.EventContentCloseNoteTime);
     var _EventContentCloseTime = _o.EventContentCloseTime == null ? default(StringOffset) : builder.CreateString(_o.EventContentCloseTime);
     var _ExtensionTime = _o.ExtensionTime == null ? default(StringOffset) : builder.CreateString(_o.ExtensionTime);
     var _MainIconParcelPath = _o.MainIconParcelPath == null ? default(StringOffset) : builder.CreateString(_o.MainIconParcelPath);
     var _SubIconParcelPath = _o.SubIconParcelPath == null ? default(StringOffset) : builder.CreateString(_o.SubIconParcelPath);
     var _BeforehandBgImagePath = _o.BeforehandBgImagePath == null ? default(StringOffset) : builder.CreateString(_o.BeforehandBgImagePath);
-    var _beforehandScenarioGroupId = default(VectorOffset);
+    var _BeforehandScenarioGroupId = default(VectorOffset);
     if (_o.BeforehandScenarioGroupId != null) {
-      var __beforehandScenarioGroupId = _o.BeforehandScenarioGroupId.ToArray();
-      _beforehandScenarioGroupId = CreateBeforehandScenarioGroupIdVector(builder, __beforehandScenarioGroupId);
+      var __BeforehandScenarioGroupId = _o.BeforehandScenarioGroupId.ToArray();
+      _BeforehandScenarioGroupId = CreateBeforehandScenarioGroupIdVector(builder, __BeforehandScenarioGroupId);
     }
     var _MainBannerImagePath = _o.MainBannerImagePath == null ? default(StringOffset) : builder.CreateString(_o.MainBannerImagePath);
     var _MainBgImagePath = _o.MainBgImagePath == null ? default(StringOffset) : builder.CreateString(_o.MainBgImagePath);
@@ -393,14 +385,14 @@ public struct EventContentSeasonExcel : IFlatbufferObject
       _o.EventChangeOpenCondition,
       _BeforehandExposedTime,
       _EventContentOpenTime,
-      _EventContentPhaseCloseTime,
+      _EventContentCloseNoteTime,
       _EventContentCloseTime,
       _ExtensionTime,
       _MainIconParcelPath,
       _SubIconParcelPath,
       _BeforehandBgImagePath,
       _o.MinigamePrologScenarioGroupId,
-      _beforehandScenarioGroupId,
+      _BeforehandScenarioGroupId,
       _MainBannerImagePath,
       _MainBgImagePath,
       _o.ShiftTriggerStageId,
@@ -436,7 +428,7 @@ public class EventContentSeasonExcelT
   public long EventChangeOpenCondition { get; set; }
   public string BeforehandExposedTime { get; set; }
   public string EventContentOpenTime { get; set; }
-  public string EventContentPhaseCloseTime { get; set; }
+  public string EventContentCloseNoteTime { get; set; }
   public string EventContentCloseTime { get; set; }
   public string ExtensionTime { get; set; }
   public string MainIconParcelPath { get; set; }
@@ -476,7 +468,7 @@ public class EventContentSeasonExcelT
     this.EventChangeOpenCondition = 0;
     this.BeforehandExposedTime = null;
     this.EventContentOpenTime = null;
-    this.EventContentPhaseCloseTime = null;
+    this.EventContentCloseNoteTime = null;
     this.EventContentCloseTime = null;
     this.ExtensionTime = null;
     this.MainIconParcelPath = null;
@@ -523,7 +515,7 @@ static public class EventContentSeasonExcelVerify
       && verifier.VerifyField(tablePos, 28 /*EventChangeOpenCondition*/, 8 /*long*/, 8, false)
       && verifier.VerifyString(tablePos, 30 /*BeforehandExposedTime*/, false)
       && verifier.VerifyString(tablePos, 32 /*EventContentOpenTime*/, false)
-      && verifier.VerifyString(tablePos, 34 /*EventContentPhaseCloseTime*/, false)
+      && verifier.VerifyString(tablePos, 34 /*EventContentCloseNoteTime*/, false)
       && verifier.VerifyString(tablePos, 36 /*EventContentCloseTime*/, false)
       && verifier.VerifyString(tablePos, 38 /*ExtensionTime*/, false)
       && verifier.VerifyString(tablePos, 40 /*MainIconParcelPath*/, false)

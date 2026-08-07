@@ -198,6 +198,15 @@ namespace BlueArchiveAPI.Configuration
                 foreach (var group in connectionGroups)
                     ApplyConnectionGroupUrls(group, apiUrl, gatewayUrl);
 
+                // co_SetupServerData looks the override group up by the region name the client is carrying, and ClientRegionLabelPatchService has renamed that region to whatever the label says.
+                var regionText = Instance.ServerConfiguration.RegionDisplayText?.Trim();
+                if (!string.IsNullOrEmpty(regionText))
+                {
+                    var routed = connectionGroups.SelectMany(g => g.OverrideConnectionGroups ?? new List<ConnectionGroup>()).FirstOrDefault(g => g.Name == "asia");
+                    if (routed != null)
+                        routed.Name = regionText;
+                }
+
                 serverInfoConfig.ConnectionGroupsJson = Newtonsoft.Json.JsonConvert.SerializeObject(
                     connectionGroups,
                     Newtonsoft.Json.Formatting.Indented,

@@ -77,8 +77,8 @@ public struct EventContentShopInfoExcel : IFlatbufferObject
       long EventContentId = 0,
       Schale.FlatData.ShopCategoryType CategoryType = Schale.FlatData.ShopCategoryType.General,
       uint LocalizeCode = 0,
-      VectorOffset costParcelTypeOffset = default(VectorOffset),
-      VectorOffset costParcelIdOffset = default(VectorOffset),
+      VectorOffset CostParcelTypeOffset = default(VectorOffset),
+      VectorOffset CostParcelIdOffset = default(VectorOffset),
       bool IsRefresh = false,
       bool IsSoldOutDimmed = false,
       long AutoRefreshCoolTime = 0,
@@ -95,8 +95,8 @@ public struct EventContentShopInfoExcel : IFlatbufferObject
     EventContentShopInfoExcel.AddOpenPeriodTo(builder, OpenPeriodToOffset);
     EventContentShopInfoExcel.AddOpenPeriodFrom(builder, OpenPeriodFromOffset);
     EventContentShopInfoExcel.AddGoodsId(builder, GoodsIdOffset);
-    EventContentShopInfoExcel.AddCostParcelId(builder, costParcelIdOffset);
-    EventContentShopInfoExcel.AddCostParcelType(builder, costParcelTypeOffset);
+    EventContentShopInfoExcel.AddCostParcelId(builder, CostParcelIdOffset);
+    EventContentShopInfoExcel.AddCostParcelType(builder, CostParcelTypeOffset);
     EventContentShopInfoExcel.AddLocalizeCode(builder, LocalizeCode);
     EventContentShopInfoExcel.AddCategoryType(builder, CategoryType);
     EventContentShopInfoExcel.AddIsSoldOutDimmed(builder, IsSoldOutDimmed);
@@ -163,15 +163,15 @@ public struct EventContentShopInfoExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentShopInfoExcel> Pack(FlatBufferBuilder builder, EventContentShopInfoExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentShopInfoExcel>);
-    var _costParcelType = default(VectorOffset);
+    var _CostParcelType = default(VectorOffset);
     if (_o.CostParcelType != null) {
-      var __costParcelType = _o.CostParcelType.ToArray();
-      _costParcelType = CreateCostParcelTypeVector(builder, __costParcelType);
+      var __CostParcelType = _o.CostParcelType.ToArray();
+      _CostParcelType = CreateCostParcelTypeVector(builder, __CostParcelType);
     }
-    var _costParcelId = default(VectorOffset);
+    var _CostParcelId = default(VectorOffset);
     if (_o.CostParcelId != null) {
-      var __costParcelId = _o.CostParcelId.ToArray();
-      _costParcelId = CreateCostParcelIdVector(builder, __costParcelId);
+      var __CostParcelId = _o.CostParcelId.ToArray();
+      _CostParcelId = CreateCostParcelIdVector(builder, __CostParcelId);
     }
     var _GoodsId = default(VectorOffset);
     if (_o.GoodsId != null) {
@@ -186,8 +186,8 @@ public struct EventContentShopInfoExcel : IFlatbufferObject
       _o.EventContentId,
       _o.CategoryType,
       _o.LocalizeCode,
-      _costParcelType,
-      _costParcelId,
+      _CostParcelType,
+      _CostParcelId,
       _o.IsRefresh,
       _o.IsSoldOutDimmed,
       _o.AutoRefreshCoolTime,

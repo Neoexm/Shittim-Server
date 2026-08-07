@@ -25,6 +25,34 @@ public class OpenConditionHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.OpenCondition_List)]
+    public async Task<OpenConditionListResponse> List(
+        SchaleDataContext db,
+        OpenConditionListRequest request,
+        OpenConditionListResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // same content set the auth/sync StaticOpenConditions dictionary covers
+        response.ConditionContents = [.. AccountHandler.BuildOfficialStaticOpenConditions().Keys];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.OpenCondition_Set)]
+    public async Task<OpenConditionSetResponse> Set(
+        SchaleDataContext db,
+        OpenConditionSetRequest request,
+        OpenConditionSetResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // the client evaluates its own open conditions; nothing server-side to update
+        response.ConditionDBs = request.ConditionDB != null ? [request.ConditionDB] : [];
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.OpenCondition_EventList)]
     public async Task<OpenConditionEventListResponse> EventList(
         SchaleDataContext db,

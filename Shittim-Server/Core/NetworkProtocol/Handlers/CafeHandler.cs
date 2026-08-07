@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
@@ -44,10 +45,31 @@ public class CafeHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         var cafes = db.GetAccountCafes(account.ServerId).ToList();
+        await _cafeManager.RefreshVisitors(db, account, cafes);
         var furnitures = db.GetAccountFurnitures(account.ServerId).ToList();
+
+        if (Config.Instance.ServerConfiguration.KoyukiIncident)
+        {
+            var accountCharacters = db.GetAccountCharacters(account.ServerId).ToList();
+            cafes.ForEach(x => x.CafeVisitCharacterDBs = CafeService.CreateKoyukiVisitors(accountCharacters));
+        }
 
         response.CafeDBs = cafes.ToMapList(_mapper);
         response.FurnitureDBs = furnitures.ToMapList(_mapper);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Cafe_Travel)]
+    public async Task<CafeTravelResponse> Travel(
+        SchaleDataContext db,
+        CafeTravelRequest request,
+        CafeTravelResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // no friend cafes to walk into here, so any travel target lands the visitor back home
+        response.CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper);
 
         return response;
     }
@@ -209,7 +231,6 @@ public class CafeHandler : ProtocolHandlerBase
         response.CharacterDB = character;
         response.ParcelResultDB = parcelResult;
 
-        // Official's Cafe_Interact ticks the interaction dailies (MissionProgressDBs on every captured interact).
         var updatedMissions = _missionService.UpdateMissionProgress(
             db, account, MissionCompleteConditionType.Reset_CafeInteractionCount);
         if (updatedMissions.Count > 0)
@@ -348,6 +369,30 @@ public class CafeHandler : ProtocolHandlerBase
         SchaleDataContext db,
         CafeUpdatePresetFurnitureRequest request,
         CafeUpdatePresetFurnitureResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Cafe_PresetDetail)]
+    public async Task<CafePresetDetailResponse> PresetDetail(
+        SchaleDataContext db,
+        CafePresetDetailRequest request,
+        CafePresetDetailResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.DeployCountByFurnitureId = new();
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Cafe_UpdateCopyPresetFurniture)]
+    public async Task<CafeUpdateCopyPresetFurnitureResponse> UpdateCopyPresetFurniture(
+        SchaleDataContext db,
+        CafeUpdateCopyPresetFurnitureRequest request,
+        CafeUpdateCopyPresetFurnitureResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 

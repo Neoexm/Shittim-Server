@@ -22,68 +22,70 @@ public struct EventContentScenarioExcel : IFlatbufferObject
 
   public long Id { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long EventContentId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int ReplayDisplayGroup { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long Order { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long RecollectionNumber { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool IsRecollection { get { int o = __p.__offset(14); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IsMeetup { get { int o = __p.__offset(16); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IsOmnibus { get { int o = __p.__offset(18); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long ScenarioGroupId(int j) { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ScenarioGroupIdLength { get { int o = __p.__offset(20); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public bool ReturnScenarioPlay { get { int o = __p.__offset(8); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public int ReplayDisplayGroup { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long Order { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RecollectionNumber { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool IsRecollection { get { int o = __p.__offset(16); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsMeetup { get { int o = __p.__offset(18); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsOmnibus { get { int o = __p.__offset(20); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long ScenarioGroupId(int j) { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ScenarioGroupIdLength { get { int o = __p.__offset(22); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetScenarioGroupIdBytes() { return __p.__vector_as_span<long>(20, 8); }
+  public Span<long> GetScenarioGroupIdBytes() { return __p.__vector_as_span<long>(22, 8); }
 #else
-  public ArraySegment<byte>? GetScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(20); }
+  public ArraySegment<byte>? GetScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(22); }
 #endif
-  public long[] GetScenarioGroupIdArray() { return __p.__vector_as_array<long>(20); }
-  public Schale.FlatData.EventContentScenarioConditionType ScenarioConditionType { get { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.EventContentScenarioConditionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EventContentScenarioConditionType.None; } }
-  public long ConditionAmount { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ConditionEventContentId { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ClearedScenarioGroupId { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public uint RecollectionSummaryLocalizeScenarioId { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public string RecollectionResource { get { int o = __p.__offset(32); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long[] GetScenarioGroupIdArray() { return __p.__vector_as_array<long>(22); }
+  public Schale.FlatData.EventContentScenarioConditionType ScenarioConditionType { get { int o = __p.__offset(24); return o != 0 ? (Schale.FlatData.EventContentScenarioConditionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EventContentScenarioConditionType.None; } }
+  public long ConditionAmount { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ConditionEventContentId { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ClearedScenarioGroupId { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public uint RecollectionSummaryLocalizeScenarioId { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public string RecollectionResource { get { int o = __p.__offset(34); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetRecollectionResourceBytes() { return __p.__vector_as_span<byte>(32, 1); }
+  public Span<byte> GetRecollectionResourceBytes() { return __p.__vector_as_span<byte>(34, 1); }
 #else
-  public ArraySegment<byte>? GetRecollectionResourceBytes() { return __p.__vector_as_arraysegment(32); }
+  public ArraySegment<byte>? GetRecollectionResourceBytes() { return __p.__vector_as_arraysegment(34); }
 #endif
-  public byte[] GetRecollectionResourceArray() { return __p.__vector_as_array<byte>(32); }
-  public bool IsRecollectionHorizon { get { int o = __p.__offset(34); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public Schale.FlatData.ParcelType RewardParcelType(int j) { int o = __p.__offset(36); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
-  public int RewardParcelTypeLength { get { int o = __p.__offset(36); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte[] GetRecollectionResourceArray() { return __p.__vector_as_array<byte>(34); }
+  public bool IsRecollectionHorizon { get { int o = __p.__offset(36); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.ParcelType RewardParcelType(int j) { int o = __p.__offset(38); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ParcelType)0; }
+  public int RewardParcelTypeLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.ParcelType> GetRewardParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(36, 4); }
+  public Span<Schale.FlatData.ParcelType> GetRewardParcelTypeBytes() { return __p.__vector_as_span<Schale.FlatData.ParcelType>(38, 4); }
 #else
-  public ArraySegment<byte>? GetRewardParcelTypeBytes() { return __p.__vector_as_arraysegment(36); }
+  public ArraySegment<byte>? GetRewardParcelTypeBytes() { return __p.__vector_as_arraysegment(38); }
 #endif
-  public Schale.FlatData.ParcelType[] GetRewardParcelTypeArray() { int o = __p.__offset(36); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
-  public long RewardId(int j) { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int RewardIdLength { get { int o = __p.__offset(38); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.ParcelType[] GetRewardParcelTypeArray() { int o = __p.__offset(38); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ParcelType[] a = new Schale.FlatData.ParcelType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ParcelType)__p.bb.GetInt(p + i * 4); } return a; }
+  public long RewardId(int j) { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int RewardIdLength { get { int o = __p.__offset(40); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetRewardIdBytes() { return __p.__vector_as_span<long>(38, 8); }
+  public Span<long> GetRewardIdBytes() { return __p.__vector_as_span<long>(40, 8); }
 #else
-  public ArraySegment<byte>? GetRewardIdBytes() { return __p.__vector_as_arraysegment(38); }
+  public ArraySegment<byte>? GetRewardIdBytes() { return __p.__vector_as_arraysegment(40); }
 #endif
-  public long[] GetRewardIdArray() { return __p.__vector_as_array<long>(38); }
-  public int RewardAmount(int j) { int o = __p.__offset(40); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
-  public int RewardAmountLength { get { int o = __p.__offset(40); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long[] GetRewardIdArray() { return __p.__vector_as_array<long>(40); }
+  public int RewardAmount(int j) { int o = __p.__offset(42); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int RewardAmountLength { get { int o = __p.__offset(42); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<int> GetRewardAmountBytes() { return __p.__vector_as_span<int>(40, 4); }
+  public Span<int> GetRewardAmountBytes() { return __p.__vector_as_span<int>(42, 4); }
 #else
-  public ArraySegment<byte>? GetRewardAmountBytes() { return __p.__vector_as_arraysegment(40); }
+  public ArraySegment<byte>? GetRewardAmountBytes() { return __p.__vector_as_arraysegment(42); }
 #endif
-  public int[] GetRewardAmountArray() { return __p.__vector_as_array<int>(40); }
+  public int[] GetRewardAmountArray() { return __p.__vector_as_array<int>(42); }
 
   public static Offset<Schale.FlatData.EventContentScenarioExcel> CreateEventContentScenarioExcel(FlatBufferBuilder builder,
       long Id = 0,
       long EventContentId = 0,
+      bool ReturnScenarioPlay = false,
       int ReplayDisplayGroup = 0,
       long Order = 0,
       long RecollectionNumber = 0,
       bool IsRecollection = false,
       bool IsMeetup = false,
       bool IsOmnibus = false,
-      VectorOffset scenarioGroupIdOffset = default(VectorOffset),
+      VectorOffset ScenarioGroupIdOffset = default(VectorOffset),
       Schale.FlatData.EventContentScenarioConditionType ScenarioConditionType = Schale.FlatData.EventContentScenarioConditionType.None,
       long ConditionAmount = 0,
       long ConditionEventContentId = 0,
@@ -91,10 +93,10 @@ public struct EventContentScenarioExcel : IFlatbufferObject
       uint RecollectionSummaryLocalizeScenarioId = 0,
       StringOffset RecollectionResourceOffset = default(StringOffset),
       bool IsRecollectionHorizon = false,
-      VectorOffset rewardParcelTypeOffset = default(VectorOffset),
+      VectorOffset RewardParcelTypeOffset = default(VectorOffset),
       VectorOffset RewardIdOffset = default(VectorOffset),
       VectorOffset RewardAmountOffset = default(VectorOffset)) {
-    builder.StartTable(19);
+    builder.StartTable(20);
     EventContentScenarioExcel.AddClearedScenarioGroupId(builder, ClearedScenarioGroupId);
     EventContentScenarioExcel.AddConditionEventContentId(builder, ConditionEventContentId);
     EventContentScenarioExcel.AddConditionAmount(builder, ConditionAmount);
@@ -104,54 +106,56 @@ public struct EventContentScenarioExcel : IFlatbufferObject
     EventContentScenarioExcel.AddId(builder, Id);
     EventContentScenarioExcel.AddRewardAmount(builder, RewardAmountOffset);
     EventContentScenarioExcel.AddRewardId(builder, RewardIdOffset);
-    EventContentScenarioExcel.AddRewardParcelType(builder, rewardParcelTypeOffset);
+    EventContentScenarioExcel.AddRewardParcelType(builder, RewardParcelTypeOffset);
     EventContentScenarioExcel.AddRecollectionResource(builder, RecollectionResourceOffset);
     EventContentScenarioExcel.AddRecollectionSummaryLocalizeScenarioId(builder, RecollectionSummaryLocalizeScenarioId);
     EventContentScenarioExcel.AddScenarioConditionType(builder, ScenarioConditionType);
-    EventContentScenarioExcel.AddScenarioGroupId(builder, scenarioGroupIdOffset);
+    EventContentScenarioExcel.AddScenarioGroupId(builder, ScenarioGroupIdOffset);
     EventContentScenarioExcel.AddReplayDisplayGroup(builder, ReplayDisplayGroup);
     EventContentScenarioExcel.AddIsRecollectionHorizon(builder, IsRecollectionHorizon);
     EventContentScenarioExcel.AddIsOmnibus(builder, IsOmnibus);
     EventContentScenarioExcel.AddIsMeetup(builder, IsMeetup);
     EventContentScenarioExcel.AddIsRecollection(builder, IsRecollection);
+    EventContentScenarioExcel.AddReturnScenarioPlay(builder, ReturnScenarioPlay);
     return EventContentScenarioExcel.EndEventContentScenarioExcel(builder);
   }
 
-  public static void StartEventContentScenarioExcel(FlatBufferBuilder builder) { builder.StartTable(19); }
+  public static void StartEventContentScenarioExcel(FlatBufferBuilder builder) { builder.StartTable(20); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(1, eventContentId, 0); }
-  public static void AddReplayDisplayGroup(FlatBufferBuilder builder, int replayDisplayGroup) { builder.AddInt(2, replayDisplayGroup, 0); }
-  public static void AddOrder(FlatBufferBuilder builder, long order) { builder.AddLong(3, order, 0); }
-  public static void AddRecollectionNumber(FlatBufferBuilder builder, long recollectionNumber) { builder.AddLong(4, recollectionNumber, 0); }
-  public static void AddIsRecollection(FlatBufferBuilder builder, bool isRecollection) { builder.AddBool(5, isRecollection, false); }
-  public static void AddIsMeetup(FlatBufferBuilder builder, bool isMeetup) { builder.AddBool(6, isMeetup, false); }
-  public static void AddIsOmnibus(FlatBufferBuilder builder, bool isOmnibus) { builder.AddBool(7, isOmnibus, false); }
-  public static void AddScenarioGroupId(FlatBufferBuilder builder, VectorOffset scenarioGroupIdOffset) { builder.AddOffset(8, scenarioGroupIdOffset.Value, 0); }
+  public static void AddReturnScenarioPlay(FlatBufferBuilder builder, bool returnScenarioPlay) { builder.AddBool(2, returnScenarioPlay, false); }
+  public static void AddReplayDisplayGroup(FlatBufferBuilder builder, int replayDisplayGroup) { builder.AddInt(3, replayDisplayGroup, 0); }
+  public static void AddOrder(FlatBufferBuilder builder, long order) { builder.AddLong(4, order, 0); }
+  public static void AddRecollectionNumber(FlatBufferBuilder builder, long recollectionNumber) { builder.AddLong(5, recollectionNumber, 0); }
+  public static void AddIsRecollection(FlatBufferBuilder builder, bool isRecollection) { builder.AddBool(6, isRecollection, false); }
+  public static void AddIsMeetup(FlatBufferBuilder builder, bool isMeetup) { builder.AddBool(7, isMeetup, false); }
+  public static void AddIsOmnibus(FlatBufferBuilder builder, bool isOmnibus) { builder.AddBool(8, isOmnibus, false); }
+  public static void AddScenarioGroupId(FlatBufferBuilder builder, VectorOffset scenarioGroupIdOffset) { builder.AddOffset(9, scenarioGroupIdOffset.Value, 0); }
   public static VectorOffset CreateScenarioGroupIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateScenarioGroupIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateScenarioGroupIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateScenarioGroupIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartScenarioGroupIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddScenarioConditionType(FlatBufferBuilder builder, Schale.FlatData.EventContentScenarioConditionType scenarioConditionType) { builder.AddInt(9, (int)scenarioConditionType, 0); }
-  public static void AddConditionAmount(FlatBufferBuilder builder, long conditionAmount) { builder.AddLong(10, conditionAmount, 0); }
-  public static void AddConditionEventContentId(FlatBufferBuilder builder, long conditionEventContentId) { builder.AddLong(11, conditionEventContentId, 0); }
-  public static void AddClearedScenarioGroupId(FlatBufferBuilder builder, long clearedScenarioGroupId) { builder.AddLong(12, clearedScenarioGroupId, 0); }
-  public static void AddRecollectionSummaryLocalizeScenarioId(FlatBufferBuilder builder, uint recollectionSummaryLocalizeScenarioId) { builder.AddUint(13, recollectionSummaryLocalizeScenarioId, 0); }
-  public static void AddRecollectionResource(FlatBufferBuilder builder, StringOffset recollectionResourceOffset) { builder.AddOffset(14, recollectionResourceOffset.Value, 0); }
-  public static void AddIsRecollectionHorizon(FlatBufferBuilder builder, bool isRecollectionHorizon) { builder.AddBool(15, isRecollectionHorizon, false); }
-  public static void AddRewardParcelType(FlatBufferBuilder builder, VectorOffset rewardParcelTypeOffset) { builder.AddOffset(16, rewardParcelTypeOffset.Value, 0); }
+  public static void AddScenarioConditionType(FlatBufferBuilder builder, Schale.FlatData.EventContentScenarioConditionType scenarioConditionType) { builder.AddInt(10, (int)scenarioConditionType, 0); }
+  public static void AddConditionAmount(FlatBufferBuilder builder, long conditionAmount) { builder.AddLong(11, conditionAmount, 0); }
+  public static void AddConditionEventContentId(FlatBufferBuilder builder, long conditionEventContentId) { builder.AddLong(12, conditionEventContentId, 0); }
+  public static void AddClearedScenarioGroupId(FlatBufferBuilder builder, long clearedScenarioGroupId) { builder.AddLong(13, clearedScenarioGroupId, 0); }
+  public static void AddRecollectionSummaryLocalizeScenarioId(FlatBufferBuilder builder, uint recollectionSummaryLocalizeScenarioId) { builder.AddUint(14, recollectionSummaryLocalizeScenarioId, 0); }
+  public static void AddRecollectionResource(FlatBufferBuilder builder, StringOffset recollectionResourceOffset) { builder.AddOffset(15, recollectionResourceOffset.Value, 0); }
+  public static void AddIsRecollectionHorizon(FlatBufferBuilder builder, bool isRecollectionHorizon) { builder.AddBool(16, isRecollectionHorizon, false); }
+  public static void AddRewardParcelType(FlatBufferBuilder builder, VectorOffset rewardParcelTypeOffset) { builder.AddOffset(17, rewardParcelTypeOffset.Value, 0); }
   public static VectorOffset CreateRewardParcelTypeVector(FlatBufferBuilder builder, Schale.FlatData.ParcelType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelTypeVectorBlock(FlatBufferBuilder builder, Schale.FlatData.ParcelType[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelTypeVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.ParcelType> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardParcelTypeVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.ParcelType>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartRewardParcelTypeVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddRewardId(FlatBufferBuilder builder, VectorOffset rewardIdOffset) { builder.AddOffset(17, rewardIdOffset.Value, 0); }
+  public static void AddRewardId(FlatBufferBuilder builder, VectorOffset rewardIdOffset) { builder.AddOffset(18, rewardIdOffset.Value, 0); }
   public static VectorOffset CreateRewardIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateRewardIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartRewardIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddRewardAmount(FlatBufferBuilder builder, VectorOffset rewardAmountOffset) { builder.AddOffset(18, rewardAmountOffset.Value, 0); }
+  public static void AddRewardAmount(FlatBufferBuilder builder, VectorOffset rewardAmountOffset) { builder.AddOffset(19, rewardAmountOffset.Value, 0); }
   public static VectorOffset CreateRewardAmountVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateRewardAmountVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateRewardAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
@@ -170,6 +174,7 @@ public struct EventContentScenarioExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("EventContentScenario");
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
     _o.EventContentId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentId, key) : this.EventContentId;
+    _o.ReturnScenarioPlay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReturnScenarioPlay, key) : this.ReturnScenarioPlay;
     _o.ReplayDisplayGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReplayDisplayGroup, key) : this.ReplayDisplayGroup;
     _o.Order = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Order, key) : this.Order;
     _o.RecollectionNumber = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RecollectionNumber, key) : this.RecollectionNumber;
@@ -194,16 +199,16 @@ public struct EventContentScenarioExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentScenarioExcel> Pack(FlatBufferBuilder builder, EventContentScenarioExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentScenarioExcel>);
-    var _scenarioGroupId = default(VectorOffset);
+    var _ScenarioGroupId = default(VectorOffset);
     if (_o.ScenarioGroupId != null) {
-      var __scenarioGroupId = _o.ScenarioGroupId.ToArray();
-      _scenarioGroupId = CreateScenarioGroupIdVector(builder, __scenarioGroupId);
+      var __ScenarioGroupId = _o.ScenarioGroupId.ToArray();
+      _ScenarioGroupId = CreateScenarioGroupIdVector(builder, __ScenarioGroupId);
     }
     var _RecollectionResource = _o.RecollectionResource == null ? default(StringOffset) : builder.CreateString(_o.RecollectionResource);
-    var _rewardParcelType = default(VectorOffset);
+    var _RewardParcelType = default(VectorOffset);
     if (_o.RewardParcelType != null) {
-      var __rewardParcelType = _o.RewardParcelType.ToArray();
-      _rewardParcelType = CreateRewardParcelTypeVector(builder, __rewardParcelType);
+      var __RewardParcelType = _o.RewardParcelType.ToArray();
+      _RewardParcelType = CreateRewardParcelTypeVector(builder, __RewardParcelType);
     }
     var _RewardId = default(VectorOffset);
     if (_o.RewardId != null) {
@@ -219,13 +224,14 @@ public struct EventContentScenarioExcel : IFlatbufferObject
       builder,
       _o.Id,
       _o.EventContentId,
+      _o.ReturnScenarioPlay,
       _o.ReplayDisplayGroup,
       _o.Order,
       _o.RecollectionNumber,
       _o.IsRecollection,
       _o.IsMeetup,
       _o.IsOmnibus,
-      _scenarioGroupId,
+      _ScenarioGroupId,
       _o.ScenarioConditionType,
       _o.ConditionAmount,
       _o.ConditionEventContentId,
@@ -233,7 +239,7 @@ public struct EventContentScenarioExcel : IFlatbufferObject
       _o.RecollectionSummaryLocalizeScenarioId,
       _RecollectionResource,
       _o.IsRecollectionHorizon,
-      _rewardParcelType,
+      _RewardParcelType,
       _RewardId,
       _RewardAmount);
   }
@@ -243,6 +249,7 @@ public class EventContentScenarioExcelT
 {
   public long Id { get; set; }
   public long EventContentId { get; set; }
+  public bool ReturnScenarioPlay { get; set; }
   public int ReplayDisplayGroup { get; set; }
   public long Order { get; set; }
   public long RecollectionNumber { get; set; }
@@ -264,6 +271,7 @@ public class EventContentScenarioExcelT
   public EventContentScenarioExcelT() {
     this.Id = 0;
     this.EventContentId = 0;
+    this.ReturnScenarioPlay = false;
     this.ReplayDisplayGroup = 0;
     this.Order = 0;
     this.RecollectionNumber = 0;
@@ -292,23 +300,24 @@ static public class EventContentScenarioExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*EventContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*ReplayDisplayGroup*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 10 /*Order*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 12 /*RecollectionNumber*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 14 /*IsRecollection*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 16 /*IsMeetup*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 18 /*IsOmnibus*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyVectorOfData(tablePos, 20 /*ScenarioGroupId*/, 8 /*long*/, false)
-      && verifier.VerifyField(tablePos, 22 /*ScenarioConditionType*/, 4 /*Schale.FlatData.EventContentScenarioConditionType*/, 4, false)
-      && verifier.VerifyField(tablePos, 24 /*ConditionAmount*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 26 /*ConditionEventContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 28 /*ClearedScenarioGroupId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*RecollectionSummaryLocalizeScenarioId*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyString(tablePos, 32 /*RecollectionResource*/, false)
-      && verifier.VerifyField(tablePos, 34 /*IsRecollectionHorizon*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyVectorOfData(tablePos, 36 /*RewardParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 38 /*RewardId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 40 /*RewardAmount*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 8 /*ReturnScenarioPlay*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 10 /*ReplayDisplayGroup*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*Order*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 14 /*RecollectionNumber*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 16 /*IsRecollection*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 18 /*IsMeetup*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 20 /*IsOmnibus*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyVectorOfData(tablePos, 22 /*ScenarioGroupId*/, 8 /*long*/, false)
+      && verifier.VerifyField(tablePos, 24 /*ScenarioConditionType*/, 4 /*Schale.FlatData.EventContentScenarioConditionType*/, 4, false)
+      && verifier.VerifyField(tablePos, 26 /*ConditionAmount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*ConditionEventContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 30 /*ClearedScenarioGroupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*RecollectionSummaryLocalizeScenarioId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyString(tablePos, 34 /*RecollectionResource*/, false)
+      && verifier.VerifyField(tablePos, 36 /*IsRecollectionHorizon*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyVectorOfData(tablePos, 38 /*RewardParcelType*/, 4 /*Schale.FlatData.ParcelType*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 40 /*RewardId*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 42 /*RewardAmount*/, 4 /*int*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

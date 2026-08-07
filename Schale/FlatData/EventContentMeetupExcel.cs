@@ -41,7 +41,7 @@ public struct EventContentMeetupExcel : IFlatbufferObject
       long CharacterId = 0,
       long ConditionScenarioGroupId = 0,
       Schale.FlatData.MeetupConditionType ConditionType = Schale.FlatData.MeetupConditionType.None,
-      VectorOffset conditionParameterOffset = default(VectorOffset),
+      VectorOffset ConditionParameterOffset = default(VectorOffset),
       Schale.FlatData.MeetupConditionPrintType ConditionPrintType = Schale.FlatData.MeetupConditionPrintType.None) {
     builder.StartTable(7);
     EventContentMeetupExcel.AddConditionScenarioGroupId(builder, ConditionScenarioGroupId);
@@ -49,7 +49,7 @@ public struct EventContentMeetupExcel : IFlatbufferObject
     EventContentMeetupExcel.AddEventContentId(builder, EventContentId);
     EventContentMeetupExcel.AddId(builder, Id);
     EventContentMeetupExcel.AddConditionPrintType(builder, ConditionPrintType);
-    EventContentMeetupExcel.AddConditionParameter(builder, conditionParameterOffset);
+    EventContentMeetupExcel.AddConditionParameter(builder, ConditionParameterOffset);
     EventContentMeetupExcel.AddConditionType(builder, ConditionType);
     return EventContentMeetupExcel.EndEventContentMeetupExcel(builder);
   }
@@ -89,10 +89,10 @@ public struct EventContentMeetupExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.EventContentMeetupExcel> Pack(FlatBufferBuilder builder, EventContentMeetupExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentMeetupExcel>);
-    var _conditionParameter = default(VectorOffset);
+    var _ConditionParameter = default(VectorOffset);
     if (_o.ConditionParameter != null) {
-      var __conditionParameter = _o.ConditionParameter.ToArray();
-      _conditionParameter = CreateConditionParameterVector(builder, __conditionParameter);
+      var __ConditionParameter = _o.ConditionParameter.ToArray();
+      _ConditionParameter = CreateConditionParameterVector(builder, __ConditionParameter);
     }
     return CreateEventContentMeetupExcel(
       builder,
@@ -101,7 +101,7 @@ public struct EventContentMeetupExcel : IFlatbufferObject
       _o.CharacterId,
       _o.ConditionScenarioGroupId,
       _o.ConditionType,
-      _conditionParameter,
+      _ConditionParameter,
       _o.ConditionPrintType);
   }
 }

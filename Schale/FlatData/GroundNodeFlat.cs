@@ -23,7 +23,7 @@ public struct GroundNodeFlat : IFlatbufferObject
   public int X { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public int Y { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
   public bool IsCanNotUseSkill { get { int o = __p.__offset(8); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public Schale.FlatData.GroundVector3? PositionOffset { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.GroundVector3?)(new Schale.FlatData.GroundVector3()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.GroundVector3? Position { get { int o = __p.__offset(10); return o != 0 ? (Schale.FlatData.GroundVector3?)(new Schale.FlatData.GroundVector3()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public Schale.FlatData.GroundNodeType NodeType { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.GroundNodeType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GroundNodeType.None; } }
   public Schale.FlatData.GroundNodeType OriginalNodeType { get { int o = __p.__offset(14); return o != 0 ? (Schale.FlatData.GroundNodeType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GroundNodeType.None; } }
 
@@ -31,13 +31,13 @@ public struct GroundNodeFlat : IFlatbufferObject
       int X = 0,
       int Y = 0,
       bool IsCanNotUseSkill = false,
-      Offset<Schale.FlatData.GroundVector3> PositionOffsetOffset = default(Offset<Schale.FlatData.GroundVector3>),
+      Offset<Schale.FlatData.GroundVector3> PositionOffset = default(Offset<Schale.FlatData.GroundVector3>),
       Schale.FlatData.GroundNodeType NodeType = Schale.FlatData.GroundNodeType.None,
       Schale.FlatData.GroundNodeType OriginalNodeType = Schale.FlatData.GroundNodeType.None) {
     builder.StartTable(6);
     GroundNodeFlat.AddOriginalNodeType(builder, OriginalNodeType);
     GroundNodeFlat.AddNodeType(builder, NodeType);
-    GroundNodeFlat.AddPositionOffset(builder, PositionOffsetOffset);
+    GroundNodeFlat.AddPosition(builder, PositionOffset);
     GroundNodeFlat.AddY(builder, Y);
     GroundNodeFlat.AddX(builder, X);
     GroundNodeFlat.AddIsCanNotUseSkill(builder, IsCanNotUseSkill);
@@ -48,7 +48,7 @@ public struct GroundNodeFlat : IFlatbufferObject
   public static void AddX(FlatBufferBuilder builder, int x) { builder.AddInt(0, x, 0); }
   public static void AddY(FlatBufferBuilder builder, int y) { builder.AddInt(1, y, 0); }
   public static void AddIsCanNotUseSkill(FlatBufferBuilder builder, bool isCanNotUseSkill) { builder.AddBool(2, isCanNotUseSkill, false); }
-  public static void AddPositionOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.GroundVector3> positionOffsetOffset) { builder.AddOffset(3, positionOffsetOffset.Value, 0); }
+  public static void AddPosition(FlatBufferBuilder builder, Offset<Schale.FlatData.GroundVector3> positionOffset) { builder.AddOffset(3, positionOffset.Value, 0); }
   public static void AddNodeType(FlatBufferBuilder builder, Schale.FlatData.GroundNodeType nodeType) { builder.AddInt(4, (int)nodeType, 0); }
   public static void AddOriginalNodeType(FlatBufferBuilder builder, Schale.FlatData.GroundNodeType originalNodeType) { builder.AddInt(5, (int)originalNodeType, 0); }
   public static Offset<Schale.FlatData.GroundNodeFlat> EndGroundNodeFlat(FlatBufferBuilder builder) {
@@ -65,19 +65,19 @@ public struct GroundNodeFlat : IFlatbufferObject
     _o.X = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.X, key) : this.X;
     _o.Y = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Y, key) : this.Y;
     _o.IsCanNotUseSkill = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsCanNotUseSkill, key) : this.IsCanNotUseSkill;
-    _o.PositionOffset = this.PositionOffset.HasValue ? this.PositionOffset.Value.UnPack() : null;
+    _o.Position = this.Position.HasValue ? this.Position.Value.UnPack() : null;
     _o.NodeType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NodeType, key) : this.NodeType;
     _o.OriginalNodeType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OriginalNodeType, key) : this.OriginalNodeType;
   }
   public static Offset<Schale.FlatData.GroundNodeFlat> Pack(FlatBufferBuilder builder, GroundNodeFlatT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.GroundNodeFlat>);
-    var _PositionOffset = _o.PositionOffset == null ? default(Offset<Schale.FlatData.GroundVector3>) : Schale.FlatData.GroundVector3.Pack(builder, _o.PositionOffset);
+    var _Position = _o.Position == null ? default(Offset<Schale.FlatData.GroundVector3>) : Schale.FlatData.GroundVector3.Pack(builder, _o.Position);
     return CreateGroundNodeFlat(
       builder,
       _o.X,
       _o.Y,
       _o.IsCanNotUseSkill,
-      _PositionOffset,
+      _Position,
       _o.NodeType,
       _o.OriginalNodeType);
   }
@@ -88,7 +88,7 @@ public class GroundNodeFlatT
   public int X { get; set; }
   public int Y { get; set; }
   public bool IsCanNotUseSkill { get; set; }
-  public Schale.FlatData.GroundVector3T PositionOffset { get; set; }
+  public Schale.FlatData.GroundVector3T Position { get; set; }
   public Schale.FlatData.GroundNodeType NodeType { get; set; }
   public Schale.FlatData.GroundNodeType OriginalNodeType { get; set; }
 
@@ -96,7 +96,7 @@ public class GroundNodeFlatT
     this.X = 0;
     this.Y = 0;
     this.IsCanNotUseSkill = false;
-    this.PositionOffset = null;
+    this.Position = null;
     this.NodeType = Schale.FlatData.GroundNodeType.None;
     this.OriginalNodeType = Schale.FlatData.GroundNodeType.None;
   }
@@ -111,7 +111,7 @@ static public class GroundNodeFlatVerify
       && verifier.VerifyField(tablePos, 4 /*X*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 6 /*Y*/, 4 /*int*/, 4, false)
       && verifier.VerifyField(tablePos, 8 /*IsCanNotUseSkill*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyTable(tablePos, 10 /*PositionOffset*/, Schale.FlatData.GroundVector3Verify.Verify, false)
+      && verifier.VerifyTable(tablePos, 10 /*Position*/, Schale.FlatData.GroundVector3Verify.Verify, false)
       && verifier.VerifyField(tablePos, 12 /*NodeType*/, 4 /*Schale.FlatData.GroundNodeType*/, 4, false)
       && verifier.VerifyField(tablePos, 14 /*OriginalNodeType*/, 4 /*Schale.FlatData.GroundNodeType*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);

@@ -125,7 +125,7 @@ public class MailHandler : ProtocolHandlerBase
 
         response.MailServerIds = request.MailServerIds;
         response.ParcelResultDB = parcelResolver.ParcelResult;
-        // Official Mail_Receive always carries BattlePassInfoDBs (as [] when none).
+        // Official Mail_Receive always carries BattlePassInfoDBs, empty or not.
         response.BattlePassInfoDBs = [];
 
         return response;

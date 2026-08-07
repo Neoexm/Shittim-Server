@@ -217,4 +217,124 @@ public class BattlePassHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.BattlePass_MissionSingleReward)]
+    public async Task<BattlePassMissionSingleRewardResponse> MissionSingleReward(
+        SchaleDataContext db,
+        BattlePassMissionSingleRewardRequest request,
+        BattlePassMissionSingleRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var missionExcel = _excelTableService.GetTable<BattlePassMissionExcelT>()
+            .FirstOrDefault(x => x.BattlePassId == request.BattlePassId && x.Id == request.MissionUniqueId);
+
+        if (missionExcel == null)
+            throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass mission not found");
+
+        var missionProgress = await db.MissionProgresses
+            .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == request.MissionUniqueId);
+
+        if (missionProgress == null || !missionProgress.Complete)
+            throw new WebAPIException(WebAPIErrorCode.MissionCannotComplete, "Battle Pass mission is not complete");
+
+        var battlePass = await db.BattlePasses
+            .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == request.BattlePassId);
+
+        if (battlePass == null)
+            throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
+
+        // pass missions pay out in pass exp, not parcels; the level rewards themselves go through ReceiveReward
+        AddPassExp(battlePass, request.BattlePassId, missionExcel.BattlePassExpAmount);
+
+        db.MissionProgresses.Remove(missionProgress);
+
+        var completeTime = account.GameSettings.ServerDateTime();
+        db.MissionHistories.Add(new MissionHistoryDBServer
+        {
+            AccountServerId = account.ServerId,
+            MissionUniqueId = missionProgress.MissionUniqueId,
+            CompleteTime = completeTime
+        });
+
+        await db.SaveChangesAsync();
+
+        // Official's wire history carries only these two members - the detailed capture shows ServerId and AccountServerId omitted.
+        response.AddedHistoryDB = new MissionHistoryDB
+        {
+            MissionUniqueId = missionProgress.MissionUniqueId,
+            CompleteTime = completeTime
+        };
+        response.ParcelResultDB = new ParcelResultDB();
+        response.BattlePassInfo = battlePass;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.BattlePass_MissionMultipleReward)]
+    public async Task<BattlePassMissionMultipleRewardResponse> MissionMultipleReward(
+        SchaleDataContext db,
+        BattlePassMissionMultipleRewardRequest request,
+        BattlePassMissionMultipleRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var missionExcels = _excelTableService.GetTable<BattlePassMissionExcelT>()
+            .Where(x => x.BattlePassId == request.BattlePassId
+                && (request.MissionCategory == MissionCategory.All || x.Category == request.MissionCategory))
+            .ToDictionary(x => x.Id, x => x);
+
+        var targetProgresses = db.MissionProgresses
+            .Where(x => x.AccountServerId == account.ServerId && x.Complete)
+            .ToList()
+            .Where(x => missionExcels.ContainsKey(x.MissionUniqueId))
+            .ToList();
+
+        var battlePass = await db.BattlePasses
+            .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == request.BattlePassId);
+
+        if (battlePass == null)
+            throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound, "Battle Pass not found");
+
+        var addedHistory = new List<MissionHistoryDB>();
+        foreach (var progress in targetProgresses)
+        {
+            AddPassExp(battlePass, request.BattlePassId, missionExcels[progress.MissionUniqueId].BattlePassExpAmount);
+
+            var completeTime = account.GameSettings.ServerDateTime();
+            db.MissionHistories.Add(new MissionHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                MissionUniqueId = progress.MissionUniqueId,
+                CompleteTime = completeTime
+            });
+            addedHistory.Add(new MissionHistoryDB
+            {
+                MissionUniqueId = progress.MissionUniqueId,
+                CompleteTime = completeTime
+            });
+        }
+
+        db.MissionProgresses.RemoveRange(targetProgresses);
+        await db.SaveChangesAsync();
+
+        response.AddedHistoryDBs = addedHistory;
+        response.ParcelResultDB = new ParcelResultDB();
+        response.BattlePassInfo = battlePass;
+
+        return response;
+    }
+
+    private void AddPassExp(BattlePassDBServer battlePass, long battlePassId, int amount)
+    {
+        battlePass.PassExp += amount;
+        battlePass.WeeklyPassExp += amount;
+
+        var needExp = _excelTableService.GetTable<BattlePassInfoExcelT>().FirstOrDefault(x => x.Id == battlePassId)?.NextLvNeedExp ?? 0;
+        while (needExp > 0 && battlePass.PassExp >= needExp)
+        {
+            battlePass.PassExp -= needExp;
+            battlePass.PassLevel += 1;
+        }
+    }
 }

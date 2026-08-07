@@ -194,12 +194,7 @@ namespace Shittim_Server.Services
             }
 
             // Any Steam library can hold the install.
-            var located = SteamGameLocator.FindGameFile(relative);
-            if (!string.IsNullOrWhiteSpace(located))
-                return located;
-
-            var fallback = Path.Combine(@"F:\SteamLibrary\steamapps\common\BlueArchive", relative);
-            return File.Exists(fallback) ? fallback : string.Empty;
+            return SteamGameLocator.FindGameFile(relative) ?? string.Empty;
         }
 
         private readonly record struct BannerRow(long RowId, long Id, string Art, string SalePeriodTo, byte[] Bytes);

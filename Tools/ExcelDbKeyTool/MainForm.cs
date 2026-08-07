@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ExcelDbKeyTool;
@@ -17,6 +19,7 @@ internal sealed class MainForm : Form
     private readonly TextBox pragmaOutput = new();
     private readonly TextBox base64Output = new();
     private readonly Label statusLabel = new();
+    private readonly Button gameButton;
 
     public MainForm()
     {
@@ -78,7 +81,10 @@ internal sealed class MainForm : Form
             WrapContents = false,
             Padding = new Padding(0, 7, 0, 0)
         };
+        gameButton = MakeButton("Read from game", ReadFromGame);
+        gameButton.Width = 140;
         buttonPanel.Controls.Add(MakeButton("Decode", DecodeProtocol, true));
+        buttonPanel.Controls.Add(gameButton);
         buttonPanel.Controls.Add(MakeButton("Clear", ClearAll));
 
         root.Controls.Add(title, 0, 0);
@@ -94,6 +100,15 @@ internal sealed class MainForm : Form
         root.Controls.Add(statusLabel, 0, 7);
 
         Controls.Add(root);
+    }
+
+    // With the game already open there is nothing to paste and nothing to ask about, so go and get the key. The protocol box is still there for a capture taken off another machine.
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+
+        if (Process.GetProcessesByName("BlueArchive").Length > 0)
+            ReadFromGame();
     }
 
     private Button MakeButton(string text, Action action, bool primary = false)
@@ -169,6 +184,29 @@ internal sealed class MainForm : Form
         }
     }
 
+    private async void ReadFromGame()
+    {
+        gameButton.Enabled = false;
+        SetStatus("Looking for BlueArchive.exe...", false);
+
+        try
+        {
+            var (key, source) = await Task.Run(() => RunningClient.ReadKey(text => BeginInvoke(() => SetStatus(text, false))));
+            rawKeyOutput.Text = key.RawSqlCipherKeyHex;
+            pragmaOutput.Text = $"PRAGMA key = \"x'{key.RawSqlCipherKeyHex}'\";";
+            base64Output.Text = key.DecryptedKeyString;
+            SetStatus($"Read the ExcelDB SQLCipher key out of {source}.", false);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, true);
+        }
+        finally
+        {
+            gameButton.Enabled = true;
+        }
+    }
+
     private void ClearAll()
     {
         protocolInput.Clear();
@@ -196,7 +234,7 @@ internal sealed class MainForm : Form
 
 internal static class ProtocolKeyDecoder
 {
-    private static readonly string[] RequiredFields =
+    internal static readonly string[] RequiredFields =
     [
         "ClientGeneratedKey",
         "ClientGeneratedIV",
@@ -219,12 +257,6 @@ internal static class ProtocolKeyDecoder
         var key = DecodeBase64(fields["ClientGeneratedKey"], "ClientGeneratedKey");
         var iv = DecodeBase64(fields["ClientGeneratedIV"], "ClientGeneratedIV");
         var encryptedKey = DecodeBase64(fields["EncryptedSqlCipherKey"], "EncryptedSqlCipherKey");
-
-        if (key.Length is not (16 or 24 or 32))
-            throw new InvalidOperationException($"ClientGeneratedKey decoded to {key.Length} bytes; AES needs 16, 24, or 32 bytes.");
-
-        if (iv.Length != 16)
-            throw new InvalidOperationException($"ClientGeneratedIV decoded to {iv.Length} bytes; AES-CBC needs 16 bytes.");
 
         var decrypted = DecryptAesCbc(encryptedKey, key, iv);
         var decryptedText = Encoding.UTF8.GetString(decrypted).Trim();
@@ -352,33 +384,11 @@ internal static class ProtocolFieldExtractor
         }
     }
 
+    // fields compares OrdinalIgnoreCase, so whatever spelling the capture used is what gets stored and the lookups still hit.
     private static void TrySet(Dictionary<string, string> fields, string name, string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-
-        if (!IsWantedField(name))
-            return;
-
-        fields.TryAdd(NormalizeName(name), value.Trim());
-    }
-
-    private static bool IsWantedField(string name)
-    {
-        return string.Equals(name, "ClientGeneratedKey", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(name, "ClientGeneratedIV", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(name, "EncryptedSqlCipherKey", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string NormalizeName(string name)
-    {
-        if (string.Equals(name, "ClientGeneratedKey", StringComparison.OrdinalIgnoreCase))
-            return "ClientGeneratedKey";
-
-        if (string.Equals(name, "ClientGeneratedIV", StringComparison.OrdinalIgnoreCase))
-            return "ClientGeneratedIV";
-
-        return "EncryptedSqlCipherKey";
+        if (!string.IsNullOrWhiteSpace(value) && ProtocolKeyDecoder.RequiredFields.Contains(name, StringComparer.OrdinalIgnoreCase))
+            fields.TryAdd(name, value.Trim());
     }
 
     private static string DecodeJsonString(string value)
@@ -407,55 +417,3 @@ internal static class ProtocolFieldExtractor
 }
 
 internal sealed record DecodeResult(string RawSqlCipherKeyHex, string DecryptedKeyString);
-
-internal static class ProtocolKeyDecoderSelfTest
-{
-    public static int Run()
-    {
-        try
-        {
-            var key = Enumerable.Range(1, 16).Select(value => (byte)value).ToArray();
-            var iv = Enumerable.Range(17, 16).Select(value => (byte)value).ToArray();
-            var rawSqlCipherKey = Enumerable.Range(64, 32).Select(value => (byte)value).ToArray();
-            var encryptedSqlCipherKey = EncryptAesCbc(Encoding.UTF8.GetBytes(Convert.ToBase64String(rawSqlCipherKey)), key, iv);
-
-            var request = JsonSerializer.Serialize(new
-            {
-                Protocol = 50001,
-                ClientGeneratedKey = Convert.ToBase64String(key),
-                ClientGeneratedIV = Convert.ToBase64String(iv)
-            });
-            var response = JsonSerializer.Serialize(new
-            {
-                Protocol = 50001,
-                EncryptedSqlCipherKey = Convert.ToBase64String(encryptedSqlCipherKey)
-            });
-            var logText = JsonSerializer.Serialize(new[]
-            {
-                new { protocol = "Queuing_GetCryptoKeys", packet = request },
-                new { protocol = "Queuing_GetCryptoKeys", packet = response }
-            });
-
-            var result = ProtocolKeyDecoder.Decode(logText);
-            var expectedHex = string.Concat(rawSqlCipherKey.Select(value => value.ToString("x2")));
-            return string.Equals(result.RawSqlCipherKeyHex, expectedHex, StringComparison.Ordinal) ? 0 : 1;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            return 1;
-        }
-    }
-
-    private static byte[] EncryptAesCbc(byte[] data, byte[] key, byte[] iv)
-    {
-        using var aes = Aes.Create();
-        aes.Key = key;
-        aes.IV = iv;
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
-
-        using var encryptor = aes.CreateEncryptor();
-        return encryptor.TransformFinalBlock(data, 0, data.Length);
-    }
-}

@@ -42,15 +42,15 @@ public struct EventContentDiceRaceEffectExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.EventContentDiceRaceEffectExcel> CreateEventContentDiceRaceEffectExcel(FlatBufferBuilder builder,
       long EventContentId = 0,
       Schale.FlatData.EventContentDiceRaceResultType EventContentDiceRaceResultType = Schale.FlatData.EventContentDiceRaceResultType.DiceResult1,
-      bool isDiceResult = false,
+      bool IsDiceResult = false,
       StringOffset AniClipOffset = default(StringOffset),
-      VectorOffset voiceIdOffset = default(VectorOffset)) {
+      VectorOffset VoiceIdOffset = default(VectorOffset)) {
     builder.StartTable(5);
     EventContentDiceRaceEffectExcel.AddEventContentId(builder, EventContentId);
-    EventContentDiceRaceEffectExcel.AddVoiceId(builder, voiceIdOffset);
+    EventContentDiceRaceEffectExcel.AddVoiceId(builder, VoiceIdOffset);
     EventContentDiceRaceEffectExcel.AddAniClip(builder, AniClipOffset);
     EventContentDiceRaceEffectExcel.AddEventContentDiceRaceResultType(builder, EventContentDiceRaceResultType);
-    EventContentDiceRaceEffectExcel.AddIsDiceResult(builder, isDiceResult);
+    EventContentDiceRaceEffectExcel.AddIsDiceResult(builder, IsDiceResult);
     return EventContentDiceRaceEffectExcel.EndEventContentDiceRaceEffectExcel(builder);
   }
 
@@ -86,10 +86,10 @@ public struct EventContentDiceRaceEffectExcel : IFlatbufferObject
   public static Offset<Schale.FlatData.EventContentDiceRaceEffectExcel> Pack(FlatBufferBuilder builder, EventContentDiceRaceEffectExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.EventContentDiceRaceEffectExcel>);
     var _AniClip = _o.AniClip == null ? default(StringOffset) : builder.CreateString(_o.AniClip);
-    var _voiceId = default(VectorOffset);
+    var _VoiceId = default(VectorOffset);
     if (_o.VoiceId != null) {
-      var __voiceId = _o.VoiceId.ToArray();
-      _voiceId = CreateVoiceIdVector(builder, __voiceId);
+      var __VoiceId = _o.VoiceId.ToArray();
+      _VoiceId = CreateVoiceIdVector(builder, __VoiceId);
     }
     return CreateEventContentDiceRaceEffectExcel(
       builder,
@@ -97,7 +97,7 @@ public struct EventContentDiceRaceEffectExcel : IFlatbufferObject
       _o.EventContentDiceRaceResultType,
       _o.IsDiceResult,
       _AniClip,
-      _voiceId);
+      _VoiceId);
   }
 }
 

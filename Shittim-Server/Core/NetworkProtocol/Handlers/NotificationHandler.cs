@@ -1,5 +1,6 @@
 using BlueArchiveAPI.Services;
 using Schale.Data;
+using Schale.Data.GameModel;
 using Schale.Excel;
 using Schale.FlatData;
 using Schale.MX.NetworkProtocol;
@@ -19,6 +20,21 @@ public class NotificationHandler : ProtocolHandlerBase
     {
         _sessionService = sessionService;
         _excelService = excelService;
+    }
+
+    [ProtocolHandler(Protocol.Notification_LobbyCheck)]
+    public async Task<NotificationLobbyCheckResponse> LobbyCheck(
+        SchaleDataContext db,
+        NotificationLobbyCheckRequest request,
+        NotificationLobbyCheckResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // same unclaimed-unexpired mailbox count Mail_Check reports
+        response.UnreadMailCount = db.GetAccountMailbox(account.ServerId, account.GameSettings.ServerDateTime()).Count();
+        response.EventRewardIncreaseDBs = [];
+
+        return response;
     }
 
     [ProtocolHandler(Protocol.Notification_EventContentReddotCheck)]

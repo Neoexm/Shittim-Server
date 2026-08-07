@@ -22,6 +22,10 @@ namespace Schale.Data.GameModel
         public DateTime LastUpdate { get; set; }
         public DateTime? LastSummonDate { get; set; }
 
+        // when the visitor roster was last rolled. LastUpdate can't carry this - every furniture move bumps it.
+        [JsonIgnore]
+        public DateTime VisitUpdateTime { get; set; }
+
         [NotMapped]
         public bool IsNew { get; set; }
 

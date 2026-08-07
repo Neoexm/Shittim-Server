@@ -22,30 +22,66 @@ public struct ConstKeyMappingExcel : IFlatbufferObject
 
   public float DragSensitivity { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
   public long PcInformationGroupID { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public float ScrollWheelFactor { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public string RemoveKeycodeWord { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long PcControllerInformationGroupID { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public float ScrollWheelFactor { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public string RemoveKeycodeWord { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetRemoveKeycodeWordBytes() { return __p.__vector_as_span<byte>(10, 1); }
+  public Span<byte> GetRemoveKeycodeWordBytes() { return __p.__vector_as_span<byte>(12, 1); }
 #else
-  public ArraySegment<byte>? GetRemoveKeycodeWordBytes() { return __p.__vector_as_arraysegment(10); }
+  public ArraySegment<byte>? GetRemoveKeycodeWordBytes() { return __p.__vector_as_arraysegment(12); }
 #endif
-  public byte[] GetRemoveKeycodeWordArray() { return __p.__vector_as_array<byte>(10); }
-  public string TutorialDialogTouchKey { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetRemoveKeycodeWordArray() { return __p.__vector_as_array<byte>(12); }
+  public string TutorialDialogTouchKey { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetTutorialDialogTouchKeyBytes() { return __p.__vector_as_span<byte>(12, 1); }
+  public Span<byte> GetTutorialDialogTouchKeyBytes() { return __p.__vector_as_span<byte>(14, 1); }
 #else
-  public ArraySegment<byte>? GetTutorialDialogTouchKeyBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetTutorialDialogTouchKeyBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
-  public byte[] GetTutorialDialogTouchKeyArray() { return __p.__vector_as_array<byte>(12); }
+  public byte[] GetTutorialDialogTouchKeyArray() { return __p.__vector_as_array<byte>(14); }
+  public int ControllerCursorFactorSlow { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ControllerCursorFactor { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int ControllerCursorFactorFast { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public float VibrationSec { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float VibrationPower { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerScrollWheelFactor { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerZoomSensitivity { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerDpadMoveCheckRangeX { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerDpadMoveCheckRangeY { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerCursorClickScale { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float ControllerScrollSensitivity { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
 
   public static Offset<Schale.FlatData.ConstKeyMappingExcel> CreateConstKeyMappingExcel(FlatBufferBuilder builder,
       float DragSensitivity = 0.0f,
       long PcInformationGroupID = 0,
+      long PcControllerInformationGroupID = 0,
       float ScrollWheelFactor = 0.0f,
       StringOffset RemoveKeycodeWordOffset = default(StringOffset),
-      StringOffset TutorialDialogTouchKeyOffset = default(StringOffset)) {
-    builder.StartTable(5);
+      StringOffset TutorialDialogTouchKeyOffset = default(StringOffset),
+      int ControllerCursorFactorSlow = 0,
+      int ControllerCursorFactor = 0,
+      int ControllerCursorFactorFast = 0,
+      float VibrationSec = 0.0f,
+      float VibrationPower = 0.0f,
+      float ControllerScrollWheelFactor = 0.0f,
+      float ControllerZoomSensitivity = 0.0f,
+      float ControllerDpadMoveCheckRangeX = 0.0f,
+      float ControllerDpadMoveCheckRangeY = 0.0f,
+      float ControllerCursorClickScale = 0.0f,
+      float ControllerScrollSensitivity = 0.0f) {
+    builder.StartTable(17);
+    ConstKeyMappingExcel.AddPcControllerInformationGroupID(builder, PcControllerInformationGroupID);
     ConstKeyMappingExcel.AddPcInformationGroupID(builder, PcInformationGroupID);
+    ConstKeyMappingExcel.AddControllerScrollSensitivity(builder, ControllerScrollSensitivity);
+    ConstKeyMappingExcel.AddControllerCursorClickScale(builder, ControllerCursorClickScale);
+    ConstKeyMappingExcel.AddControllerDpadMoveCheckRangeY(builder, ControllerDpadMoveCheckRangeY);
+    ConstKeyMappingExcel.AddControllerDpadMoveCheckRangeX(builder, ControllerDpadMoveCheckRangeX);
+    ConstKeyMappingExcel.AddControllerZoomSensitivity(builder, ControllerZoomSensitivity);
+    ConstKeyMappingExcel.AddControllerScrollWheelFactor(builder, ControllerScrollWheelFactor);
+    ConstKeyMappingExcel.AddVibrationPower(builder, VibrationPower);
+    ConstKeyMappingExcel.AddVibrationSec(builder, VibrationSec);
+    ConstKeyMappingExcel.AddControllerCursorFactorFast(builder, ControllerCursorFactorFast);
+    ConstKeyMappingExcel.AddControllerCursorFactor(builder, ControllerCursorFactor);
+    ConstKeyMappingExcel.AddControllerCursorFactorSlow(builder, ControllerCursorFactorSlow);
     ConstKeyMappingExcel.AddTutorialDialogTouchKey(builder, TutorialDialogTouchKeyOffset);
     ConstKeyMappingExcel.AddRemoveKeycodeWord(builder, RemoveKeycodeWordOffset);
     ConstKeyMappingExcel.AddScrollWheelFactor(builder, ScrollWheelFactor);
@@ -53,12 +89,24 @@ public struct ConstKeyMappingExcel : IFlatbufferObject
     return ConstKeyMappingExcel.EndConstKeyMappingExcel(builder);
   }
 
-  public static void StartConstKeyMappingExcel(FlatBufferBuilder builder) { builder.StartTable(5); }
+  public static void StartConstKeyMappingExcel(FlatBufferBuilder builder) { builder.StartTable(17); }
   public static void AddDragSensitivity(FlatBufferBuilder builder, float dragSensitivity) { builder.AddFloat(0, dragSensitivity, 0.0f); }
   public static void AddPcInformationGroupID(FlatBufferBuilder builder, long pcInformationGroupID) { builder.AddLong(1, pcInformationGroupID, 0); }
-  public static void AddScrollWheelFactor(FlatBufferBuilder builder, float scrollWheelFactor) { builder.AddFloat(2, scrollWheelFactor, 0.0f); }
-  public static void AddRemoveKeycodeWord(FlatBufferBuilder builder, StringOffset removeKeycodeWordOffset) { builder.AddOffset(3, removeKeycodeWordOffset.Value, 0); }
-  public static void AddTutorialDialogTouchKey(FlatBufferBuilder builder, StringOffset tutorialDialogTouchKeyOffset) { builder.AddOffset(4, tutorialDialogTouchKeyOffset.Value, 0); }
+  public static void AddPcControllerInformationGroupID(FlatBufferBuilder builder, long pcControllerInformationGroupID) { builder.AddLong(2, pcControllerInformationGroupID, 0); }
+  public static void AddScrollWheelFactor(FlatBufferBuilder builder, float scrollWheelFactor) { builder.AddFloat(3, scrollWheelFactor, 0.0f); }
+  public static void AddRemoveKeycodeWord(FlatBufferBuilder builder, StringOffset removeKeycodeWordOffset) { builder.AddOffset(4, removeKeycodeWordOffset.Value, 0); }
+  public static void AddTutorialDialogTouchKey(FlatBufferBuilder builder, StringOffset tutorialDialogTouchKeyOffset) { builder.AddOffset(5, tutorialDialogTouchKeyOffset.Value, 0); }
+  public static void AddControllerCursorFactorSlow(FlatBufferBuilder builder, int controllerCursorFactorSlow) { builder.AddInt(6, controllerCursorFactorSlow, 0); }
+  public static void AddControllerCursorFactor(FlatBufferBuilder builder, int controllerCursorFactor) { builder.AddInt(7, controllerCursorFactor, 0); }
+  public static void AddControllerCursorFactorFast(FlatBufferBuilder builder, int controllerCursorFactorFast) { builder.AddInt(8, controllerCursorFactorFast, 0); }
+  public static void AddVibrationSec(FlatBufferBuilder builder, float vibrationSec) { builder.AddFloat(9, vibrationSec, 0.0f); }
+  public static void AddVibrationPower(FlatBufferBuilder builder, float vibrationPower) { builder.AddFloat(10, vibrationPower, 0.0f); }
+  public static void AddControllerScrollWheelFactor(FlatBufferBuilder builder, float controllerScrollWheelFactor) { builder.AddFloat(11, controllerScrollWheelFactor, 0.0f); }
+  public static void AddControllerZoomSensitivity(FlatBufferBuilder builder, float controllerZoomSensitivity) { builder.AddFloat(12, controllerZoomSensitivity, 0.0f); }
+  public static void AddControllerDpadMoveCheckRangeX(FlatBufferBuilder builder, float controllerDpadMoveCheckRangeX) { builder.AddFloat(13, controllerDpadMoveCheckRangeX, 0.0f); }
+  public static void AddControllerDpadMoveCheckRangeY(FlatBufferBuilder builder, float controllerDpadMoveCheckRangeY) { builder.AddFloat(14, controllerDpadMoveCheckRangeY, 0.0f); }
+  public static void AddControllerCursorClickScale(FlatBufferBuilder builder, float controllerCursorClickScale) { builder.AddFloat(15, controllerCursorClickScale, 0.0f); }
+  public static void AddControllerScrollSensitivity(FlatBufferBuilder builder, float controllerScrollSensitivity) { builder.AddFloat(16, controllerScrollSensitivity, 0.0f); }
   public static Offset<Schale.FlatData.ConstKeyMappingExcel> EndConstKeyMappingExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ConstKeyMappingExcel>(o);
@@ -72,9 +120,21 @@ public struct ConstKeyMappingExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("ConstKeyMapping");
     _o.DragSensitivity = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DragSensitivity, key) : this.DragSensitivity;
     _o.PcInformationGroupID = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PcInformationGroupID, key) : this.PcInformationGroupID;
+    _o.PcControllerInformationGroupID = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PcControllerInformationGroupID, key) : this.PcControllerInformationGroupID;
     _o.ScrollWheelFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScrollWheelFactor, key) : this.ScrollWheelFactor;
     _o.RemoveKeycodeWord = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RemoveKeycodeWord, key) : this.RemoveKeycodeWord;
     _o.TutorialDialogTouchKey = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TutorialDialogTouchKey, key) : this.TutorialDialogTouchKey;
+    _o.ControllerCursorFactorSlow = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerCursorFactorSlow, key) : this.ControllerCursorFactorSlow;
+    _o.ControllerCursorFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerCursorFactor, key) : this.ControllerCursorFactor;
+    _o.ControllerCursorFactorFast = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerCursorFactorFast, key) : this.ControllerCursorFactorFast;
+    _o.VibrationSec = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.VibrationSec, key) : this.VibrationSec;
+    _o.VibrationPower = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.VibrationPower, key) : this.VibrationPower;
+    _o.ControllerScrollWheelFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerScrollWheelFactor, key) : this.ControllerScrollWheelFactor;
+    _o.ControllerZoomSensitivity = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerZoomSensitivity, key) : this.ControllerZoomSensitivity;
+    _o.ControllerDpadMoveCheckRangeX = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerDpadMoveCheckRangeX, key) : this.ControllerDpadMoveCheckRangeX;
+    _o.ControllerDpadMoveCheckRangeY = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerDpadMoveCheckRangeY, key) : this.ControllerDpadMoveCheckRangeY;
+    _o.ControllerCursorClickScale = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerCursorClickScale, key) : this.ControllerCursorClickScale;
+    _o.ControllerScrollSensitivity = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ControllerScrollSensitivity, key) : this.ControllerScrollSensitivity;
   }
   public static Offset<Schale.FlatData.ConstKeyMappingExcel> Pack(FlatBufferBuilder builder, ConstKeyMappingExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstKeyMappingExcel>);
@@ -84,9 +144,21 @@ public struct ConstKeyMappingExcel : IFlatbufferObject
       builder,
       _o.DragSensitivity,
       _o.PcInformationGroupID,
+      _o.PcControllerInformationGroupID,
       _o.ScrollWheelFactor,
       _RemoveKeycodeWord,
-      _TutorialDialogTouchKey);
+      _TutorialDialogTouchKey,
+      _o.ControllerCursorFactorSlow,
+      _o.ControllerCursorFactor,
+      _o.ControllerCursorFactorFast,
+      _o.VibrationSec,
+      _o.VibrationPower,
+      _o.ControllerScrollWheelFactor,
+      _o.ControllerZoomSensitivity,
+      _o.ControllerDpadMoveCheckRangeX,
+      _o.ControllerDpadMoveCheckRangeY,
+      _o.ControllerCursorClickScale,
+      _o.ControllerScrollSensitivity);
   }
 }
 
@@ -94,16 +166,40 @@ public class ConstKeyMappingExcelT
 {
   public float DragSensitivity { get; set; }
   public long PcInformationGroupID { get; set; }
+  public long PcControllerInformationGroupID { get; set; }
   public float ScrollWheelFactor { get; set; }
   public string RemoveKeycodeWord { get; set; }
   public string TutorialDialogTouchKey { get; set; }
+  public int ControllerCursorFactorSlow { get; set; }
+  public int ControllerCursorFactor { get; set; }
+  public int ControllerCursorFactorFast { get; set; }
+  public float VibrationSec { get; set; }
+  public float VibrationPower { get; set; }
+  public float ControllerScrollWheelFactor { get; set; }
+  public float ControllerZoomSensitivity { get; set; }
+  public float ControllerDpadMoveCheckRangeX { get; set; }
+  public float ControllerDpadMoveCheckRangeY { get; set; }
+  public float ControllerCursorClickScale { get; set; }
+  public float ControllerScrollSensitivity { get; set; }
 
   public ConstKeyMappingExcelT() {
     this.DragSensitivity = 0.0f;
     this.PcInformationGroupID = 0;
+    this.PcControllerInformationGroupID = 0;
     this.ScrollWheelFactor = 0.0f;
     this.RemoveKeycodeWord = null;
     this.TutorialDialogTouchKey = null;
+    this.ControllerCursorFactorSlow = 0;
+    this.ControllerCursorFactor = 0;
+    this.ControllerCursorFactorFast = 0;
+    this.VibrationSec = 0.0f;
+    this.VibrationPower = 0.0f;
+    this.ControllerScrollWheelFactor = 0.0f;
+    this.ControllerZoomSensitivity = 0.0f;
+    this.ControllerDpadMoveCheckRangeX = 0.0f;
+    this.ControllerDpadMoveCheckRangeY = 0.0f;
+    this.ControllerCursorClickScale = 0.0f;
+    this.ControllerScrollSensitivity = 0.0f;
   }
 }
 
@@ -115,9 +211,21 @@ static public class ConstKeyMappingExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*DragSensitivity*/, 4 /*float*/, 4, false)
       && verifier.VerifyField(tablePos, 6 /*PcInformationGroupID*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*ScrollWheelFactor*/, 4 /*float*/, 4, false)
-      && verifier.VerifyString(tablePos, 10 /*RemoveKeycodeWord*/, false)
-      && verifier.VerifyString(tablePos, 12 /*TutorialDialogTouchKey*/, false)
+      && verifier.VerifyField(tablePos, 8 /*PcControllerInformationGroupID*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*ScrollWheelFactor*/, 4 /*float*/, 4, false)
+      && verifier.VerifyString(tablePos, 12 /*RemoveKeycodeWord*/, false)
+      && verifier.VerifyString(tablePos, 14 /*TutorialDialogTouchKey*/, false)
+      && verifier.VerifyField(tablePos, 16 /*ControllerCursorFactorSlow*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 18 /*ControllerCursorFactor*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 20 /*ControllerCursorFactorFast*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 22 /*VibrationSec*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 24 /*VibrationPower*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 26 /*ControllerScrollWheelFactor*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 28 /*ControllerZoomSensitivity*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 30 /*ControllerDpadMoveCheckRangeX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 32 /*ControllerDpadMoveCheckRangeY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 34 /*ControllerCursorClickScale*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 36 /*ControllerScrollSensitivity*/, 4 /*float*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

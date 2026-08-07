@@ -46,7 +46,7 @@ public struct ScenarioExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.ScenarioExcel> CreateScenarioExcel(FlatBufferBuilder builder,
       VectorOffset NoneOffset = default(VectorOffset),
-      VectorOffset idleOffset = default(VectorOffset),
+      VectorOffset IdleOffset = default(VectorOffset),
       Schale.FlatData.DialogCategory Cafe = Schale.FlatData.DialogCategory.Cafe,
       Schale.FlatData.DialogType Talk = Schale.FlatData.DialogType.Talk,
       Schale.FlatData.StoryCondition Open = Schale.FlatData.StoryCondition.Open,
@@ -62,7 +62,7 @@ public struct ScenarioExcel : IFlatbufferObject
     ScenarioExcel.AddOpen(builder, Open);
     ScenarioExcel.AddTalk(builder, Talk);
     ScenarioExcel.AddCafe(builder, Cafe);
-    ScenarioExcel.AddIdle(builder, idleOffset);
+    ScenarioExcel.AddIdle(builder, IdleOffset);
     ScenarioExcel.AddNone(builder, NoneOffset);
     return ScenarioExcel.EndScenarioExcel(builder);
   }
@@ -117,15 +117,15 @@ public struct ScenarioExcel : IFlatbufferObject
       var __None = _o.None.ToArray();
       _None = CreateNoneVector(builder, __None);
     }
-    var _idle = default(VectorOffset);
+    var _Idle = default(VectorOffset);
     if (_o.Idle != null) {
-      var __idle = _o.Idle.ToArray();
-      _idle = CreateIdleVector(builder, __idle);
+      var __Idle = _o.Idle.ToArray();
+      _Idle = CreateIdleVector(builder, __Idle);
     }
     return CreateScenarioExcel(
       builder,
       _None,
-      _idle,
+      _Idle,
       _o.Cafe,
       _o.Talk,
       _o.Open,

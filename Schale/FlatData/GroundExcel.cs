@@ -10,19 +10,6 @@ using global::System.Collections.Generic;
 using global::Schale.Crypto;
 using global::Google.FlatBuffers;
 
-// The shipped ExcelDB writes 59 field slots here against this model's 58, and the one it does not
-// declare is data slot 54 rather than a trailing field, so the four passive-skill vectors below sit
-// at slots 55..58. Read consecutively, AllyPassiveSkillId decoded slot 54 -- a plain integer, not a
-// vector offset -- so UnPack threw and ExcelTableService dropped 227 of the 4424 rows. Only rows
-// whose vtable reaches that far were affected, which is why the table still looked mostly fine.
-//
-// Slot 54 is where the omission is rather than anywhere else in 47..54 because the three float
-// fields land exactly: data slots 50, 51 and 52 all hold the constant 1062836634, which is 0.85f
-// bit-for-bit, matching three UI scale columns sharing a default. Shifting the omission earlier
-// would put one of them on slot 53 (integer 1, a denormal read as float) or on slot 54 (8540000,
-// likewise meaningless as a scale), and would break the trio up. Slot 54's own value is id-shaped
-// and populated in 42 rows; naming it needs the client's global-metadata, so it is left undeclared
-// and simply unread.
 public struct GroundExcel : IFlatbufferObject
 {
   private Table __p;
@@ -106,6 +93,7 @@ public struct GroundExcel : IFlatbufferObject
   public float UIEmojiScale { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
   public float UISkillMainLogScale { get { int o = __p.__offset(108); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
   public int EffectCountLimit { get { int o = __p.__offset(110); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CarrierSkillGroupId { get { int o = __p.__offset(112); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public string AllyPassiveSkillId(int j) { int o = __p.__offset(114); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int AllyPassiveSkillIdLength { get { int o = __p.__offset(114); return o != 0 ? __p.__vector_len(o) : 0; } }
   public int AllyPassiveSkillLevel(int j) { int o = __p.__offset(116); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
@@ -182,11 +170,13 @@ public struct GroundExcel : IFlatbufferObject
       float UIEmojiScale = 0.0f,
       float UISkillMainLogScale = 0.0f,
       int EffectCountLimit = 0,
+      long CarrierSkillGroupId = 0,
       VectorOffset AllyPassiveSkillIdOffset = default(VectorOffset),
       VectorOffset AllyPassiveSkillLevelOffset = default(VectorOffset),
       VectorOffset EnemyPassiveSkillIdOffset = default(VectorOffset),
       VectorOffset EnemyPassiveSkillLevelOffset = default(VectorOffset)) {
     builder.StartTable(59);
+    GroundExcel.AddCarrierSkillGroupId(builder, CarrierSkillGroupId);
     GroundExcel.AddBGMId(builder, BGMId);
     GroundExcel.AddTSSAirUnitHeight(builder, TSSAirUnitHeight);
     GroundExcel.AddEnemyMinimumPositionGapRate(builder, EnemyMinimumPositionGapRate);
@@ -308,6 +298,7 @@ public struct GroundExcel : IFlatbufferObject
   public static void AddUIEmojiScale(FlatBufferBuilder builder, float uIEmojiScale) { builder.AddFloat(51, uIEmojiScale, 0.0f); }
   public static void AddUISkillMainLogScale(FlatBufferBuilder builder, float uISkillMainLogScale) { builder.AddFloat(52, uISkillMainLogScale, 0.0f); }
   public static void AddEffectCountLimit(FlatBufferBuilder builder, int effectCountLimit) { builder.AddInt(53, effectCountLimit, 0); }
+  public static void AddCarrierSkillGroupId(FlatBufferBuilder builder, long carrierSkillGroupId) { builder.AddLong(54, carrierSkillGroupId, 0); }
   public static void AddAllyPassiveSkillId(FlatBufferBuilder builder, VectorOffset allyPassiveSkillIdOffset) { builder.AddOffset(55, allyPassiveSkillIdOffset.Value, 0); }
   public static VectorOffset CreateAllyPassiveSkillIdVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
@@ -398,6 +389,7 @@ public struct GroundExcel : IFlatbufferObject
     _o.UIEmojiScale = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UIEmojiScale, key) : this.UIEmojiScale;
     _o.UISkillMainLogScale = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UISkillMainLogScale, key) : this.UISkillMainLogScale;
     _o.EffectCountLimit = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EffectCountLimit, key) : this.EffectCountLimit;
+    _o.CarrierSkillGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CarrierSkillGroupId, key) : this.CarrierSkillGroupId;
     _o.AllyPassiveSkillId = new List<string>();
     for (var _j = 0; _j < this.AllyPassiveSkillIdLength; ++_j) {_o.AllyPassiveSkillId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AllyPassiveSkillId(_j), key) : this.AllyPassiveSkillId(_j));}
     _o.AllyPassiveSkillLevel = new List<int>();
@@ -496,6 +488,7 @@ public struct GroundExcel : IFlatbufferObject
       _o.UIEmojiScale,
       _o.UISkillMainLogScale,
       _o.EffectCountLimit,
+      _o.CarrierSkillGroupId,
       _AllyPassiveSkillId,
       _AllyPassiveSkillLevel,
       _EnemyPassiveSkillId,
@@ -559,6 +552,7 @@ public class GroundExcelT
   public float UIEmojiScale { get; set; }
   public float UISkillMainLogScale { get; set; }
   public int EffectCountLimit { get; set; }
+  public long CarrierSkillGroupId { get; set; }
   public List<string> AllyPassiveSkillId { get; set; }
   public List<int> AllyPassiveSkillLevel { get; set; }
   public List<string> EnemyPassiveSkillId { get; set; }
@@ -619,6 +613,7 @@ public class GroundExcelT
     this.UIEmojiScale = 0.0f;
     this.UISkillMainLogScale = 0.0f;
     this.EffectCountLimit = 0;
+    this.CarrierSkillGroupId = 0;
     this.AllyPassiveSkillId = null;
     this.AllyPassiveSkillLevel = null;
     this.EnemyPassiveSkillId = null;
@@ -686,6 +681,7 @@ static public class GroundExcelVerify
       && verifier.VerifyField(tablePos, 106 /*UIEmojiScale*/, 4 /*float*/, 4, false)
       && verifier.VerifyField(tablePos, 108 /*UISkillMainLogScale*/, 4 /*float*/, 4, false)
       && verifier.VerifyField(tablePos, 110 /*EffectCountLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 112 /*CarrierSkillGroupId*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfStrings(tablePos, 114 /*AllyPassiveSkillId*/, false)
       && verifier.VerifyVectorOfData(tablePos, 116 /*AllyPassiveSkillLevel*/, 4 /*int*/, false)
       && verifier.VerifyVectorOfStrings(tablePos, 118 /*EnemyPassiveSkillId*/, false)

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using BlueArchiveAPI.Configuration;
@@ -57,20 +58,20 @@ namespace Shittim_Server.Services
             // The 4th occurrence (`mov eax,0x2FCDB393`/B8, in a transaction-status function) is left alone - patching it produces a spurious "Your product is on the way" popup.
             new(
                 "ifinpay-checkprecond-enter-suppress-1",
-                Hex("4C 8D 85 90 00 00 00 BA 93 B3 CD 2F 48 8D 4D 80"),
-                Hex("4C 8D 85 90 00 00 00 BA 00 00 00 00 48 8D 4D 80"),
+                Hex("4C 8D 4D 68 BA 93 B3 CD 2F 4C 8D 45 C8 48 8D 4C 24 48"),
+                Hex("4C 8D 4D 68 BA 00 00 00 00 4C 8D 45 C8 48 8D 4C 24 48"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #1)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
             new(
                 "ifinpay-checkprecond-enter-suppress-2",
-                Hex("E8 D0 85 72 00 BA 93 B3 CD 2F 48 8D 8D B0 00 00 00"),
-                Hex("E8 D0 85 72 00 BA 00 00 00 00 48 8D 8D B0 00 00 00"),
+                Hex("48 8B CB E8 85 5A 25 00 BA 93 B3 CD 2F 48 8D 4D 48"),
+                Hex("48 8B CB E8 85 5A 25 00 BA 00 00 00 00 48 8D 4D 48"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #2)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
             new(
                 "ifinpay-checkprecond-enter-suppress-3",
-                Hex("48 89 44 24 40 BA 93 B3 CD 2F 48 8D 8D B0 00 00 00"),
-                Hex("48 89 44 24 40 BA 00 00 00 00 48 8D 8D B0 00 00 00"),
+                Hex("BA 93 B3 CD 2F 48 8D 4D 48 48 8B D8"),
+                Hex("BA 00 00 00 00 48 8D 4D 48 48 8B D8"),
                 "mov edx,802010003 (IFInpay Failed Enter Request #3)",
                 "mov edx,0 (suppress IAP enter precondition error)"),
         ];
@@ -142,7 +143,16 @@ namespace Shittim_Server.Services
                 "http://192.168.20.1:5000/ims/public/v1"     // also matches a stale LAN IP left by an earlier patch run
             ],
             false,
-            false)
+            false),
+            // gamescale maps any non-200 from stamp to 801010009, which the title screen shows before login, so this base has to reach us without mitm in front of it. The full form also matches the live01 slot; patching that one alongside is harmless, it is the same service.
+            new("stamp-live-full-base", true, "/stamp/live", "", 40, PatchPadding.Null,
+            [
+                "https://public.api.nexon.com/stamp/live"
+            ]),
+            new("stamp-live-host-base", false, "/stamp/live", "", 32, PatchPadding.Null,
+            [
+                "public.api.nexon.com/stamp/live"
+            ])
         ];
 
         private static readonly StringPatchDefinition[] InfaceStringPatches =
@@ -182,11 +192,9 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientGamescaleCorePath,
                 () =>
                 [
-                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "gamescale.core.dll")) ?? "",
-                    @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\gamescale.core.dll",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "gamescale.core.dll")
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "gamescale.core.dll")) ?? ""
                 ],
-                true,
+                3,
                 GamescaleBinaryPatches,
                 NativeStringPatches),
             new(
@@ -198,11 +206,9 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientNexonPlatformModulesPath,
                 () =>
                 [
-                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")) ?? "",
-                    @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\NexonPlatformModules.dll",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")) ?? ""
                 ],
-                true,
+                3,
                 NoBinaryPatches,
                 NativeStringPatches),
             new(
@@ -214,11 +220,9 @@ namespace Shittim_Server.Services
                 () => Config.Instance.ServerConfiguration.ClientInfacePath,
                 () =>
                 [
-                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "inface.dll")) ?? "",
-                    @"F:\SteamLibrary\steamapps\common\BlueArchive\BlueArchive_Data\Plugins\x86_64\inface.dll",
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam", "steamapps", "common", "BlueArchive", "BlueArchive_Data", "Plugins", "x86_64", "inface.dll")
+                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "inface.dll")) ?? ""
                 ],
-                false,
+                0,
                 NoBinaryPatches,
                 InfaceStringPatches)
         ];
@@ -269,7 +273,23 @@ namespace Shittim_Server.Services
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Failed to patch {ModuleName} IAS routing", module.DisplayName);
+                    // Half the modules routed at the loopback server and half still pointing at nexon.com is worse than none of them: the client gets far enough to look like it is working and then fails somewhere unrelated to the module that actually broke. Put the ones that did patch back and leave the install alone.
+                    logger.LogError(ex, "Failed to patch {ModuleName} IAS routing; rolling back the modules already patched", module.DisplayName);
+
+                    foreach (var patched in patchStates.AsEnumerable().Reverse())
+                    {
+                        try
+                        {
+                            RestoreModule(patched);
+                        }
+                        catch (Exception restoreEx)
+                        {
+                            logger.LogError(restoreEx, "Failed to roll back {ModuleName} IAS routing", patched.DisplayName);
+                        }
+                    }
+
+                    patchStates.Clear();
+                    return Task.CompletedTask;
                 }
             }
 
@@ -328,16 +348,12 @@ namespace Shittim_Server.Services
             var data = File.ReadAllBytes(path);
             var activePatches = new List<PatchResult>();
 
-            if (module.PatchSchemeBuilder)
+            if (module.SchemeBuilderMatches > 0)
                 activePatches.AddRange(ResolveSchemePatches(module, data, existingState));
 
             foreach (var definition in module.BinaryPatches)
             {
-                var results = ResolveBinaryPatch(module, data, existingState, definition);
-                if (results.Count == 0)
-                    logger.LogWarning("{ModuleName} IAS binary patch target was not found: {PatchName}", module.DisplayName, definition.Name);
-
-                activePatches.AddRange(results);
+                activePatches.AddRange(ResolveBinaryPatch(module, data, existingState, definition));
             }
 
             foreach (var definition in module.StringPatches)
@@ -363,14 +379,30 @@ namespace Shittim_Server.Services
 
             logger.LogInformation("{ModuleName} IAS patch target is http://{Host}:{Port}", module.DisplayName, target.Host, target.Port);
 
+            var state = new ModulePatchState
+            {
+                ModuleName = module.Name,
+                DisplayName = module.DisplayName,
+                ModulePath = path,
+                TargetHost = target.Host,
+                TargetPort = target.Port,
+                // A module we are about to patch for the first time is pristine right now, so this is the hash restore has to land back on. Once a state file exists the hash it carries is the only one there is, empty included: the file in front of us is the patched one by then, and hashing it would record our own bytes as the thing to restore to and then cheerfully verify against them. State written before this field existed therefore stays unverified rather than verified against the wrong answer.
+                OriginalSha256 = existingState != null ? existingState.OriginalSha256 : Sha256(data),
+                Patches = activePatches.Select(x => x.Entry).ToList()
+            };
+
+            // Written before the bytes are, so an interrupted patch is still a described patch. The other order leaves a modified DLL that nothing knows how to undo, and the user finds out when Steam tells them a file failed verification.
+            SaveState(statePath, state);
+
+            var content = data;
             if (writePlans.Count > 0)
             {
-                using var stream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+                // Re-read rather than reuse data: RestoreStalePatches has been over the file since, and its work would be lost by writing back a buffer taken before it ran.
+                content = File.ReadAllBytes(path);
                 foreach (var plan in writePlans)
                 {
                     var patched = Convert.FromBase64String(plan.Entry.Patched);
-                    stream.Position = plan.Entry.Offset;
-                    stream.Write(patched, 0, patched.Length);
+                    patched.CopyTo(content, plan.Entry.Offset);
                     logger.LogInformation(
                         "Patched {ModuleName} IAS {PatchName} at 0x{Offset:X}: {Before} -> {After}",
                         module.DisplayName,
@@ -380,8 +412,11 @@ namespace Shittim_Server.Services
                         plan.Entry.After);
                 }
 
-                stream.Flush(true);
+                WriteAtomic(path, content);
             }
+
+            state.PatchedSha256 = Sha256(content);
+            SaveState(statePath, state);
 
             foreach (var plan in activePatches.Except(writePlans))
             {
@@ -393,20 +428,24 @@ namespace Shittim_Server.Services
                     plan.Entry.After);
             }
 
-            var state = new ModulePatchState
-            {
-                ModuleName = module.Name,
-                DisplayName = module.DisplayName,
-                ModulePath = path,
-                TargetHost = target.Host,
-                TargetPort = target.Port,
-                Patches = activePatches.Select(x => x.Entry).ToList()
-            };
-
-            SaveState(statePath, state);
             logger.LogInformation("{ModuleName} IAS patch state saved: {StatePath}", module.DisplayName, statePath);
             return state;
         }
+
+        // Same-directory temp plus a rename, so the module is either the file we read or the file we built and never a half-written mixture of the two. A dozen seeks into a live DLL is the shape that leaves a client Steam has to repair.
+        private static void WriteAtomic(string path, byte[] content)
+        {
+            var temp = path + ".shittim_tmp";
+            using (var stream = File.Open(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                stream.Write(content, 0, content.Length);
+                stream.Flush(true);
+            }
+
+            File.Move(temp, path, true);
+        }
+
+        private static string Sha256(byte[] content) => Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant();
 
         private void RestoreStalePatches(ModulePatchDefinition module, string path, ModulePatchState existingState, List<PatchResult> activePatches)
         {
@@ -473,47 +512,56 @@ namespace Shittim_Server.Services
             }
 
             var skipped = 0;
+            var reverted = 0;
+            var content = File.ReadAllBytes(path);
 
-            using (var stream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
+            foreach (var patch in state.Patches)
             {
-                foreach (var patch in state.Patches)
+                var original = Convert.FromBase64String(patch.Original);
+                var patched = Convert.FromBase64String(patch.Patched);
+
+                if (patch.Offset < 0 || patch.Offset + original.Length > content.LongLength)
                 {
-                    var original = Convert.FromBase64String(patch.Original);
-                    var patched = Convert.FromBase64String(patch.Patched);
-
-                    if (patch.Offset < 0 || patch.Offset + original.Length > stream.Length)
-                    {
-                        skipped++;
-                        logger.LogWarning("Skipping {ModuleName} IAS restore for {PatchName}; saved offset is outside the file", state.DisplayName, patch.Name);
-                        continue;
-                    }
-
-                    var current = new byte[original.Length];
-                    stream.Position = patch.Offset;
-                    stream.ReadExactly(current, 0, current.Length);
-
-                    if (current.SequenceEqual(original))
-                        continue;
-
-                    if (!current.SequenceEqual(patched))
-                    {
-                        skipped++;
-                        logger.LogWarning("Skipping {ModuleName} IAS restore for {PatchName}; bytes changed after startup", state.DisplayName, patch.Name);
-                        continue;
-                    }
-
-                    stream.Position = patch.Offset;
-                    stream.Write(original, 0, original.Length);
-                    logger.LogInformation(
-                        "Restored {ModuleName} IAS {PatchName} at 0x{Offset:X}: {After} -> {Before}",
-                        state.DisplayName,
-                        patch.Name,
-                        patch.Offset,
-                        patch.After,
-                        patch.Before);
+                    skipped++;
+                    logger.LogWarning("Skipping {ModuleName} IAS restore for {PatchName}; saved offset is outside the file", state.DisplayName, patch.Name);
+                    continue;
                 }
 
-                stream.Flush(true);
+                var current = Slice(content, patch.Offset, original.Length);
+                if (current.SequenceEqual(original))
+                    continue;
+
+                if (!current.SequenceEqual(patched))
+                {
+                    skipped++;
+                    logger.LogWarning("Skipping {ModuleName} IAS restore for {PatchName}; bytes changed after startup", state.DisplayName, patch.Name);
+                    continue;
+                }
+
+                original.CopyTo(content, patch.Offset);
+                reverted++;
+                logger.LogInformation(
+                    "Restored {ModuleName} IAS {PatchName} at 0x{Offset:X}: {After} -> {Before}",
+                    state.DisplayName,
+                    patch.Name,
+                    patch.Offset,
+                    patch.After,
+                    patch.Before);
+            }
+
+            if (reverted > 0)
+                WriteAtomic(path, content);
+
+            // The file has to hash back to what it was before we touched it, or it is not the official client any more no matter how many individual reverts reported success. A module that only mostly matches is the one that leaves the game sat on "Unpacking game resources" until Steam verifies the files, so say which file and keep the state so the next start tries again.
+            if (state.OriginalSha256 is { Length: > 0 } expected)
+            {
+                var actual = Sha256(content);
+                if (actual != expected)
+                {
+                    logger.LogError("{ModuleName} did not restore to its original contents: {ModulePath} is {Actual}, expected {Expected}. Verify the game files through Steam.",
+                        state.DisplayName, path, actual, expected);
+                    return;
+                }
             }
 
             if (skipped == 0 && File.Exists(statePath))
@@ -541,12 +589,6 @@ namespace Shittim_Server.Services
 
             foreach (var offset in FindAll(data, HttpSchemeBuilder))
                 offsets.Add(offset);
-
-            if (offsets.Count == 0)
-            {
-                logger.LogWarning("{ModuleName} IAS https/http scheme builder patch target was not found", module.DisplayName);
-                return [];
-            }
 
             // ALL scheme-builder constants (each the compiled `mov [len],8; mov rax,'https://'` sequence) are patched to http://.
             // gamescale has three of these inside sibling base-URL builders (toy/Bolt = sub_180046230, IAS = sub_180049870, IMS = sub_18004B650); every one of those bases is routed to our LOOPBACK server (the IAS/IMS bases via string patches and the toy/Bolt host via the "toy-bolt-host-loopback" binary patch), and the loopback server is plain HTTP, so the scheme MUST be http:// for all of them.
@@ -582,6 +624,13 @@ namespace Shittim_Server.Services
                 }, current));
 
                 index++;
+            }
+
+            if (results.Count != module.SchemeBuilderMatches)
+            {
+                logger.LogError("{ModuleName} IAS https/http scheme builder matched {MatchCount} constants, expected {Expected} - skipping it. The module is a build these offsets were not measured against.",
+                    module.DisplayName, results.Count, module.SchemeBuilderMatches);
+                return [];
             }
 
             return results;
@@ -634,8 +683,13 @@ namespace Shittim_Server.Services
                 }, current));
             }
 
-            if (results.Count > 1)
-                logger.LogWarning("{ModuleName} IAS binary patch {PatchName} matched {MatchCount} locations", module.DisplayName, definition.Name, results.Count);
+            // A byte signature that hits a different number of sites than it was written against is not the code we studied, so there is nothing to say about which of the matches is the right one. Refusing the whole definition costs a broken IAS route; guessing costs a corrupted DLL the user has to verify through Steam.
+            if (results.Count != definition.ExpectedMatches)
+            {
+                logger.LogError("{ModuleName} IAS binary patch {PatchName} matched {MatchCount} locations, expected {Expected} - skipping it. The module is a build this signature was not written for.",
+                    module.DisplayName, definition.Name, results.Count, definition.ExpectedMatches);
+                return [];
+            }
 
             return results;
         }
@@ -951,7 +1005,7 @@ namespace Shittim_Server.Services
             string PathEnvironmentVariable,
             Func<string> GetConfiguredPath,
             Func<string[]> GetDefaultPaths,
-            bool PatchSchemeBuilder,
+            int SchemeBuilderMatches,
             BinaryPatchDefinition[] BinaryPatches,
             StringPatchDefinition[] StringPatches);
 
@@ -960,7 +1014,8 @@ namespace Shittim_Server.Services
             byte[] Original,
             byte[] Patched,
             string Before,
-            string After);
+            string After,
+            int ExpectedMatches = 1);
 
         private sealed record StringPatchDefinition(
             string Name,
@@ -982,6 +1037,8 @@ namespace Shittim_Server.Services
             public string ModulePath { get; set; } = "";
             public string TargetHost { get; set; } = "";
             public string TargetPort { get; set; } = "";
+            public string OriginalSha256 { get; set; } = "";
+            public string PatchedSha256 { get; set; } = "";
             public List<NativeIasPatchEntry> Patches { get; set; } = [];
         }
 

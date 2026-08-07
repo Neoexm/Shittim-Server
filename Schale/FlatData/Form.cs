@@ -20,21 +20,21 @@ public struct Form : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public Form __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public Schale.FlatData.MoveEnd? MoveEndOffset { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.MoveEnd?)(new Schale.FlatData.MoveEnd()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
-  public Schale.FlatData.Motion? PublicSkillOffset { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.MoveEnd? MoveEnd { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.MoveEnd?)(new Schale.FlatData.MoveEnd()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? PublicSkill { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
 
   public static Offset<Schale.FlatData.Form> CreateForm(FlatBufferBuilder builder,
-      Offset<Schale.FlatData.MoveEnd> MoveEndOffsetOffset = default(Offset<Schale.FlatData.MoveEnd>),
-      Offset<Schale.FlatData.Motion> PublicSkillOffsetOffset = default(Offset<Schale.FlatData.Motion>)) {
+      Offset<Schale.FlatData.MoveEnd> MoveEndOffset = default(Offset<Schale.FlatData.MoveEnd>),
+      Offset<Schale.FlatData.Motion> PublicSkillOffset = default(Offset<Schale.FlatData.Motion>)) {
     builder.StartTable(2);
-    Form.AddPublicSkillOffset(builder, PublicSkillOffsetOffset);
-    Form.AddMoveEndOffset(builder, MoveEndOffsetOffset);
+    Form.AddPublicSkill(builder, PublicSkillOffset);
+    Form.AddMoveEnd(builder, MoveEndOffset);
     return Form.EndForm(builder);
   }
 
   public static void StartForm(FlatBufferBuilder builder) { builder.StartTable(2); }
-  public static void AddMoveEndOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.MoveEnd> moveEndOffsetOffset) { builder.AddOffset(0, moveEndOffsetOffset.Value, 0); }
-  public static void AddPublicSkillOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> publicSkillOffsetOffset) { builder.AddOffset(1, publicSkillOffsetOffset.Value, 0); }
+  public static void AddMoveEnd(FlatBufferBuilder builder, Offset<Schale.FlatData.MoveEnd> moveEndOffset) { builder.AddOffset(0, moveEndOffset.Value, 0); }
+  public static void AddPublicSkill(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> publicSkillOffset) { builder.AddOffset(1, publicSkillOffset.Value, 0); }
   public static Offset<Schale.FlatData.Form> EndForm(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.Form>(o);
@@ -46,28 +46,28 @@ public struct Form : IFlatbufferObject
   }
   public void UnPackTo(FormT _o) {
 		byte[] key = TableEncryptionService.CreateKey("FormT");
-    _o.MoveEndOffset = this.MoveEndOffset.HasValue ? this.MoveEndOffset.Value.UnPack() : null;
-    _o.PublicSkillOffset = this.PublicSkillOffset.HasValue ? this.PublicSkillOffset.Value.UnPack() : null;
+    _o.MoveEnd = this.MoveEnd.HasValue ? this.MoveEnd.Value.UnPack() : null;
+    _o.PublicSkill = this.PublicSkill.HasValue ? this.PublicSkill.Value.UnPack() : null;
   }
   public static Offset<Schale.FlatData.Form> Pack(FlatBufferBuilder builder, FormT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.Form>);
-    var _MoveEndOffset = _o.MoveEndOffset == null ? default(Offset<Schale.FlatData.MoveEnd>) : Schale.FlatData.MoveEnd.Pack(builder, _o.MoveEndOffset);
-    var _PublicSkillOffset = _o.PublicSkillOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.PublicSkillOffset);
+    var _MoveEnd = _o.MoveEnd == null ? default(Offset<Schale.FlatData.MoveEnd>) : Schale.FlatData.MoveEnd.Pack(builder, _o.MoveEnd);
+    var _PublicSkill = _o.PublicSkill == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.PublicSkill);
     return CreateForm(
       builder,
-      _MoveEndOffset,
-      _PublicSkillOffset);
+      _MoveEnd,
+      _PublicSkill);
   }
 }
 
 public class FormT
 {
-  public Schale.FlatData.MoveEndT MoveEndOffset { get; set; }
-  public Schale.FlatData.MotionT PublicSkillOffset { get; set; }
+  public Schale.FlatData.MoveEndT MoveEnd { get; set; }
+  public Schale.FlatData.MotionT PublicSkill { get; set; }
 
   public FormT() {
-    this.MoveEndOffset = null;
-    this.PublicSkillOffset = null;
+    this.MoveEnd = null;
+    this.PublicSkill = null;
   }
 }
 
@@ -77,8 +77,8 @@ static public class FormVerify
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
     return verifier.VerifyTableStart(tablePos)
-      && verifier.VerifyTable(tablePos, 4 /*MoveEndOffset*/, Schale.FlatData.MoveEndVerify.Verify, false)
-      && verifier.VerifyTable(tablePos, 6 /*PublicSkillOffset*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 4 /*MoveEnd*/, Schale.FlatData.MoveEndVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 6 /*PublicSkill*/, Schale.FlatData.MotionVerify.Verify, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

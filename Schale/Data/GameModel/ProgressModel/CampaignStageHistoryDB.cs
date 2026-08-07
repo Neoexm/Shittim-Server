@@ -43,6 +43,8 @@ namespace Schale.Data.GameModel
             Star1Flag = false;
             Star2Flag = false;
             Star3Flag = false;
+            // every caller builds this on a clear, and IsClearedEver is the only thing the client's CampaignService counts when deciding what a history row unlocks - stars and turn records don't open anything
+            IsClearedEver = true;
             LastPlay = dateTime;
             TodayPlayCount = 1;
             FirstClearRewardReceive = dateTime;

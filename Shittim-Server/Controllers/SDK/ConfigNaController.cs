@@ -21,6 +21,9 @@ namespace Shittim_Server.Controllers.SDK
 
         [HttpGet("{key}")]
         [HttpPost("{key}")]
+        // the SDK also asks for these straight off the host root, which 404'd and produced exactly the stall described above
+        [HttpGet("/{key:regex(^na_)}")]
+        [HttpPost("/{key:regex(^na_)}")]
         public IResult GetConfiguration(string key)
         {
             _logger.LogInformation("[config.na] {Method} /v2/configurations/{Key}{Query}",

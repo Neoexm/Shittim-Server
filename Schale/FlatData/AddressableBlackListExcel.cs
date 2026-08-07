@@ -28,12 +28,12 @@ public struct AddressableBlackListExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.AddressableBlackListExcel> CreateAddressableBlackListExcel(FlatBufferBuilder builder,
       long Id = 0,
-      VectorOffset folderPathOffset = default(VectorOffset),
+      VectorOffset FolderPathOffset = default(VectorOffset),
       VectorOffset ResourcePathOffset = default(VectorOffset)) {
     builder.StartTable(3);
     AddressableBlackListExcel.AddId(builder, Id);
     AddressableBlackListExcel.AddResourcePath(builder, ResourcePathOffset);
-    AddressableBlackListExcel.AddFolderPath(builder, folderPathOffset);
+    AddressableBlackListExcel.AddFolderPath(builder, FolderPathOffset);
     return AddressableBlackListExcel.EndAddressableBlackListExcel(builder);
   }
 
@@ -70,11 +70,11 @@ public struct AddressableBlackListExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.AddressableBlackListExcel> Pack(FlatBufferBuilder builder, AddressableBlackListExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.AddressableBlackListExcel>);
-    var _folderPath = default(VectorOffset);
+    var _FolderPath = default(VectorOffset);
     if (_o.FolderPath != null) {
-      var __folderPath = new StringOffset[_o.FolderPath.Count];
-      for (var _j = 0; _j < __folderPath.Length; ++_j) { __folderPath[_j] = builder.CreateString(_o.FolderPath[_j]); }
-      _folderPath = CreateFolderPathVector(builder, __folderPath);
+      var __FolderPath = new StringOffset[_o.FolderPath.Count];
+      for (var _j = 0; _j < __FolderPath.Length; ++_j) { __FolderPath[_j] = builder.CreateString(_o.FolderPath[_j]); }
+      _FolderPath = CreateFolderPathVector(builder, __FolderPath);
     }
     var _ResourcePath = default(VectorOffset);
     if (_o.ResourcePath != null) {
@@ -85,7 +85,7 @@ public struct AddressableBlackListExcel : IFlatbufferObject
     return CreateAddressableBlackListExcel(
       builder,
       _o.Id,
-      _folderPath,
+      _FolderPath,
       _ResourcePath);
   }
 }

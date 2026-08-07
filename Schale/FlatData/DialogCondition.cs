@@ -38,6 +38,9 @@ public enum DialogCondition : int
   MiniGameDreamMakerDefault = 28,
   PassLevelUp = 29,
   UnlockPassReward = 30,
+  ClueSearch = 31,
+  ClueRegistration = 32,
+  ClueCompletion = 33,
 };
 
 

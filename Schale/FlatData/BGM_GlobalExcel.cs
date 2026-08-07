@@ -29,17 +29,17 @@ public struct BGM_GlobalExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.BGM_GlobalExcel> CreateBGM_GlobalExcel(FlatBufferBuilder builder,
       long GroupBGMId = 0,
-      long BGMIdKr = 0,
-      long BGMIdJp = 0,
-      long BGMIdTh = 0,
-      long BGMIdTw = 0,
-      long BGMIdEn = 0) {
+      long BGMId_Kr = 0,
+      long BGMId_Jp = 0,
+      long BGMId_Th = 0,
+      long BGMId_Tw = 0,
+      long BGMId_En = 0) {
     builder.StartTable(6);
-    BGM_GlobalExcel.AddBGMIdEn(builder, BGMIdEn);
-    BGM_GlobalExcel.AddBGMIdTw(builder, BGMIdTw);
-    BGM_GlobalExcel.AddBGMIdTh(builder, BGMIdTh);
-    BGM_GlobalExcel.AddBGMIdJp(builder, BGMIdJp);
-    BGM_GlobalExcel.AddBGMIdKr(builder, BGMIdKr);
+    BGM_GlobalExcel.AddBGMIdEn(builder, BGMId_En);
+    BGM_GlobalExcel.AddBGMIdTw(builder, BGMId_Tw);
+    BGM_GlobalExcel.AddBGMIdTh(builder, BGMId_Th);
+    BGM_GlobalExcel.AddBGMIdJp(builder, BGMId_Jp);
+    BGM_GlobalExcel.AddBGMIdKr(builder, BGMId_Kr);
     BGM_GlobalExcel.AddGroupBGMId(builder, GroupBGMId);
     return BGM_GlobalExcel.EndBGM_GlobalExcel(builder);
   }

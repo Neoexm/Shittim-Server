@@ -10,24 +10,27 @@ namespace Shittim_Server.Controllers.SDK
         [HttpGet("blacklist")]
         public IResult GetBlacklistCsv()
         {
-            Response.ContentType = "text/csv";
-            return Results.Text(string.Empty);
+            return WordList("blacklist");
         }
 
         [HttpGet("chattingblacklist.csv")]
         [HttpGet("chattingblacklist")]
         public IResult GetChattingBlacklistCsv()
         {
-            Response.ContentType = "text/csv";
-            return Results.Text(string.Empty);
+            return WordList("chattingblacklist");
         }
 
         [HttpGet("whitelist.csv")]
         [HttpGet("whitelist")]
         public IResult GetWhitelistCsv()
         {
-            Response.ContentType = "text/csv";
-            return Results.Text(string.Empty);
+            return WordList("whitelist");
+        }
+
+        // pkzip-encrypted with base64(TableService.CreatePassword(last url segment)), so the route name is what the file has to be built against. an empty body is not an option: Unity's downloadHandler.data is null rather than a zero-length array, and ProhibitedWordDownLoadService feeds it straight into new MemoryStream()
+        private static IResult WordList(string name)
+        {
+            return Results.File(Path.Combine(AppContext.BaseDirectory, "Data", "ProhibitedWord", name + ".zip"), "application/zip");
         }
     }
 }

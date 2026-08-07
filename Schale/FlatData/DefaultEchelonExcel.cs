@@ -44,12 +44,12 @@ public struct DefaultEchelonExcel : IFlatbufferObject
       int EchlonId = 0,
       long LeaderId = 0,
       VectorOffset MainIdOffset = default(VectorOffset),
-      VectorOffset supportIdOffset = default(VectorOffset),
+      VectorOffset SupportIdOffset = default(VectorOffset),
       long TssId = 0) {
     builder.StartTable(5);
     DefaultEchelonExcel.AddTssId(builder, TssId);
     DefaultEchelonExcel.AddLeaderId(builder, LeaderId);
-    DefaultEchelonExcel.AddSupportId(builder, supportIdOffset);
+    DefaultEchelonExcel.AddSupportId(builder, SupportIdOffset);
     DefaultEchelonExcel.AddMainId(builder, MainIdOffset);
     DefaultEchelonExcel.AddEchlonId(builder, EchlonId);
     return DefaultEchelonExcel.EndDefaultEchelonExcel(builder);
@@ -97,17 +97,17 @@ public struct DefaultEchelonExcel : IFlatbufferObject
       var __MainId = _o.MainId.ToArray();
       _MainId = CreateMainIdVector(builder, __MainId);
     }
-    var _supportId = default(VectorOffset);
+    var _SupportId = default(VectorOffset);
     if (_o.SupportId != null) {
-      var __supportId = _o.SupportId.ToArray();
-      _supportId = CreateSupportIdVector(builder, __supportId);
+      var __SupportId = _o.SupportId.ToArray();
+      _SupportId = CreateSupportIdVector(builder, __SupportId);
     }
     return CreateDefaultEchelonExcel(
       builder,
       _o.EchlonId,
       _o.LeaderId,
       _MainId,
-      _supportId,
+      _SupportId,
       _o.TssId);
   }
 }

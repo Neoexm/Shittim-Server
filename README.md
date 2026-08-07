@@ -1,93 +1,30 @@
 # Shittim Server
 
-A functional Blue Archive private server implemented in C# on ASP.NET Core (.NET 10).
+A private server for Blue Archive's Steam release, written in C# on ASP.NET Core (.NET 10). Progress lives in a local SQLite database, and it's far enough along that the game is just playable: log in, pull, clear stages, decorate the cafe.
 
-Official Discord - https://discord.gg/GANwPn9xX6
+Questions, bugs, support, or anything else: https://discord.gg/GANwPn9xX6
 
-## What it does
+## Features
 
-- Handles authentication and account management (Nexon / IAS / IMS login flow)
-- Implements the core MX game protocols with packet encryption/decryption
-- SQLite database for persistence
-- HAR logging for traffic analysis
-
-## Requirements
-
-- .NET 10 SDK
-- Blue Archive (Steam version)
-- Python 3.8+ and [mitmproxy](https://mitmproxy.org/) (including `mitmweb`) installed and available on `PATH`
-
-## Quick start
-
-1. Install the mitmproxy root certificate - once per machine, see [One-time setup](#one-time-setup).
-2. From the repository root, run the launcher:
-
-   ```powershell
-   .\autorun.ps1
-   ```
-
-3. Launch Blue Archive from Steam. It connects to Shittim Server instead of Nexon, and you can log in.
-
-## One-time setup
-
-### Install the mitmproxy root certificate (Windows, via mitm.it)
-
-You only need to do this once per machine.
-
-1. Install mitmproxy from the official site and ensure `mitmweb` runs in a terminal.
-2. Start mitmproxy:
-
-   ```powershell
-   mitmweb
-   ```
-
-   By default the proxy listens on `127.0.0.1:8080`.
-
-3. Temporarily configure your Windows HTTP/HTTPS proxy to use mitmproxy:
-
-   - Open **Settings → Network & Internet → Proxy**
-   - Enable **Use a proxy server**
-   - Address: `127.0.0.1`
-     Port: `8080`
-
-4. Open a browser on the same machine and visit:
-
-   ```
-   http://mitm.it
-   ```
-
-5. Click the **Windows** icon and download the certificate file.
-
-6. Double-click the downloaded certificate to open the **Certificate Import Wizard**.
-
-7. When asked _"Store Location"_, choose **Local Machine** (not _Current User_), then click **Next**.
-
-8. Select **"Place all certificates in the following store"**, click **Browse...**, and choose:
-
-   - **Trusted Root Certification Authorities**
-
-9. Finish the wizard and confirm the security warning.
-
-This installs the mitmproxy CA into the **machine** root store, which is what the Steam version of Blue Archive actually uses. You can now revert your system proxy settings; the certificate stays installed, and `autorun.ps1` hooks the game directly (it does not rely on the system proxy).
+- Play without touching the official servers
+- Pull on gacha banners with the real rates or custom rates, or set up whatever banner you want from the Control Center
+- Replay the koyuki incident
+- See hidden game notices
+- Replay any old event and minigame
+- Clear campaign stages: normal, hard, extra, sweeps, and strategy maps with a working enemy phase
+- Decorate the cafe, save and load presets, and get rotating visitors to invite
+- Claim daily/weekly missions, achievements and attendance rewards
+- Craft, open item boxes and select tickets, and spend in the shops (AP, eligma, secret stones)
+- Read the story at your own pace, or unlock all of it with one button
+- Give yourself any student, item or currency through the admin panel, and send yourself mail
+- Run as many accounts as you like from one install
 
 
-## Running the server
+## Installation
 
-From the repository root:
+Grab Shittim Control Center from the [releases page](https://github.com/Neoexm/Shittim-Server/releases). It handles the whole setup: downloads the server, installs the .NET 10 SDK and mitmproxy if they're missing, and trusts the proxy's CA certificate. When the readiness card says everything is ok, press the start server button, wait for the server to start then launch Blue Archive from Steam.
 
-```powershell
-.\autorun.ps1
-```
-
-This launcher:
-
-- Verifies the .NET SDK and `mitmweb` are installed (and exits with instructions if either is missing)
-- Starts the ASP.NET Core game server at `http://localhost:5000`
-- Starts `mitmweb` with the redirect addon, hooking `BlueArchive.exe` directly (web UI at `http://127.0.0.1:8081`)
-
-## Launch Blue Archive
-
-With the server and proxy running, start Blue Archive from Steam. If the certificate is installed and the server is up, the game connects to Shittim Server and you can log in to the private server.
+The Control Center acts as the admin panel. accounts, inventory, mail, gacha, events, and all other features can be found there. The console also keeps itself, aswell as the server fully up to date
 
 ## Disclaimer
 

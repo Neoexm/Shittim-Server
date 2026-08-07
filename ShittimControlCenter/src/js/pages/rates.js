@@ -42,7 +42,7 @@ export default {
       }});
 
       const ratesCard = el('div.card', {},
-        el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Drop rates' }), el('span.sub', { text: 'percent chance per pull' }), el('div.spacer', {}), totalTag),
+        el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Drop rates' }), el('div.spacer', {}), totalTag),
         el('div.card-body', {},
           el('div', { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', minWidth: 0 } }, frag('<span class="tag gold">★3 SSR</span>'), frag('<span class="tag grey">★2 SR</span>'), frag('<span class="tag">★1 R</span>')),
           bar,
@@ -54,8 +54,8 @@ export default {
       const guaranteedLabel = el('div', {});
       function paintGuaranteed() {
         clear(guaranteedLabel);
-        if (guaranteed) guaranteedLabel.appendChild(frag(`<div class="chip"><div class="chip-ic">${'★'}</div><div class="chip-main"><b>${escapeHtml(guaranteedName || ('Character ' + guaranteed))}</b><span>id ${guaranteed} - every pull yields this student</span></div></div>`));
-        else guaranteedLabel.appendChild(frag('<div class="muted" style="font-size:12.5px">No guaranteed pickup set - pulls use the rates above.</div>'));
+        if (guaranteed) guaranteedLabel.appendChild(frag(`<div class="chip"><div class="chip-ic">${'★'}</div><div class="chip-main"><b>${escapeHtml(guaranteedName || ('Character ' + guaranteed))}</b><span>id ${guaranteed}</span></div></div>`));
+        else guaranteedLabel.appendChild(frag('<div class="muted" style="font-size:12.5px">No guaranteed pickup set</div>'));
       }
       const pickGuaranteed = button('Choose student', { variant: 'ghost', sm: true, iconName: 'users', onClick: () => {
         openPicker({ title: 'Guaranteed student', loader: (q) => api.staticCharacters(q).then((r) => r.map((x) => ({ id: x.id, name: x.name, sub: `★${x.maxStar}` }))),
@@ -110,7 +110,7 @@ export default {
         const clearRates = ssr === 0 && sr === 0 && r === 0;
         try {
           await api.setGachaConfig({ ssr, sr, r, guaranteed, clearRates });
-          toast('Gacha rates saved', 'good', 'Applied');
+          toast('Gacha rates saved', 'good');
         } catch (e) { toast(e.message, 'bad'); }
       }
       async function reset() {

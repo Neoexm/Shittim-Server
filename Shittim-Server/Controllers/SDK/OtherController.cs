@@ -37,6 +37,30 @@ namespace Shittim_Server.Controllers.SDK
             return Results.Json(new {});
         }
 
+        // ToySteam reads is_free and price_overview out of this to work out the store currency before it asks Steam Inventory for item prices, and with nothing answering it the lobby comes up with "Failed to request prices".
+        [HttpGet("api/appdetails")]
+        public IResult AppDetails([FromQuery] string appids)
+        {
+            var details = new
+            {
+                success = true,
+                data = new
+                {
+                    type = "game",
+                    name = "Blue Archive",
+                    steam_appid = int.Parse(appids),
+                    required_age = 0,
+                    is_free = true,
+                    developers = new[] { "NEXON Games" },
+                    publishers = new[] { "NEXON Games" },
+                    platforms = new { windows = true, mac = false, linux = false },
+                    release_date = new { coming_soon = false, date = "6 Nov, 2024" }
+                }
+            };
+
+            return Results.Json(new Dictionary<string, object> { [appids] = details });
+        }
+
         [HttpGet("toy-push/live/sdk/push/policy")]
         [HttpPost("toy-push/live/sdk/push/policy")]
         // No [FromBody] parameter: the client queries this with a bodyless GET, and a required body binding made every one of those 400.

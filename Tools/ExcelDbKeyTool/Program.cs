@@ -9,7 +9,7 @@ internal static class Program
     private static int Main(string[] args)
     {
         if (args.Length == 1 && string.Equals(args[0], "--self-test", StringComparison.OrdinalIgnoreCase))
-            return ProtocolKeyDecoderSelfTest.Run();
+            return MemoryScanSelfTest.Run();
 
         ApplicationConfiguration.Initialize();
         Application.Run(new MainForm());

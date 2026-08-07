@@ -20,25 +20,25 @@ public struct MoveEnd : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public MoveEnd __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public Schale.FlatData.Motion? NormalOffset { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
-  public Schale.FlatData.Motion? StandOffset { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
-  public Schale.FlatData.Motion? KneelOffset { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? Normal { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? Stand { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
+  public Schale.FlatData.Motion? Kneel { get { int o = __p.__offset(8); return o != 0 ? (Schale.FlatData.Motion?)(new Schale.FlatData.Motion()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
 
   public static Offset<Schale.FlatData.MoveEnd> CreateMoveEnd(FlatBufferBuilder builder,
-      Offset<Schale.FlatData.Motion> NormalOffsetOffset = default(Offset<Schale.FlatData.Motion>),
-      Offset<Schale.FlatData.Motion> StandOffsetOffset = default(Offset<Schale.FlatData.Motion>),
-      Offset<Schale.FlatData.Motion> KneelOffsetOffset = default(Offset<Schale.FlatData.Motion>)) {
+      Offset<Schale.FlatData.Motion> NormalOffset = default(Offset<Schale.FlatData.Motion>),
+      Offset<Schale.FlatData.Motion> StandOffset = default(Offset<Schale.FlatData.Motion>),
+      Offset<Schale.FlatData.Motion> KneelOffset = default(Offset<Schale.FlatData.Motion>)) {
     builder.StartTable(3);
-    MoveEnd.AddKneelOffset(builder, KneelOffsetOffset);
-    MoveEnd.AddStandOffset(builder, StandOffsetOffset);
-    MoveEnd.AddNormalOffset(builder, NormalOffsetOffset);
+    MoveEnd.AddKneel(builder, KneelOffset);
+    MoveEnd.AddStand(builder, StandOffset);
+    MoveEnd.AddNormal(builder, NormalOffset);
     return MoveEnd.EndMoveEnd(builder);
   }
 
   public static void StartMoveEnd(FlatBufferBuilder builder) { builder.StartTable(3); }
-  public static void AddNormalOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> normalOffsetOffset) { builder.AddOffset(0, normalOffsetOffset.Value, 0); }
-  public static void AddStandOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> standOffsetOffset) { builder.AddOffset(1, standOffsetOffset.Value, 0); }
-  public static void AddKneelOffset(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> kneelOffsetOffset) { builder.AddOffset(2, kneelOffsetOffset.Value, 0); }
+  public static void AddNormal(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> normalOffset) { builder.AddOffset(0, normalOffset.Value, 0); }
+  public static void AddStand(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> standOffset) { builder.AddOffset(1, standOffset.Value, 0); }
+  public static void AddKneel(FlatBufferBuilder builder, Offset<Schale.FlatData.Motion> kneelOffset) { builder.AddOffset(2, kneelOffset.Value, 0); }
   public static Offset<Schale.FlatData.MoveEnd> EndMoveEnd(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.MoveEnd>(o);
@@ -50,33 +50,33 @@ public struct MoveEnd : IFlatbufferObject
   }
   public void UnPackTo(MoveEndT _o) {
 		byte[] key = TableEncryptionService.CreateKey("Mo");
-    _o.NormalOffset = this.NormalOffset.HasValue ? this.NormalOffset.Value.UnPack() : null;
-    _o.StandOffset = this.StandOffset.HasValue ? this.StandOffset.Value.UnPack() : null;
-    _o.KneelOffset = this.KneelOffset.HasValue ? this.KneelOffset.Value.UnPack() : null;
+    _o.Normal = this.Normal.HasValue ? this.Normal.Value.UnPack() : null;
+    _o.Stand = this.Stand.HasValue ? this.Stand.Value.UnPack() : null;
+    _o.Kneel = this.Kneel.HasValue ? this.Kneel.Value.UnPack() : null;
   }
   public static Offset<Schale.FlatData.MoveEnd> Pack(FlatBufferBuilder builder, MoveEndT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.MoveEnd>);
-    var _NormalOffset = _o.NormalOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.NormalOffset);
-    var _StandOffset = _o.StandOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.StandOffset);
-    var _KneelOffset = _o.KneelOffset == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.KneelOffset);
+    var _Normal = _o.Normal == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.Normal);
+    var _Stand = _o.Stand == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.Stand);
+    var _Kneel = _o.Kneel == null ? default(Offset<Schale.FlatData.Motion>) : Schale.FlatData.Motion.Pack(builder, _o.Kneel);
     return CreateMoveEnd(
       builder,
-      _NormalOffset,
-      _StandOffset,
-      _KneelOffset);
+      _Normal,
+      _Stand,
+      _Kneel);
   }
 }
 
 public class MoveEndT
 {
-  public Schale.FlatData.MotionT NormalOffset { get; set; }
-  public Schale.FlatData.MotionT StandOffset { get; set; }
-  public Schale.FlatData.MotionT KneelOffset { get; set; }
+  public Schale.FlatData.MotionT Normal { get; set; }
+  public Schale.FlatData.MotionT Stand { get; set; }
+  public Schale.FlatData.MotionT Kneel { get; set; }
 
   public MoveEndT() {
-    this.NormalOffset = null;
-    this.StandOffset = null;
-    this.KneelOffset = null;
+    this.Normal = null;
+    this.Stand = null;
+    this.Kneel = null;
   }
 }
 
@@ -86,9 +86,9 @@ static public class MoveEndVerify
   static public bool Verify(Google.FlatBuffers.Verifier verifier, uint tablePos)
   {
     return verifier.VerifyTableStart(tablePos)
-      && verifier.VerifyTable(tablePos, 4 /*NormalOffset*/, Schale.FlatData.MotionVerify.Verify, false)
-      && verifier.VerifyTable(tablePos, 6 /*StandOffset*/, Schale.FlatData.MotionVerify.Verify, false)
-      && verifier.VerifyTable(tablePos, 8 /*KneelOffset*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 4 /*Normal*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 6 /*Stand*/, Schale.FlatData.MotionVerify.Verify, false)
+      && verifier.VerifyTable(tablePos, 8 /*Kneel*/, Schale.FlatData.MotionVerify.Verify, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

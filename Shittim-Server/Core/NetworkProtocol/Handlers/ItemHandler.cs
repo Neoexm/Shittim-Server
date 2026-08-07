@@ -44,6 +44,39 @@ public class ItemHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Item_Sell)]
+    public async Task<ItemSellResponse> Sell(
+        SchaleDataContext db,
+        ItemSellRequest request,
+        ItemSellResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // nothing in ItemExcel carries a sell price, so selling just discards the stacks
+        var targetIds = request.TargetServerIds ?? [];
+        var targets = db.GetAccountItems(account.ServerId).Where(x => targetIds.Contains(x.ServerId)).ToList();
+        db.Items.RemoveRange(targets);
+        await db.SaveChangesAsync();
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Item_Lock)]
+    public async Task<ItemLockResponse> Lock(
+        SchaleDataContext db,
+        ItemLockRequest request,
+        ItemLockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // lock state lives client-side; the wire ItemDB has no field to carry it back anyway
+        response.ItemDB = db.GetAccountItems(account.ServerId).Where(x => x.ServerId == request.TargetServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Item_SelectTicket)]
     public async Task<ItemSelectTicketResponse> SelectTicket(
         SchaleDataContext db,
@@ -52,9 +85,42 @@ public class ItemHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var parcelResultDB = await _itemManager.SelectTicket(db, account, request);
+        var (usedItem, parcelResultDB) = await _itemManager.SelectTicket(db, account, request);
 
+        response.UsedItemDB = usedItem.ToMap(_mapper);
         response.ParcelResultDB = parcelResultDB;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Item_Consume)]
+    public async Task<ItemConsumeResponse> Consume(
+        SchaleDataContext db,
+        ItemConsumeRequest request,
+        ItemConsumeResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (usedItem, parcelResultDB) = await _itemManager.Consume(db, account, request);
+
+        response.UsedItemDB = usedItem.ToMap(_mapper);
+        response.NewParcelResultDB = parcelResultDB;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Item_BulkConsume)]
+    public async Task<ItemBulkConsumeResponse> BulkConsume(
+        SchaleDataContext db,
+        ItemBulkConsumeRequest request,
+        ItemBulkConsumeResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (usedItem, parcelInfos) = await _itemManager.BulkConsume(db, account, request);
+
+        response.UsedItemDB = usedItem.ToMap(_mapper);
+        response.ParcelInfosInMailBox = parcelInfos;
 
         return response;
     }

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Shittim_Server.Core;
+using Shittim_Server.Services;
 using Protocol = Schale.MX.NetworkProtocol.Protocol;
 using WebAPIErrorCode = Schale.MX.NetworkProtocol.WebAPIErrorCode;
 
@@ -176,7 +177,14 @@ namespace Shittim_Server.Controllers.Api
                 var payloadStr = gatewayPayload.Json;
                 _wireRequestJson = payloadStr;
                 var jsonNode = JObject.Parse(payloadStr);
-                protocol = ReadProtocol(jsonNode);
+                var readProtocol = ReadProtocol(jsonNode);
+                if (readProtocol == null)
+                {
+                    _logger.LogError("Failed to read protocol from JsonNode, {Payload}", payloadStr);
+                    await CreateProtocolErrorResponse("Failed to read protocol", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
+                    return;
+                }
+                protocol = readProtocol.Value;
                 var responseProtocolName = protocol.ToString();
                 int? responseProtocolOverride = null;
 
@@ -190,10 +198,9 @@ namespace Shittim_Server.Controllers.Api
                 // Bodies are Debug, not Information: at default verbosity this would write every packet a player sends, session material included. The finally below emits one concise Information line per request instead.
                 _logger.LogDebug("Request {ProtocolInt} / {Protocol}: {Payload}", (int)protocol, protocol, payloadStr);
 
-                if (protocol == Protocol.None)
+                if (ServerNoticeService.IsGated(protocol))
                 {
-                    _logger.LogError("Failed to read protocol from JsonNode, {Payload}", payloadStr);
-                    await CreateProtocolErrorResponse("Failed to read protocol", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
+                    await CreateProtocolErrorResponse(ServerNoticeService.GateMessage, ServerNoticeService.GateError!.Value, responseCrypto);
                     return;
                 }
 
@@ -226,7 +233,6 @@ namespace Shittim_Server.Controllers.Api
                 }
 
                 // Official evaluates the notification flags at request ENTRY, not after handling: the Mail_Receive response that empties the mailbox still carries HasUnreadMail, and only the next response drops it.
-                // Snapshot before dispatch.
                 var notification = await ReadServerNotificationAsync(payload, protocol);
 
                 // The client fires bursts of claims concurrently, e.g. several Mission_Reward at once, and parallel write transactions on one SQLite file can stall past the client's socket timeout; an unanswered request soft-locks the game, so dispatch is serialized per account.
@@ -333,23 +339,25 @@ namespace Shittim_Server.Controllers.Api
             if (accountServerId == 0 || SkipsServerNotification(protocol))
                 return ServerNotificationFlag.None;
 
+            // Operator-forced bits ride the same path as the mailbox baseline so the four skip protocols and pre-login requests stay unstamped, which is what official does.
+            var forced = ServerNoticeService.Flags;
+
             try
             {
                 await using var db = await _dbFactory.CreateDbContextAsync();
-                // Unclaimed and unexpired only.
                 // Official drops the flag as soon as the mail is claimed, and this goes through GetAccountMailbox so it uses the same predicate AND the same clock as Mail_Check/Mail_List. An account with ForceDateTime evaluates mail expiry against its own ServerDateTime(), so reading DateTime.Now here would let the two disagree in either direction: a red dot over an empty mailbox, or unread mail the client is never told about. In both captures the flag and the count appear together and vanish together on Mail_Receive.
                 var account = await db.Accounts.AsNoTracking()
                     .FirstOrDefaultAsync(a => a.ServerId == accountServerId);
                 var now = account?.GameSettings?.ServerDateTime() ?? DateTime.Now;
                 if (await db.GetAccountMailbox(accountServerId, now).AnyAsync())
-                    return ServerNotificationFlag.HasUnreadMail;
+                    return forced | ServerNotificationFlag.HasUnreadMail;
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "ServerNotification mail check failed");
             }
 
-            return ServerNotificationFlag.None;
+            return forced;
         }
 
         private GatewayPayload DecodeGatewayPayload(IFormFile formFile)
@@ -403,16 +411,17 @@ namespace Shittim_Server.Controllers.Api
             throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Gateway payload could not be decoded. First bytes: {preview}");
         }
 
-        private static Protocol ReadProtocol(JObject jsonNode)
+        // null means the field is absent or unreadable; an explicit 0 is a real protocol and routes like any other
+        private static Protocol? ReadProtocol(JObject jsonNode)
         {
             var protocolNode = jsonNode["Protocol"] ?? jsonNode["protocol"];
             if (protocolNode == null)
-                return Protocol.None;
+                return null;
 
             if (protocolNode.Type == JTokenType.Integer)
                 return (Protocol)protocolNode.Value<int>();
 
-            return Enum.TryParse<Protocol>(protocolNode.Value<string>(), out var protocol) ? protocol : Protocol.None;
+            return Enum.TryParse<Protocol>(protocolNode.Value<string>(), out var protocol) ? (Protocol?)protocol : null;
         }
 
         private static bool ShouldTreatAsQueuingGetTicketGL(Protocol protocol, JObject jsonNode)

@@ -25,13 +25,13 @@ public struct GroundVector3 : IFlatbufferObject
   public float Z { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
 
   public static Offset<Schale.FlatData.GroundVector3> CreateGroundVector3(FlatBufferBuilder builder,
-      float x = 0.0f,
-      float y = 0.0f,
-      float z = 0.0f) {
+      float X = 0.0f,
+      float Y = 0.0f,
+      float Z = 0.0f) {
     builder.StartTable(3);
-    GroundVector3.AddZ(builder, z);
-    GroundVector3.AddY(builder, y);
-    GroundVector3.AddX(builder, x);
+    GroundVector3.AddZ(builder, Z);
+    GroundVector3.AddY(builder, Y);
+    GroundVector3.AddX(builder, X);
     return GroundVector3.EndGroundVector3(builder);
   }
 

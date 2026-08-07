@@ -22,23 +22,31 @@ public struct BattlePassFlavorTextExcel : IFlatbufferObject
 
   public long GroupId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long Id { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public uint LocalizeCodeId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public long TextGroup { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public uint LocalizeCodeId { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public long Sort { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.BattlePassFlavorTextExcel> CreateBattlePassFlavorTextExcel(FlatBufferBuilder builder,
       long GroupId = 0,
       long Id = 0,
-      uint LocalizeCodeId = 0) {
-    builder.StartTable(3);
+      long TextGroup = 0,
+      uint LocalizeCodeId = 0,
+      long Sort = 0) {
+    builder.StartTable(5);
+    BattlePassFlavorTextExcel.AddSort(builder, Sort);
+    BattlePassFlavorTextExcel.AddTextGroup(builder, TextGroup);
     BattlePassFlavorTextExcel.AddId(builder, Id);
     BattlePassFlavorTextExcel.AddGroupId(builder, GroupId);
     BattlePassFlavorTextExcel.AddLocalizeCodeId(builder, LocalizeCodeId);
     return BattlePassFlavorTextExcel.EndBattlePassFlavorTextExcel(builder);
   }
 
-  public static void StartBattlePassFlavorTextExcel(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void StartBattlePassFlavorTextExcel(FlatBufferBuilder builder) { builder.StartTable(5); }
   public static void AddGroupId(FlatBufferBuilder builder, long groupId) { builder.AddLong(0, groupId, 0); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(1, id, 0); }
-  public static void AddLocalizeCodeId(FlatBufferBuilder builder, uint localizeCodeId) { builder.AddUint(2, localizeCodeId, 0); }
+  public static void AddTextGroup(FlatBufferBuilder builder, long textGroup) { builder.AddLong(2, textGroup, 0); }
+  public static void AddLocalizeCodeId(FlatBufferBuilder builder, uint localizeCodeId) { builder.AddUint(3, localizeCodeId, 0); }
+  public static void AddSort(FlatBufferBuilder builder, long sort) { builder.AddLong(4, sort, 0); }
   public static Offset<Schale.FlatData.BattlePassFlavorTextExcel> EndBattlePassFlavorTextExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.BattlePassFlavorTextExcel>(o);
@@ -52,7 +60,9 @@ public struct BattlePassFlavorTextExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("BattlePassFlavorText");
     _o.GroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GroupId, key) : this.GroupId;
     _o.Id = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Id, key) : this.Id;
+    _o.TextGroup = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TextGroup, key) : this.TextGroup;
     _o.LocalizeCodeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeCodeId, key) : this.LocalizeCodeId;
+    _o.Sort = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Sort, key) : this.Sort;
   }
   public static Offset<Schale.FlatData.BattlePassFlavorTextExcel> Pack(FlatBufferBuilder builder, BattlePassFlavorTextExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.BattlePassFlavorTextExcel>);
@@ -60,7 +70,9 @@ public struct BattlePassFlavorTextExcel : IFlatbufferObject
       builder,
       _o.GroupId,
       _o.Id,
-      _o.LocalizeCodeId);
+      _o.TextGroup,
+      _o.LocalizeCodeId,
+      _o.Sort);
   }
 }
 
@@ -68,12 +80,16 @@ public class BattlePassFlavorTextExcelT
 {
   public long GroupId { get; set; }
   public long Id { get; set; }
+  public long TextGroup { get; set; }
   public uint LocalizeCodeId { get; set; }
+  public long Sort { get; set; }
 
   public BattlePassFlavorTextExcelT() {
     this.GroupId = 0;
     this.Id = 0;
+    this.TextGroup = 0;
     this.LocalizeCodeId = 0;
+    this.Sort = 0;
   }
 }
 
@@ -85,7 +101,9 @@ static public class BattlePassFlavorTextExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*GroupId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 6 /*Id*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*LocalizeCodeId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*TextGroup*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*LocalizeCodeId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 12 /*Sort*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

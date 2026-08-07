@@ -111,8 +111,7 @@ namespace Schale.MX.Logic.Data
         TutorialAdventure = 256,
         Profiling = 512,
         SingleRaid = 2048,
-        MultiRaid = 4096,
-        PracticeRaid = 8192,
+        PermanentRaid = 8192,
         EliminateRaid = 16384,
         MultiFloorRaid = 32768,
         MinigameDefense = 1048576,
@@ -128,7 +127,7 @@ namespace Schale.MX.Logic.Data
         PvE = -301988865,
         WeekDungeon = 124,
         SchoolDungeon = 234881024,
-        Raid = 30720,
+        Raid = 26624,
         PvP = 2097152,
         All = -1,
     }

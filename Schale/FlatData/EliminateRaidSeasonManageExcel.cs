@@ -127,21 +127,21 @@ public struct EliminateRaidSeasonManageExcel : IFlatbufferObject
       int MaxSeasonRewardGauage = 0,
       VectorOffset StackedSeasonRewardGaugeOffset = default(VectorOffset),
       VectorOffset SeasonRewardIdOffset = default(VectorOffset),
-      long LimitedRewardIdNormal = 0,
-      long LimitedRewardIdHard = 0,
-      long LimitedRewardIdVeryhard = 0,
-      long LimitedRewardIdHardcore = 0,
-      long LimitedRewardIdExtreme = 0,
-      long LimitedRewardIdInsane = 0,
-      long LimitedRewardIdTorment = 0) {
+      long LimitedRewardId_Normal = 0,
+      long LimitedRewardId_Hard = 0,
+      long LimitedRewardId_Veryhard = 0,
+      long LimitedRewardId_Hardcore = 0,
+      long LimitedRewardId_Extreme = 0,
+      long LimitedRewardId_Insane = 0,
+      long LimitedRewardId_Torment = 0) {
     builder.StartTable(22);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdTorment(builder, LimitedRewardIdTorment);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdInsane(builder, LimitedRewardIdInsane);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdExtreme(builder, LimitedRewardIdExtreme);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdHardcore(builder, LimitedRewardIdHardcore);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdVeryhard(builder, LimitedRewardIdVeryhard);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdHard(builder, LimitedRewardIdHard);
-    EliminateRaidSeasonManageExcel.AddLimitedRewardIdNormal(builder, LimitedRewardIdNormal);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdTorment(builder, LimitedRewardId_Torment);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdInsane(builder, LimitedRewardId_Insane);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdExtreme(builder, LimitedRewardId_Extreme);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdHardcore(builder, LimitedRewardId_Hardcore);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdVeryhard(builder, LimitedRewardId_Veryhard);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdHard(builder, LimitedRewardId_Hard);
+    EliminateRaidSeasonManageExcel.AddLimitedRewardIdNormal(builder, LimitedRewardId_Normal);
     EliminateRaidSeasonManageExcel.AddRankingRewardGroupId(builder, RankingRewardGroupId);
     EliminateRaidSeasonManageExcel.AddSeasonDisplay(builder, SeasonDisplay);
     EliminateRaidSeasonManageExcel.AddSeasonId(builder, SeasonId);

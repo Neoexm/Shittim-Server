@@ -7,6 +7,7 @@ const DEFAULT_SERVER_CONFIG = {
   HostPort: '5000',
   GatewayPort: '5100',
   EnableGateway: true,
+  ClientInstallDirectory: '',
   AutoPatchClientMetadata: true, ClientMetadataPath: '',
   AutoPatchClientGameAssemblyIas: false, ClientGameAssemblyPath: '',
   AutoPatchClientGamescaleIas: true, ClientGamescaleCorePath: '',
@@ -15,11 +16,13 @@ const DEFAULT_SERVER_CONFIG = {
   AutoPatchClientInfaceConfig: true, ClientInfaceConfigPath: '',
   AutoManageGrap64: true, ClientGrap64Path: '',
   AutoPatchClientBanners: true, ClientExcelDbPath: '',
+  RegionDisplayText: '',
   SQLProvider: 'SQLite3',
   SQLConnectionString: 'Data Source=shittim.sqlite3',
   UseEncryption: false,
   BypassAuthentication: false,
   UseCustomExcel: false,
+  KoyukiIncident: false,
   AutoCheckVersion: true,
   AutoUpdateVersion: true,
   AutoUpdateResources: false,
@@ -31,24 +34,24 @@ const DEFAULT_SERVER_CONFIG = {
   PacketLogging: { RequestPacket: true, ResponsePacket: false, ErrorPacket: false },
 };
 
-// field descriptors grouped for a readable editor over ServerConfiguration
 const GROUPS = [
   {
     title: 'Networking', icon: 'server',
     fields: [
       { key: 'HostPort', label: 'API port', type: 'text', hint: 'default 5000' },
       { key: 'GatewayPort', label: 'Gateway port', type: 'text', hint: 'default 5100' },
-      { key: 'EnableGateway', label: 'Enable gateway', type: 'bool', desc: 'Serve the encrypted gateway endpoint' },
+      { key: 'EnableGateway', label: 'Enable gateway', type: 'bool' },
     ],
   },
   {
     title: 'Behaviour', icon: 'bolt',
     fields: [
-      { key: 'UseEncryption', label: 'Packet encryption', type: 'bool', desc: 'Encrypt protocol responses' },
-      { key: 'BypassAuthentication', label: 'Bypass authentication', type: 'bool', desc: 'Skip login auth checks' },
-      { key: 'UseCustomExcel', label: 'Custom Excel tables', type: 'bool', desc: 'Load overridden game data' },
+      { key: 'UseEncryption', label: 'Packet encryption', type: 'bool' },
+      { key: 'BypassAuthentication', label: 'Bypass authentication', type: 'bool' },
+      { key: 'UseCustomExcel', label: 'Custom Excel tables', type: 'bool' },
+      { key: 'KoyukiIncident', label: 'Koyuki incident', type: 'bool', desc: 'nihahaha' },
       { key: 'AutoCheckVersion', label: 'Auto-check version', type: 'bool', desc: 'Resolve latest data version on boot' },
-      { key: 'AutoUpdateVersion', label: 'Auto-update version', type: 'bool', desc: 'Apply resolved version automatically' },
+      { key: 'AutoUpdateVersion', label: 'Auto-update version', type: 'bool' },
       { key: 'AutoUpdateResources', label: 'Auto-update resources', type: 'bool', desc: 'Re-download game data (Excel, HexaMap) when the version changes' },
     ],
   },
@@ -70,6 +73,7 @@ const GROUPS = [
   {
     title: 'Client auto-patching', icon: 'shield',
     fields: [
+      { key: 'ClientInstallDirectory', label: 'Game install directory', type: 'dir', hint: 'blank = look for the Steam install; the per-patch overrides below are only needed when one file lives somewhere else' },
       { key: 'AutoPatchClientMetadata', label: 'Patch metadata', type: 'bool', path: 'ClientMetadataPath' },
       { key: 'AutoPatchClientGameAssemblyIas', label: 'Patch GameAssembly IAS', type: 'bool', path: 'ClientGameAssemblyPath' },
       { key: 'AutoPatchClientGamescaleIas', label: 'Patch gamescale.core IAS', type: 'bool', path: 'ClientGamescaleCorePath' },
@@ -78,6 +82,7 @@ const GROUPS = [
       { key: 'AutoPatchClientInfaceConfig', label: 'Patch inface config', type: 'bool', path: 'ClientInfaceConfigPath' },
       { key: 'AutoManageGrap64', label: 'Manage grap64', type: 'bool', path: 'ClientGrap64Path' },
       { key: 'AutoPatchClientBanners', label: 'Patch recruitment banners', type: 'bool', path: 'ClientExcelDbPath' },
+      { key: 'RegionDisplayText', label: 'Region label', type: 'text', hint: 'shown on the title screen, blank = stock region name' },
     ],
   },
   {
@@ -136,6 +141,8 @@ export default {
           const row = buildToggleRow(target, f);
           body.appendChild(row);
           if (f.path) body.appendChild(buildPathField(sc, f));
+        } else if (f.type === 'dir') {
+          body.appendChild(field(f.label, buildDirRow(target, f.key), f.hint));
         } else {
           body.appendChild(field(f.label, bindInput(target, f.key), f.hint));
         }
@@ -167,6 +174,18 @@ export default {
       row.appendChild(t);
       return row;
     }
+    function buildDirRow(obj, key) {
+      const row = el('div.input-row', { style: { minWidth: '0' } });
+      const i = input({ value: obj[key] ?? '', placeholder: '-' });
+      i.addEventListener('input', () => { obj[key] = i.value; });
+      const browse = button('...', { variant: 'ghost', onClick: async () => {
+        const picked = await window.host.pickFolder();
+        if (picked) { i.value = picked; obj[key] = picked; }
+      }});
+      browse.style.flex = '0 0 auto';
+      row.appendChild(i); row.appendChild(browse);
+      return row;
+    }
     function buildPathField(obj, f) {
       const wrap = el('div', { style: { margin: '-4px 0 8px', paddingLeft: '2px', minWidth: '0' } });
       const row = el('div.input-row', { style: { minWidth: '0' } });
@@ -184,15 +203,15 @@ export default {
 
     async function save() {
       const r = await window.host.configWrite(data);
-      toast(r.ok ? 'Configuration saved' : (r.error || 'Save failed'), r.ok ? 'good' : 'bad', r.ok ? 'Saved' : 'Error');
+      toast(r.ok ? 'Configuration saved' : (r.error || 'Save failed'), r.ok ? 'good' : 'bad');
     }
     async function resetDefaults() {
       const ok = await confirmDialog({ title: 'Reset to defaults', confirmLabel: 'Reset & save',
-        message: 'Restore every setting on this page to its default value and save it to Config.json? GameVersion, gateway keys and the database are left untouched. If the server is running, restart it to apply.' });
+        message: 'Restore every setting on this page to its default value and save it to Config.json? GameVersion, gateway keys and the database are left untouched.' });
       if (!ok) return;
       Object.assign(sc, DEFAULT_SERVER_CONFIG, { PacketLogging: { ...DEFAULT_SERVER_CONFIG.PacketLogging } });
       const r = await window.host.configWrite(data);
-      if (r.ok) { toast('Configuration reset to defaults', 'good', 'Defaults restored'); rerender(); }
+      if (r.ok) { toast('Configuration reset to defaults', 'good'); rerender(); }
       else toast(r.error || 'Reset failed', 'bad');
     }
 

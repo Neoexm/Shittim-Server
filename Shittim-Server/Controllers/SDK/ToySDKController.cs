@@ -115,6 +115,8 @@ namespace Shittim_Server.Controllers.SDK
                         }
                     },
                     endBanner = new Dictionary<string, object>(),
+                    // NXPToyTermsManager.UpdateTerms throws on a null list, so the key has to be here even empty or the enter-toy callback never completes.
+                    termsAgree = Array.Empty<object>(),
                     country = "PH",
                     idfa = new
                     {

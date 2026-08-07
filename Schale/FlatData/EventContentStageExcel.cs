@@ -142,8 +142,8 @@ public struct EventContentStageExcel : IFlatbufferObject
       int StageEnterEchelonCount = 0,
       long StarConditionTacticRankSCount = 0,
       long StarConditionTurnCount = 0,
-      VectorOffset enterScenarioGroupIdOffset = default(VectorOffset),
-      VectorOffset clearScenarioGroupIdOffset = default(VectorOffset),
+      VectorOffset EnterScenarioGroupIdOffset = default(VectorOffset),
+      VectorOffset ClearScenarioGroupIdOffset = default(VectorOffset),
       StringOffset StrategyMapOffset = default(StringOffset),
       StringOffset StrategyMapBGOffset = default(StringOffset),
       long EventContentStageRewardId = 0,
@@ -194,8 +194,8 @@ public struct EventContentStageExcel : IFlatbufferObject
     EventContentStageExcel.AddMaxTurn(builder, MaxTurn);
     EventContentStageExcel.AddStrategyMapBG(builder, StrategyMapBGOffset);
     EventContentStageExcel.AddStrategyMap(builder, StrategyMapOffset);
-    EventContentStageExcel.AddClearScenarioGroupId(builder, clearScenarioGroupIdOffset);
-    EventContentStageExcel.AddEnterScenarioGroupId(builder, enterScenarioGroupIdOffset);
+    EventContentStageExcel.AddClearScenarioGroupId(builder, ClearScenarioGroupIdOffset);
+    EventContentStageExcel.AddEnterScenarioGroupId(builder, EnterScenarioGroupIdOffset);
     EventContentStageExcel.AddStageEnterEchelonCount(builder, StageEnterEchelonCount);
     EventContentStageExcel.AddStageEnterCostAmount(builder, StageEnterCostAmount);
     EventContentStageExcel.AddStageEnterCostType(builder, StageEnterCostType);
@@ -335,15 +335,15 @@ public struct EventContentStageExcel : IFlatbufferObject
     if (_o == null) return default(Offset<Schale.FlatData.EventContentStageExcel>);
     var _Name = _o.Name == null ? default(StringOffset) : builder.CreateString(_o.Name);
     var _StageNumber = _o.StageNumber == null ? default(StringOffset) : builder.CreateString(_o.StageNumber);
-    var _enterScenarioGroupId = default(VectorOffset);
+    var _EnterScenarioGroupId = default(VectorOffset);
     if (_o.EnterScenarioGroupId != null) {
-      var __enterScenarioGroupId = _o.EnterScenarioGroupId.ToArray();
-      _enterScenarioGroupId = CreateEnterScenarioGroupIdVector(builder, __enterScenarioGroupId);
+      var __EnterScenarioGroupId = _o.EnterScenarioGroupId.ToArray();
+      _EnterScenarioGroupId = CreateEnterScenarioGroupIdVector(builder, __EnterScenarioGroupId);
     }
-    var _clearScenarioGroupId = default(VectorOffset);
+    var _ClearScenarioGroupId = default(VectorOffset);
     if (_o.ClearScenarioGroupId != null) {
-      var __clearScenarioGroupId = _o.ClearScenarioGroupId.ToArray();
-      _clearScenarioGroupId = CreateClearScenarioGroupIdVector(builder, __clearScenarioGroupId);
+      var __ClearScenarioGroupId = _o.ClearScenarioGroupId.ToArray();
+      _ClearScenarioGroupId = CreateClearScenarioGroupIdVector(builder, __ClearScenarioGroupId);
     }
     var _StrategyMap = _o.StrategyMap == null ? default(StringOffset) : builder.CreateString(_o.StrategyMap);
     var _StrategyMapBG = _o.StrategyMapBG == null ? default(StringOffset) : builder.CreateString(_o.StrategyMapBG);
@@ -380,8 +380,8 @@ public struct EventContentStageExcel : IFlatbufferObject
       _o.StageEnterEchelonCount,
       _o.StarConditionTacticRankSCount,
       _o.StarConditionTurnCount,
-      _enterScenarioGroupId,
-      _clearScenarioGroupId,
+      _EnterScenarioGroupId,
+      _ClearScenarioGroupId,
       _StrategyMap,
       _StrategyMapBG,
       _o.EventContentStageRewardId,

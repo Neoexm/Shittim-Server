@@ -39,11 +39,11 @@ public struct StringTestExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.StringTestExcel> CreateStringTestExcel(FlatBufferBuilder builder,
       VectorOffset StringOffset = default(VectorOffset),
-      StringOffset sentence1Offset = default(StringOffset),
+      StringOffset Sentence1Offset = default(StringOffset),
       StringOffset ScriptOffset = default(StringOffset)) {
     builder.StartTable(3);
     StringTestExcel.AddScript(builder, ScriptOffset);
-    StringTestExcel.AddSentence1(builder, sentence1Offset);
+    StringTestExcel.AddSentence1(builder, Sentence1Offset);
     StringTestExcel.AddString(builder, StringOffset);
     return StringTestExcel.EndStringTestExcel(builder);
   }
@@ -81,12 +81,12 @@ public struct StringTestExcel : IFlatbufferObject
       for (var _j = 0; _j < __String.Length; ++_j) { __String[_j] = builder.CreateString(_o.String[_j]); }
       _String = CreateStringVector(builder, __String);
     }
-    var _sentence1 = _o.Sentence1 == null ? default(StringOffset) : builder.CreateString(_o.Sentence1);
+    var _Sentence1 = _o.Sentence1 == null ? default(StringOffset) : builder.CreateString(_o.Sentence1);
     var _Script = _o.Script == null ? default(StringOffset) : builder.CreateString(_o.Script);
     return CreateStringTestExcel(
       builder,
       _String,
-      _sentence1,
+      _Sentence1,
       _Script);
   }
 }

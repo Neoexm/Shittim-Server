@@ -60,7 +60,7 @@ public struct ConstStrategyExcel : IFlatbufferObject
       float CameraZoomMin = 0.0f,
       float CameraZoomDefault = 0.0f,
       Schale.FlatData.CurrencyTypes HealCostType = Schale.FlatData.CurrencyTypes.Invalid,
-      VectorOffset healCostAmountOffset = default(VectorOffset),
+      VectorOffset HealCostAmountOffset = default(VectorOffset),
       int CanHealHpRate = 0,
       long PlayTimeLimitInSeconds = 0,
       int AdventureEchelonCount = 0,
@@ -98,7 +98,7 @@ public struct ConstStrategyExcel : IFlatbufferObject
     ConstStrategyExcel.AddRaidEchelonCount(builder, RaidEchelonCount);
     ConstStrategyExcel.AddAdventureEchelonCount(builder, AdventureEchelonCount);
     ConstStrategyExcel.AddCanHealHpRate(builder, CanHealHpRate);
-    ConstStrategyExcel.AddHealCostAmount(builder, healCostAmountOffset);
+    ConstStrategyExcel.AddHealCostAmount(builder, HealCostAmountOffset);
     ConstStrategyExcel.AddHealCostType(builder, HealCostType);
     ConstStrategyExcel.AddCameraZoomDefault(builder, CameraZoomDefault);
     ConstStrategyExcel.AddCameraZoomMin(builder, CameraZoomMin);
@@ -179,10 +179,10 @@ public struct ConstStrategyExcel : IFlatbufferObject
   }
   public static Offset<Schale.FlatData.ConstStrategyExcel> Pack(FlatBufferBuilder builder, ConstStrategyExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstStrategyExcel>);
-    var _healCostAmount = default(VectorOffset);
+    var _HealCostAmount = default(VectorOffset);
     if (_o.HealCostAmount != null) {
-      var __healCostAmount = _o.HealCostAmount.ToArray();
-      _healCostAmount = CreateHealCostAmountVector(builder, __healCostAmount);
+      var __HealCostAmount = _o.HealCostAmount.ToArray();
+      _HealCostAmount = CreateHealCostAmountVector(builder, __HealCostAmount);
     }
     return CreateConstStrategyExcel(
       builder,
@@ -192,7 +192,7 @@ public struct ConstStrategyExcel : IFlatbufferObject
       _o.CameraZoomMin,
       _o.CameraZoomDefault,
       _o.HealCostType,
-      _healCostAmount,
+      _HealCostAmount,
       _o.CanHealHpRate,
       _o.PlayTimeLimitInSeconds,
       _o.AdventureEchelonCount,

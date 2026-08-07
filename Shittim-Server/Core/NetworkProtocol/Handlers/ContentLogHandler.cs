@@ -16,14 +16,14 @@ public class ContentLogHandler : ProtocolHandlerBase
         _sessionService = sessionService;
     }
 
+    // telemetry sink; nothing to keep.
     [ProtocolHandler(Protocol.ContentLog_UIOpenStatistics)]
     public async Task<ContentLogUIOpenStatisticsResponse> UIOpenStatistics(
         SchaleDataContext db,
         ContentLogUIOpenStatisticsRequest request,
         ContentLogUIOpenStatisticsResponse response)
     {
-        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
-
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }
 }

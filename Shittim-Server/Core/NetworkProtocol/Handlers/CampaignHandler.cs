@@ -69,6 +69,29 @@ public class CampaignHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Campaign_ConfirmTutorialStage)]
+    public async Task<CampaignConfirmTutorialStageResponse> ConfirmTutorialStage(
+        SchaleDataContext db,
+        CampaignConfirmTutorialStageRequest request,
+        CampaignConfirmTutorialStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var parcelInfo = _campaignManager.TemporaryCampaignParcelInit(db, account, request.StageUniqueId);
+
+        // tutorial stages have no strategy map, so there is no persisted save to advance; confirming answers with the run already in the player phase
+        response.SaveDataDB = new()
+        {
+            AccountServerId = account.ServerId,
+            CreateTime = account.GameSettings.ServerDateTime(),
+            StageUniqueId = request.StageUniqueId,
+            CampaignState = CampaignState.PlayerPhase,
+            StageEntranceFee = parcelInfo
+        };
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_TutorialStageResult)]
     public async Task<CampaignTutorialStageResultResponse> TutorialStageResult(
         SchaleDataContext db,
@@ -117,14 +140,14 @@ public class CampaignHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (historyDb, parcelResultDb) = await _campaignManager.CampaignSubStageResult(db, account, request);
+        var (historyDb, parcelResultDb, firstClearReward, threeStarReward) = await _campaignManager.CampaignSubStageResult(db, account, request);
 
         response.TacticRank = 0;
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
         response.LevelUpCharacterDBs = new();
         response.ParcelResultDB = parcelResultDb;
-        response.FirstClearReward = new();
-        response.ThreeStarReward = new();
+        response.FirstClearReward = firstClearReward;
+        response.ThreeStarReward = threeStarReward;
 
         return response;
     }
@@ -152,14 +175,14 @@ public class CampaignHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        var (historyDb, parcelResultDb) = await _campaignManager.CampaignMainStageStrategySkipResult(db, account, request);
+        var (historyDb, parcelResultDb, firstClearReward, threeStarReward) = await _campaignManager.CampaignMainStageStrategySkipResult(db, account, request);
 
         response.TacticRank = 0;
         response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
         response.LevelUpCharacterDBs = new();
         response.ParcelResultDB = parcelResultDb;
-        response.FirstClearReward = new();
-        response.ThreeStarReward = new();
+        response.FirstClearReward = firstClearReward;
+        response.ThreeStarReward = threeStarReward;
 
         return response;
     }
@@ -197,6 +220,22 @@ public class CampaignHandler : ProtocolHandlerBase
             StageUniqueId = request.StageUniqueId,
             StageEntranceFee = parcelInfo
         };
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Campaign_PurchasePlayCountHardStage)]
+    public async Task<CampaignPurchasePlayCountHardStageResponse> PurchasePlayCountHardStage(
+        SchaleDataContext db,
+        CampaignPurchasePlayCountHardStageRequest request,
+        CampaignPurchasePlayCountHardStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (currency, historyDb) = await _campaignManager.PurchasePlayCountHardStage(db, account, request.StageUniqueId);
+
+        response.AccountCurrencyDB = currency.ToMap(_mapper);
+        response.CampaignStageHistoryDB = historyDb.ToMap(_mapper);
 
         return response;
     }

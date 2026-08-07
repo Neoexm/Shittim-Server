@@ -42,12 +42,12 @@ public struct MiniGameDefenseFixedStatExcel : IFlatbufferObject
       int Grade = 0,
       int ExSkillLevel = 0,
       int NoneExSkillLevel = 0,
-      int Equipment1Tier = 0,
-      int Equipment1Level = 0,
-      int Equipment2Tier = 0,
-      int Equipment2Level = 0,
-      int Equipment3Tier = 0,
-      int Equipment3Level = 0,
+      int Equipment1_Tier = 0,
+      int Equipment1_level = 0,
+      int Equipment2_Tier = 0,
+      int Equipment2_level = 0,
+      int Equipment3_Tier = 0,
+      int Equipment3_level = 0,
       int CharacterWeaponGrade = 0,
       int CharacterWeaponLevel = 0,
       int CharacterGearTier = 0,
@@ -58,12 +58,12 @@ public struct MiniGameDefenseFixedStatExcel : IFlatbufferObject
     MiniGameDefenseFixedStatExcel.AddCharacterGearTier(builder, CharacterGearTier);
     MiniGameDefenseFixedStatExcel.AddCharacterWeaponLevel(builder, CharacterWeaponLevel);
     MiniGameDefenseFixedStatExcel.AddCharacterWeaponGrade(builder, CharacterWeaponGrade);
-    MiniGameDefenseFixedStatExcel.AddEquipment3Level(builder, Equipment3Level);
-    MiniGameDefenseFixedStatExcel.AddEquipment3Tier(builder, Equipment3Tier);
-    MiniGameDefenseFixedStatExcel.AddEquipment2Level(builder, Equipment2Level);
-    MiniGameDefenseFixedStatExcel.AddEquipment2Tier(builder, Equipment2Tier);
-    MiniGameDefenseFixedStatExcel.AddEquipment1Level(builder, Equipment1Level);
-    MiniGameDefenseFixedStatExcel.AddEquipment1Tier(builder, Equipment1Tier);
+    MiniGameDefenseFixedStatExcel.AddEquipment3Level(builder, Equipment3_level);
+    MiniGameDefenseFixedStatExcel.AddEquipment3Tier(builder, Equipment3_Tier);
+    MiniGameDefenseFixedStatExcel.AddEquipment2Level(builder, Equipment2_level);
+    MiniGameDefenseFixedStatExcel.AddEquipment2Tier(builder, Equipment2_Tier);
+    MiniGameDefenseFixedStatExcel.AddEquipment1Level(builder, Equipment1_level);
+    MiniGameDefenseFixedStatExcel.AddEquipment1Tier(builder, Equipment1_Tier);
     MiniGameDefenseFixedStatExcel.AddNoneExSkillLevel(builder, NoneExSkillLevel);
     MiniGameDefenseFixedStatExcel.AddExSkillLevel(builder, ExSkillLevel);
     MiniGameDefenseFixedStatExcel.AddGrade(builder, Grade);

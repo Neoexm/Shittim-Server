@@ -88,9 +88,6 @@ public class ProtocolHandlerRegistry : IProtocolHandlerRegistry
             var methodAttributes = method.GetCustomAttributes<ProtocolHandlerAttribute>();
             foreach (var attr in methodAttributes)
             {
-                if (attr.Protocol == Protocol.None)
-                    continue;
-
                 if (!_handlerMethods.ContainsKey(attr.Protocol))
                 {
                     _handlerMethods[attr.Protocol] = method;

@@ -30,19 +30,19 @@ public struct ScenarioBGName_GlobalExcel : IFlatbufferObject
 
   public static Offset<Schale.FlatData.ScenarioBGName_GlobalExcel> CreateScenarioBGName_GlobalExcel(FlatBufferBuilder builder,
       uint GroupName = 0,
-      uint NameKr = 0,
-      uint NameTw = 0,
-      uint NameAsia = 0,
-      uint NameNa = 0,
-      uint NameGlobal = 0,
-      uint NameTeen = 0) {
+      uint Name_Kr = 0,
+      uint Name_Tw = 0,
+      uint Name_Asia = 0,
+      uint Name_Na = 0,
+      uint Name_Global = 0,
+      uint Name_Teen = 0) {
     builder.StartTable(7);
-    ScenarioBGName_GlobalExcel.AddNameTeen(builder, NameTeen);
-    ScenarioBGName_GlobalExcel.AddNameGlobal(builder, NameGlobal);
-    ScenarioBGName_GlobalExcel.AddNameNa(builder, NameNa);
-    ScenarioBGName_GlobalExcel.AddNameAsia(builder, NameAsia);
-    ScenarioBGName_GlobalExcel.AddNameTw(builder, NameTw);
-    ScenarioBGName_GlobalExcel.AddNameKr(builder, NameKr);
+    ScenarioBGName_GlobalExcel.AddNameTeen(builder, Name_Teen);
+    ScenarioBGName_GlobalExcel.AddNameGlobal(builder, Name_Global);
+    ScenarioBGName_GlobalExcel.AddNameNa(builder, Name_Na);
+    ScenarioBGName_GlobalExcel.AddNameAsia(builder, Name_Asia);
+    ScenarioBGName_GlobalExcel.AddNameTw(builder, Name_Tw);
+    ScenarioBGName_GlobalExcel.AddNameKr(builder, Name_Kr);
     ScenarioBGName_GlobalExcel.AddGroupName(builder, GroupName);
     return ScenarioBGName_GlobalExcel.EndScenarioBGName_GlobalExcel(builder);
   }
