@@ -38,6 +38,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_RequestBirthdayMail)]
     [InlineData(Protocol.Account_Reset)]
     [InlineData(Protocol.Billing_PurchaseListByYostar)]
+    [InlineData(Protocol.Billing_TransactionStartByYostar)]
     [InlineData(Protocol.BattlePass_MissionSingleReward)]
     [InlineData(Protocol.BattlePass_MissionMultipleReward)]
     [InlineData(Protocol.Arena_EnterBattle)]

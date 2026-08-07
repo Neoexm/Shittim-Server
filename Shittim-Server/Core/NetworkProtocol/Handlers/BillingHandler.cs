@@ -224,4 +224,32 @@ public class BillingHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Billing_TransactionStartByYostar)]
+    public async Task<BillingTransactionStartByYostarResponse> TransactionStartByYostar(
+        SchaleDataContext db,
+        BillingTransactionStartByYostarRequest request,
+        BillingTransactionStartByYostarResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var shopCash = _excelTableService.GetTable<ShopCashExcelT>().FirstOrDefault(x => x.Id == request.ShopCashId)
+            ?? throw new WebAPIException(WebAPIErrorCode.BillingStartShopCashIdNotFound,
+                $"ShopCash {request.ShopCashId} not found");
+
+        // Monotonic enough for one player; the ticks double as a record of when the order opened.
+        var orderId = account.GameSettings.ServerDateTimeTicks();
+        account.GameSettings.PendingPurchaseOrders[orderId] = shopCash.Id;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.PurchaseCount = 0;
+        response.PurchaseResetDate = DateTime.MinValue;
+        response.PurchaseOrderId = orderId;
+        response.MXSeedKey = "";
+        response.PurchaseServerTag = PurchaseServerTag.Production;
+        response.PurchaseServerCallbackUrl = "";
+
+        return response;
+    }
+
 }
