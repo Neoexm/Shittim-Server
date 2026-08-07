@@ -55,6 +55,7 @@ namespace Schale.Data
         public DbSet<StickerBookDBServer> StickerBooks { get; set; }
         public DbSet<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; set; }
         public DbSet<CraftInfoDBServer> CraftInfos { get; set; }
+        public DbSet<ShiftingCraftInfoDBServer> ShiftingCraftInfos { get; set; }
         public DbSet<MissionHistoryDBServer> MissionHistories { get; set; }
         public DbSet<BeforehandGachaHistoryDBServer> BeforehandGachaHistories { get; set; }
         public DbSet<ShopPurchaseHistoryDBServer> ShopPurchaseHistories { get; set; }
@@ -81,6 +82,7 @@ namespace Schale.Data
         public DbSet<WorldRaidLocalBossDBServer> WorldRaidLocalBosses { get; set; }
         public DbSet<WorldRaidBossListInfoDBServer> WorldRaidBossListInfos { get; set; }
         public DbSet<WorldRaidClearHistoryDBServer> WorldRaidClearHistories { get; set; }
+        public DbSet<ConquestInfoDBServer> ConquestInfos { get; set; }
 
         public DbSet<BattleSummaryDB> BattleSummaries { get; set; }
         public DbSet<RaidSummaryDB> RaidSummaries { get; set; }
@@ -159,6 +161,7 @@ namespace Schale.Data
             accountEntity.HasMany(x => x.StickerBooks).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.ShopFreeRecruitHistories).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.CraftInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
+            accountEntity.HasMany(x => x.ShiftingCraftInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             
             accountEntity.HasMany(x => x.SingleRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
             accountEntity.HasMany(x => x.EliminateRaidLobbyInfos).WithOne(x => x.Account).HasForeignKey(x => x.AccountServerId).IsRequired();
@@ -276,6 +279,8 @@ namespace Schale.Data
             modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.ResultIds).HasJsonConversion();
             modelBuilder.Entity<CraftInfoDBServer>().Property(x => x.RewardParcelInfos).HasJsonConversion();
 
+            modelBuilder.Entity<ShiftingCraftInfoDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
             modelBuilder.Entity<MissionHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
 
             modelBuilder.Entity<BeforehandGachaHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
@@ -373,6 +378,12 @@ namespace Schale.Data
             modelBuilder.Entity<WorldRaidBossListInfoDBServer>().Property(x => x.LocalBossDBs).HasJsonConversion();
 
             modelBuilder.Entity<WorldRaidClearHistoryDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<ConquestInfoDBServer>().Property(x => x.ServerId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<ConquestInfoDBServer>().Property(x => x.StepByDifficulty).HasJsonConversion();
+            modelBuilder.Entity<ConquestInfoDBServer>().Property(x => x.Tiles).HasJsonConversion();
+            modelBuilder.Entity<ConquestInfoDBServer>().Property(x => x.Echelons).HasJsonConversion();
+            modelBuilder.Entity<ConquestInfoDBServer>().Property(x => x.OpenBattle).HasJsonConversion();
         }
 
         private void ConfigureBattleModels(ModelBuilder modelBuilder)

@@ -97,6 +97,7 @@ namespace Schale.MappingProfiles
             CreateMap<AcademyLocationDBServer, AcademyLocationDB>();
             CreateMap<CampaignMainStageSaveDBServer, CampaignMainStageSaveDB>();
             CreateMap<CampaignMainStageSaveDBServer, EventContentMainStageSaveDB>();
+            CreateMap<CampaignMainStageSaveDBServer, StoryStrategyStageSaveDB>();
             CreateMap<CampaignChapterClearRewardHistoryDBServer, CampaignChapterClearRewardHistoryDB>();
             CreateMap<StrategyObjectHistoryDBServer, StrategyObjectHistoryDB>();
             CreateMap<ScenarioHistoryDBServer, ScenarioHistoryDB>();
@@ -109,6 +110,7 @@ namespace Schale.MappingProfiles
             CreateMap<EventContentPermanentDBServer, EventContentPermanentDB>();
             CreateMap<StickerBookDBServer, StickerBookDB>();
             CreateMap<CraftInfoDBServer, CraftInfoDB>();
+            CreateMap<ShiftingCraftInfoDBServer, ShiftingCraftInfoDB>();
         }
 
         private void ConfigureContentMappings()

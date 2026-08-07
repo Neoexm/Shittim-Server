@@ -36,6 +36,7 @@ namespace Schale.Data.GameModel
         public long SessionHitPoint { get; set; }
         public long AccountLevelWhenCreateDB { get; set; }
         public bool ClanAssistUsed { get; set; }
+        public bool IsRewardReceived { get; set; }
     }
 
     public static class RaidDBServerExtensions

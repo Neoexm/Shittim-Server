@@ -44,6 +44,7 @@ namespace Schale.Data.GameModel
         internal virtual ICollection<StickerBookDBServer> StickerBooks { get; }
         internal virtual ICollection<ShopFreeRecruitHistoryDBServer> ShopFreeRecruitHistories { get; }
         internal virtual ICollection<CraftInfoDBServer> CraftInfos { get; }
+        internal virtual ICollection<ShiftingCraftInfoDBServer> ShiftingCraftInfos { get; }
 
         internal virtual ICollection<SingleRaidLobbyInfoDBServer> SingleRaidLobbyInfos { get; }
         internal virtual ICollection<EliminateRaidLobbyInfoDBServer> EliminateRaidLobbyInfos { get; }
@@ -102,6 +103,7 @@ namespace Schale.Data.GameModel
             StickerBooks = new List<StickerBookDBServer>();
             ShopFreeRecruitHistories = new List<ShopFreeRecruitHistoryDBServer>();
             CraftInfos = new List<CraftInfoDBServer>();
+            ShiftingCraftInfos = new List<ShiftingCraftInfoDBServer>();
 
             SingleRaidLobbyInfos = new List<SingleRaidLobbyInfoDBServer>();
             EliminateRaidLobbyInfos = new List<EliminateRaidLobbyInfoDBServer>();
