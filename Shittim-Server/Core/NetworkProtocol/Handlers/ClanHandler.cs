@@ -682,6 +682,18 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_ChatLog)]
+    public async Task<ClanChatLogResponse> ChatLog(
+        SchaleDataContext db,
+        ClanChatLogRequest request,
+        ClanChatLogResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ClanChatLog = "";
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
