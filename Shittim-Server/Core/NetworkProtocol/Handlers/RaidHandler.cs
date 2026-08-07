@@ -347,4 +347,31 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_BattleUpdate)]
+    public async Task<RaidBattleUpdateResponse> BattleUpdate(
+        SchaleDataContext db,
+        RaidBattleUpdateRequest request,
+        RaidBattleUpdateResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = _raidManager.GetRaidData(db, account);
+        var battle = _raidManager.GetRaidBattleData(db, account);
+        if (raid == null || battle == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidBattleNotFound, "No raid battle in progress");
+        if (request.RaidBossIndex < 0 || request.RaidBossIndex >= raid.RaidBossDBs.Count)
+            throw new WebAPIException(WebAPIErrorCode.RaidBattleUpdateFail, $"Boss index {request.RaidBossIndex} out of range");
+
+        // Snapshot only; EndBattle's SaveBattle stays authoritative for raid.RaidBossDBs.
+        battle.RaidBossIndex = request.RaidBossIndex;
+        battle.CurrentBossHP = Math.Max(0, raid.RaidBossDBs[request.RaidBossIndex].BossCurrentHP - request.CumulativeDamage);
+        battle.CurrentBossGroggy = request.CumulativeGroggyPoint;
+        db.RaidBattles.Update(battle);
+        await db.SaveChangesAsync();
+
+        response.RaidBattleDB = battle.ToMap(_mapper);
+
+        return response;
+    }
+
 }
