@@ -282,4 +282,23 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_Share)]
+    public async Task<RaidShareResponse> Share(
+        SchaleDataContext db,
+        RaidShareRequest request,
+        RaidShareResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = db.Raids.FirstOrDefault(x =>
+            x.ServerId == request.RaidServerId &&
+            x.AccountServerId == account.ServerId);
+        if (raid == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidShareNotFound, $"Raid {request.RaidServerId} not found");
+
+        response.RaidDB = raid.ToMap(_mapper);
+
+        return response;
+    }
+
 }
