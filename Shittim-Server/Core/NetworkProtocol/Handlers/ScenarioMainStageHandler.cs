@@ -150,4 +150,22 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_EnterTactic)]
+    public async Task<ScenarioEnterTacticResponse> EnterTactic(
+        SchaleDataContext db,
+        ScenarioEnterTacticRequest request,
+        ScenarioEnterTacticResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        await _concentrateCampaignManager.EnterTactic(db, account, new CampaignEnterTacticRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            EchelonIndex = request.EchelonIndex,
+            EnemyIndex = request.EnemyIndex
+        });
+
+        return response;
+    }
+
 }
