@@ -227,4 +227,36 @@ public class EliminateRaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.EliminateRaid_GetBestTeam)]
+    public async Task<EliminateRaidGetBestTeamResponse> GetBestTeam(
+        SchaleDataContext db,
+        EliminateRaidGetBestTeamRequest request,
+        EliminateRaidGetBestTeamResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        var stageExcels = _excelService.GetTable<EliminateRaidStageExcelT>();
+
+        var teamsByBossGroup = new Dictionary<string, List<RaidTeamSettingDB>>();
+        var summariesByGroup = account.RaidSummaries
+            .Where(x => x.ContentType == ContentTypeSummary.EliminateRaid &&
+                        !x.IsMock &&
+                        x.SeasonId == account.ContentInfo.EliminateRaidDataInfo.SeasonId)
+            .GroupBy(x => stageExcels.FirstOrDefault(s => s.Id == x.RaidStageId)?.RaidBossGroup)
+            .Where(g => g.Key != null);
+
+        foreach (var group in summariesByGroup)
+        {
+            var best = group.OrderByDescending(x => x.Score).First();
+            var groupIndex = Math.Max(0, lobby.OpenedBossGroups.IndexOf(group.Key!));
+            teamsByBossGroup[group.Key!] = RaidService.BuildBestTeams(
+                db, best, account.ServerId, EchelonType.EliminateRaid01 + groupIndex);
+        }
+
+        response.RaidTeamSettingDBsDict = teamsByBossGroup;
+
+        return response;
+    }
+
 }
