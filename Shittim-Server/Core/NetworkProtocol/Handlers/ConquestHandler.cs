@@ -84,6 +84,28 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_Check)]
+    public async Task<ConquestCheckResponse> Check(
+        SchaleDataContext db,
+        ConquestCheckRequest request,
+        ConquestCheckResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var info = db.GetAccountConquestInfos(account.ServerId)
+            .FirstOrDefault(x => x.EventContentId == request.EventContentId);
+        if (info == null)
+            return response;
+
+        var conditionAmount = _conquestManager.CalculateConditionAmount(info.EventContentId);
+        response.ParcelConsumeCumulatedAmount = info.CumulatedConditionValue;
+        response.CanReceiveCalculateReward = conditionAmount > 0
+            && info.CumulatedConditionValue - info.ReceivedCalculateRewardConditionAmount >= conditionAmount;
+        response.ConquestSummary = BuildSummary(info);
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)

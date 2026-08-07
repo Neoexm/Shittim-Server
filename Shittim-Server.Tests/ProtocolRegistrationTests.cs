@@ -70,6 +70,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Clan_Setting)]
     [InlineData(Protocol.Clan_ChatLog)]
     [InlineData(Protocol.Conquest_GetInfo)]
+    [InlineData(Protocol.Conquest_Check)]
     [InlineData(Protocol.Conquest_MainStoryGetInfo)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
