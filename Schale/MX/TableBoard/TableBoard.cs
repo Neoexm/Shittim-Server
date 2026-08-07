@@ -134,6 +134,9 @@ namespace Schale.MX.TableBoard
 
 		[JsonProperty(PropertyName = "hcr_idx")]
 		public List<int>? HiddenPotalOpenConditionRecord { get; set; }
+
+		public bool WasHiddenTreasureRecorded { get; set; }
+		public bool WasHiddenPotalOpenConditionRecorded { get; set; }
 	}
 
 	public class TBGHexaMapDB

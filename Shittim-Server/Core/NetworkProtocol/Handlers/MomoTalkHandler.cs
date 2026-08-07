@@ -267,4 +267,15 @@ public class MomoTalkHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    // answers travel inside MomoTalk_Read's AnswerScenarioId; Reply is a leftover the client never sends.
+    [ProtocolHandler(Protocol.MomoTalk_Reply)]
+    public async Task<MomoTalkReplyResponse> Reply(
+        SchaleDataContext db,
+        MomoTalkReplyRequest request,
+        MomoTalkReplyResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
 }

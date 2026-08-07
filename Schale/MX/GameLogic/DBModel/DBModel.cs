@@ -143,6 +143,7 @@ namespace Schale.MX.GameLogic.DBModel
         public DateTime CreateDate { get; set; }
         public Nullable<int> UnReadMailCount { get; set; }
         public Nullable<DateTime> LinkRewardDate { get; set; }
+        public Nullable<DateTime> LastReturningDate { get; set; }
     }
 
     public class AccountLevelRewardDB
@@ -205,6 +206,7 @@ namespace Schale.MX.GameLogic.DBModel
         public ArenaTeamSettingDB? TeamSettingDB { get; set; }
         public AccountAttachmentDB? AccountAttachmentDB { get; set; }
         public string? UserName { get; set; }
+        public bool IsAnonymous { get; set; }
     }
 
     public class ArenaTeamSettingDB
@@ -238,6 +240,7 @@ namespace Schale.MX.GameLogic.DBModel
         public WeaponDB? WeaponDB { get; set; }
         public GearDB? GearDB { get; set; }
         public CostumeDB? CostumeDB { get; set; }
+        public int SlotIndex { get; set; }
     }
 
     public class ArenaDamageReportDB
@@ -352,6 +355,7 @@ namespace Schale.MX.GameLogic.DBModel
         All = -1,
         AppStore = -2,
         GooglePlay = -3,
+        PaymentCenter = -4,
         None = -9999,
     }
 
@@ -398,6 +402,13 @@ namespace Schale.MX.GameLogic.DBModel
             public long Amount { get; set; }
         }
 
+    }
+
+    public enum CafePresetType : int
+    {
+        None = 0,
+        Preset = 1,
+        CopyPreset = 2,
     }
 
     public class CafePresetDB
@@ -673,6 +684,20 @@ namespace Schale.MX.GameLogic.DBModel
         public int MainCharacterLevelSum { get; set; }
         public int SupporterCharacterLevelSum { get; set; }
         public int TotalCharacterLevelSum { get; set; }
+    }
+
+    public class ClueSearchSaveDB
+    {
+        public long EventContentId { get; set; }
+        public int Round { get; set; }
+        public List<ClueSearchSlotDB>? SlotDBs { get; set; }
+    }
+
+    public class ClueSearchSlotDB
+    {
+        public int SlotNumber { get; set; }
+        public long ClueId { get; set; }
+        public bool IsSubmitted { get; set; }
     }
 
     public class ConquestEchelonDB
@@ -993,15 +1018,24 @@ namespace Schale.MX.GameLogic.DBModel
 
     public class CraftPresetSlotDB
     {
+        public int PresetIndex { get; set; }
         public List<CraftPresetNodeDB>? PresetNodeDBs { get; set; }
+        public string? PresetName { get; set; }
     }
 
     public class CraftPresetNodeDB
     {
         public CraftNodeTier NodeTier { get; set; }
         public bool IsActivated { get; set; }
-        public long PriortyNodeId { get; set; }
-        public ConsumeRequestDB? ConsumeRequestDB { get; set; }
+        public List<long>? PriorityNodeIds { get; set; }
+        public List<ParcelInfoImmutable>? CostParcels { get; set; }
+    }
+
+    public class DailyRecordDB
+    {
+        public long Id { get; set; }
+        public int AttendanceDay { get; set; }
+        public int ReceivedRewardDay { get; set; }
     }
 
     public class DetailedAccountInfoDB
@@ -1022,6 +1056,7 @@ namespace Schale.MX.GameLogic.DBModel
         public Nullable<int> RaidTier { get; set; }
         public Nullable<long> EliminateRaidRanking { get; set; }
         public Nullable<int> EliminateRaidTier { get; set; }
+        public Nullable<long> MultiFloorRaidClearedDifficulty { get; set; }
         public AssistCharacterDB[]? AssistCharacterDBs { get; set; }
     }
 
@@ -1171,6 +1206,20 @@ namespace Schale.MX.GameLogic.DBModel
         public DateTime ReceiveDate { get; set; }
     }
 
+    public class EventContentConcentrationSaveDB
+    {
+        public int FlipCount { get; set; }
+        public int Round { get; set; }
+        public List<EventContentConcentrationCardDB>? CardDBs { get; set; }
+    }
+
+    public class EventContentConcentrationCardDB
+    {
+        public int Index { get; set; }
+        public long CardId { get; set; }
+        public bool IsMatched { get; set; }
+    }
+
     public class EventContentDiceRaceDB
     {
         public long EventContentId { get; set; }
@@ -1266,6 +1315,57 @@ namespace Schale.MX.GameLogic.DBModel
         public DateTime EndDate { get; set; }
     }
 
+    public class FieldSnapshot
+    {
+        public long FieldSeasonId { get; set; }
+        public long AccountId { get; set; }
+        public DateTime ServerTime { get; set; }
+        public FieldCharacterDB? Character { get; set; }
+        public FieldMasteryDB? Mastery { get; set; }
+        public List<FieldDateHistoryDB>? DateHistoryDBs { get; set; }
+        public List<FieldInteractionDB>? Interactions { get; set; }
+        public List<FieldQuestDB>? MainQuests { get; set; }
+        public List<FieldQuestDB>? DailyQuests { get; set; }
+    }
+
+    public class FieldCharacterDB
+    {
+        public long CurrentSceneId { get; set; }
+        public long PreviousSceneId { get; set; }
+        public long LastMasteryId { get; set; }
+        public bool WasSceneChanged { get; set; }
+        public bool WasMasteryIdChanged { get; set; }
+    }
+
+    public class FieldMasteryDB
+    {
+        public int Level { get; set; }
+        public long Exp { get; set; }
+        public bool WasMasteryChanged { get; set; }
+    }
+
+    public class FieldInteractionDB
+    {
+        public long SeasonId { get; set; }
+        public long UniqueId { get; set; }
+        public DateTime UpdateDate { get; set; }
+    }
+
+    public class FieldQuestDB
+    {
+        public long SeasonId { get; set; }
+        public long UniqueId { get; set; }
+        public DateTime UpdateDate { get; set; }
+        public bool IsComplete { get; set; }
+        public bool IsDaily { get; set; }
+    }
+
+    public class FieldDateHistoryDB
+    {
+        public long DateId { get; set; }
+        public DateTime ClearDate { get; set; }
+    }
+
     public class FieldStageSaveDB : ContentSaveDB
     {
         public new static ContentType ContentType { get => ContentType.FieldContentStage; }
@@ -1301,11 +1401,13 @@ namespace Schale.MX.GameLogic.DBModel
         public bool ShowRaidRanking { get; set; }
         public bool ShowArenaRanking { get; set; }
         public bool ShowEliminateRaidRanking { get; set; }
+        public bool ShowMultiFloorRaidClearedDifficulty { get; set; }
         public Nullable<long> ArenaRanking { get; set; }
         public Nullable<long> RaidRanking { get; set; }
         public Nullable<int> RaidTier { get; set; }
         public Nullable<long> EliminateRaidRanking { get; set; }
         public Nullable<int> EliminateRaidTier { get; set; }
+        public Nullable<int> MultiFloorRaidClearedDifficulty { get; set; }
         public long EmblemId { get; set; }
     }
 
@@ -1403,6 +1505,9 @@ namespace Schale.MX.GameLogic.DBModel
         public DateTime SendDate { get; set; }
         public Nullable<DateTime> ReceiptDate { get; set; }
         public Nullable<DateTime> ExpireDate { get; set; }
+        public Nullable<long> OrderId { get; set; }
+        public Nullable<long> ProductId { get; set; }
+        public bool IsCashMail { get; set; }
         public List<ParcelInfo>? ParcelInfos { get; set; }
         // Only populated for partially-claimed mail; official omits it otherwise.
         [OmitWhenEmpty]
@@ -1696,6 +1801,48 @@ namespace Schale.MX.GameLogic.DBModel
         public long OpenedCafeId { get; set; }
     }
 
+    public enum CafeAllowCopyPreset : int
+    {
+        All = 0,
+        None = 1,
+        CircleAndFriend = 10,
+        CircleOnly = 11,
+        FriendOnly = 12,
+    }
+
+    public class OptionDB
+    {
+        public bool ArenaIsAnonymous { get; set; }
+        public CafeAllowCopyPreset CafeAllowCopy { get; set; }
+        public int MainScenarioForceEnterSeriesId { get; set; }
+    }
+
+    public class PermanentRaidBossManageDB
+    {
+        public RaidBossGroupType GroupType { get; set; }
+        public DateTime LockStartDate { get; set; }
+        public DateTime LockEndDate { get; set; }
+    }
+
+    public class PermanentRaidBestScoreHistoryDB
+    {
+        public long StageId { get; set; }
+        public long Score { get; set; }
+        public List<ClearDeckDB>? ClearDeckDBs { get; set; }
+    }
+
+    public class PermanentRaidBattleHistoryDB
+    {
+        public long StageId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public RaidStatus Status { get; set; }
+        public RaidBattleDB? RaidBattleDB { get; set; }
+        public List<RaidBossDB>? RaidBossDBs { get; set; }
+        public List<long>? ParticipateCharacterServerIds { get; set; }
+        public ClanAssistUseInfo? AssistUseInfo { get; set; }
+    }
+
     public class PickupCharacterSelectionDB
     {
         public long AccountId { get; set; }
@@ -1915,6 +2062,15 @@ namespace Schale.MX.GameLogic.DBModel
         public Difficulty Difficulty { get; set; }
         public Nullable<int> BossGroupIndex { get; set; }
         public long RankCount { get; set; }
+    }
+
+    public class RaidScoreInfo
+    {
+        public long ClearTimePoint { get; set; }
+        public long HPPercentScorePoint { get; set; }
+        public long DefaultClearPoint { get; set; }
+        public long RankingPoint { get; set; }
+        public long BestRankingPoint { get; set; }
     }
 
     public class RaidDetailDB
@@ -2265,8 +2421,19 @@ namespace Schale.MX.GameLogic.DBModel
         public List<WorldRaidClearHistoryDB>? WorldRaidClearHistoryDBs { get; set; }
     }
 
+    public class WorldRaidProgressDB
+    {
+        public long SeasonId { get; set; }
+        public long PhaseId { get; set; }
+        public Dictionary<WorldRaidMapType, long>? Maps { get; set; }
+        public Dictionary<SkillSlot, int>? CarrierSkills { get; set; }
+        public List<long>? ClearConditionIds { get; set; }
+        public bool WasPhaseIdUpdated { get; set; }
+    }
+
     public class WorldRaidLocalBossDB
     {
+        public ContentType ContentType { get; set; }
         public long SeasonId { get; set; }
         public long GroupId { get; set; }
         public long UniqueId { get; set; }
@@ -2279,6 +2446,7 @@ namespace Schale.MX.GameLogic.DBModel
 
     public class WorldRaidWorldBossDB
     {
+        public ContentType ContentType { get; set; }
         public long GroupId { get; set; }
         public long HP { get; set; }
         public long Participants { get; set; }
@@ -2301,6 +2469,7 @@ namespace Schale.MX.GameLogic.DBModel
     public class WorldRaidBossGroup : ContentsValueChangeDB
     {
         public new ContentsChangeType ContentsChangeType { get; set; }
+        public ContentType ContentType { get; set; }
         public long GroupId { get; set; }
         public DateTime BossSpawnTime { get; set; }
         public DateTime EliminateTime { get; set; }

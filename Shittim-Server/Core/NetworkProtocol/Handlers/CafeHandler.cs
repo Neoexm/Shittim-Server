@@ -60,6 +60,20 @@ public class CafeHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Cafe_Travel)]
+    public async Task<CafeTravelResponse> Travel(
+        SchaleDataContext db,
+        CafeTravelRequest request,
+        CafeTravelResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // no friend cafes to walk into here, so any travel target lands the visitor back home
+        response.CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Cafe_Ack)]
     public async Task<CafeAckResponse> Ack(
         SchaleDataContext db,
@@ -355,6 +369,30 @@ public class CafeHandler : ProtocolHandlerBase
         SchaleDataContext db,
         CafeUpdatePresetFurnitureRequest request,
         CafeUpdatePresetFurnitureResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Cafe_PresetDetail)]
+    public async Task<CafePresetDetailResponse> PresetDetail(
+        SchaleDataContext db,
+        CafePresetDetailRequest request,
+        CafePresetDetailResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.DeployCountByFurnitureId = new();
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Cafe_UpdateCopyPresetFurniture)]
+    public async Task<CafeUpdateCopyPresetFurnitureResponse> UpdateCopyPresetFurniture(
+        SchaleDataContext db,
+        CafeUpdateCopyPresetFurnitureRequest request,
+        CafeUpdateCopyPresetFurnitureResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 

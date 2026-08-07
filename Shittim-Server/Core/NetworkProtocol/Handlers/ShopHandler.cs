@@ -192,7 +192,6 @@ public class ShopHandler : ProtocolHandlerBase
         var (accountCurrency, _, gachaAmount) = await _shopManager.ConsumeCurrency(db, account, req3);
         var (itemDbList, gachaResults) = await _shopManager.CreateTenGacha(db, account, req3, gachaAmount);
 
-        response.AccountCurrencyDB = accountCurrency;
         response.ParcelResultDB = new ParcelResultDB
         {
              AccountCurrencyDB = accountCurrency,
@@ -833,6 +832,18 @@ public class ShopHandler : ProtocolHandlerBase
         if (buyApMissions.Count > 0)
             response.MissionProgressDBs = buyApMissions;
 
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Audit_GachaStatistics)]
+    public async Task<AuditGachaStatisticsResponse> GachaStatistics(
+        SchaleDataContext db,
+        AuditGachaStatisticsRequest request,
+        AuditGachaStatisticsResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.GachaResult = _shopManager.SimulateGacha(request.ShopUniqueId, request.Count);
         return response;
     }
 }

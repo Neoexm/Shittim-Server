@@ -44,6 +44,39 @@ public class ItemHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Item_Sell)]
+    public async Task<ItemSellResponse> Sell(
+        SchaleDataContext db,
+        ItemSellRequest request,
+        ItemSellResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // nothing in ItemExcel carries a sell price, so selling just discards the stacks
+        var targetIds = request.TargetServerIds ?? [];
+        var targets = db.GetAccountItems(account.ServerId).Where(x => targetIds.Contains(x.ServerId)).ToList();
+        db.Items.RemoveRange(targets);
+        await db.SaveChangesAsync();
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Item_Lock)]
+    public async Task<ItemLockResponse> Lock(
+        SchaleDataContext db,
+        ItemLockRequest request,
+        ItemLockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // lock state lives client-side; the wire ItemDB has no field to carry it back anyway
+        response.ItemDB = db.GetAccountItems(account.ServerId).Where(x => x.ServerId == request.TargetServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Item_SelectTicket)]
     public async Task<ItemSelectTicketResponse> SelectTicket(
         SchaleDataContext db,

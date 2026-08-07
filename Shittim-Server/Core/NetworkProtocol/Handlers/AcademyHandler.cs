@@ -228,4 +228,14 @@ public class AcademyHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Academy_AttendFavorSchedule)]
+    public async Task<AcademyAttendFavorScheduleResponse> AttendFavorSchedule(
+        SchaleDataContext db,
+        AcademyAttendFavorScheduleRequest request,
+        AcademyAttendFavorScheduleResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
 }

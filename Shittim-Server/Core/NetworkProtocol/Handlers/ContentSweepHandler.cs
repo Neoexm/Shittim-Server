@@ -366,6 +366,42 @@ public class ContentSweepHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.ContentSweep_MultiSweepPresetList)]
+    public async Task<ContentSweepMultiSweepPresetListResponse> MultiSweepPresetList(
+        SchaleDataContext db,
+        ContentSweepMultiSweepPresetListRequest request,
+        ContentSweepMultiSweepPresetListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.MultiSweepPresetDBs = account.GameSettings.MultiSweepPresetDBs ?? [];
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.ContentSweep_SetMultiSweepPresetName)]
+    public async Task<ContentSweepSetMultiSweepPresetNameResponse> SetMultiSweepPresetName(
+        SchaleDataContext db,
+        ContentSweepSetMultiSweepPresetNameRequest request,
+        ContentSweepSetMultiSweepPresetNameResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var presets = account.GameSettings.MultiSweepPresetDBs ?? [];
+        var current = presets.FirstOrDefault(x => x.PresetId == request.PresetId);
+        if (current != null)
+        {
+            current.PresetName = request.PresetName;
+            account.GameSettings.MultiSweepPresetDBs = presets;
+            db.Accounts.Update(account);
+            await db.SaveChangesAsync();
+        }
+
+        response.MultiSweepPresetDBs = presets;
+
+        return response;
+    }
+
     private static bool GenerateProbability(long probability)
     {
         if (probability == 0) return true;

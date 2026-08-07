@@ -392,6 +392,27 @@ public class MiniGameTableBoardHandler : ProtocolHandlerBase
         return response;
     }
 
+    // fight and flee both arrive as EncounterInput option indexes, so these two protocols never leave the client.
+    [ProtocolHandler(Protocol.MiniGame_TableBoardBattleEncounter)]
+    public async Task<MiniGameTableBoardBattleEncounterResponse> BattleEncounter(
+        SchaleDataContext db,
+        MiniGameTableBoardBattleEncounterRequest request,
+        MiniGameTableBoardBattleEncounterResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.MiniGame_TableBoardBattleRunAway)]
+    public async Task<MiniGameTableBoardBattleRunAwayResponse> BattleRunAway(
+        SchaleDataContext db,
+        MiniGameTableBoardBattleRunAwayRequest request,
+        MiniGameTableBoardBattleRunAwayResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     private sealed class EncounterPlay
     {
         public List<int>? Dices;

@@ -141,7 +141,8 @@ public class AccountHandler : ProtocolHandlerBase
         response.AccountRestrictionsDB = new();
         // Official Account_Auth always carries OptionDB, and it is always {} (no option has ever been observed inside it).
         response.OptionDB = new();
-        // accountBanByNexonDBs / DailyRecordDBs stay null: official omits them.
+        // accountBanByNexonDBs / DailyRecordDBs stay null: official omits them. A false IsArenaAnonymous drops off the wire the same way, so serving the stored flag matches both captures.
+        response.IsArenaAnonymous = account.ContentInfo.Option.ArenaIsAnonymous;
         response.StaticOpenConditions = BuildOfficialStaticOpenConditions();
 
         response.AccountDB = _mapper.Map<AccountDB>(account);
@@ -587,7 +588,7 @@ public class AccountHandler : ProtocolHandlerBase
     }
 
     // 8-char A-Z code in the official FriendCode format, stable per account.
-    private static string BuildFriendCode(long accountServerId)
+    internal static string BuildFriendCode(long accountServerId)
     {
         var hash = System.Security.Cryptography.SHA256.HashData(
             Encoding.UTF8.GetBytes($"shittim-friend:{accountServerId}"));
@@ -751,6 +752,250 @@ public class AccountHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         _sessionService.RevokeSession(account.ServerId);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_Auth2)]
+    public async Task<AccountAuth2Response> Auth2(
+        SchaleDataContext db,
+        AccountAuth2Request request,
+        AccountAuth2Response response)
+    {
+        await Auth(db, request, response);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_CurrencySync)]
+    public async Task<AccountCurrencySyncResponse> CurrencySync(
+        SchaleDataContext db,
+        AccountCurrencySyncRequest request,
+        AccountCurrencySyncResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+        // Official always sends this map, empty when nothing expired.
+        response.ExpiredCurrency = new();
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_BirthDay)]
+    public async Task<AccountBirthDayResponse> SetBirthDay(
+        SchaleDataContext db,
+        AccountBirthDayRequest request,
+        AccountBirthDayResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.BirthDay = request.BirthDay;
+        await db.SaveChangesAsync();
+
+        response.AccountDB = _mapper.Map<AccountDB>(account);
+        return response;
+    }
+
+    // sent by the client on the recorded birthday; the mail contents live in ConstCommonExcel, one per year.
+    [ProtocolHandler(Protocol.Account_RequestBirthdayMail)]
+    public async Task<AccountRequestBirthdayMailResponse> RequestBirthdayMail(
+        SchaleDataContext db,
+        AccountRequestBirthdayMailRequest request,
+        AccountRequestBirthdayMailResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var now = account.GameSettings.ServerDateTime();
+        var alreadySent = db.GetAccountMails(account.ServerId).AsEnumerable()
+            .Any(x => x.Type == MailType.BirthdayMail && x.SendDate.Year == now.Year);
+        if (!alreadySent)
+        {
+            var constCommon = _excelService.GetTable<ConstCommonExcelT>().First();
+            db.Mails.Add(new MailDBServer
+            {
+                AccountServerId = account.ServerId,
+                Type = MailType.BirthdayMail,
+                SendDate = now,
+                ExpireDate = now.AddDays(constCommon.BirthdayMailRemainDate),
+                ParcelInfos = [new ParcelInfo { Key = new ParcelKeyPair { Type = constCommon.BirthdayMailParcelType, Id = constCommon.BirthdayMailParcelId }, Amount = constCommon.BirthdayMailParcelAmount }],
+                RemainParcelInfos = new List<ParcelInfo>()
+            });
+            await db.SaveChangesAsync();
+            MailNotificationService.MarkNewMail(account.ServerId);
+        }
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_PassCheck)]
+    public async Task<AccountPassCheckResponse> PassCheck(
+        SchaleDataContext db,
+        AccountPassCheckRequest request,
+        AccountPassCheckResponse response)
+    {
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
+
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
+        return response;
+    }
+
+    // the Yostar build's counterpart to CheckNexon; the Steam client never sends it, but our inface flow mints the same uid/token EnterTicket either way.
+    [ProtocolHandler(Protocol.Account_CheckYostar)]
+    public async Task<AccountCheckYostarResponse> CheckYostar(
+        SchaleDataContext db,
+        AccountCheckYostarRequest request,
+        AccountCheckYostarResponse response)
+    {
+        var ticketBytes = Convert.FromBase64String(request.EnterTicket);
+        var ticketString = Encoding.UTF8.GetString(ticketBytes);
+        var parts = ticketString.Split('/');
+
+        var publisherId = long.Parse(parts[0]);
+        var token = parts[1];
+
+        var user = await db.UserAccounts
+            .FirstOrDefaultAsync(u => u.NpSN == publisherId);
+
+        if (user == null)
+        {
+            var newUser = new UserAccount
+            {
+                Uid = -1,
+                NpSN = publisherId,
+                NpToken = token
+            };
+            db.UserAccounts.Add(newUser);
+
+            var newAccount = new AccountDBServer(publisherId);
+            db.Accounts.Add(newAccount);
+
+            await db.SaveChangesAsync();
+
+            user = await db.UserAccounts.FirstAsync(u => u.NpSN == publisherId);
+            var account = await db.Accounts.FirstAsync(a => a.PublisherAccountId == publisherId);
+
+            user.Uid = account.ServerId;
+            await AccountInitializationService.InitializeCompleteAccount(db, account);
+            await db.SaveChangesAsync();
+        }
+        else if (user.NpToken != token)
+        {
+            user.NpToken = token;
+            await db.SaveChangesAsync();
+        }
+
+        var sessionKey = await _sessionService.GenerateSession(publisherId);
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
+
+        response.ResultState = 1;
+        response.SessionKey = sessionKey;
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
+        return response;
+    }
+
+    // dev-build reset. The account row and its publisher link survive, everything hanging off it goes, then the fresh-account seeding runs again.
+    [ProtocolHandler(Protocol.Account_Reset)]
+    public async Task<AccountResetResponse> Reset(
+        SchaleDataContext db,
+        AccountResetRequest request,
+        AccountResetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Cascade by hand: wipe every child table that carries an AccountServerId column, discovered from the SQLite catalogue so we never miss one.
+        var tables = await db.Database
+            .SqlQueryRaw<string>(
+                "SELECT m.name AS Value FROM sqlite_master m " +
+                "JOIN pragma_table_info(m.name) p ON 1=1 " +
+                "WHERE m.type='table' AND p.name='AccountServerId'")
+            .ToListAsync();
+
+        foreach (var table in tables.Distinct())
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}", account.ServerId);
+        }
+
+        account.Nickname = string.Empty;
+        account.CallName = null;
+        account.Comment = null;
+        account.Level = 1;
+        account.Exp = 0;
+        account.RepresentCharacterServerId = 0;
+        account.MemoryLobbyUniqueId = 0;
+        await db.SaveChangesAsync();
+
+        await AccountInitializationService.InitializeCompleteAccount(db, account);
+        await db.SaveChangesAsync();
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_DetachNexon)]
+    public async Task<AccountDetachNexonResponse> DetachNexon(
+        SchaleDataContext db,
+        AccountDetachNexonRequest request,
+        AccountDetachNexonResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        response.ResultState = 1;
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_ReportXignCodeCheater)]
+    public async Task<AccountReportXignCodeCheaterResponse> ReportXignCodeCheater(
+        SchaleDataContext db,
+        AccountReportXignCodeCheaterRequest request,
+        AccountReportXignCodeCheaterResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        _logger.LogInformation("XignCode report: {ErrorCode}", request.ErrorCode);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_DismissRepurchasablePopup)]
+    public async Task<AccountDismissRepurchasablePopupResponse> DismissRepurchasablePopup(
+        SchaleDataContext db,
+        AccountDismissRepurchasablePopupRequest request,
+        AccountDismissRepurchasablePopupResponse response)
+    {
+        // Auth never offers repurchasable products, so there is nothing to record.
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_VerifyCheckAdultAgree)]
+    public async Task<AccountVerifyAdultCheckResponse> VerifyAdultCheck(
+        SchaleDataContext db,
+        AccountVerifyAdultCheckRequest request,
+        AccountVerifyAdultCheckResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        response.CheckAdultAgree = true;
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_SetCheckAdultAgree)]
+    public async Task<AccountSetAdultCheckResponse> SetAdultCheck(
+        SchaleDataContext db,
+        AccountSetAdultCheckRequest request,
+        AccountSetAdultCheckResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Account_VerifyForYostar)]
+    public async Task<AccountVerifyForYostarResponse> VerifyForYostar(
+        SchaleDataContext db,
+        AccountVerifyForYostarRequest request,
+        AccountVerifyForYostarResponse response)
+    {
+        // yostar verification belongs to the JP/GL builds; the Steam client authenticates through IAS and never sends this.
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }
 }

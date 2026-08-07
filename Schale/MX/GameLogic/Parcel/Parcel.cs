@@ -194,6 +194,12 @@ namespace Schale.MX.GameLogic.Parcel
         }
     }
 
+    public class ParcelInfoImmutable
+    {
+        public ParcelKeyPair? Key { get; set; }
+        public long Amount { get; set; }
+    }
+
 
     // Official ParcelResultDB only carries the collections the reward actually touched:
     // across every captured Mail_Receive / Mission_MultipleReward it holds no more than AccountCurrencyDB + ItemDBs + DisplaySequence + ParcelForMission, with the other ~20 collections absent rather than [] / {}.

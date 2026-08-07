@@ -31,4 +31,14 @@ public class NetworkTimeHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.NetworkTime_SyncReply)]
+    public async Task<NetworkTimeSyncReplyResponse> SyncReply(
+        SchaleDataContext db,
+        NetworkTimeSyncReplyRequest request,
+        NetworkTimeSyncReplyResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
 }

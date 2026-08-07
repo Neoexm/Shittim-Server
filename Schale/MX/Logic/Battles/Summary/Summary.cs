@@ -45,6 +45,7 @@ namespace Schale.MX.Logic.Battles.Summary
         public WeekDungeonSummary? WeekDungeonSummary { get; set; }
         public RaidSummary? RaidSummary { get; set; }
         public ArenaSummary? ArenaSummary { get; set; }
+        public ExcessiveTouch? TouchCountSummary { get; set; }
 
         [JsonIgnore]
         public TimeSpan EndTime { get; set; }
@@ -94,6 +95,13 @@ namespace Schale.MX.Logic.Battles.Summary
         public int ClearCount { get; set; }
     }
 
+    public class ExcessiveTouch
+    {
+        public List<int>? ExcessiveTouchFrameList { get; set; }
+        public int ExcessiveTouchCount { get; set; }
+        public int TotalExcessiveTouchFound { get; set; }
+    }
+
     public class GroupSummary : IEquatable<GroupSummary>
     {
         public long TeamId { get; set; }
@@ -104,6 +112,7 @@ namespace Schale.MX.Logic.Battles.Summary
 
         public HeroSummaryCollection? Heroes { get; set; }
         public HeroSummaryCollection? Supporters { get; set; }
+        public HeroSummaryCollection? CarrierSkillSupporters { get; set; }
         public SkillCostSummary? SkillCostSummary { get; set; }
 
         [JsonIgnore]

@@ -177,7 +177,14 @@ namespace Shittim_Server.Controllers.Api
                 var payloadStr = gatewayPayload.Json;
                 _wireRequestJson = payloadStr;
                 var jsonNode = JObject.Parse(payloadStr);
-                protocol = ReadProtocol(jsonNode);
+                var readProtocol = ReadProtocol(jsonNode);
+                if (readProtocol == null)
+                {
+                    _logger.LogError("Failed to read protocol from JsonNode, {Payload}", payloadStr);
+                    await CreateProtocolErrorResponse("Failed to read protocol", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
+                    return;
+                }
+                protocol = readProtocol.Value;
                 var responseProtocolName = protocol.ToString();
                 int? responseProtocolOverride = null;
 
@@ -190,13 +197,6 @@ namespace Shittim_Server.Controllers.Api
 
                 // Bodies are Debug, not Information: at default verbosity this would write every packet a player sends, session material included. The finally below emits one concise Information line per request instead.
                 _logger.LogDebug("Request {ProtocolInt} / {Protocol}: {Payload}", (int)protocol, protocol, payloadStr);
-
-                if (protocol == Protocol.None)
-                {
-                    _logger.LogError("Failed to read protocol from JsonNode, {Payload}", payloadStr);
-                    await CreateProtocolErrorResponse("Failed to read protocol", WebAPIErrorCode.ServerFailedToHandleRequest, responseCrypto);
-                    return;
-                }
 
                 if (ServerNoticeService.IsGated(protocol))
                 {
@@ -411,16 +411,17 @@ namespace Shittim_Server.Controllers.Api
             throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Gateway payload could not be decoded. First bytes: {preview}");
         }
 
-        private static Protocol ReadProtocol(JObject jsonNode)
+        // null means the field is absent or unreadable; an explicit 0 is a real protocol and routes like any other
+        private static Protocol? ReadProtocol(JObject jsonNode)
         {
             var protocolNode = jsonNode["Protocol"] ?? jsonNode["protocol"];
             if (protocolNode == null)
-                return Protocol.None;
+                return null;
 
             if (protocolNode.Type == JTokenType.Integer)
                 return (Protocol)protocolNode.Value<int>();
 
-            return Enum.TryParse<Protocol>(protocolNode.Value<string>(), out var protocol) ? protocol : Protocol.None;
+            return Enum.TryParse<Protocol>(protocolNode.Value<string>(), out var protocol) ? (Protocol?)protocol : null;
         }
 
         private static bool ShouldTreatAsQueuingGetTicketGL(Protocol protocol, JObject jsonNode)

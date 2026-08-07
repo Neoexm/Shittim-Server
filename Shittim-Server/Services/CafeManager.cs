@@ -284,7 +284,7 @@ public class CafeManager
         AccountDBServer account,
         CafeSummonCharacterTicketUseRequest req)
     {
-        var consumeResult = await _consumeHandler.BuildConsumeResult(context, account, req.ConsumeRequestDB ?? new ConsumeRequestDB());
+        var consumeResult = await _consumeHandler.BuildConsumeResult(context, account, new ConsumeRequestDB());
 
         var cafeDb = context.Cafes.GetCafeByCafeDBId(account.ServerId, req.CafeDBId);
         var characterData = context.Characters.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.ServerId == req.CharacterServerId);

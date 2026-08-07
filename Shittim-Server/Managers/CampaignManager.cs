@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.FlatData;
@@ -243,6 +244,57 @@ namespace Shittim_Server.Managers
 
             var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelInfos);
             return parcelResolver.ParcelResult;
+        }
+
+        // The client's IsAvailableStageToday reads sweepCount + TodayPlayCount <= TodayPurchasePlayCountHardStage + ConstCommonExcel.HardStageCount, and only on Hard stages, so a bought play raises the purchase counter and nothing else - taking one off TodayPlayCount as well would hand out two plays per purchase.
+        public async Task<(AccountCurrencyDBServer Currency, CampaignStageHistoryDBServer History)> PurchasePlayCountHardStage(
+            SchaleDataContext context, AccountDBServer account, long stageUniqueId)
+        {
+            // CampaignStageExcel carries no difficulty column in this data version - the dev name (CHAPTER01_Hard_Main_Stage01) is the only marker
+            var campaignExcel = _campaignStageExcels.GetCampaignStageId(stageUniqueId);
+            if (campaignExcel.Name == null || !campaignExcel.Name.Contains("Hard"))
+                throw new WebAPIException(WebAPIErrorCode.CampaignStagePlayLimit, $"Stage {stageUniqueId} has no purchasable plays");
+
+            var historyDb = await context.CampaignStageHistories
+                .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.StageUniqueId == stageUniqueId);
+
+            if (historyDb == null)
+            {
+                var chapterId = _campaignChapterExcels.GetChapterIdFromStageId(stageUniqueId);
+                historyDb = new CampaignStageHistoryDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    StageUniqueId = stageUniqueId,
+                    ChapterUniqueId = chapterId,
+                    LastPlay = account.GameSettings.ServerDateTime()
+                };
+                context.CampaignStageHistories.Add(historyDb);
+            }
+
+            var dailyLimit = _excelService.GetTable<ConstCommonExcelT>().First().HardAdventurePlayCountRecoverDailyNumber;
+            if (historyDb.TodayPurchasePlayCountHardStage >= dailyLimit)
+                throw new WebAPIException(WebAPIErrorCode.CampaignStagePlayLimit, $"Stage {stageUniqueId} has no purchases left today");
+
+            // the price is not a constant anywhere - ServiceActionExcel names the goods row and the goods row is what carries the currency and the amount
+            var serviceAction = _excelService.GetTable<ServiceActionExcelT>()
+                .FirstOrDefault(x => x.ServiceActionType == ServiceActionType.HardAdventurePlayCountRecover);
+            var goods = serviceAction == null
+                ? null
+                : _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == serviceAction.GoodsId);
+
+            if (goods != null)
+            {
+                var cost = ParcelResult.ConvertParcelResult(goods.ConsumeParcelType, goods.ConsumeParcelId, goods.ConsumeParcelAmount);
+                await _parcelHandler.BuildParcel(context, account, cost, isConsume: true);
+            }
+
+            historyDb.TodayPurchasePlayCountHardStage++;
+
+            await context.SaveChangesAsync();
+
+            var currency = await context.Currencies.FirstAsync(x => x.AccountServerId == account.ServerId);
+
+            return (currency, historyDb);
         }
 
         private static List<ParcelResult> TaggedRewards(IEnumerable<CampaignStageRewardExcelT> rewards, RewardTag tag)

@@ -227,7 +227,7 @@ public class MissionHandler : ProtocolHandlerBase
             });
         }
 
-        return new DailySuddenMissionInfo
+        return new MissionInfo
         {
             Id = pick.Id,
             Category = pick.Category,
@@ -459,6 +459,26 @@ public class MissionHandler : ProtocolHandlerBase
 
         await db.SaveChangesAsync();
 
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Mission_GuideReward)]
+    public async Task<MissionGuideRewardResponse> GuideReward(
+        SchaleDataContext db,
+        MissionGuideRewardRequest request,
+        MissionGuideRewardResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Mission_MultipleGuideReward)]
+    public async Task<MissionMultipleGuideRewardResponse> MultipleGuideReward(
+        SchaleDataContext db,
+        MissionMultipleGuideRewardRequest request,
+        MissionMultipleGuideRewardResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }
 }

@@ -53,4 +53,25 @@ public class AttendanceHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    // 9000/9001 predate the book flow; the retail client reads its books from Account_Auth and claims through Attendance_Reward, so neither of these ever leaves it.
+    [ProtocolHandler(Protocol.Attendance_List)]
+    public async Task<AttendanceListResponse> List(
+        SchaleDataContext db,
+        AttendanceListRequest request,
+        AttendanceListResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Attendance_Check)]
+    public async Task<AttendanceCheckResponse> Check(
+        SchaleDataContext db,
+        AttendanceCheckRequest request,
+        AttendanceCheckResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
 }

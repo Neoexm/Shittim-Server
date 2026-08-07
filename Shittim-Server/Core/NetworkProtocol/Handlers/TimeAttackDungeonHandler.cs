@@ -71,6 +71,30 @@ public class TimeAttackDungeonHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.TimeAttackDungeon_Sweep)]
+    public async Task<TimeAttackDungeonSweepResponse> Sweep(
+        SchaleDataContext db,
+        TimeAttackDungeonSweepRequest request,
+        TimeAttackDungeonSweepResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // no sweep reward table wired up yet; the runs come back empty but the count matches what was asked
+        var rewards = new List<List<ParcelInfo>>();
+        for (var i = 0; i < request.SweepCount; i++)
+            rewards.Add([]);
+        response.Rewards = rewards;
+        response.ParcelResultDB = new();
+
+        var room = _timeAttackDungeonManager.GetRoom(db, account);
+        if (room != null)
+            response.RoomDB = room.ToMap(_mapper);
+
+        response.ServerTimeTicks = _timeAttackDungeonManager.GetTADTimeTicks(account).Ticks;
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.TimeAttackDungeon_CreateBattle)]
     public async Task<TimeAttackDungeonCreateBattleResponse> CreateBattle(
         SchaleDataContext db,

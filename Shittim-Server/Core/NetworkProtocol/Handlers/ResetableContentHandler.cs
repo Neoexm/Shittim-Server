@@ -5,25 +5,28 @@ using Shittim_Server.Core;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
-public class ContentLogHandler : ProtocolHandlerBase
+public class ResetableContentHandler : ProtocolHandlerBase
 {
     private readonly ISessionKeyService _sessionService;
 
-    public ContentLogHandler(
+    public ResetableContentHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }
 
-    // telemetry sink; nothing to keep.
-    [ProtocolHandler(Protocol.ContentLog_UIOpenStatistics)]
-    public async Task<ContentLogUIOpenStatisticsResponse> UIOpenStatistics(
+    [ProtocolHandler(Protocol.ResetableContent_Get)]
+    public async Task<ResetableContentGetResponse> Get(
         SchaleDataContext db,
-        ContentLogUIOpenStatisticsRequest request,
-        ContentLogUIOpenStatisticsResponse response)
+        ResetableContentGetRequest request,
+        ResetableContentGetResponse response)
     {
+        // nothing tracks per-reset content values server-side; empty means everything sits at its default
         await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ResetableContentValueDBs = [];
+
         return response;
     }
 }

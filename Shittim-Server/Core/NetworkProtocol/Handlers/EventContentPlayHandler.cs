@@ -553,6 +553,318 @@ public class EventContentPlayHandler : ProtocolHandlerBase
         return response;
     }
 
+    private EventContentConcentrationExcelT ConcentrationExcel(long eventContentId)
+    {
+        return _excelService.GetTable<EventContentConcentrationExcelT>().FirstOrDefault(x => x.EventContentId == eventContentId)
+            ?? throw new WebAPIException(WebAPIErrorCode.EventContentNotOpen, $"Event {eventContentId} has no concentration board");
+    }
+
+    private void DealConcentrationBoard(EventContentPlayDBServer play)
+    {
+        var conc = ConcentrationExcel(play.EventContentId);
+        var pool = _excelService.GetTable<EventContentConcentrationCardExcelT>()
+            .Where(x => x.EventContentId == play.EventContentId)
+            .Select(x => x.CardId)
+            .ToList();
+
+        var picked = new List<long>();
+        while (picked.Count < conc.MaxCardPairCount && pool.Count > 0)
+        {
+            var i = Random.Shared.Next(pool.Count);
+            picked.Add(pool[i]);
+            pool.RemoveAt(i);
+        }
+
+        var deck = picked.Concat(picked).ToList();
+        var cards = new List<EventContentConcentrationCardDB>();
+        while (deck.Count > 0)
+        {
+            var i = Random.Shared.Next(deck.Count);
+            cards.Add(new EventContentConcentrationCardDB { Index = cards.Count, CardId = deck[i] });
+            deck.RemoveAt(i);
+        }
+
+        play.ConcentrationCards = cards;
+        play.ConcentrationFlipCount = 0;
+    }
+
+    private void EnsureConcentration(EventContentPlayDBServer play)
+    {
+        if (play.ConcentrationRound == 0)
+            play.ConcentrationRound = 1;
+        if (play.ConcentrationCards.Count == 0)
+            DealConcentrationBoard(play);
+    }
+
+    // The full deck stays server-side; the save the client gets carries zeroed CardIds for everything still face down, so a reconnect cannot be used to peek at the board.
+    private static EventContentConcentrationSaveDB ConcentrationSave(EventContentPlayDBServer play)
+    {
+        return new EventContentConcentrationSaveDB
+        {
+            FlipCount = play.ConcentrationFlipCount,
+            Round = play.ConcentrationRound,
+            CardDBs = play.ConcentrationCards
+                .Select(x => new EventContentConcentrationCardDB { Index = x.Index, CardId = x.IsMatched ? x.CardId : 0, IsMatched = x.IsMatched })
+                .ToList()
+        };
+    }
+
+    private List<ParcelResult> ConcentrationRewards(long eventContentId, ConcentrationRewardType type, Rarity rarity, int round)
+    {
+        var rows = _excelService.GetTable<EventContentConcentrationRewardExcelT>()
+            .Where(x => x.EventContentId == eventContentId && x.ConcentrationRewardType == type && x.Rarity == rarity)
+            .ToList();
+        var row = rows.FirstOrDefault(x => x.Round == round) ?? rows.FirstOrDefault(x => x.IsLoop) ?? rows.FirstOrDefault();
+
+        var grants = new List<ParcelResult>();
+        for (int i = 0; i < (row?.RewardParcelType?.Count ?? 0); i++)
+            grants.Add(new ParcelResult(row!.RewardParcelType![i], row.RewardParcelId![i], row.RewardParcelAmount![i]));
+        return grants;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ConcentrationGetInfo)]
+    public async Task<EventContentConcentrationGetInfoResponse> ConcentrationGetInfo(
+        SchaleDataContext db,
+        EventContentConcentrationGetInfoRequest request,
+        EventContentConcentrationGetInfoResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureConcentration(play);
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ConcentrationSave(play);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ConcentrationFlipCard)]
+    public async Task<EventContentConcentrationFlipCardResponse> ConcentrationFlipCard(
+        SchaleDataContext db,
+        EventContentConcentrationFlipCardRequest request,
+        EventContentConcentrationFlipCardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureConcentration(play);
+
+        if (request.FirstIndex == request.SecondIndex)
+            throw new WebAPIException(WebAPIErrorCode.EventContentConcentrationRequestSameIndex, $"Flip {request.FirstIndex} twice");
+
+        var first = play.ConcentrationCards.First(x => x.Index == request.FirstIndex);
+        var second = play.ConcentrationCards.First(x => x.Index == request.SecondIndex);
+        if (first.IsMatched || second.IsMatched)
+            throw new WebAPIException(WebAPIErrorCode.EventContentConcentrationAlreadyMatchedIndex, $"Card {(first.IsMatched ? first.Index : second.Index)} is already matched");
+
+        play.ConcentrationFlipCount++;
+
+        var grants = new List<ParcelResult>();
+        if (first.CardId == second.CardId)
+        {
+            first.IsMatched = true;
+            second.IsMatched = true;
+
+            var rarity = _excelService.GetTable<EventContentConcentrationCardExcelT>()
+                .First(x => x.EventContentId == play.EventContentId && x.CardId == first.CardId).Rarity;
+            grants = ConcentrationRewards(play.EventContentId, ConcentrationRewardType.PairMatch, rarity, play.ConcentrationRound);
+        }
+
+        var conc = ConcentrationExcel(play.EventContentId);
+        var consumed = conc.CostGoodsId != 0
+            ? (await _parcelHandler.BuildParcel(db, account, GoodsCost(conc.CostGoodsId, 1), isConsume: true)).ParcelResult
+            : null;
+        response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account, grants, consumed)).ParcelResult;
+
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ConcentrationSave(play);
+        response.First = first;
+        response.Second = second;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ConcentrationRoundComplete)]
+    public async Task<EventContentConcentrationRoundCompleteResponse> ConcentrationRoundComplete(
+        SchaleDataContext db,
+        EventContentConcentrationRoundCompleteRequest request,
+        EventContentConcentrationRoundCompleteResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureConcentration(play);
+
+        if (play.ConcentrationCards.Any(x => !x.IsMatched))
+            throw new WebAPIException(WebAPIErrorCode.EventContentConcentrationCannotCompleteRound, $"Round {play.ConcentrationRound} still has face-down cards");
+
+        response.SaveDBBefore = ConcentrationSave(play);
+
+        var grants = ConcentrationRewards(play.EventContentId, ConcentrationRewardType.RoundRenewal, Rarity.N, play.ConcentrationRound);
+        if (grants.Count > 0)
+            response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account, grants)).ParcelResult;
+
+        play.ConcentrationRound++;
+        DealConcentrationBoard(play);
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ConcentrationSave(play);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ConcentrationRoundSkip)]
+    public async Task<EventContentConcentrationRoundSkipResponse> ConcentrationRoundSkip(
+        SchaleDataContext db,
+        EventContentConcentrationRoundSkipRequest request,
+        EventContentConcentrationRoundSkipResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureConcentration(play);
+
+        var conc = ConcentrationExcel(play.EventContentId);
+        if (play.ConcentrationRound < conc.InstantClearRound)
+            throw new WebAPIException(WebAPIErrorCode.EventContentConcentrationCannotSkipRound, $"Skipping opens at round {conc.InstantClearRound}");
+
+        response.SaveDBBefore = ConcentrationSave(play);
+
+        // A skip forfeits the pair-match payouts but still takes the round renewal reward; that is the whole point of the loop-round shortcut.
+        var grants = ConcentrationRewards(play.EventContentId, ConcentrationRewardType.RoundRenewal, Rarity.N, play.ConcentrationRound);
+        if (grants.Count > 0)
+            response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account, grants)).ParcelResult;
+
+        play.ConcentrationRound++;
+        DealConcentrationBoard(play);
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ConcentrationSave(play);
+
+        return response;
+    }
+
+    private EventContentClueSearchRoundExcelT ClueSearchRound(long eventContentId, int round)
+    {
+        var rows = _excelService.GetTable<EventContentClueSearchRoundExcelT>()
+            .Where(x => x.EventContentId == eventContentId)
+            .OrderBy(x => x.Round)
+            .ToList();
+        if (rows.Count == 0)
+            throw new WebAPIException(WebAPIErrorCode.EventContentNotOpen, $"Event {eventContentId} has no clue search rounds");
+
+        return rows.FirstOrDefault(x => x.Round == round) ?? rows.Last();
+    }
+
+    private void EnsureClueSearch(EventContentPlayDBServer play)
+    {
+        if (play.ClueSearchRound == 0)
+            play.ClueSearchRound = 1;
+        if (play.ClueSearchSlots.Count == 0)
+        {
+            var round = ClueSearchRound(play.EventContentId, play.ClueSearchRound);
+            play.ClueSearchSlots = (round.ClueSlotNumber ?? [])
+                .Select((slot, i) => new ClueSearchSlotDB { SlotNumber = slot, ClueId = round.ClueId![i] })
+                .ToList();
+        }
+    }
+
+    private static ClueSearchSaveDB ClueSearchSave(EventContentPlayDBServer play)
+    {
+        return new ClueSearchSaveDB
+        {
+            EventContentId = play.EventContentId,
+            Round = play.ClueSearchRound,
+            SlotDBs = play.ClueSearchSlots
+        };
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ClueSearchGetInfo)]
+    public async Task<EventContentClueSearchGetInfoResponse> ClueSearchGetInfo(
+        SchaleDataContext db,
+        EventContentClueSearchGetInfoRequest request,
+        EventContentClueSearchGetInfoResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureClueSearch(play);
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ClueSearchSave(play);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ClueSearchSubmit)]
+    public async Task<EventContentClueSearchSubmitResponse> ClueSearchSubmit(
+        SchaleDataContext db,
+        EventContentClueSearchSubmitRequest request,
+        EventContentClueSearchSubmitResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureClueSearch(play);
+
+        var slot = play.ClueSearchSlots.FirstOrDefault(x => x.ClueId == request.ClueId && !x.IsSubmitted)
+            ?? throw new WebAPIException(WebAPIErrorCode.EventContentClueSearchCannotSubmit, $"Clue {request.ClueId} is not waiting in round {play.ClueSearchRound}");
+
+        // The clue itself is an inventory item keyed by its ClueId; submitting hands it over.
+        var round = ClueSearchRound(play.EventContentId, play.ClueSearchRound);
+        var cost = round.ClueCostAmount![round.ClueId!.IndexOf(request.ClueId)];
+        response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account,
+            new List<ParcelResult> { new(ParcelType.Item, request.ClueId, cost) }, isConsume: true)).ParcelResult;
+
+        slot.IsSubmitted = true;
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ClueSearchSave(play);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.EventContent_ClueSearchRoundComplete)]
+    public async Task<EventContentClueSearchRoundCompleteResponse> ClueSearchRoundComplete(
+        SchaleDataContext db,
+        EventContentClueSearchRoundCompleteRequest request,
+        EventContentClueSearchRoundCompleteResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var play = db.GetOrAddEventContentPlay(account.ServerId, request.EventContentId);
+        EnsureClueSearch(play);
+
+        if (play.ClueSearchSlots.Any(x => !x.IsSubmitted))
+            throw new WebAPIException(WebAPIErrorCode.EventContentClueSearchCannotCompleteRound, $"Round {play.ClueSearchRound} still has open slots");
+
+        var round = ClueSearchRound(play.EventContentId, play.ClueSearchRound);
+        var reward = _excelService.GetTable<EventContentClueSearchRewardExcelT>().FirstOrDefault(x => x.Id == round.RewardId);
+        var grants = new List<ParcelResult>();
+        for (int i = 0; i < (reward?.RewardParcelType?.Count ?? 0); i++)
+            grants.Add(new ParcelResult(reward!.RewardParcelType![i], reward.RewardParcelId![i], reward.RewardParcelAmount![i]));
+        if (grants.Count > 0)
+            response.ParcelResultDB = (await _parcelHandler.BuildParcel(db, account, grants)).ParcelResult;
+
+        play.ClueSearchRound++;
+        play.ClueSearchSlots = [];
+        EnsureClueSearch(play);
+        db.EventContentPlays.Update(play);
+        await db.SaveChangesAsync();
+
+        response.SaveDB = ClueSearchSave(play);
+
+        return response;
+    }
+
     private Dictionary<long, List<VisitingCharacterDB>> RollVisitors(SchaleDataContext db, AccountDBServer account, long locationId)
     {
         var owned = db.GetAccountCharacters(account.ServerId).Select(x => new VisitingCharacterDB { UniqueId = x.UniqueId, ServerId = x.ServerId }).ToList();

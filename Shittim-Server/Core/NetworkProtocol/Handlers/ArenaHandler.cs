@@ -87,6 +87,19 @@ public class ArenaHandler : ProtocolHandlerBase
         return now;
     }
 
+    [ProtocolHandler(Protocol.Arena_Login)]
+    public async Task<ArenaLoginResponse> Login(
+        SchaleDataContext db,
+        ArenaLoginRequest request,
+        ArenaLoginResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ArenaPlayerInfoDB = BuildPlayerInfo(account);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Arena_EnterLobby)]
     public async Task<ArenaEnterLobbyResponse> EnterLobby(
         SchaleDataContext db,
@@ -213,6 +226,56 @@ public class ArenaHandler : ProtocolHandlerBase
         }
 
         response.AccountCurrencyDB ??= db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
+    // the unsplit enter; live clients send the Part1/Part2 pair instead but the protocol is still declared
+    [ProtocolHandler(Protocol.Arena_EnterBattle)]
+    public async Task<ArenaEnterBattleResponse> EnterBattle(
+        SchaleDataContext db,
+        ArenaEnterBattleRequest request,
+        ArenaEnterBattleResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var opponentAccount = await db.Accounts.FirstOrDefaultAsync(x => x.ServerId == request.OpponentAccountServerId);
+        var defendingUser = opponentAccount != null
+            ? ArenaService.CreateArenaUser(
+                opponentAccount.ServerId,
+                opponentAccount.RepresentCharacterServerId,
+                opponentAccount.Nickname ?? "Opponent",
+                request.OpponentIndex + 1,
+                opponentAccount.Level,
+                ArenaService.CreateArenaTeamSetting(db, opponentAccount, _mapper, true))
+            : ArenaService.CreateArenaUser(
+                request.OpponentAccountServerId,
+                10065,
+                "Dummy Opponent",
+                request.OpponentIndex + 1,
+                90,
+                ArenaService.DummyTeamFormation);
+
+        response.ArenaBattleDB = new ArenaBattleDB
+        {
+            Season = 1,
+            Group = 1,
+            BattleStartTime = account.GameSettings.ServerDateTime(),
+            Seed = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            AttackingUserDB = new ArenaUserDB
+            {
+                AccountServerId = account.ServerId,
+                NickName = account.Nickname ?? "Player",
+                Rank = 1,
+                Level = account.Level,
+                RepresentCharacterUniqueId = account.RepresentCharacterServerId,
+                AccountAttachmentDB = db.GetAccountAttachments(account.ServerId).FirstMapTo(_mapper),
+                TeamSettingDB = ArenaService.CreateArenaTeamSetting(db, account, _mapper, false)
+            },
+            DefendingUserDB = defendingUser
+        };
+        response.ArenaPlayerInfoDB = BuildPlayerInfo(account);
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
 
         return response;
     }
@@ -352,6 +415,21 @@ public class ArenaHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Arena_SettingAnonymous)]
+    public async Task<ArenaSettingAnonymousResponse> SettingAnonymous(
+        SchaleDataContext db,
+        ArenaSettingAnonymousRequest request,
+        ArenaSettingAnonymousResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.ContentInfo.Option.ArenaIsAnonymous = request.IsAnonymous;
+        db.Entry(account).Property(x => x.ContentInfo).IsModified = true;
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Arena_BattleResult)]
     public async Task<ArenaBattleResultResponse> BattleResult(
         SchaleDataContext db,
@@ -367,6 +445,36 @@ public class ArenaHandler : ProtocolHandlerBase
         SchaleDataContext db,
         ArenaCheckSeasonCloseRewardRequest request,
         ArenaCheckSeasonCloseRewardResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Arena_RecordSync)]
+    public async Task<ArenaRecordSyncResponse> RecordSync(
+        SchaleDataContext db,
+        ArenaRecordSyncRequest request,
+        ArenaRecordSyncResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Arena_TicketPurchase)]
+    public async Task<ArenaTicketPurchaseResponse> TicketPurchase(
+        SchaleDataContext db,
+        ArenaTicketPurchaseRequest request,
+        ArenaTicketPurchaseResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Arena_DamageReport)]
+    public async Task<ArenaDamageReportResponse> DamageReport(
+        SchaleDataContext db,
+        ArenaDamageReportRequest request,
+        ArenaDamageReportResponse response)
     {
         await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;

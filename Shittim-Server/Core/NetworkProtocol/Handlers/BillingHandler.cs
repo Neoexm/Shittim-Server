@@ -103,6 +103,115 @@ public class BillingHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Billing_PurchaseListByYostar)]
+    public async Task<BillingPurchaseListByYostarResponse> PurchaseListByYostar(
+        SchaleDataContext db,
+        BillingPurchaseListByYostarRequest request,
+        BillingPurchaseListByYostarResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.CountList = [];
+        response.OrderList = [];
+        response.MonthlyProductList = [];
+        response.BlockedProductDBs = [];
+
+        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
+        var battlePassProductList = new List<BattlePassProductPurchaseDB>();
+        if (battlePasses.Any())
+        {
+            var productExcels = _excelTableService.GetTable<ProductExcelT>();
+            var shopCashExcels = _excelTableService.GetTable<ShopCashExcelT>();
+            foreach (var bp in battlePasses)
+            {
+                var product = productExcels.FirstOrDefault(x => {
+                    var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
+                    return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
+                });
+                var shopCash = product == null ? null : shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
+                if (shopCash == null) continue;
+
+                battlePassProductList.Add(new BattlePassProductPurchaseDB
+                {
+                    ProductId = shopCash.Id, // Billing response expects ShopCashId as ProductId
+                    BattlePassId = bp.BattlePassId,
+                    PurchaseBattlePassGroupId = bp.PurchaseGroupId
+                });
+            }
+        }
+        response.BattlePassProductList = battlePassProductList;
+
+        return response;
+    }
+
+    // there is no billing backend to hand the order to, so the ShopCashId doubles as the order id and TransactionEnd grants straight off it
+    [ProtocolHandler(Protocol.Billing_TransactionStartByYostar)]
+    public async Task<BillingTransactionStartByYostarResponse> TransactionStartByYostar(
+        SchaleDataContext db,
+        BillingTransactionStartByYostarRequest request,
+        BillingTransactionStartByYostarResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.PurchaseCount = 1;
+        response.PurchaseResetDate = DateTime.MinValue;
+        response.PurchaseOrderId = request.ShopCashId;
+        response.PurchaseServerTag = PurchaseServerTag.Production;
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Billing_TransactionEndByYostar)]
+    public async Task<BillingTransactionEndByYostarResponse> TransactionEndByYostar(
+        SchaleDataContext db,
+        BillingTransactionEndByYostarRequest request,
+        BillingTransactionEndByYostarResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.CountList = [];
+        response.MonthlyProductList = [];
+        response.BattlePassProductList = [];
+
+        if (request.EndType != BillingTransactionEndType.Success)
+            return response;
+
+        var shopCash = _excelTableService.GetTable<ShopCashExcelT>().FirstOrDefault(x => x.Id == request.PurchaseOrderId);
+        var product = shopCash == null ? null : _excelTableService.GetTable<ProductExcelT>().FirstOrDefault(x => x.Id == shopCash.CashProductId);
+        if (product == null)
+            return response;
+
+        var parcelTypes = product.ParcelType ?? [];
+        var parcelIds = product.ParcelId ?? [];
+        var parcelAmounts = product.ParcelAmount ?? [];
+
+        var parcels = new List<ParcelInfo>();
+        for (int i = 0; i < parcelTypes.Count; i++)
+        {
+            parcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = parcelTypes[i], Id = parcelIds[i] },
+                Amount = parcelAmounts[i]
+            });
+        }
+
+        var parcelResultDB = new ParcelResultDB();
+        await _parcelHandler.BuildParcel(db, account, parcels, parcelResultDB);
+
+        response.ParcelResult = parcelResultDB;
+        response.PurchaseCount = 1;
+        response.CountList = [new PurchaseCountDB
+        {
+            ShopCashId = shopCash.Id,
+            PurchaseCount = 1,
+            ResetDate = DateTime.MinValue,
+            PurchaseDate = account.GameSettings.ServerDateTime(),
+            ManualResetDate = null
+        }];
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Billing_PurchaseFreeProduct)]
     public async Task<BillingPurchaseFreeProductResponse> PurchaseFreeProduct(
         SchaleDataContext db,
@@ -218,6 +327,27 @@ public class BillingHandler : ProtocolHandlerBase
         // Update history skipped (no table)
         await db.SaveChangesAsync();
 
+        return response;
+    }
+
+    // Nexon validate/finish run over the stamp web endpoints (the client's BillingValidateNexonResponse is that JSON), so this gateway pair is dead in the retail client.
+    [ProtocolHandler(Protocol.Billing_ValidateByNexon)]
+    public async Task<BillingValidateByNexonResponse> ValidateByNexon(
+        SchaleDataContext db,
+        BillingValidateByNexonRequest request,
+        BillingValidateByNexonResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Billing_FinishByNexon)]
+    public async Task<BillingFinishByNexonResponse> FinishByNexon(
+        SchaleDataContext db,
+        BillingFinishByNexonRequest request,
+        BillingFinishByNexonResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }
 }

@@ -124,4 +124,37 @@ public class EquipmentHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    [ProtocolHandler(Protocol.Equipment_Sell)]
+    public async Task<EquipmentItemSellResponse> Sell(
+        SchaleDataContext db,
+        EquipmentItemSellRequest request,
+        EquipmentItemSellResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // nothing in ItemExcel carries a sell price, so selling just discards the stacks
+        var targetIds = request.TargetServerIds ?? [];
+        var targets = db.GetAccountEquipments(account.ServerId).Where(x => targetIds.Contains(x.ServerId)).ToList();
+        db.Equipments.RemoveRange(targets);
+        await db.SaveChangesAsync();
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefault()?.ToMap(_mapper);
+
+        return response;
+    }
+
+    [ProtocolHandler(Protocol.Equipment_Lock)]
+    public async Task<EquipmentItemLockResponse> Lock(
+        SchaleDataContext db,
+        EquipmentItemLockRequest request,
+        EquipmentItemLockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var equipment = db.GetAccountEquipments(account.ServerId).FirstOrDefault(x => x.ServerId == request.TargetServerId);
+        response.EquipmentDB = equipment.ToMap(_mapper);
+
+        return response;
+    }
 }

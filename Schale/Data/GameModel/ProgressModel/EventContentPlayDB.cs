@@ -42,6 +42,13 @@ namespace Schale.Data.GameModel
 
         public int FortuneGachaStackCount { get; set; }
 
+        public int ConcentrationRound { get; set; }
+        public int ConcentrationFlipCount { get; set; }
+        public List<EventContentConcentrationCardDB> ConcentrationCards { get; set; } = [];
+
+        public int ClueSearchRound { get; set; }
+        public List<ClueSearchSlotDB> ClueSearchSlots { get; set; } = [];
+
         public List<long> RefreshShopIds { get; set; } = [];
         public long RefreshShopUseCount { get; set; }
         public DateTime RefreshShopUpdateTime { get; set; }

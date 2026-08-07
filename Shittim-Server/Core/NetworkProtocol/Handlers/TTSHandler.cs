@@ -16,6 +16,20 @@ public class TTSHandler : ProtocolHandlerBase
         _sessionService = sessionService;
     }
 
+    [ProtocolHandler(Protocol.TTS_GetFile)]
+    public async Task<TTSGetFileResponse> GetFile(
+        SchaleDataContext db,
+        TTSGetFileRequest request,
+        TTSGetFileResponse response)
+    {
+        // no synthesis backend here; never-ready just leaves the call button greyed out
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.IsFileReady = false;
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.TTS_GetKana)]
     public async Task<TTSGetKanaResponse> GetKana(
         SchaleDataContext db,

@@ -28,8 +28,8 @@ namespace Shittim_Server.Managers
         public async Task<ScenarioGroupHistoryDBServer> ScenarioGroupHistoryUpdate(
             SchaleDataContext context, AccountDBServer account, ScenarioGroupHistoryUpdateRequest req)
         {
-            var groupId = req.ScenarioGroupHistoryDB?.ScenarioGroupUqniueId ?? req.ScenarioGroupUniqueId;
-            var scenarioType = req.ScenarioGroupHistoryDB?.ScenarioType ?? req.ScenarioType;
+            var groupId = req.ScenarioGroupUniqueId;
+            var scenarioType = req.ScenarioType;
 
             var scenarioGroup = await context.ScenarioGroupHistories
                 .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.ScenarioGroupUqniueId == groupId);

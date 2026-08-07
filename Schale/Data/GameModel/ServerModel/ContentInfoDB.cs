@@ -1,4 +1,5 @@
 using Schale.FlatData;
+using Schale.MX.GameLogic.DBModel;
 
 namespace Schale.Data.GameModel
 {
@@ -13,6 +14,12 @@ namespace Schale.Data.GameModel
 
         // EventContentId -> claimed EventContentStageTotalRewardExcel row ids. Lives in the ContentInfo JSON column so no schema change is needed.
         public Dictionary<long, List<long>> ReceivedEventStageTotalRewards { get; set; } = [];
+
+        public OptionDB Option { get; set; } = new();
+        public List<CraftPresetSlotDB> CraftPresets { get; set; } = [];
+        public List<ShiftingCraftInfoDB> ShiftingCrafts { get; set; } = [];
+        public FriendIdCardDB IdCard { get; set; } = new();
+        public List<FieldSnapshot> FieldSeasons { get; set; } = [];
     }
 
     public class RaidDataInfo

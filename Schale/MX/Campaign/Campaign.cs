@@ -192,10 +192,15 @@ namespace Schale.MX.Campaign
         
         public long Id { get; set; }
         public HexLocation2D? Location {get; set;}
+        public bool PlayAnimation { get; set; }
+        public bool Activated { get; set; }
 
 	    [System.Text.Json.Serialization.JsonIgnore]
         [Newtonsoft.Json.JsonIgnore]
         public CampaignStrategyObjectExcel CampaignStrategyExcel { get; set; }
+
+        public List<int>? Values { get; set; }
+        public int Index { get; set; }
     }
 }
 

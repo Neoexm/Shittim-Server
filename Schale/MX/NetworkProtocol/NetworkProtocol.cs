@@ -40,6 +40,16 @@ namespace Schale.MX.NetworkProtocol
         public List<ParcelInfo>? ExtraRewards { get; set; }
     }
 
+    public class AcademyAttendFavorScheduleRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Academy_AttendFavorSchedule; }
+    }
+
+    public class AcademyAttendFavorScheduleResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Academy_AttendFavorSchedule; }
+    }
+
     public class AccountCurrencySyncRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Account_CurrencySync; }
@@ -282,6 +292,16 @@ namespace Schale.MX.NetworkProtocol
         public bool CheckAdultAgree { get; set; }
     }
 
+    public class AccountVerifyForYostarRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Account_VerifyForYostar; }
+    }
+
+    public class AccountVerifyForYostarResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Account_VerifyForYostar; }
+    }
+
     public class AccountSetAdultCheckRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Account_SetCheckAdultAgree; }
@@ -363,10 +383,11 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Account_CheckYostar; }
         public long UID { get; set; }
-        public string? YostarToken { get; set; }
         public string? EnterTicket { get; set; }
         public bool PassCookieResult { get; set; }
         public string? Cookie { get; set; }
+        public string? ClientGeneratedKey { get; set; }
+        public string? ClientGeneratedIV { get; set; }
     }
 
     public class AccountCheckYostarResponse : ResponsePacket
@@ -621,6 +642,47 @@ namespace Schale.MX.NetworkProtocol
         public DateTime EchelonSettingTime { get; set; }
     }
 
+    public class ArenaSettingAnonymousRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_SettingAnonymous; }
+        public bool IsAnonymous { get; set; }
+    }
+
+    public class ArenaSettingAnonymousResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_SettingAnonymous; }
+    }
+
+    public class ArenaRecordSyncRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_RecordSync; }
+    }
+
+    public class ArenaRecordSyncResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_RecordSync; }
+    }
+
+    public class ArenaTicketPurchaseRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_TicketPurchase; }
+    }
+
+    public class ArenaTicketPurchaseResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_TicketPurchase; }
+    }
+
+    public class ArenaDamageReportRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_DamageReport; }
+    }
+
+    public class ArenaDamageReportResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Arena_DamageReport; }
+    }
+
     public class AttachmentGetRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Attachment_Get; }
@@ -681,6 +743,26 @@ namespace Schale.MX.NetworkProtocol
         public List<AttendanceBookReward>? AttendanceBookRewards { get; set; }
         public List<AttendanceHistoryDB>? AttendanceHistoryDBs { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class AttendanceListRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Attendance_List; }
+    }
+
+    public class AttendanceListResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Attendance_List; }
+    }
+
+    public class AttendanceCheckRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Attendance_Check; }
+    }
+
+    public class AttendanceCheckResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Attendance_Check; }
     }
 
     public class AuditGachaStatisticsRequest : RequestPacket
@@ -834,6 +916,7 @@ namespace Schale.MX.NetworkProtocol
         public List<MonthlyProductPurchaseDB>? MonthlyProductList { get; set; }
         public List<BlockedProductDB>? BlockedProductDBs { get; set; }
         public List<BattlePassProductPurchaseDB>? BattlePassProductList { get; set; }
+        public List<long>? PendingProductShopCashIds { get; set; }
     }
 
     public class BillingTransactionStartByYostarRequest : RequestPacket
@@ -918,6 +1001,7 @@ namespace Schale.MX.NetworkProtocol
         public bool VirtualPayment { get; set; }
         public string? CurrencyCode { get; set; }
         public long CurrencyValue { get; set; }
+        public List<ShopCashProductSelectionDB>? SelectionDBs { get; set; }
     }
 
     public class BillingCheckConditionCashGoodsRequest : RequestPacket
@@ -948,6 +1032,27 @@ namespace Schale.MX.NetworkProtocol
         public string? currency { get; set; }
         public string? stampId { get; set; }
         public List<long>? BattlePassIdInMailList { get; set; }
+        public List<long>? DailyRecordIdInMailList { get; set; }
+    }
+
+    public class BillingValidateByNexonRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Billing_ValidateByNexon; }
+    }
+
+    public class BillingValidateByNexonResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Billing_ValidateByNexon; }
+    }
+
+    public class BillingFinishByNexonRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Billing_FinishByNexon; }
+    }
+
+    public class BillingFinishByNexonResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Billing_FinishByNexon; }
     }
 
     public class CafeGetInfoRequest : RequestPacket
@@ -1056,11 +1161,13 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Cafe_ListPreset; }
         public List<CafePresetDB>? CafePresetDBs { get; set; }
+        public List<CafePresetDB>? CafeCopyPresetDBs { get; set; }
     }
 
     public class CafeRenamePresetRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Cafe_RenamePreset; }
+        public CafePresetType PresetType { get; set; }
         public int SlotId { get; set; }
         public string? PresetName { get; set; }
     }
@@ -1073,6 +1180,7 @@ namespace Schale.MX.NetworkProtocol
     public class CafeClearPresetRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Cafe_ClearPreset; }
+        public CafePresetType PresetType { get; set; }
         public int SlotId { get; set; }
     }
 
@@ -1096,6 +1204,7 @@ namespace Schale.MX.NetworkProtocol
     public class CafeApplyPresetRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Cafe_ApplyPreset; }
+        public CafePresetType PresetType { get; set; }
         public int SlotId { get; set; }
         public long CafeDBId { get; set; }
         public bool UseOtherCafeFurniture { get; set; }
@@ -1173,7 +1282,6 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Cafe_SummonCharacterTicketUse; }
         public long CafeDBId { get; set; }
         public long CharacterServerId { get; set; }
-        public ConsumeRequestDB? ConsumeRequestDB { get; set; }
     }
 
     public class CafeSummonCharacterTicketUseResponse : ResponsePacket
@@ -1235,6 +1343,33 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Cafe_Travel; }
         public FriendDB? FriendDB { get; set; }
         public List<CafeDB>? CafeDBs { get; set; }
+        public bool AllowCopy { get; set; }
+    }
+
+    public class CafePresetDetailRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_PresetDetail; }
+        public CafePresetType PresetType { get; set; }
+        public int SlotId { get; set; }
+    }
+
+    public class CafePresetDetailResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_PresetDetail; }
+        public Dictionary<long, long>? DeployCountByFurnitureId { get; set; }
+    }
+
+    public class CafeUpdateCopyPresetFurnitureRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_UpdateCopyPresetFurniture; }
+        public long TargetAccountId { get; set; }
+        public long TargetCafeDBId { get; set; }
+        public int SlotId { get; set; }
+    }
+
+    public class CafeUpdateCopyPresetFurnitureResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Cafe_UpdateCopyPresetFurniture; }
     }
 
     public class CampaignListRequest : RequestPacket
@@ -1273,7 +1408,6 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Campaign_ConfirmMainStage; }
         public ParcelResultDB? ParcelResultDB { get; set; }
         public CampaignMainStageSaveDB? SaveDataDB { get; set; }
-        public CampaignStageInfo? StageInfo { get; set; }
     }
 
     public class CampaignEnterSubStageRequest : RequestPacket
@@ -2046,6 +2180,18 @@ namespace Schale.MX.NetworkProtocol
         public List<ClearDeckDB>? ClearDeckDBs { get; set; }
     }
 
+    public class ClearDeckGroupedListRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.ClearDeck_GroupedList; }
+        public ClearDeckKey ClearDeckKey { get; set; }
+    }
+
+    public class ClearDeckGroupedListResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.ClearDeck_GroupedList; }
+        public List<List<ClearDeckDB>>? ClearDeckGroupedDBs { get; set; }
+    }
+
     public class CommonCheatRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Common_Cheat; }
@@ -2073,6 +2219,7 @@ namespace Schale.MX.NetworkProtocol
         public List<MemoryLobbyDB>? MemoryLobbyDBs { get; set; }
         public List<ScenarioCollectionDB>? ScenarioCollectionDBs { get; set; }
         public CheatFlags CheatFlags { get; set; }
+        public string? DebugPopupMessage { get; set; }
     }
 
     public class GachaSimulateCheatResponse : ResponsePacket
@@ -2431,6 +2578,16 @@ namespace Schale.MX.NetworkProtocol
         public ConquestMainStorySummary? ConquestMainStorySummary { get; set; }
     }
 
+    public class ContentLogUIOpenStatisticsRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.ContentLog_UIOpenStatistics; }
+    }
+
+    public class ContentLogUIOpenStatisticsResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.ContentLog_UIOpenStatistics; }
+    }
+
     public class ContentSaveGetRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.ContentSave_Get; }
@@ -2541,6 +2698,7 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Craft_List; }
         public List<CraftInfoDB>? CraftInfos { get; set; }
         public List<ShiftingCraftInfoDB>? ShiftingCraftInfos { get; set; }
+        public List<CraftPresetSlotDB>? PresetSlotDBs { get; set; }
     }
 
     public class CraftSelectNodeRequest : RequestPacket
@@ -2657,7 +2815,7 @@ namespace Schale.MX.NetworkProtocol
     public class CraftAutoBeginProcessRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Craft_AutoBeginProcess; }
-        public CraftPresetSlotDB? PresetSlotDB { get; set; }
+        public int PresetIndex { get; set; }
         public long Count { get; set; }
     }
 
@@ -2714,6 +2872,73 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Craft_ShiftingRewardAll; }
         public ParcelResultDB? ParcelResultDB { get; set; }
         public List<ShiftingCraftInfoDB>? CraftInfoDBs { get; set; }
+    }
+
+    public class CraftSavePresetRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_SavePreset; }
+        public CraftPresetSlotDB? PresetSlotDB { get; set; }
+    }
+
+    public class CraftSavePresetResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_SavePreset; }
+        public CraftPresetSlotDB? PresetSlotDB { get; set; }
+    }
+
+    public class CraftSavePresetNameRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_SavePresetName; }
+        public int PresetIndex { get; set; }
+        public string? PresetName { get; set; }
+    }
+
+    public class CraftSavePresetNameResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_SavePresetName; }
+    }
+
+    public class CraftHistoryListRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_HistoryList; }
+    }
+
+    public class CraftHistoryListResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Craft_HistoryList; }
+    }
+
+    public class CumulativeTimeRewardListRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.CumulativeTimeReward_List; }
+    }
+
+    public class CumulativeTimeRewardListResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.CumulativeTimeReward_List; }
+    }
+
+    public class CumulativeTimeRewardRewardRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.CumulativeTimeReward_Reward; }
+    }
+
+    public class CumulativeTimeRewardRewardResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.CumulativeTimeReward_Reward; }
+    }
+
+    public class DailyRecordRewardRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.DailyRecord_Reward; }
+        public long DailyRecordId { get; set; }
+    }
+
+    public class DailyRecordRewardResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.DailyRecord_Reward; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+        public DailyRecordDB? DailyRecordDB { get; set; }
     }
 
     public class EchelonListRequest : RequestPacket
@@ -2853,9 +3078,6 @@ namespace Schale.MX.NetworkProtocol
         public int EchelonId { get; set; }
         public long RaidServerId { get; set; }
         public bool IsPractice { get; set; }
-        public int LastBossIndex { get; }
-        public IEnumerable<RaidDamage>? RaidBossDamages { get; }
-        public RaidBossResultCollection? RaidBossResults { get; }
         public BattleSummary? Summary { get; set; }
         public ClanAssistUseInfo? AssistUseInfo { get; set; }
     }
@@ -3776,6 +3998,102 @@ namespace Schale.MX.NetworkProtocol
         public EventContentTreasureCell? HiddenImage { get; set; }
     }
 
+    public class EventContentConcentrationGetInfoRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationGetInfo; }
+        public long EventContentId { get; set; }
+    }
+
+    public class EventContentConcentrationGetInfoResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationGetInfo; }
+        public EventContentConcentrationSaveDB? SaveDB { get; set; }
+    }
+
+    public class EventContentConcentrationFlipCardRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationFlipCard; }
+        public long EventContentId { get; set; }
+        public int FirstIndex { get; set; }
+        public int SecondIndex { get; set; }
+    }
+
+    public class EventContentConcentrationFlipCardResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationFlipCard; }
+        public EventContentConcentrationSaveDB? SaveDB { get; set; }
+        public EventContentConcentrationCardDB? First { get; set; }
+        public EventContentConcentrationCardDB? Second { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class EventContentConcentrationRoundCompleteRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationRoundComplete; }
+        public long EventContentId { get; set; }
+    }
+
+    public class EventContentConcentrationRoundCompleteResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationRoundComplete; }
+        public EventContentConcentrationSaveDB? SaveDBBefore { get; set; }
+        public EventContentConcentrationSaveDB? SaveDB { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class EventContentConcentrationRoundSkipRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationRoundSkip; }
+        public long EventContentId { get; set; }
+    }
+
+    public class EventContentConcentrationRoundSkipResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ConcentrationRoundSkip; }
+        public EventContentConcentrationSaveDB? SaveDBBefore { get; set; }
+        public EventContentConcentrationSaveDB? SaveDB { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class EventContentClueSearchGetInfoRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchGetInfo; }
+        public long EventContentId { get; set; }
+    }
+
+    public class EventContentClueSearchGetInfoResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchGetInfo; }
+        public ClueSearchSaveDB? SaveDB { get; set; }
+    }
+
+    public class EventContentClueSearchSubmitRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchSubmit; }
+        public long EventContentId { get; set; }
+        public long ClueId { get; set; }
+    }
+
+    public class EventContentClueSearchSubmitResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchSubmit; }
+        public ClueSearchSaveDB? SaveDB { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class EventContentClueSearchRoundCompleteRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchRoundComplete; }
+        public long EventContentId { get; set; }
+    }
+
+    public class EventContentClueSearchRoundCompleteResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.EventContent_ClueSearchRoundComplete; }
+        public ClueSearchSaveDB? SaveDB { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
     public class EventListRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Event_GetList; }
@@ -3820,6 +4138,111 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Event_RewardIncrease; }
         public List<EventRewardIncreaseDB>? EventRewardIncreaseDBs { get; set; }
+    }
+
+    public class FieldSyncRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_Sync; }
+        public long FieldSeasonId { get; set; }
+    }
+
+    public class FieldSyncResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_Sync; }
+        public FieldSnapshot? FieldSnapshot { get; set; }
+        public long PlayableDateId { get; set; }
+        public List<CampaignStageHistoryDB>? StageHistoryDBs { get; set; }
+    }
+
+    public class FieldInteractionRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_Interaction; }
+        public long FieldSeasonId { get; set; }
+        public long UniqueId { get; set; }
+    }
+
+    public class FieldInteractionResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_Interaction; }
+        public FieldInteractionDB? InteractionDB { get; set; }
+        public FieldCharacterDB? CharacterDB { get; set; }
+        public FieldMasteryDB? MasteryDB { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class FieldQuestClearRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_QuestClear; }
+        public long FieldSeasonId { get; set; }
+        public bool IsDaily { get; set; }
+        public long UniqueId { get; set; }
+    }
+
+    public class FieldQuestClearResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_QuestClear; }
+        public FieldQuestDB? Quest { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class FieldSceneChangedRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_SceneChanged; }
+        public long FieldSeasonId { get; set; }
+        public long DateId { get; set; }
+        public long SceneId { get; set; }
+    }
+
+    public class FieldSceneChangedResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_SceneChanged; }
+        public FieldCharacterDB? CharacterDB { get; set; }
+    }
+
+    public class FieldEndDateRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_EndDate; }
+        public long FieldSeasonId { get; set; }
+        public long DateId { get; set; }
+    }
+
+    public class FieldEndDateResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_EndDate; }
+        public FieldDateHistoryDB? DateHistoryDB { get; set; }
+    }
+
+    public class FieldEnterStageRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_EnterStage; }
+        public long FieldSeasonId { get; set; }
+        public long StageUniqueId { get; set; }
+        public long LastEnterStageEchelonNumber { get; set; }
+    }
+
+    public class FieldEnterStageResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_EnterStage; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+        public FieldStageSaveDB? SaveDataDB { get; set; }
+    }
+
+    public class FieldStageResultRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_StageResult; }
+        public long FieldSeasonId { get; set; }
+        public bool PassCheckCharacter { get; set; }
+        public BattleSummary? Summary { get; set; }
+    }
+
+    public class FieldStageResultResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Field_StageResult; }
+        public CampaignStageHistoryDB? CampaignStageHistoryDB { get; set; }
+        public List<CharacterDB>? LevelUpCharacterDBs { get; set; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+        public List<ParcelInfo>? FirstClearReward { get; set; }
+        public List<ParcelInfo>? ThreeStarReward { get; set; }
     }
 
     public class FriendListRequest : RequestPacket
@@ -3905,6 +4328,7 @@ namespace Schale.MX.NetworkProtocol
         public bool ShowRaidRanking { get; set; }
         public bool ShowArenaRanking { get; set; }
         public bool ShowEliminateRaidRanking { get; set; }
+        public bool ShowMultiFloorRaidClearedDifficulty { get; set; }
         public long BackgroundId { get; set; }
     }
 
@@ -4157,8 +4581,10 @@ namespace Schale.MX.NetworkProtocol
     public class MailCheckResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Mail_Check; }
-        // Official field name is CommonMailCount (omitted when 0); "Count" is only used by Mail_List.
+        // Official only ever carries CommonMailCount; Count and SemiPermanentMailCount sit at 0 and drop off the wire, but the client struct declares all three.
+        public long Count { get; set; }
         public long CommonMailCount { get; set; }
+        public long SemiPermanentMailCount { get; set; }
     }
 
     public class MailReceiveRequest : RequestPacket
@@ -4207,6 +4633,7 @@ namespace Schale.MX.NetworkProtocol
         public long MailDBId { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
         public MonthlyProductPurchaseDB? AppliedMonthlyProductPurchaseDB { get; set; }
+        public DailyRecordDB? AppliedDailyRecordDB { get; set; }
         public BattlePassProductPurchaseDB? AppliedBattlePassProductPurchaseDB { get; set; }
         public BattlePassInfoDB? AppliedBattlePassInfoDB { get; set; }
         public List<BattlePassInfoDB>? BattlePassInfoDBs { get; set; }
@@ -4524,6 +4951,26 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.MiniGame_TableBoardSweep; }
         public TBGBoardSaveDB? SaveDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class MiniGameTableBoardBattleEncounterRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.MiniGame_TableBoardBattleEncounter; }
+    }
+
+    public class MiniGameTableBoardBattleEncounterResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.MiniGame_TableBoardBattleEncounter; }
+    }
+
+    public class MiniGameTableBoardBattleRunAwayRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.MiniGame_TableBoardBattleRunAway; }
+    }
+
+    public class MiniGameTableBoardBattleRunAwayResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.MiniGame_TableBoardBattleRunAway; }
     }
 
     public class MiniGameDreamMakerGetInfoRequest : RequestPacket
@@ -4924,8 +5371,8 @@ namespace Schale.MX.NetworkProtocol
         public List<long>? ClearedOrignalMissionIds { get; set; }
     }
 
-    // Wire shape of the client's MissionInfo as the official server serializes it for MissionListResponse.DailySuddenMissionInfo (field set + order match live captures).
-    public class DailySuddenMissionInfo
+    // The client's MX.Data.MissionInfo. The first 19 fields are what official actually serializes for MissionListResponse.DailySuddenMissionInfo, in capture order; the rest of the client's struct never shows up in captures and sits here at defaults so it drops off the wire.
+    public class MissionInfo
     {
         public long Id { get; set; }
         public MissionCategory Category { get; set; }
@@ -4946,6 +5393,18 @@ namespace Schale.MX.NetworkProtocol
         public long TargetGroup { get; set; }
         public List<long> Tags { get; set; } = new();
         public List<SuddenMissionContentType> SuddenMissionContentTypes { get; set; } = new();
+        public MissionToastDisplayConditionType ToastDisplayType { get; set; }
+        public bool IsLimited { get; set; }
+        public long EndDday { get; set; }
+        public long NextMissionId { get; set; }
+        public long CompleteConditionMissionCount { get; set; }
+        public string? RewardIcon { get; set; }
+        public ContentType DateAutoRefer { get; set; }
+        public string? ToastImagePath { get; set; }
+        public long DisplayOrder { get; set; }
+        public bool HasFollowingMission { get; set; }
+        public List<string>? Shortcuts { get; set; }
+        public long ChallengeStageId { get; set; }
     }
 
     public class MissionRewardRequest : RequestPacket
@@ -4997,6 +5456,26 @@ namespace Schale.MX.NetworkProtocol
     public class MissionSyncResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Mission_Sync; }
+    }
+
+    public class MissionGuideRewardRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Mission_GuideReward; }
+    }
+
+    public class MissionGuideRewardResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Mission_GuideReward; }
+    }
+
+    public class MissionMultipleGuideRewardRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Mission_MultipleGuideReward; }
+    }
+
+    public class MissionMultipleGuideRewardResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Mission_MultipleGuideReward; }
     }
 
     public class MomoTalkOutLineRequest : RequestPacket
@@ -5052,6 +5531,16 @@ namespace Schale.MX.NetworkProtocol
         public Dictionary<long, List<long>>? FavorScheduleRecords { get; set; }
     }
 
+    public class MomoTalkReplyRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.MomoTalk_Reply; }
+    }
+
+    public class MomoTalkReplyResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.MomoTalk_Reply; }
+    }
+
     public class MultiFloorRaidSyncRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.MultiFloorRaid_Sync; }
@@ -5068,6 +5557,7 @@ namespace Schale.MX.NetworkProtocol
     public class MultiFloorRaidLoginResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.MultiFloorRaid_Login; }
+        public long LastClearedDifficulty { get; set; }
     }
 
     public class MultiFloorRaidEnterBattleRequest : RequestPacket
@@ -5128,6 +5618,26 @@ namespace Schale.MX.NetworkProtocol
         public long EchoSendTick { get; set; }
     }
 
+    public class NetworkTimeSyncReplyRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.NetworkTime_SyncReply; }
+    }
+
+    public class NetworkTimeSyncReplyResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.NetworkTime_SyncReply; }
+    }
+
+    public class NoneRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.None; }
+    }
+
+    public class NoneResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.None; }
+    }
+
     public class NotificationLobbyCheckRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Notification_LobbyCheck; }
@@ -5137,6 +5647,8 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.Notification_LobbyCheck; }
         public long UnreadMailCount { get; set; }
+        public long UnreadCommonMailCount { get; set; }
+        public long UnreadSemiPermanentMailCount { get; set; }
         public List<EventRewardIncreaseDB>? EventRewardIncreaseDBs { get; set; }
     }
 
@@ -5187,6 +5699,69 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.OpenCondition_EventList; }
         public Dictionary<long, List<ConquestTileDB>>? ConquestTiles { get; set; }
         public Dictionary<long, List<WorldRaidLocalBossDB>>? WorldRaidLocalBossDBs { get; set; }
+    }
+
+    public class OptionSaveRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Option_Save; }
+        public OptionDB? OptionDB { get; set; }
+    }
+
+    public class OptionSaveResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Option_Save; }
+    }
+
+    public class PermanentRaidLobbyRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_Lobby; }
+    }
+
+    public class PermanentRaidLobbyResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_Lobby; }
+        public List<PermanentRaidBossManageDB>? BossManageDBs { get; set; }
+        public List<PermanentRaidBestScoreHistoryDB>? BestScoreHistoryDBs { get; set; }
+        public PermanentRaidBattleHistoryDB? BattleHistoryDB { get; set; }
+    }
+
+    public class PermanentRaidEnterBattleRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_EnterBattle; }
+        public long StageId { get; set; }
+        public ClanAssistUseInfo? AssistUseInfo { get; set; }
+    }
+
+    public class PermanentRaidEnterBattleResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_EnterBattle; }
+        public PermanentRaidBattleHistoryDB? BattleHistoryDB { get; set; }
+        public AssistCharacterDB? AssistCharacterDB { get; set; }
+    }
+
+    public class PermanentRaidEndBattleRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_EndBattle; }
+        public int EchelonId { get; set; }
+        public BattleSummary? Summary { get; set; }
+        public ClanAssistUseInfo? AssistUseInfo { get; set; }
+    }
+
+    public class PermanentRaidEndBattleResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_EndBattle; }
+        public RaidScoreInfo? ScoreInfo { get; set; }
+        public PermanentRaidBattleHistoryDB? BattleHistoryDB { get; set; }
+    }
+
+    public class PermanentRaidGiveUpRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_GiveUp; }
+    }
+
+    public class PermanentRaidGiveUpResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.PermanentRaid_GiveUp; }
     }
 
     public class ProofTokenRequestQuestionRequest : RequestPacket
@@ -5437,7 +6012,7 @@ namespace Schale.MX.NetworkProtocol
         public int RaidBossIndex { get; set; }
         public long CumulativeDamage { get; set; }
         public long CumulativeGroggyPoint { get; set; }
-        public IEnumerable<DebuffDescription>? Debuffs { get; }
+        public List<DebuffDescription>? playerDebuffs { get; set; }
     }
 
     public class RaidBattleUpdateResponse : ResponsePacket
@@ -5452,9 +6027,6 @@ namespace Schale.MX.NetworkProtocol
         public int EchelonId { get; set; }
         public long RaidServerId { get; set; }
         public bool IsPractice { get; set; }
-        public int LastBossIndex { get; }
-        public IEnumerable<RaidDamage>? RaidBossDamages { get; }
-        public RaidBossResultCollection? RaidBossResults { get; }
         public BattleSummary? Summary { get; set; }
         public ClanAssistUseInfo? AssistUseInfo { get; set; }
     }
@@ -5601,6 +6173,26 @@ namespace Schale.MX.NetworkProtocol
         public List<RaidRankBracket>? RankBrackets { get; set; }
     }
 
+    public class RaidReviveRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Raid_Revive; }
+    }
+
+    public class RaidReviveResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Raid_Revive; }
+    }
+
+    public class RaidSeasonInfoRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Raid_SeasonInfo; }
+    }
+
+    public class RaidSeasonInfoResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Raid_SeasonInfo; }
+    }
+
     public class RecipeCraftRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Recipe_Craft; }
@@ -5671,7 +6263,6 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.Scenario_GroupHistoryUpdate; }
         public long ScenarioGroupUniqueId { get; set; }
         public long ScenarioType { get; set; }
-        public ScenarioGroupHistoryDB? ScenarioGroupHistoryDB { get; set; }
     }
 
     public class ScenarioGroupHistoryUpdateResponse : ResponsePacket
@@ -5960,6 +6551,16 @@ namespace Schale.MX.NetworkProtocol
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
 
+    public class SessionInfoRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.Session_Info; }
+    }
+
+    public class SessionInfoResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.Session_Info; }
+    }
+
     public class ShopBuyMerchandiseRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.Shop_BuyMerchandise; }
@@ -5989,7 +6590,6 @@ namespace Schale.MX.NetworkProtocol
     public class ShopBuyGachaResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.Shop_BuyGacha; }
-        public AccountCurrencyDB? AccountCurrencyDB { get; set; }
         public ConsumeResultDB? ConsumeResultDB { get; set; }
         public ParcelResultDB? ParcelResultDB { get; set; }
     }
@@ -6472,6 +7072,7 @@ namespace Schale.MX.NetworkProtocol
     public class WorldRaidLobbyRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_Lobby; }
+        public ContentType ContentType { get; set; }
         public long SeasonId { get; set; }
     }
 
@@ -6480,12 +7081,15 @@ namespace Schale.MX.NetworkProtocol
         public override Protocol Protocol { get => Protocol.WorldRaid_Lobby; }
         public List<WorldRaidClearHistoryDB>? ClearHistoryDBs { get; set; }
         public List<WorldRaidLocalBossDB>? LocalBossDBs { get; set; }
-        public List<WorldRaidBossGroup>? BossGroups { get; set; }
+        // keyed by group id on the client, not a flat list
+        public Dictionary<long, List<WorldRaidBossGroup>>? BossGroups { get; set; }
+        public WorldRaidProgressDB? WorldRaidProgressDB { get; set; }
     }
 
     public class WorldRaidBossListRequest : RequestPacket
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_BossList; }
+        public ContentType ContentType { get; set; }
         public long SeasonId { get; set; }
         public bool RequestOnlyWorldBossData { get; set; }
     }
@@ -6500,6 +7104,7 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_EnterBattle; }
         public long SeasonId { get; set; }
+        public long PhaseId { get; set; }
         public long GroupId { get; set; }
         public long UniqueId { get; set; }
         public long EchelonId { get; set; }
@@ -6519,6 +7124,7 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_BattleResult; }
         public long SeasonId { get; set; }
+        public long PhaseId { get; set; }
         public long GroupId { get; set; }
         public long UniqueId { get; set; }
         public long EchelonId { get; set; }
@@ -6538,12 +7144,28 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_ReceiveReward; }
         public long SeasonId { get; set; }
+        public long PhaseId { get; set; }
     }
 
     public class WorldRaidReceiveRewardResponse : ResponsePacket
     {
         public override Protocol Protocol { get => Protocol.WorldRaid_ReceiveReward; }
         public ParcelResultDB? ParcelResultDB { get; set; }
+    }
+
+    public class WorldRaidUpdateCarrierSkillRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.WorldRaid_UpdateCarrierSkill; }
+        public long SeasonId { get; set; }
+        public long RecipeIngredientId { get; set; }
+        public Dictionary<SkillSlot, int>? CarrierSkills { get; set; }
+    }
+
+    public class WorldRaidUpdateCarrierSkillResponse : ResponsePacket
+    {
+        public override Protocol Protocol { get => Protocol.WorldRaid_UpdateCarrierSkill; }
+        public ParcelResultDB? ParcelResultDB { get; set; }
+        public Dictionary<SkillSlot, int>? CarrierSkills { get; set; }
     }
 
 }

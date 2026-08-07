@@ -5,24 +5,24 @@ using Shittim_Server.Core;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
-public class ContentLogHandler : ProtocolHandlerBase
+public class DailyRecordHandler : ProtocolHandlerBase
 {
     private readonly ISessionKeyService _sessionService;
 
-    public ContentLogHandler(
+    public DailyRecordHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService) : base(registry)
     {
         _sessionService = sessionService;
     }
 
-    // telemetry sink; nothing to keep.
-    [ProtocolHandler(Protocol.ContentLog_UIOpenStatistics)]
-    public async Task<ContentLogUIOpenStatisticsResponse> UIOpenStatistics(
+    [ProtocolHandler(Protocol.DailyRecord_Reward)]
+    public async Task<DailyRecordRewardResponse> Reward(
         SchaleDataContext db,
-        ContentLogUIOpenStatisticsRequest request,
-        ContentLogUIOpenStatisticsResponse response)
+        DailyRecordRewardRequest request,
+        DailyRecordRewardResponse response)
     {
+        // Daily record books ride on cash product purchases, which never happen here; official omits DailyRecordDBs from Account_Auth so the client never has a record to claim against.
         await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
         return response;
     }

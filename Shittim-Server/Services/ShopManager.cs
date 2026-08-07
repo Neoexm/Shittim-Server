@@ -292,6 +292,93 @@ public class ShopManager
         return (itemList, gachaList);
     }
 
+    // Audit_GachaStatistics: the client asks for a simulated run against a banner and renders the tally. Same ladder as CreateTenGacha minus the grants and the GUI cheat hooks - nothing here touches the account.
+    public Dictionary<long, long> SimulateGacha(long shopUniqueId, long count)
+    {
+        var dateTime = DateTime.Now;
+
+        var ssrCharacterList = _sharedDataCacheService.CharaListSSRNormal;
+        var srCharacterList = _sharedDataCacheService.CharaListSRNormal;
+        var rCharacterList = _sharedDataCacheService.CharaListRNormal;
+        var uniqCharacterList = _sharedDataCacheService.CharaListUnique;
+        var festCharacterList = _sharedDataCacheService.CharaListFest;
+
+        var characterBanner = _shopRecruitmentExcels.FirstOrDefault(x => x.Id == shopUniqueId)
+            ?? _shopRecruitmentExcels.First(x => x.CategoryType == ShopCategoryType.NormalGacha);
+
+        var rateUpChar = new CharacterExcelT();
+        var otherRateUpList = new List<CharacterExcelT>();
+
+        if (characterBanner.CategoryType != ShopCategoryType.NormalGacha)
+        {
+            var rateUpPickUp = _pickupDuplicateBonusExcels.GetPickupDuplicateBonusByShopId(characterBanner.Id);
+            rateUpChar = _characterExcels.GetCharacter(rateUpPickUp.PickupCharacterId);
+            var otherShopRecruitChars = _shopRecruitmentExcels
+                .GetAssignedCharacterIdShopRecruit().GetAssignedSaleShopRecruit()
+                .GetCategorizedShopRecruit(rateUpPickUp.ShopCategoryType).GetTimelinedShopRecruit(dateTime);
+            var characterIds = otherShopRecruitChars.SelectMany(x => x.InfoCharacterId);
+            foreach (long characterId in characterIds)
+            {
+                if (characterId == rateUpChar.Id) continue;
+                var character = _characterExcels.GetCharacter(characterId);
+                if (character != null) otherRateUpList.Add(character);
+            }
+        }
+
+        List<ShopCategoryType> allowedGachaTypes =
+        [
+            ShopCategoryType.PickupGacha,
+            ShopCategoryType.LimitedGacha
+        ];
+        const int guaranteedSRIndex = 9;
+        var (rateUpSSRRate, fesSSRRate, limitedSSRRate, permanentSSRRate, SRRate, isSelector) = GachaService.InitializeGachaRates(characterBanner.CategoryType);
+
+        // the client only ever asks for the odds-screen sizes; a hand-rolled request shouldn't be able to spin this loop forever
+        if (count > 100000) count = 100000;
+
+        var result = new Dictionary<long, long>();
+        void Tally(CharacterExcelT character)
+        {
+            result.TryGetValue(character.Id, out var n);
+            result[character.Id] = n + 1;
+        }
+
+        for (long i = 0; i < count; i++)
+        {
+            var randomNumber = Random.Shared.NextInt64(1000);
+
+            if (randomNumber < rateUpSSRRate && !characterBanner.CategoryType.Equals(ShopCategoryType.NormalGacha))
+            {
+                Tally(rateUpChar);
+            }
+            else if (randomNumber < rateUpSSRRate && allowedGachaTypes.Contains(characterBanner.CategoryType))
+            {
+                var currentFestCharacterList = festCharacterList.Concat(otherRateUpList).DistinctBy(x => x.Id).ToList();
+                Tally(GachaService.GetRandomCharacterId(currentFestCharacterList));
+            }
+            else if (randomNumber < fesSSRRate && characterBanner.CategoryType.Equals(ShopCategoryType.FesGacha))
+            {
+                var currentFestCharacterList = festCharacterList.Concat(otherRateUpList).DistinctBy(x => x.Id).ToList();
+                Tally(GachaService.GetRandomCharacterId(currentFestCharacterList));
+            }
+            else if (randomNumber < limitedSSRRate && limitedSSRRate > 0)
+            {
+                var currentUniqCharacterList = uniqCharacterList.Concat(otherRateUpList).DistinctBy(x => x.Id).ToList();
+                Tally(GachaService.GetRandomCharacterId(currentUniqCharacterList));
+            }
+            else if (randomNumber < permanentSSRRate)
+            {
+                Tally(GachaService.GetRandomCharacterId(ssrCharacterList, rateUpChar.Id, true));
+            }
+            else if (randomNumber < SRRate || i % 10 == guaranteedSRIndex)
+                Tally(GachaService.GetRandomCharacterId(srCharacterList));
+            else
+                Tally(GachaService.GetRandomCharacterId(rCharacterList));
+        }
+
+        return result;
+    }
+
     public async Task<List<ShopInfoDB>> GetShopList(
         SchaleDataContext context,
         AccountDBServer account,

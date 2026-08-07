@@ -407,6 +407,52 @@ public class ConcentrateCampaignManager
         return save;
     }
 
+    // A portal jump is not a move: the echelon lands on the linked portal's tile without spending its action or a movement slot, and the client plays the jump itself so no DisplayInfos entry rides along.
+    public async Task<CampaignMainStageSaveDBServer> UsePortal(
+        SchaleDataContext context,
+        AccountDBServer account,
+        CampaignPortalRequest req)
+    {
+        var stageSaveData = await GetConcentrateCampaign(context, account, req.StageUniqueId);
+        if (stageSaveData == null)
+            throw new InvalidOperationException($"Campaign stage save not found for stage {req.StageUniqueId}");
+
+        if (stageSaveData.EchelonInfos != null
+            && stageSaveData.EchelonInfos.TryGetValue(req.EchelonEntityId, out var echelon)
+            && stageSaveData.StrategyObjects is { Count: > 0 })
+        {
+            var objectExcels = _excelService.GetTable<CampaignStrategyObjectExcelT>();
+            var here = stageSaveData.StrategyObjects.Values
+                .FirstOrDefault(x => LocationKey(x.Location) == LocationKey(echelon.Location));
+
+            if (here != null)
+            {
+                var hereExcel = objectExcels.FirstOrDefault(x => x.Id == here.Id);
+
+                if (hereExcel != null && hereExcel.PortalId != 0)
+                {
+                    // pairs share a PortalId; the landing side is whichever partner is not a one-way enterance, which also covers the plain two-way portals
+                    var exit = stageSaveData.StrategyObjects.Values
+                        .Where(x => x.EntityId != here.EntityId)
+                        .FirstOrDefault(x =>
+                        {
+                            var excel = objectExcels.FirstOrDefault(e => e.Id == x.Id);
+                            return excel != null && excel.PortalId == hereExcel.PortalId
+                                && excel.StrategyObjectType != StrategyObjectType.PortalOneWayEnterance;
+                        });
+
+                    if (exit?.Location != null)
+                        echelon.Location = new HexLocation2D { x = exit.Location.x, y = exit.Location.y, z = exit.Location.z };
+                }
+            }
+        }
+
+        context.CampaignMainStageSaves.Update(stageSaveData);
+        await context.SaveChangesAsync();
+
+        return stageSaveData;
+    }
+
     // The response is empty (official's Campaign_EnterTactic reply carries nothing beyond the protocol header) but the request's EnemyIndex is the only place the engaged unit is ever named, and Campaign_TacticResult needs it to take that unit off the map.
     public async Task<CampaignMainStageSaveDBServer> EnterTactic(
         SchaleDataContext context,
