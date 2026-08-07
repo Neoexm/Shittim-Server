@@ -612,6 +612,24 @@ public class ClanHandler : ProtocolHandlerBase
         throw new WebAPIException(WebAPIErrorCode.ClanTargetAccountIsNotApplicant, "No applications exist");
     }
 
+    [ProtocolHandler(Protocol.Clan_Kick)]
+    public async Task<ClanKickResponse> Kick(
+        SchaleDataContext db,
+        ClanKickRequest request,
+        ClanKickResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        if (!account.GameSettings.Clan.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission, "Not the president");
+        if (aronaAccount == null || request.MemberAccountId != aronaAccount.ServerId)
+            throw new WebAPIException(WebAPIErrorCode.ClanMemberNotFound, $"Member {request.MemberAccountId} not found");
+
+        // No per-member removal state exists, so Arona is back on the next roster fetch.
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
