@@ -286,6 +286,26 @@ public class FriendHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Friend_Unblock)]
+    public async Task<FriendUnblockResponse> Unblock(
+        SchaleDataContext db,
+        FriendUnblockRequest request,
+        FriendUnblockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.GameSettings.BlockedAccountIds.Remove(request.TargetAccountId);
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.FriendDBs = [];
+        response.SentRequestFriendDBs = [];
+        response.ReceivedRequestFriendDBs = [];
+        response.BlockedUserDBs = BuildBlockedList(db, account);
+
+        return response;
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
