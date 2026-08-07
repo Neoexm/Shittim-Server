@@ -179,6 +179,39 @@ public class FriendHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Friend_Search)]
+    public async Task<FriendSearchResponse> Search(
+        SchaleDataContext db,
+        FriendSearchRequest request,
+        FriendSearchResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var others = db.Accounts.Where(a => a.ServerId != account.ServerId).ToList()
+            .Where(a => !account.GameSettings.BlockedAccountIds.Contains(a.ServerId))
+            .ToList();
+
+        if (!string.IsNullOrEmpty(request.FriendCode))
+        {
+            if (request.FriendCode == AccountHandler.BuildFriendCode(account.ServerId))
+                throw new WebAPIException(WebAPIErrorCode.FriendSearchTargetIsYourself, "That is your own code");
+
+            var match = others.FirstOrDefault(a => AccountHandler.BuildFriendCode(a.ServerId) == request.FriendCode)
+                ?? throw new WebAPIException(WebAPIErrorCode.FriendInvalidFriendCode,
+                    $"No account with code {request.FriendCode}");
+
+            response.SearchResult = [BuildFriendDB(db, match, account)];
+            return response;
+        }
+
+        response.SearchResult = others
+            .Where(a => InLevelBand(a.Level, request.LevelOption))
+            .Select(a => BuildFriendDB(db, a, account))
+            .ToArray();
+
+        return response;
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
