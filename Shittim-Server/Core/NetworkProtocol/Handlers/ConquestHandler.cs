@@ -321,6 +321,50 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_UpgradeBase)]
+    public async Task<ConquestUpgradeBaseResponse> UpgradeBase(
+        SchaleDataContext db,
+        ConquestUpgradeBaseRequest request,
+        ConquestUpgradeBaseResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        var tileExcel = _conquestManager.RequireTile(info.EventContentId, request.TileUniqueId);
+        if (tileExcel.TileType != ConquestTileType.Base)
+            throw new WebAPIException(WebAPIErrorCode.ConquestInvalidTileType, $"Tile {request.TileUniqueId} is not a base");
+
+        var tile = _conquestManager.StoredTile(info, request.Difficulty, request.TileUniqueId);
+        if (tile == null || tile.TileState != TileState.FullyConquested)
+            throw new WebAPIException(WebAPIErrorCode.ConquestNotFullyConquested, $"Base {request.TileUniqueId} not conquered");
+
+        var (costType, costId, costAmount) = tile.Level switch
+        {
+            1 => (tileExcel.Upgrade2CostType, tileExcel.Upgrade2CostId, tileExcel.Upgrade2CostAmount),
+            2 => (tileExcel.Upgrade3CostType, tileExcel.Upgrade3CostId, tileExcel.Upgrade3CostAmount),
+            _ => throw new WebAPIException(WebAPIErrorCode.ConquestMaxUpgrade, $"Base {request.TileUniqueId} is max level")
+        };
+
+        var resolver = default(ParcelResolver);
+        if (costType != ParcelType.None && costAmount > 0)
+        {
+            resolver = await _parcelHandler.BuildParcel(db, account,
+                new ParcelResult(costType, costId, costAmount), isConsume: true);
+            _conquestManager.TrackConditionSpend(info, costType, costId, costAmount);
+        }
+
+        tile.Level++;
+        db.ConquestInfos.Update(info);
+        await db.SaveChangesAsync();
+
+        response.UpgradeRewards = [];
+        response.ParcelResultDB = resolver?.ParcelResult ?? new ParcelResultDB();
+        response.ConquestTileDB = tile;
+        response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
