@@ -36,6 +36,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Character_List)]
     [InlineData(Protocol.Attachment_Get)]
     [InlineData(Protocol.Arena_Login)]
+    [InlineData(Protocol.MultiFloorRaid_Login)]
     [InlineData(Protocol.ContentSweep_MultiSweepPresetList)]
     [InlineData(Protocol.Item_Lock)]
     [InlineData(Protocol.Equipment_Lock)]

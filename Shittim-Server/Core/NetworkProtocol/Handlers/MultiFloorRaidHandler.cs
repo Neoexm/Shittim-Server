@@ -45,6 +45,17 @@ public class MultiFloorRaidHandler : ProtocolHandlerBase
         return account.GameSettings.ServerDateTime();
     }
 
+    [ProtocolHandler(Protocol.MultiFloorRaid_Login)]
+    public async Task<MultiFloorRaidLoginResponse> Login(
+        SchaleDataContext db,
+        MultiFloorRaidLoginRequest request,
+        MultiFloorRaidLoginResponse response)
+    {
+        // Official answer is just {"Protocol":49004}; the login sync carries the same empty child.
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.MultiFloorRaid_Sync)]
     public async Task<MultiFloorRaidSyncResponse> Sync(
         SchaleDataContext db,
