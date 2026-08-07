@@ -423,6 +423,45 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_CompleteProcessAll)]
+        public async Task<CraftCompleteProcessAllResponse> CompleteProcessAll(
+            SchaleDataContext db,
+            CraftCompleteProcessAllRequest request,
+            CraftCompleteProcessAllResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var started = db.CraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .ToList()
+                .Where(x => x.StartTime != DateTime.MaxValue)
+                .ToList();
+
+            var processing = started.Where(x => x.EndTime > now).ToList();
+            if (processing.Count > 0)
+            {
+                var ticket = db.GetAccountItems(account.ServerId).FirstOrDefault(x => x.UniqueId == TimeSkipTicketItemId);
+                foreach (var slot in processing)
+                {
+                    if (ticket != null)
+                    {
+                        var ticketsNeeded = (long)System.Math.Ceiling((slot.EndTime - now) / TierDuration);
+                        ticket.StackCount -= System.Math.Min(ticketsNeeded, ticket.StackCount);
+                    }
+                    slot.EndTime = now;
+                    db.CraftInfos.Update(slot);
+                }
+                if (ticket != null)
+                    response.TicketItemDB = ticket.ToMap(_mapper);
+                await db.SaveChangesAsync();
+            }
+
+            response.CraftInfoDBs = started.Count > 0 ? _mapper.Map<List<CraftInfoDB>>(started) : null;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
