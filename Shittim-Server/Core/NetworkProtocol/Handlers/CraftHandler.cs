@@ -613,6 +613,44 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_ShiftingCompleteProcessAll)]
+        public async Task<CraftShiftingCompleteProcessAllResponse> ShiftingCompleteProcessAll(
+            SchaleDataContext db,
+            CraftShiftingCompleteProcessAllRequest request,
+            CraftShiftingCompleteProcessAllResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var slots = db.ShiftingCraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .ToList();
+
+            var common = _excelService.GetTable<ConstCommonExcelT>().FirstOrDefault();
+            long tickets = 0;
+            foreach (var slot in slots)
+            {
+                var cost = FinishShiftingSlot(slot, now, common);
+                if (cost > 0)
+                {
+                    tickets += cost;
+                    db.ShiftingCraftInfos.Update(slot);
+                }
+            }
+
+            if (tickets > 0)
+            {
+                var resolver = await _parcelHandler.BuildParcel(db, account,
+                    new ParcelResult(ParcelType.Item, ShiftingTicketItemId(common), tickets), isConsume: true);
+                response.ParcelResultDB = resolver.ParcelResult;
+            }
+            await db.SaveChangesAsync();
+
+            response.CraftInfoDBs = slots.Count > 0 ? _mapper.Map<List<ShiftingCraftInfoDB>>(slots) : null;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
