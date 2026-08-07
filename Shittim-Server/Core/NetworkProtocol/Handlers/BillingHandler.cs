@@ -252,4 +252,82 @@ public class BillingHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Billing_TransactionEndByYostar)]
+    public async Task<BillingTransactionEndByYostarResponse> TransactionEndByYostar(
+        SchaleDataContext db,
+        BillingTransactionEndByYostarRequest request,
+        BillingTransactionEndByYostarResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (!account.GameSettings.PendingPurchaseOrders.TryGetValue(request.PurchaseOrderId, out var shopCashId))
+            throw new WebAPIException(WebAPIErrorCode.PaymentNotFoundPurchase,
+                $"Order {request.PurchaseOrderId} not found");
+
+        account.GameSettings.PendingPurchaseOrders.Remove(request.PurchaseOrderId);
+        db.Accounts.Update(account);
+
+        response.CountList = [];
+        response.MonthlyProductList = [];
+        response.BattlePassProductList = [];
+
+        if (request.EndType != BillingTransactionEndType.Success)
+        {
+            await db.SaveChangesAsync();
+            return response;
+        }
+
+        var shopCash = _excelTableService.GetTable<ShopCashExcelT>().FirstOrDefault(x => x.Id == shopCashId)
+            ?? throw new WebAPIException(WebAPIErrorCode.BillingEndShopCashIdNotFound,
+                $"ShopCash {shopCashId} not found");
+        var product = _excelTableService.GetTable<ProductExcelT>().FirstOrDefault(x => x.Id == shopCash.CashProductId)
+            ?? throw new WebAPIException(WebAPIErrorCode.BillingEndShopCashIdNotFound,
+                $"Product {shopCash.CashProductId} not found");
+
+        var count = ShopHandler.AlignedColumnCount(
+            product.ParcelType?.Count, product.ParcelId?.Count, product.ParcelAmount?.Count);
+        var parcels = new List<ParcelInfo>();
+        Schale.Data.GameModel.BattlePassDBServer? purchasedPass = null;
+        for (int i = 0; i < count; i++)
+        {
+            if (product.ParcelType![i] == ParcelType.ProductBattlePass)
+            {
+                var passId = product.ParcelId![i];
+                purchasedPass = db.BattlePasses.FirstOrDefault(x => x.AccountServerId == account.ServerId && x.BattlePassId == passId);
+                if (purchasedPass == null)
+                {
+                    purchasedPass = new Schale.Data.GameModel.BattlePassDBServer
+                    {
+                        AccountServerId = account.ServerId,
+                        BattlePassId = passId,
+                        PassLevel = 1,
+                        LastWeeklyPassExpLimitRefreshDate = account.GameSettings.ServerDateTime()
+                    };
+                    db.BattlePasses.Add(purchasedPass);
+                }
+                // Readers only test PurchaseGroupId != 0 to unlock the paid track.
+                purchasedPass.PurchaseGroupId = shopCash.Id;
+                continue;
+            }
+
+            parcels.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = product.ParcelType[i], Id = product.ParcelId![i] },
+                Amount = product.ParcelAmount![i]
+            });
+        }
+
+        var parcelResultDB = new ParcelResultDB();
+        if (parcels.Count > 0)
+            await _parcelHandler.BuildParcel(db, account, parcels, parcelResultDB);
+
+        await db.SaveChangesAsync();
+
+        response.ParcelResult = parcelResultDB;
+        response.PurchaseCount = 1;
+        response.BattlePassInfo = purchasedPass;
+        response.BattlePassProductList = BuildBattlePassProductList(db, account, _excelTableService);
+
+        return response;
+    }
 }
