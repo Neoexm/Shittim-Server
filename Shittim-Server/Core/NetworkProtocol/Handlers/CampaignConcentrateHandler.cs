@@ -58,6 +58,24 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Campaign_Portal)]
+    public async Task<CampaignPortalResponse> Portal(
+        SchaleDataContext db,
+        CampaignPortalRequest request,
+        CampaignPortalResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _eventContentCampaignManager.Portal(db, account, new EventContentPortalRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            EchelonEntityId = request.EchelonEntityId
+        });
+
+        response.CampaignMainStageSaveDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_EnterMainStage)]
     public async Task<CampaignEnterMainStageResponse> EnterMainStage(
         SchaleDataContext db,

@@ -45,6 +45,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.BattlePass_MissionMultipleReward)]
     [InlineData(Protocol.Arena_EnterBattle)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
+    [InlineData(Protocol.Campaign_Portal)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);
