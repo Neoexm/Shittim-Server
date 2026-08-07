@@ -44,6 +44,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Raid_CompleteList)]
     [InlineData(Protocol.Item_Lock)]
     [InlineData(Protocol.Equipment_Lock)]
+    [InlineData(Protocol.ResetableContent_Get)]
     [InlineData(Protocol.ClearDeck_List)]
     [InlineData(Protocol.Campaign_Heal)]
     [InlineData(Protocol.Campaign_PurchasePlayCountHardStage)]

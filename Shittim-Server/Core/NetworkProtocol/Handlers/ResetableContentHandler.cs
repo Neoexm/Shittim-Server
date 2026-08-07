@@ -17,4 +17,19 @@ public class ResetableContentHandler : ProtocolHandlerBase
         _sessionService = sessionService;
     }
 
+    [ProtocolHandler(Protocol.ResetableContent_Get)]
+    public async Task<ResetableContentGetResponse> Get(
+        SchaleDataContext db,
+        ResetableContentGetRequest request,
+        ResetableContentGetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ResetableContentValueDBs = ResetableContentService.LiveValues(
+            account, ResetableContentService.ResetWindow);
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
 }
