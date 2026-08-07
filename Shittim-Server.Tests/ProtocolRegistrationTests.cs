@@ -56,6 +56,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Clan_Create)]
     [InlineData(Protocol.Clan_Join)]
     [InlineData(Protocol.Clan_AutoJoin)]
+    [InlineData(Protocol.Clan_Quit)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

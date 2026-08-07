@@ -453,6 +453,27 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Quit)]
+    public async Task<ClanQuitResponse> Quit(
+        SchaleDataContext db,
+        ClanQuitRequest request,
+        ClanQuitResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (!state.HasClan)
+            throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyQuitClan, "Not in a clan");
+        if (state.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanCanNotQuit, "The president dismisses, not quits");
+
+        state.HasClan = false;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
