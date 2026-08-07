@@ -107,6 +107,22 @@ public class CharacterHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Character_List)]
+    public async Task<CharacterListResponse> List(
+        SchaleDataContext db,
+        CharacterListRequest request,
+        CharacterListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.CharacterDBs = db.GetAccountCharacters(account.ServerId).ToMapList(_mapper);
+        response.TSSCharacterDBs = [];
+        response.WeaponDBs = db.GetAccountWeapons(account.ServerId).ToMapList(_mapper);
+        response.CostumeDBs = db.GetAccountCostumes(account.ServerId).ToMapList(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Character_SetFavorites)]
     public async Task<CharacterSetFavoritesResponse> SetFavorites(
         SchaleDataContext db,
