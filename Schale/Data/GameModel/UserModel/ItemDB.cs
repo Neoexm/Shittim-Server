@@ -17,6 +17,8 @@ namespace Schale.Data.GameModel
         [NotMapped]
         [JsonIgnore]
         public override bool CanConsume => true;
+
+        public bool IsLocked { get; set; }
     }
 
     public static class ItemDBServerExtensions

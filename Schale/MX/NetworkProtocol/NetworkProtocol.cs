@@ -367,6 +367,8 @@ namespace Schale.MX.NetworkProtocol
         public string? EnterTicket { get; set; }
         public bool PassCookieResult { get; set; }
         public string? Cookie { get; set; }
+        public string? ClientGeneratedKey { get; set; }
+        public string? ClientGeneratedIV { get; set; }
     }
 
     public class AccountCheckYostarResponse : ResponsePacket
@@ -5062,6 +5064,11 @@ namespace Schale.MX.NetworkProtocol
     {
         public override Protocol Protocol { get => Protocol.MultiFloorRaid_Sync; }
         public List<MultiFloorRaidDB>? MultiFloorRaidDBs { get; set; }
+    }
+
+    public class MultiFloorRaidLoginRequest : RequestPacket
+    {
+        public override Protocol Protocol { get => Protocol.MultiFloorRaid_Login; }
     }
 
     // Official Account_LoginSync carries this child alongside MultiFloorRaidSyncResponse; on the wire it is just {"Protocol":49004} (all other members at defaults).

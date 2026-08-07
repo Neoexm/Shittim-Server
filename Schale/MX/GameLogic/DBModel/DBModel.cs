@@ -1102,6 +1102,7 @@ namespace Schale.MX.GameLogic.DBModel
         public long Exp { get; set; }
         public int Tier { get; set; }
         public long BoundCharacterServerId { get; set; }
+        public bool IsLocked { get; set; }
         public new bool CanConsume { get; set; }
     }
 
@@ -1388,6 +1389,7 @@ namespace Schale.MX.GameLogic.DBModel
 
         public override IEnumerable<ParcelInfo>? ParcelInfos { get; }
         public new bool CanConsume { get; set; }
+        public bool IsLocked { get; set; }
     }
 
     public class MailDB

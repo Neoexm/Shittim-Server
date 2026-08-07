@@ -18,6 +18,7 @@ namespace Schale.Data.GameModel
         public long Exp { get; set; } = 0;
         public int Tier { get; set; } = 1;
         public long BoundCharacterServerId { get; set; }
+        public bool IsLocked { get; set; }
 
         [JsonIgnore]
         public override bool CanConsume => false;
