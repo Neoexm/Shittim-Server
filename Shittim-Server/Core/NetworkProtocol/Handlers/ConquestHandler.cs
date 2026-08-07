@@ -33,6 +33,32 @@ public class ConquestHandler : ProtocolHandlerBase
         _parcelHandler = parcelHandler;
     }
 
+    [ProtocolHandler(Protocol.Conquest_GetInfo)]
+    public async Task<ConquestGetInfoResponse> GetInfo(
+        SchaleDataContext db,
+        ConquestGetInfoRequest request,
+        ConquestGetInfoResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var info = _conquestManager.GetOrCreate(db, account, request.EventContentId);
+
+        response.IsFirstEnter = !info.FirstEnterDone;
+        if (!info.FirstEnterDone)
+        {
+            info.FirstEnterDone = true;
+            db.ConquestInfos.Update(info);
+            await db.SaveChangesAsync();
+        }
+
+        response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+        response.ConquestedTileDBs = info.Tiles;
+        response.ConquestEchelonDBs = info.Echelons;
+        response.DifficultyToStepDict = info.StepByDifficulty;
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
