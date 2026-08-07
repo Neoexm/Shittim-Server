@@ -376,6 +376,35 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Create)]
+    public async Task<ClanCreateResponse> Create(
+        SchaleDataContext db,
+        ClanCreateRequest request,
+        ClanCreateResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (state.HasClan)
+            throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyJoinedClan, "Already in a clan");
+
+        ValidateClanName(request.ClanNickName);
+
+        state.HasClan = true;
+        state.IsPlayerOwned = true;
+        state.ClanName = request.ClanNickName;
+        state.JoinOption = request.ClanJoinOption;
+        state.JoinDate = account.GameSettings.ServerDateTime();
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.ClanDB = BuildClanDB(db, account);
+        response.ClanMemberDB = BuildAccountMemberDB(db, account);
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
