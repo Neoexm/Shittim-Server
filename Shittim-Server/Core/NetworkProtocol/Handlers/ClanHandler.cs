@@ -630,6 +630,30 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Confer)]
+    public async Task<ClanConferResponse> Confer(
+        SchaleDataContext db,
+        ClanConferRequest request,
+        ClanConferResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        if (!account.GameSettings.Clan.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission, "Not the president");
+        if (aronaAccount == null || request.MemberAccountId != aronaAccount.ServerId)
+            throw new WebAPIException(WebAPIErrorCode.ClanMemberNotFound, $"Member {request.MemberAccountId} not found");
+
+        var conferred = BuildAronaMemberDB(db, account);
+        conferred.ClanSocialGrade = request.ConferingGrade;
+
+        response.ClanMemberDB = conferred;
+        response.AccountClanMemberDB = BuildAccountMemberDB(db, account);
+        response.ClanDB = BuildClanDB(db, account);
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
