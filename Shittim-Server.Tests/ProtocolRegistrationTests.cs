@@ -72,6 +72,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Conquest_GetInfo)]
     [InlineData(Protocol.Conquest_Check)]
     [InlineData(Protocol.Conquest_Conquer)]
+    [InlineData(Protocol.Conquest_ConquerWithBattleStart)]
     [InlineData(Protocol.Conquest_MainStoryGetInfo)]
     [InlineData(Protocol.Conquest_MainStoryCheck)]
     [InlineData(Protocol.Conquest_MainStoryConquer)]
