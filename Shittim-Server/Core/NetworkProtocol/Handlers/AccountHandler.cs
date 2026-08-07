@@ -634,6 +634,25 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_BirthDay)]
+    public async Task<AccountBirthDayResponse> BirthDay(
+        SchaleDataContext db,
+        AccountBirthDayRequest request,
+        AccountBirthDayResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Official allows setting a birthday exactly once.
+        if (account.BirthDay == null)
+        {
+            account.BirthDay = request.BirthDay;
+            await db.SaveChangesAsync();
+        }
+
+        response.AccountDB = account.ToMap(_mapper);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
