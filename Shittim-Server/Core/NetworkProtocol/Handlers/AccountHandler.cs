@@ -700,6 +700,54 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_CheckYostar)]
+    public async Task<AccountCheckYostarResponse> CheckYostar(
+        SchaleDataContext db,
+        AccountCheckYostarRequest request,
+        AccountCheckYostarResponse response)
+    {
+        // The Yostar twin of CheckNexon: same find-or-create by publisher id, same crypto handshake out.
+        var publisherId = request.UID;
+        var token = request.YostarToken ?? "";
+        if (publisherId == 0 && !string.IsNullOrEmpty(request.EnterTicket))
+        {
+            var parts = Encoding.UTF8.GetString(Convert.FromBase64String(request.EnterTicket)).Split('/');
+            publisherId = long.Parse(parts[0]);
+            if (parts.Length > 1) token = parts[1];
+        }
+
+        var user = await db.UserAccounts.FirstOrDefaultAsync(u => u.NpSN == publisherId);
+        if (user == null)
+        {
+            db.UserAccounts.Add(new UserAccount { Uid = -1, NpSN = publisherId, NpToken = token });
+            var newAccount = new AccountDBServer(publisherId);
+            db.Accounts.Add(newAccount);
+            await db.SaveChangesAsync();
+
+            user = await db.UserAccounts.FirstAsync(u => u.NpSN == publisherId);
+            var account = await db.Accounts.FirstAsync(a => a.PublisherAccountId == publisherId);
+            user.Uid = account.ServerId;
+            await AccountInitializationService.InitializeCompleteAccount(db, account);
+            await db.SaveChangesAsync();
+        }
+        else if (user.NpToken != token)
+        {
+            user.NpToken = token;
+            await db.SaveChangesAsync();
+        }
+
+        var sessionKey = await _sessionService.GenerateSession(publisherId);
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
+
+        response.ResultState = 1;
+        response.SessionKey = sessionKey;
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
