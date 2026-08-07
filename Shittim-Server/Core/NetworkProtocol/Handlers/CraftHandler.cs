@@ -462,6 +462,47 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_RewardAll)]
+        public async Task<CraftRewardAllResponse> RewardAll(
+            SchaleDataContext db,
+            CraftRewardAllRequest request,
+            CraftRewardAllResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var slots = db.CraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .ToList();
+            var finished = slots.Where(x => x.StartTime != DateTime.MaxValue && x.EndTime <= now).ToList();
+
+            if (finished.Count > 0)
+            {
+                var parcels = finished
+                    .SelectMany(s => s.Nodes ?? [])
+                    .Where(x => x.CraftNodeResult?.ParcelInfo != null)
+                    .Select(x => new ParcelResult(
+                        x.CraftNodeResult!.ParcelInfo!.Key.Type,
+                        x.CraftNodeResult.ParcelInfo.Key.Id,
+                        x.CraftNodeResult.ParcelInfo.Amount))
+                    .ToList();
+
+                var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcels);
+                response.ParcelResultDB = parcelResolver.ParcelResult;
+
+                db.CraftInfos.RemoveRange(finished);
+                await db.SaveChangesAsync();
+
+                _missionService.UpdateMissionProgress(
+                    db, account, MissionCompleteConditionType.Reset_CraftCount, amount: finished.Count);
+            }
+
+            var remaining = slots.Except(finished).ToList();
+            response.CraftInfos = remaining.Count > 0 ? _mapper.Map<List<CraftInfoDB>>(remaining) : null;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
