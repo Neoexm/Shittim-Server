@@ -354,6 +354,28 @@ public class ClanHandler : ProtocolHandlerBase
         Password = _configuration["Irc:Password"] ?? ""
     };
 
+    [ProtocolHandler(Protocol.Clan_Login)]
+    public async Task<ClanLoginResponse> Login(
+        SchaleDataContext db,
+        ClanLoginRequest request,
+        ClanLoginResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (account.GameSettings.Clan.HasClan)
+        {
+            response.AccountClanDB = BuildClanDB(db, account);
+            response.AccountClanMemberDB = BuildAccountMemberDB(db, account);
+        }
+        else
+        {
+            response.AccountClanMemberDB = new ClanMemberDB { AccountId = account.ServerId };
+        }
+        response.ClanAssistSlotDBs = [];
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;

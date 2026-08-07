@@ -52,6 +52,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
     [InlineData(Protocol.Campaign_Portal)]
     [InlineData(Protocol.Campaign_WithdrawEchelon)]
+    [InlineData(Protocol.Clan_Login)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);
