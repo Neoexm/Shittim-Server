@@ -168,4 +168,25 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_TacticResult)]
+    public async Task<ScenarioTacticResultResponse> TacticResult(
+        SchaleDataContext db,
+        ScenarioTacticResultRequest request,
+        ScenarioTacticResultResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (stageSave, isPlayerWin) = await _concentrateCampaignManager.ScenarioTacticResult(db, account, new CampaignTacticResultRequest
+        {
+            PassCheckCharacter = request.PassCheckCharacter,
+            Summary = request.Summary,
+            Hand = request.Hand,
+            SkipSummary = request.SkipSummary
+        });
+
+        response.SaveDataDB = Wire(stageSave);
+        response.IsPlayerWin = isPlayerWin;
+        return response;
+    }
+
 }

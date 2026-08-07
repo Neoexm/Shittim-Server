@@ -83,6 +83,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Scenario_MapMove)]
     [InlineData(Protocol.Scenario_EndTurn)]
     [InlineData(Protocol.Scenario_EnterTactic)]
+    [InlineData(Protocol.Scenario_TacticResult)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
     [InlineData(Protocol.Campaign_Portal)]
     [InlineData(Protocol.Campaign_WithdrawEchelon)]
