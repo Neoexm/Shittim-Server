@@ -228,4 +228,23 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_RestartMainStage)]
+    public async Task<ScenarioRestartMainStageResponse> RestartMainStage(
+        SchaleDataContext db,
+        ScenarioRestartMainStageRequest request,
+        ScenarioRestartMainStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Creation closes whatever run was open, so a restart is just a fresh save in BeforeStart.
+        var stageSave = await _concentrateCampaignManager.CreateStoryStrategyStage(db, account, request.StageUniqueId);
+
+        response.ParcelResultDB = new()
+        {
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+        };
+        response.SaveDataDB = Wire(stageSave);
+        return response;
+    }
+
 }
