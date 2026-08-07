@@ -333,6 +333,18 @@ public class ContentSweepHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.ContentSweep_MultiSweepPresetList)]
+    public async Task<ContentSweepMultiSweepPresetListResponse> MultiSweepPresetList(
+        SchaleDataContext db,
+        ContentSweepMultiSweepPresetListRequest request,
+        ContentSweepMultiSweepPresetListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.MultiSweepPresetDBs = account.GameSettings.MultiSweepPresetDBs ?? [];
+        return response;
+    }
+
     [ProtocolHandler(Protocol.ContentSweep_SetMultiSweepPreset)]
     public async Task<ContentSweepSetMultiSweepPresetResponse> SetMultiSweepPreset(
         SchaleDataContext db,
