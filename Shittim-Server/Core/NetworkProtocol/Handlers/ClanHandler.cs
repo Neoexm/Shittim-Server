@@ -654,6 +654,34 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Setting)]
+    public async Task<ClanSettingResponse> Setting(
+        SchaleDataContext db,
+        ClanSettingRequest request,
+        ClanSettingResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (!state.HasClan || !state.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission, "Not the president");
+
+        if (request.ChangedClanName != null)
+        {
+            ValidateClanName(request.ChangedClanName);
+            state.ClanName = request.ChangedClanName;
+        }
+        if (request.ChangedNotice != null)
+            state.Notice = request.ChangedNotice;
+        state.JoinOption = request.ClanJoinOption;
+
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.ClanDB = BuildClanDB(db, account);
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
