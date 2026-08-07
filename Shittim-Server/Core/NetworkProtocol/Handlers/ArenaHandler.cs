@@ -87,6 +87,18 @@ public class ArenaHandler : ProtocolHandlerBase
         return now;
     }
 
+    [ProtocolHandler(Protocol.Arena_Login)]
+    public async Task<ArenaLoginResponse> Login(
+        SchaleDataContext db,
+        ArenaLoginRequest request,
+        ArenaLoginResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ArenaPlayerInfoDB = BuildPlayerInfo(account);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Arena_EnterLobby)]
     public async Task<ArenaEnterLobbyResponse> EnterLobby(
         SchaleDataContext db,
