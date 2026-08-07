@@ -340,4 +340,70 @@ public class EliminateRaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.EliminateRaid_LimitedReward)]
+    public async Task<EliminateRaidLimitedRewardResponse> LimitedReward(
+        SchaleDataContext db,
+        EliminateRaidLimitedRewardRequest request,
+        EliminateRaidLimitedRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        var seasonId = account.ContentInfo.EliminateRaidDataInfo.SeasonId;
+        var season = _excelService.GetTable<EliminateRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == seasonId);
+        if (season == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Eliminate raid season {seasonId} not found");
+
+        var stageExcels = _excelService.GetTable<EliminateRaidStageExcelT>();
+        var clearedStageIds = db.Raids.Where(x =>
+                x.AccountServerId == account.ServerId &&
+                x.ContentType == ContentType.EliminateRaid &&
+                x.RaidState == RaidStatus.Clear &&
+                !x.IsPractice &&
+                x.SeasonId == seasonId)
+            .Select(x => x.UniqueId)
+            .ToList();
+
+        // One claim per cleared difficulty per season; official also splits these by boss group.
+        var claimable = clearedStageIds
+            .Select(id => stageExcels.FirstOrDefault(s => s.Id == id))
+            .Where(s => s != null)
+            .Select(s => s!.Difficulty switch
+            {
+                Difficulty.Normal => season.LimitedRewardIdNormal,
+                Difficulty.Hard => season.LimitedRewardIdHard,
+                Difficulty.VeryHard => season.LimitedRewardIdVeryhard,
+                Difficulty.Hardcore => season.LimitedRewardIdHardcore,
+                Difficulty.Extreme => season.LimitedRewardIdExtreme,
+                Difficulty.Insane => season.LimitedRewardIdInsane,
+                Difficulty.Torment => season.LimitedRewardIdTorment,
+                _ => 0L
+            })
+            .Where(id => id != 0 && !lobby.ReceiveLimitedRewardIds.Contains(id))
+            .Distinct()
+            .ToList();
+
+        if (claimable.Count == 0)
+        {
+            response.ReceiveRewardIds = lobby.ReceiveLimitedRewardIds;
+            return response;
+        }
+
+        var rewards = _excelService.GetTable<EliminateRaidStageLimitedRewardExcelT>()
+            .Where(x => claimable.Contains(x.LimitedRewardId))
+            .SelectMany(x => RaidService.ZipParcelColumns(x.LimitedRewardParcelType, x.LimitedRewardParcelUniqueId, x.LimitedRewardAmount))
+            .ToList();
+
+        lobby.ReceiveLimitedRewardIds.AddRange(claimable);
+        db.EliminateRaidLobbyInfos.Update(lobby);
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, rewards);
+        await db.SaveChangesAsync();
+
+        response.ReceiveRewardIds = lobby.ReceiveLimitedRewardIds;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
