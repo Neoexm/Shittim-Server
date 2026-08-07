@@ -212,6 +212,18 @@ public class FriendHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Friend_Remove)]
+    public async Task<FriendRemoveResponse> Remove(
+        SchaleDataContext db,
+        FriendRemoveRequest request,
+        FriendRemoveResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // The friend list is permanently empty on a single-player server, so any removal targets a non-friend.
+        throw new WebAPIException(WebAPIErrorCode.FriendUserIsNotFriend, "No friends to remove");
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
