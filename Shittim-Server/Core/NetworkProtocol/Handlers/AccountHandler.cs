@@ -829,6 +829,43 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_Reset)]
+    public async Task<AccountResetResponse> Reset(
+        SchaleDataContext db,
+        AccountResetRequest request,
+        AccountResetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var accountId = account.ServerId;
+        var publisherId = account.PublisherAccountId;
+
+        await AccountInitializationService.WipeAccountData(db, accountId);
+
+        db.ChangeTracker.Clear();
+        var fresh = await db.Accounts.FirstAsync(x => x.ServerId == accountId);
+        var template = new AccountDBServer(publisherId ?? accountId);
+        fresh.Nickname = string.Empty;
+        fresh.CallName = null;
+        fresh.Comment = null;
+        fresh.State = template.State;
+        fresh.Level = template.Level;
+        fresh.Exp = 0;
+        fresh.LobbyMode = 0;
+        fresh.RepresentCharacterServerId = 0;
+        fresh.MemoryLobbyUniqueId = 0;
+        fresh.BirthDay = null;
+        fresh.UnReadMailCount = 0;
+        fresh.GameSettings = new();
+        fresh.ContentInfo = template.ContentInfo;
+        fresh.BattleSummaries = new List<BattleSummaryDB>();
+        fresh.RaidSummaries = new List<RaidSummaryDB>();
+
+        await AccountInitializationService.InitializeCompleteAccount(db, fresh);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
