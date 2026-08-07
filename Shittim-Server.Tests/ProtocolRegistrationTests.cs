@@ -48,6 +48,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_RequestBirthdayMail)]
     [InlineData(Protocol.Account_Reset)]
     [InlineData(Protocol.Friend_AcceptFriendRequest)]
+    [InlineData(Protocol.Friend_DeclineFriendRequest)]
     [InlineData(Protocol.Friend_Remove)]
     [InlineData(Protocol.Friend_Search)]
     [InlineData(Protocol.Friend_GetFriendDetailedInfo)]

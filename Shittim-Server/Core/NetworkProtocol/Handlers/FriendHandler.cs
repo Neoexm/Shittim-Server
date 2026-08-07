@@ -236,6 +236,17 @@ public class FriendHandler : ProtocolHandlerBase
         throw new WebAPIException(WebAPIErrorCode.FriendRequestNotFound, "No pending request");
     }
 
+    [ProtocolHandler(Protocol.Friend_DeclineFriendRequest)]
+    public async Task<FriendDeclineFriendRequestResponse> DeclineFriendRequest(
+        SchaleDataContext db,
+        FriendDeclineFriendRequestRequest request,
+        FriendDeclineFriendRequestResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        throw new WebAPIException(WebAPIErrorCode.FriendRequestNotFound, "No pending request");
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
