@@ -72,4 +72,28 @@ public class StickerHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Sticker_UseSticker)]
+    public async Task<StickerUseStickerResponse> UseSticker(
+        SchaleDataContext db,
+        StickerUseStickerRequest request,
+        StickerUseStickerResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var book = db.GetAccountStickerBooks(account.ServerId).First();
+        book.UnusedStickerDBs ??= [];
+        book.UsedStickerDBs ??= [];
+
+        var sticker = book.UnusedStickerDBs.FirstOrDefault(x => x.StickerUniqueId == request.StickerUniqueId);
+        if (sticker != null)
+        {
+            book.UnusedStickerDBs.Remove(sticker);
+            book.UsedStickerDBs.Add(sticker);
+            db.StickerBooks.Update(book);
+            await db.SaveChangesAsync();
+        }
+
+        response.StickerBookDB = book.ToMap(_mapper);
+        return response;
+    }
 }

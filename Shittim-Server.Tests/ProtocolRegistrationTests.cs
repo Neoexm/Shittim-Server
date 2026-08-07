@@ -35,6 +35,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.MemoryLobby_Interact)]
     [InlineData(Protocol.Sticker_Login)]
     [InlineData(Protocol.Sticker_Lobby)]
+    [InlineData(Protocol.Sticker_UseSticker)]
     [InlineData(Protocol.SkipHistory_List)]
     [InlineData(Protocol.SkipHistory_Save)]
     [InlineData(Protocol.Character_List)]
