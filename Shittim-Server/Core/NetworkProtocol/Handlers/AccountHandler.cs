@@ -748,6 +748,22 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_PassCheck)]
+    public Task<AccountPassCheckResponse> PassCheck(
+        SchaleDataContext db,
+        AccountPassCheckRequest request,
+        AccountPassCheckResponse response)
+    {
+        // Pre-session dev-id check; the only server obligation is the gateway crypto handshake.
+        var gatewayCrypto = GatewaySessionCryptoBuilder.Build(request.ClientGeneratedKey, request.ClientGeneratedIV);
+
+        response.EncryptedKey = gatewayCrypto.EncryptedKey;
+        response.SignedKey = gatewayCrypto.SignedKey;
+        response.EncryptedIV = gatewayCrypto.EncryptedIV;
+        response.SignedIV = gatewayCrypto.SignedIV;
+        return Task.FromResult(response);
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
