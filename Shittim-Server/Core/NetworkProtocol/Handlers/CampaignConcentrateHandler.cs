@@ -36,6 +36,28 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         _logger = logger;
     }
 
+    [ProtocolHandler(Protocol.Campaign_ConfirmTutorialStage)]
+    public async Task<CampaignConfirmTutorialStageResponse> ConfirmTutorialStage(
+        SchaleDataContext db,
+        CampaignConfirmTutorialStageRequest request,
+        CampaignConfirmTutorialStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Get-or-create covers both orders: the tutorial client may or may not have sent a deploy
+        // (which persists the row) before confirming.
+        _ = await _concentrateCampaignManager.GetConcentrateCampaign(db, account, request.StageUniqueId)
+            ?? await _concentrateCampaignManager.CreateConcentrateCampaign(db, account, request.StageUniqueId);
+
+        var stageSave = await _concentrateCampaignManager.StartConcentrateCampaign(db, account, new CampaignConfirmMainStageRequest
+        {
+            StageUniqueId = request.StageUniqueId
+        });
+
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_EnterMainStage)]
     public async Task<CampaignEnterMainStageResponse> EnterMainStage(
         SchaleDataContext db,
