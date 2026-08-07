@@ -108,4 +108,29 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_MapMove)]
+    public async Task<ScenarioMapMoveResponse> MapMove(
+        SchaleDataContext db,
+        ScenarioMapMoveRequest request,
+        ScenarioMapMoveResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (stageSave, preMove) = await _concentrateCampaignManager.MoveTarget(db, account, new CampaignMapMoveRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            EchelonEntityId = request.EchelonEntityId,
+            DestPosition = request.DestPosition
+        });
+
+        response.EchelonEntityId = request.EchelonEntityId;
+        // Rewind before shaping: the response reports the mover where it stood at the start of this step,
+        // and the DisplayInfos entry is what walks it to the destination.
+        response.SaveDataDB = (StoryStrategyStageSaveDB)ConcentrateCampaignManager.ShapeForWire(
+            ConcentrateCampaignManager.RewindMovedEchelonForWire(
+                _mapper.Map<StoryStrategyStageSaveDB>(stageSave), request.EchelonEntityId, preMove));
+
+        return response;
+    }
+
 }

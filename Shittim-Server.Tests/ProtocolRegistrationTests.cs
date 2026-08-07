@@ -80,6 +80,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Scenario_ConfirmMainStage)]
     [InlineData(Protocol.Scenario_DeployEchelon)]
     [InlineData(Protocol.Scenario_WithdrawEchelon)]
+    [InlineData(Protocol.Scenario_MapMove)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
     [InlineData(Protocol.Campaign_Portal)]
     [InlineData(Protocol.Campaign_WithdrawEchelon)]
