@@ -187,6 +187,19 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_MainStoryConquerWithBattleStart)]
+    public async Task<ConquestMainStoryConquerWithBattleStartResponse> MainStoryConquerWithBattleStart(
+        SchaleDataContext db,
+        ConquestMainStoryConquerWithBattleStartRequest request,
+        ConquestMainStoryConquerWithBattleStartResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        response.ConquestStageSaveDB = StartTileBattle(db, account, info, request.Difficulty, request.TileUniqueId);
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)

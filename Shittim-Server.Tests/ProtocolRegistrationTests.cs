@@ -76,6 +76,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Conquest_MainStoryGetInfo)]
     [InlineData(Protocol.Conquest_MainStoryCheck)]
     [InlineData(Protocol.Conquest_MainStoryConquer)]
+    [InlineData(Protocol.Conquest_MainStoryConquerWithBattleStart)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);
