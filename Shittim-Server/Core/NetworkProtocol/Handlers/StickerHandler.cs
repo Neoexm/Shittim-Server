@@ -34,4 +34,42 @@ public class StickerHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Sticker_Lobby)]
+    public async Task<StickerLobbyResponse> Lobby(
+        SchaleDataContext db,
+        StickerLobbyRequest request,
+        StickerLobbyResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var book = db.GetAccountStickerBooks(account.ServerId).First();
+        book.UnusedStickerDBs ??= [];
+        book.UsedStickerDBs ??= [];
+
+        var received = new List<StickerDBServer>();
+        foreach (var id in request.AcquireStickerUniqueIds ?? [])
+        {
+            var owned = book.UnusedStickerDBs.Any(x => x.StickerUniqueId == id)
+                || book.UsedStickerDBs.Any(x => x.StickerUniqueId == id);
+            if (owned)
+                continue;
+
+            var sticker = new StickerDBServer
+            {
+                AccountServerId = account.ServerId,
+                StickerUniqueId = id
+            };
+            db.Stickers.Add(sticker);
+            book.UnusedStickerDBs.Add(sticker);
+            received.Add(sticker);
+        }
+
+        db.StickerBooks.Update(book);
+        await db.SaveChangesAsync();
+
+        response.ReceivedStickerDBs = received.ToMapList(_mapper);
+        response.StickerBookDB = book.ToMap(_mapper);
+        return response;
+    }
+
 }
