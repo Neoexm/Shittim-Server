@@ -77,6 +77,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Equipment_Sell)]
     [InlineData(Protocol.Arena_EnterBattle)]
     [InlineData(Protocol.Scenario_EnterMainStage)]
+    [InlineData(Protocol.Scenario_ConfirmMainStage)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
     [InlineData(Protocol.Campaign_Portal)]
     [InlineData(Protocol.Campaign_WithdrawEchelon)]

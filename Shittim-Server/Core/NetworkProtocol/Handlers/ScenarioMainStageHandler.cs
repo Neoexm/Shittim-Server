@@ -49,4 +49,26 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_ConfirmMainStage)]
+    public async Task<ScenarioConfirmMainStageResponse> ConfirmMainStage(
+        SchaleDataContext db,
+        ScenarioConfirmMainStageRequest request,
+        ScenarioConfirmMainStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.StartConcentrateCampaign(db, account, new CampaignConfirmMainStageRequest
+        {
+            StageUniqueId = request.StageUniqueId
+        });
+
+        response.ParcelResultDB = new()
+        {
+            AccountDB = account.ToMap(_mapper),
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+        };
+        response.SaveDataDB = Wire(stageSave);
+        return response;
+    }
+
 }
