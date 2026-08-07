@@ -40,6 +40,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Notification_LobbyCheck)]
     [InlineData(Protocol.ContentSweep_MultiSweepPresetList)]
     [InlineData(Protocol.OpenCondition_List)]
+    [InlineData(Protocol.OpenCondition_Set)]
     [InlineData(Protocol.Item_Lock)]
     [InlineData(Protocol.Equipment_Lock)]
     [InlineData(Protocol.ClearDeck_List)]

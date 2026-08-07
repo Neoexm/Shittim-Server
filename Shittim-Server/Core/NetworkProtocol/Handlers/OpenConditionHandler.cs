@@ -40,6 +40,28 @@ public class OpenConditionHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.OpenCondition_Set)]
+    public async Task<OpenConditionSetResponse> Set(
+        SchaleDataContext db,
+        OpenConditionSetRequest request,
+        OpenConditionSetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (request.ConditionDB != null)
+        {
+            var conditions = account.GameSettings.OpenConditions;
+            conditions.RemoveAll(x => x.ContentType == request.ConditionDB.ContentType);
+            conditions.Add(request.ConditionDB);
+
+            db.Accounts.Update(account);
+            await db.SaveChangesAsync();
+        }
+
+        response.ConditionDBs = account.GameSettings.OpenConditions;
+        return response;
+    }
+
     [ProtocolHandler(Protocol.OpenCondition_EventList)]
     public async Task<OpenConditionEventListResponse> EventList(
         SchaleDataContext db,
