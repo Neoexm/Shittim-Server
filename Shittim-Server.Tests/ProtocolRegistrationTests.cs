@@ -82,6 +82,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Conquest_ErosionBattleStart)]
     [InlineData(Protocol.Conquest_ErosionBattleResult)]
     [InlineData(Protocol.Conquest_EventObjectBattleStart)]
+    [InlineData(Protocol.Conquest_EventObjectBattleResult)]
     [InlineData(Protocol.Conquest_MainStoryGetInfo)]
     [InlineData(Protocol.Conquest_MainStoryCheck)]
     [InlineData(Protocol.Conquest_MainStoryConquer)]
