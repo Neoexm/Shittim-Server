@@ -301,4 +301,50 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_Detail)]
+    public async Task<RaidDetailResponse> Detail(
+        SchaleDataContext db,
+        RaidDetailRequest request,
+        RaidDetailResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = db.Raids.FirstOrDefault(x =>
+            x.ServerId == request.RaidServerId &&
+            x.AccountServerId == account.ServerId);
+        if (raid == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidDBDataNotFound, $"Raid {request.RaidServerId} not found");
+
+        var contentType = raid.ContentType;
+        var battle = db.RaidBattles.FirstOrDefault(x =>
+            x.AccountServerId == account.ServerId &&
+            x.ContentType == contentType &&
+            x.RaidUniqueId == raid.UniqueId);
+        var damage = battle?.RaidMembers.FirstOrDefault()?.DamageCollection?.Sum(x => x.GivenDamage) ?? 0;
+
+        response.RaidDetailDB = new RaidDetailDB
+        {
+            RaidUniqueId = raid.UniqueId,
+            EndDate = raid.End,
+            DamageTable =
+            [
+                new RaidPlayerInfoDB
+                {
+                    RaidServerId = raid.ServerId,
+                    AccountId = account.ServerId,
+                    JoinDate = raid.Begin,
+                    DamageAmount = damage,
+                    RaidPlayCount = 1,
+                    Nickname = account.Nickname,
+                    CharacterId = account.RepresentCharacterServerId,
+                    AccountLevel = account.Level
+                }
+            ]
+        };
+        response.ParticipateCharacterServerIds =
+            raid.ParticipateCharacterServerIds.TryGetValue(account.ServerId, out var characterIds) ? characterIds : [];
+
+        return response;
+    }
+
 }
