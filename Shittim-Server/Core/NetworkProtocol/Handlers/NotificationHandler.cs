@@ -25,6 +25,20 @@ public class NotificationHandler : ProtocolHandlerBase
         _mailManager = mailManager;
     }
 
+    [ProtocolHandler(Protocol.Notification_LobbyCheck)]
+    public async Task<NotificationLobbyCheckResponse> LobbyCheck(
+        SchaleDataContext db,
+        NotificationLobbyCheckRequest request,
+        NotificationLobbyCheckResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.UnreadMailCount = await _mailManager.GetUnreadMailCount(account);
+        response.EventRewardIncreaseDBs = [];
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Notification_EventContentReddotCheck)]
     public async Task<NotificationEventContentReddotResponse> EventContentReddotCheck(
         SchaleDataContext db,
