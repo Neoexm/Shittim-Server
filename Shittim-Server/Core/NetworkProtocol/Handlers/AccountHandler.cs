@@ -612,6 +612,16 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_Auth2)]
+    public async Task<AccountAuth2Response> Auth2(
+        SchaleDataContext db,
+        AccountAuth2Request request,
+        AccountAuth2Response response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
