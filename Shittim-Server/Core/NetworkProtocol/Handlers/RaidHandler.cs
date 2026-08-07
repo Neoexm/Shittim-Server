@@ -495,4 +495,44 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_RankingReward)]
+    public async Task<RaidRankingRewardResponse> RankingReward(
+        SchaleDataContext db,
+        RaidRankingRewardRequest request,
+        RaidRankingRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        if (lobby.ReceivedRankingRewardId != 0)
+            throw new WebAPIException(WebAPIErrorCode.RaidSeasonAlreadyReceiveReward, "Ranking reward already received this season");
+
+        var season = _excelService.GetTable<RaidSeasonManageExcelT>()
+            .FirstOrDefault(x => x.SeasonId == account.ContentInfo.RaidDataInfo.SeasonId);
+        if (season == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Raid season {account.ContentInfo.RaidDataInfo.SeasonId} not found");
+
+        var rows = _excelService.GetTable<RaidRankingRewardExcelT>()
+            .Where(x => x.RankingRewardGroupId == season.RankingRewardGroupId)
+            .ToList();
+        // Solo server: everyone is rank 1. Regional data may leave the base pair 0, hence the Global fallback.
+        var row = rows.FirstOrDefault(x => x.RankStart <= 1 && 1 <= x.RankEnd)
+               ?? rows.FirstOrDefault(x => x.RankStartGlobal <= 1 && 1 <= x.RankEndGlobal);
+        if (row == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidRankingNotFound, $"No rank-1 reward row in group {season.RankingRewardGroupId}");
+
+        var parcels = RaidService.ZipParcelColumns(row.RewardParcelType, row.RewardParcelUniqueId, row.RewardParcelAmount);
+        lobby.ReceivedRankingRewardId = row.Id;
+        lobby.CanReceiveRankingReward = false;
+        db.SingleRaidLobbyInfos.Update(lobby);
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, parcels);
+        await db.SaveChangesAsync();
+
+        response.ReceivedRankingRewardId = row.Id;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
