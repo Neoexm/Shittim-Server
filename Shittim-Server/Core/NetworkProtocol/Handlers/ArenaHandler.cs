@@ -141,6 +141,77 @@ public class ArenaHandler : ProtocolHandlerBase
         return response;
     }
 
+    // The single-shot ancestor of EnterBattlePart1+Part2, still sent by older client builds: build the two
+    // sides like Part1 (no OpponentRank in this request, so rank 1), then charge the ticket like Part2.
+    [ProtocolHandler(Protocol.Arena_EnterBattle)]
+    public async Task<ArenaEnterBattleResponse> EnterBattle(
+        SchaleDataContext db,
+        ArenaEnterBattleRequest request,
+        ArenaEnterBattleResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var attackingUser = new ArenaUserDB
+        {
+            AccountServerId = account.ServerId,
+            NickName = account.Nickname ?? "Player",
+            Rank = 1,
+            Level = account.Level,
+            RepresentCharacterUniqueId = FriendHandler.RepresentCharacterUniqueId(db, account),
+            AccountAttachmentDB = db.GetAccountAttachments(account.ServerId).FirstMapTo(_mapper),
+            TeamSettingDB = ArenaService.CreateArenaTeamSetting(db, account, _mapper, false)
+        };
+
+        var opponentAccount = await db.Accounts.FirstOrDefaultAsync(x => x.ServerId == request.OpponentAccountServerId);
+        var defendingUser = opponentAccount != null
+            ? ArenaService.CreateArenaUser(
+                opponentAccount.ServerId,
+                opponentAccount.RepresentCharacterServerId,
+                opponentAccount.Nickname ?? "Opponent",
+                1,
+                opponentAccount.Level,
+                ArenaService.CreateArenaTeamSetting(db, opponentAccount, _mapper, true))
+            : ArenaService.CreateArenaUser(
+                request.OpponentAccountServerId,
+                10065,
+                "Dummy Opponent",
+                1,
+                90,
+                ArenaService.DummyTeamFormation);
+
+        response.ArenaBattleDB = new ArenaBattleDB
+        {
+            Season = 1,
+            Group = 1,
+            BattleStartTime = account.GameSettings.ServerDateTime(),
+            Seed = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            AttackingUserDB = attackingUser,
+            DefendingUserDB = defendingUser
+        };
+        response.ArenaPlayerInfoDB = BuildPlayerInfo(account);
+
+        var ticketCost = _excelService.GetTable<ConstArenaExcelT>().FirstOrDefault()?.TicketCost ?? 1;
+        if (ticketCost <= 0) ticketCost = 1;
+
+        var currency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (currency != null
+            && currency.CurrencyDict.TryGetValue(CurrencyTypes.ArenaTicket, out var tickets)
+            && tickets >= ticketCost)
+        {
+            var resolver = await _parcelHandler.BuildParcel(
+                db, account,
+                new ParcelResult(ParcelType.Currency, (long)CurrencyTypes.ArenaTicket, ticketCost),
+                isConsume: true);
+            await db.SaveChangesAsync();
+            response.AccountCurrencyDB = resolver.ParcelResult.AccountCurrencyDB;
+        }
+
+        response.AccountCurrencyDB ??= db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+        // VictoryRewards/SeasonRewards/AllTimeRewards stay null: the client settles rewards via Arena_BattleResult.
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Arena_EnterBattlePart1)]
     public async Task<ArenaEnterBattlePart1Response> EnterBattlePart1(
         SchaleDataContext db,

@@ -35,6 +35,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_DetachNexon)]
     [InlineData(Protocol.Account_RequestBirthdayMail)]
     [InlineData(Protocol.Account_Reset)]
+    [InlineData(Protocol.Arena_EnterBattle)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);
