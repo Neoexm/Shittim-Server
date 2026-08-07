@@ -52,6 +52,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Character_SetCostume)]
     [InlineData(Protocol.Cafe_Travel)]
     [InlineData(Protocol.Audit_GachaStatistics)]
+    [InlineData(Protocol.Recipe_Craft)]
     [InlineData(Protocol.Account_CheckYostar)]
     [InlineData(Protocol.Account_PassCheck)]
     [InlineData(Protocol.Account_DetachNexon)]
