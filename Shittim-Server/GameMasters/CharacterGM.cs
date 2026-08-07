@@ -548,13 +548,14 @@ namespace Shittim.GameMasters
                         await connection.SendChatMessage("Invalid level parameter!");
                     break;
                 case "star":
-                    if (int.TryParse(parameters, out int star))
+                    // Bounded: the client draws five slots and a grade outside them is a value it cannot render.
+                    if (int.TryParse(parameters, out int star) && star is >= 1 and <= 5)
                     {
                         character.StarGrade = star;
                         await connection.SendChatMessage($"Character {characterId} star grade set to {star}");
                     }
                     else
-                        await connection.SendChatMessage("Invalid star parameter!");
+                        await connection.SendChatMessage("Invalid star parameter! Expected 1-5.");
                     break;
                 case "skill":
                     var skillLevels = parameters.Split(' ');

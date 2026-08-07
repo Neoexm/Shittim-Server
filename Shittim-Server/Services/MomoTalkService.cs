@@ -77,9 +77,12 @@ namespace BlueArchiveAPI.Services
         public static void SyncOutlines(
             SchaleDataContext context, AccountDBServer account, List<AcademyMessangerExcelT> messengers)
         {
+            // Grouped rather than keyed directly: a duplicate row from older data would throw out of ToDictionary,
+            // and this runs on the login path where that would cost the account its session rather than a conversation.
             var outlinesByCharacterDbId = context.GetAccountMomoTalkOutLines(account.ServerId)
                 .ToList()
-                .ToDictionary(x => x.CharacterDBId);
+                .GroupBy(x => x.CharacterDBId)
+                .ToDictionary(g => g.Key, g => g.First());
 
             var now = account.GameSettings.ServerDateTime();
 

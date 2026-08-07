@@ -153,8 +153,12 @@ public class MomoTalkHandler : ProtocolHandlerBase
         // A FavorRankUp-gated group only opens once the student's relationship rank reaches the condition value; advancing past it regardless hands every story out at rank 1.
         if (nextGroupId > 0)
         {
+            // Ordered by Id, not table order: the condition sits on the group's opening row and only the dump
+            // happens to store them in that order.
             var nextGroupEntry = _academyMessengers
-                .FirstOrDefault(x => x.MessageGroupId == nextGroupId);
+                .Where(x => x.MessageGroupId == nextGroupId)
+                .OrderBy(x => x.Id)
+                .FirstOrDefault();
             if (nextGroupEntry != null
                 && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp
                 && favorRank < nextGroupEntry.ConditionValue)

@@ -44,6 +44,21 @@ public class ScenarioHandler : ProtocolHandlerBase
         return response;
     }
 
+    // Entering a story episode. The response model carries nothing - the client plays the scenario from its own
+    // data and reports back through Scenario_GroupHistoryUpdate and Scenario_Clear - but the protocol still has to
+    // be answered: unregistered, the gateway replies ServerFailedToHandleRequest and the client drops to the title
+    // screen with "Server failed to process request", which is what final-story episodes did.
+    [ProtocolHandler(Protocol.Scenario_Enter)]
+    public async Task<ScenarioEnterResponse> Enter(
+        SchaleDataContext db,
+        ScenarioEnterRequest request,
+        ScenarioEnterResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Scenario_Skip)]
     public async Task<ScenarioSkipResponse> Skip(
         SchaleDataContext db,
