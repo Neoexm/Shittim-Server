@@ -365,6 +365,44 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_DeployEchelon)]
+    public async Task<ConquestConquerDeployEchelonResponse> DeployEchelon(
+        SchaleDataContext db,
+        ConquestConquerDeployEchelonRequest request,
+        ConquestConquerDeployEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        if (request.EchelonDB == null)
+            throw new WebAPIException(WebAPIErrorCode.ConquestEchelonNotFound, "No echelon in the request");
+
+        var existing = info.Echelons.FirstOrDefault(x =>
+            x.Difficulty == request.Difficulty && x.TileUniqueId == request.TileUniqueId);
+        if (existing == null)
+        {
+            existing = new ConquestEchelonDB
+            {
+                EventContentId = info.EventContentId,
+                Difficulty = request.Difficulty,
+                TileUniqueId = request.TileUniqueId
+            };
+            info.Echelons.Add(existing);
+        }
+
+        existing.EchelonDB = request.EchelonDB;
+        existing.AssistUseInfo = request.ClanAssistUseInfo;
+        info.EchelonChangeCount++;
+
+        db.ConquestInfos.Update(info);
+        await db.SaveChangesAsync();
+
+        response.ConquestEchelonDBs = info.Echelons;
+        response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
