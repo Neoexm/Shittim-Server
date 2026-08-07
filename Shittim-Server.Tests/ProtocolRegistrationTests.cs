@@ -32,6 +32,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.MemoryLobby_List)]
     [InlineData(Protocol.MemoryLobby_SetMain)]
     [InlineData(Protocol.MemoryLobby_UpdateLobbyMode)]
+    [InlineData(Protocol.MemoryLobby_Interact)]
     [InlineData(Protocol.Character_List)]
     [InlineData(Protocol.Attachment_Get)]
     [InlineData(Protocol.Arena_Login)]

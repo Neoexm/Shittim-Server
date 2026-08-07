@@ -63,4 +63,13 @@ public class MemoryLobbyHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.MemoryLobby_Interact)]
+    public async Task<MemoryLobbyInteractResponse> Interact(
+        SchaleDataContext db,
+        MemoryLobbyInteractRequest request,
+        MemoryLobbyInteractResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
 }
