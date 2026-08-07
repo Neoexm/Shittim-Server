@@ -133,4 +133,21 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_EndTurn)]
+    public async Task<ScenarioEndTurnResponse> EndTurn(
+        SchaleDataContext db,
+        ScenarioEndTurnRequest request,
+        ScenarioEndTurnResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.EndTurn(db, account, new CampaignEndTurnRequest
+        {
+            StageUniqueId = request.StageUniqueId
+        });
+
+        response.SaveDataDB = Wire(stageSave);
+        return response;
+    }
+
 }
