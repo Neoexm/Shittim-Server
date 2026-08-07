@@ -598,6 +598,20 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Permit)]
+    public async Task<ClanPermitResponse> Permit(
+        SchaleDataContext db,
+        ClanPermitRequest request,
+        ClanPermitResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (!account.GameSettings.Clan.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanDoesNotHavePermission, "Not the president");
+
+        throw new WebAPIException(WebAPIErrorCode.ClanTargetAccountIsNotApplicant, "No applications exist");
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
