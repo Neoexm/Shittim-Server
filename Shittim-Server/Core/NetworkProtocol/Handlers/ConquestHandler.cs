@@ -403,6 +403,34 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_NormalizeEchelon)]
+    public async Task<ConquestNormalizeEchelonResponse> NormalizeEchelon(
+        SchaleDataContext db,
+        ConquestNormalizeEchelonRequest request,
+        ConquestNormalizeEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        var stored = info.Echelons.FirstOrDefault(x =>
+                x.Difficulty == request.Difficulty && x.TileUniqueId == request.TileUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.ConquestEchelonNotFound,
+                $"No echelon on tile {request.TileUniqueId}");
+
+        info.Echelons.Remove(stored);
+        db.ConquestInfos.Update(info);
+        await db.SaveChangesAsync();
+
+        response.ConquestEchelonDB = new ConquestEchelonDB
+        {
+            EventContentId = stored.EventContentId,
+            Difficulty = stored.Difficulty,
+            TileUniqueId = stored.TileUniqueId
+        };
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
