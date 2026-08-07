@@ -49,4 +49,18 @@ public class MemoryLobbyHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.MemoryLobby_UpdateLobbyMode)]
+    public async Task<MemoryLobbyUpdateLobbyModeResponse> UpdateLobbyMode(
+        SchaleDataContext db,
+        MemoryLobbyUpdateLobbyModeRequest request,
+        MemoryLobbyUpdateLobbyModeResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.LobbyMode = request.IsMemoryLobbyMode ? 1 : 0;
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
 }

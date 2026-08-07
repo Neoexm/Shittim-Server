@@ -31,6 +31,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_ReportXignCodeCheater)]
     [InlineData(Protocol.MemoryLobby_List)]
     [InlineData(Protocol.MemoryLobby_SetMain)]
+    [InlineData(Protocol.MemoryLobby_UpdateLobbyMode)]
     [InlineData(Protocol.Character_List)]
     [InlineData(Protocol.Attachment_Get)]
     [InlineData(Protocol.Arena_Login)]
