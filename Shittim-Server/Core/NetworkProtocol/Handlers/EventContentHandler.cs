@@ -144,7 +144,13 @@ public class EventContentHandler : ProtocolHandlerBase
         .ToList();
 
     private static int ShortestColumn(int? a, int? b, int? c)
-        => Math.Min(a ?? 0, Math.Min(b ?? 0, c ?? 0));
+    {
+        var counts = new[] { a ?? 0, b ?? 0, c ?? 0 };
+        if (counts.Distinct().Count() != 1)
+            throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
+                $"Ragged parcel columns: types={counts[0]}, ids={counts[1]}, amounts={counts[2]}");
+        return counts[0];
+    }
 
     [ProtocolHandler(Protocol.EventContent_ReceiveStageTotalReward)]
     public async Task<EventContentReceiveStageTotalRewardResponse> ReceiveStageTotalReward(
