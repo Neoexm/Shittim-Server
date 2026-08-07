@@ -89,4 +89,23 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_WithdrawEchelon)]
+    public async Task<ScenarioWithdrawEchelonResponse> WithdrawEchelon(
+        SchaleDataContext db,
+        ScenarioWithdrawEchelonRequest request,
+        ScenarioWithdrawEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (stageSave, echelons) = await _eventContentCampaignManager.WithdrawEchelon(db, account, new EventContentWithdrawEchelonRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            WithdrawEchelonEntityId = request.WithdrawEchelonEntityId
+        });
+
+        response.SaveDataDB = Wire(stageSave);
+        response.WithdrawEchelonDBs = echelons;
+        return response;
+    }
+
 }
