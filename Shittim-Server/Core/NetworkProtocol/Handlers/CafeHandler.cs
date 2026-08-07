@@ -37,6 +37,33 @@ public class CafeHandler : ProtocolHandlerBase
         _missionService = missionService;
     }
 
+    [ProtocolHandler(Protocol.Cafe_Travel)]
+    public async Task<CafeTravelResponse> Travel(
+        SchaleDataContext db,
+        CafeTravelRequest request,
+        CafeTravelResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Single-player server: there is no friend's cafe to visit, so the travel lands in the account's own.
+        var attachment = db.GetAccountAttachments(account.ServerId).FirstOrDefault();
+        response.FriendDB = new FriendDB
+        {
+            AccountId = account.ServerId,
+            Nickname = account.Nickname ?? "Sensei",
+            Level = account.Level,
+            RepresentCharacterUniqueId = FriendHandler.RepresentCharacterUniqueId(db, account),
+            RepresentCharacterCostumeId = FriendHandler.RepresentCharacterUniqueId(db, account),
+            LastConnectTime = account.GameSettings.ServerDateTime(),
+            ComfortValue = 10000,
+            FriendCount = 0,
+            AttachmentDB = attachment != null ? _mapper.Map<AccountAttachmentDB>(attachment) : null
+        };
+        response.CafeDBs = db.GetAccountCafes(account.ServerId).ToMapList(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Cafe_Get)]
     public async Task<CafeGetInfoResponse> Get(
         SchaleDataContext db,
