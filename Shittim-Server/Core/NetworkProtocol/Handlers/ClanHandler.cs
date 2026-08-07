@@ -405,6 +405,31 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Join)]
+    public async Task<ClanJoinResponse> Join(
+        SchaleDataContext db,
+        ClanJoinRequest request,
+        ClanJoinResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (state.HasClan)
+            throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyJoinedClan, "Already in a clan");
+        if (request.ClanDBId != 777)
+            throw new WebAPIException(WebAPIErrorCode.ClanNotFound, $"Clan {request.ClanDBId} does not exist");
+
+        JoinDefaultClan(account);
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.IrcConfig = BuildIrcConfig();
+        response.ClanDB = BuildClanDB(db, account);
+        response.ClanMemberDB = BuildAccountMemberDB(db, account);
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
