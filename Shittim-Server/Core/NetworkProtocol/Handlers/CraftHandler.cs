@@ -684,6 +684,50 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_ShiftingRewardAll)]
+        public async Task<CraftShiftingRewardAllResponse> ShiftingRewardAll(
+            SchaleDataContext db,
+            CraftShiftingRewardAllRequest request,
+            CraftShiftingRewardAllResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var slots = db.ShiftingCraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .ToList();
+
+            var recipes = _excelService.GetTable<ShiftingCraftRecipeExcelT>();
+            var claimed = new List<ShiftingCraftInfoDBServer>();
+            var parcels = new List<ParcelResult>();
+            foreach (var slot in slots.Where(x => x.EndTime <= now))
+            {
+                // A slot whose recipe row vanished with a table update stays behind rather than failing the whole claim.
+                var recipe = recipes.FirstOrDefault(x => x.Id == slot.CraftRecipeId);
+                if (recipe == null)
+                    continue;
+                parcels.Add(new ParcelResult(recipe.ResultParcel, recipe.ResultId, recipe.ResultAmount * slot.CraftAmount));
+                claimed.Add(slot);
+            }
+
+            if (claimed.Count > 0)
+            {
+                var parcelResolver = await _parcelHandler.BuildParcel(db, account, parcels);
+                response.ParcelResultDB = parcelResolver.ParcelResult;
+
+                db.ShiftingCraftInfos.RemoveRange(claimed);
+                await db.SaveChangesAsync();
+
+                _missionService.UpdateMissionProgress(
+                    db, account, MissionCompleteConditionType.Reset_CraftCount, amount: claimed.Count);
+            }
+
+            var remaining = slots.Except(claimed).ToList();
+            response.CraftInfoDBs = remaining.Count > 0 ? _mapper.Map<List<ShiftingCraftInfoDB>>(remaining) : null;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
