@@ -588,6 +588,16 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_CancelApply)]
+    public async Task<ClanCancelApplyResponse> CancelApply(
+        SchaleDataContext db,
+        ClanCancelApplyRequest request,
+        ClanCancelApplyResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
