@@ -431,6 +431,49 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_ReceiveCalculateRewards)]
+    public async Task<ConquestReceiveRewardsResponse> ReceiveCalculateRewards(
+        SchaleDataContext db,
+        ConquestReceiveRewardsRequest request,
+        ConquestReceiveRewardsResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        var conditionAmount = _conquestManager.CalculateConditionAmount(info.EventContentId);
+        if (conditionAmount <= 0
+            || info.CumulatedConditionValue - info.ReceivedCalculateRewardConditionAmount < conditionAmount)
+        {
+            throw new WebAPIException(WebAPIErrorCode.ConquestCalculateRewardNotFound, "Calculate gauge not full");
+        }
+
+        // One reward-group roll per conquered base, once per base level - the simple production model.
+        var parcels = new List<ParcelResult>();
+        var conqueredBases = info.Tiles.Where(t =>
+            t.Difficulty == request.Difficulty
+            && t.TileState == TileState.FullyConquested
+            && _excelService.GetTable<ConquestTileExcelT>()
+                .Any(x => x.Id == t.TileUniqueId && x.EventId == info.EventContentId && x.TileType == ConquestTileType.Base));
+        foreach (var baseTile in conqueredBases)
+        {
+            var tileExcel = _conquestManager.RequireTile(info.EventContentId, baseTile.TileUniqueId);
+            for (int i = 0; i < Math.Max(1, baseTile.Level); i++)
+                _conquestManager.RollRewardGroup(tileExcel.ConquestRewardId, parcels);
+        }
+
+        info.ReceivedCalculateRewardConditionAmount += conditionAmount;
+        db.ConquestInfos.Update(info);
+
+        var resolver = await _parcelHandler.BuildParcel(db, account, parcels);
+        await db.SaveChangesAsync();
+
+        response.ParcelResultDB = resolver.ParcelResult;
+        response.ConquestInfoDB = info.ToInfoDB(conditionAmount);
+        response.ConquestTileDBs = info.Tiles.Where(x => x.Difficulty == request.Difficulty).ToList();
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
