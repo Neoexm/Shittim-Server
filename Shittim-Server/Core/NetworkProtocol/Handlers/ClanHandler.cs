@@ -530,6 +530,51 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Member)]
+    public async Task<ClanMemberResponse> Member(
+        SchaleDataContext db,
+        ClanMemberRequest request,
+        ClanMemberResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+
+        AccountDBServer target;
+        if (request.MemberAccountId == account.ServerId)
+        {
+            target = account;
+            response.ClanMemberDB = BuildAccountMemberDB(db, account);
+        }
+        else if (aronaAccount != null && request.MemberAccountId == aronaAccount.ServerId)
+        {
+            target = aronaAccount;
+            response.ClanMemberDB = BuildAronaMemberDB(db, account);
+        }
+        else
+        {
+            throw new WebAPIException(WebAPIErrorCode.ClanMemberNotFound, $"Member {request.MemberAccountId} not found");
+        }
+
+        var clanDb = BuildClanDB(db, account);
+        response.ClanDB = clanDb;
+
+        var targetCharacter = db.Characters.FirstOrDefault(c => c.ServerId == target.RepresentCharacterServerId);
+        response.DetailedAccountInfoDB = new DetailedAccountInfoDB
+        {
+            AccountId = target.ServerId,
+            Nickname = target.Nickname ?? "Sensei",
+            Level = target.Level,
+            ClanName = clanDb.ClanName,
+            Comment = target.Comment ?? "",
+            FriendCount = 0,
+            RepresentCharacterUniqueId = targetCharacter?.UniqueId ?? target.RepresentCharacterServerId,
+            CharacterCount = db.GetAccountCharacters(target.ServerId).Count(),
+            AssistCharacterDBs = []
+        };
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
