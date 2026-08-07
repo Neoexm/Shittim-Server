@@ -22,4 +22,16 @@ public class StickerHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.Sticker_Login)]
+    public async Task<StickerLoginResponse> Login(
+        SchaleDataContext db,
+        StickerLoginRequest request,
+        StickerLoginResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.StickerBookDB = db.GetAccountStickerBooks(account.ServerId).FirstMapTo(_mapper);
+        return response;
+    }
+
 }
