@@ -37,6 +37,40 @@ public class CharacterHandler : ProtocolHandlerBase
         _parcelHandler = parcelHandler;
     }
 
+    [ProtocolHandler(Protocol.Character_FavorGrowth)]
+    public async Task<CharacterFavorGrowthResponse> FavorGrowth(
+        SchaleDataContext db,
+        CharacterFavorGrowthRequest request,
+        CharacterFavorGrowthResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var character = db.Characters.FirstOrDefault(x =>
+                x.AccountServerId == account.ServerId && x.ServerId == request.TargetCharacterDBId)
+            ?? throw new WebAPIException(WebAPIErrorCode.CharacterNotFound,
+                $"Character {request.TargetCharacterDBId} not found");
+
+        // Same pipeline as the cafe gift: the consume side accumulates the favor exp the items carry,
+        // and the FavorExp parcel applies it (including any rank-ups) to the character.
+        var consumeData = await _consumeHandler.BuildConsumeResult(db, account, new ConsumeRequestDB
+        {
+            ConsumeItemServerIdAndCounts = (request.ConsumeItemDBIdsAndCounts ?? [])
+                .ToDictionary(kv => kv.Key, kv => (long)kv.Value),
+            IsItemsValid = true,
+            IsValid = true
+        });
+
+        var favorResolver = await _parcelHandler.BuildParcel(db, account,
+            new ParcelResult(ParcelType.FavorExp, character.UniqueId, consumeData.AccumulatedExp));
+
+        response.CharacterDB = favorResolver.ParcelResult.CharacterDBs?.FirstOrDefault(x => x.ServerId == character.ServerId)
+            ?? character.ToMap(_mapper);
+        response.ConsumeStackableItemDBResult = consumeData.ParcelResult.ItemDBs?.Values.ToList() ?? [];
+        response.ParcelResultDB = favorResolver.ParcelResult;
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Character_SetFavorites)]
     public async Task<CharacterSetFavoritesResponse> SetFavorites(
         SchaleDataContext db,
