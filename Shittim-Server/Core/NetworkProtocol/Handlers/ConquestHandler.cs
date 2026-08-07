@@ -232,6 +232,38 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_MainStoryConquerWithBattleResult)]
+    public async Task<ConquestMainStoryConquerWithBattleResultResponse> MainStoryConquerWithBattleResult(
+        SchaleDataContext db,
+        ConquestMainStoryConquerWithBattleResultRequest request,
+        ConquestMainStoryConquerWithBattleResultResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        _conquestManager.RequireAndClearOpenBattle(db, info, request.Difficulty, request.TileUniqueId);
+
+        if (!ConquestManager.IsWin(request.BattleSummary))
+        {
+            response.ParcelResultDB = new ParcelResultDB();
+            response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+            response.StepAfterBattle = _conquestManager.CurrentStep(info, request.Difficulty);
+            await db.SaveChangesAsync();
+            return response;
+        }
+
+        var (tile, parcelResult, byTag) = await _conquestManager.Conquer(
+            db, account, info, request.Difficulty, request.TileUniqueId, throughBattle: true);
+
+        response.ParcelResultDB = parcelResult;
+        response.ConquestTileDB = tile;
+        response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+        response.StepAfterBattle = _conquestManager.CurrentStep(info, request.Difficulty);
+        response.DisplayParcelByRewardTag = byTag;
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
