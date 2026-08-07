@@ -210,4 +210,22 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_Portal)]
+    public async Task<ScenarioPortalResponse> Portal(
+        SchaleDataContext db,
+        ScenarioPortalRequest request,
+        ScenarioPortalResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _eventContentCampaignManager.Portal(db, account, new EventContentPortalRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            EchelonEntityId = request.EchelonEntityId
+        });
+
+        response.StoryStrategyStageSaveDB = Wire(stageSave);
+        return response;
+    }
+
 }
