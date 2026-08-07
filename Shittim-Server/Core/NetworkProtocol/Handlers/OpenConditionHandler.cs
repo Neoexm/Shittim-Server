@@ -25,6 +25,21 @@ public class OpenConditionHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.OpenCondition_List)]
+    public async Task<OpenConditionListResponse> List(
+        SchaleDataContext db,
+        OpenConditionListRequest request,
+        OpenConditionListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ConditionContents = account.GameSettings.OpenConditions
+            .Select(x => x.ContentType)
+            .ToList();
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.OpenCondition_EventList)]
     public async Task<OpenConditionEventListResponse> EventList(
         SchaleDataContext db,
