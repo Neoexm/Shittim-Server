@@ -12,6 +12,7 @@ namespace Shittim.Managers
             services.AddSingleton<CampaignManager>();
             services.AddSingleton<CharacterManager>();
             services.AddSingleton<ConcentrateCampaignManager>();
+            services.AddSingleton<ConquestManager>();
             services.AddSingleton<EchelonManager>();
             services.AddSingleton<EliminateRaidManager>();
             services.AddSingleton<EquipmentManager>();
