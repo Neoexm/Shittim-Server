@@ -374,4 +374,45 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_Reward)]
+    public async Task<RaidRewardResponse> Reward(
+        SchaleDataContext db,
+        RaidRewardRequest request,
+        RaidRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = db.Raids.FirstOrDefault(x =>
+            x.ServerId == request.RaidServerId &&
+            x.AccountServerId == account.ServerId &&
+            x.ContentType == ContentType.Raid);
+        if (raid == null || raid.IsPractice || request.IsPractice)
+            throw new WebAPIException(WebAPIErrorCode.RaidRewardDataNotFound, $"No rewardable raid {request.RaidServerId}");
+        if (raid.IsRewardReceived)
+            throw new WebAPIException(WebAPIErrorCode.RaidEndRewardFlagError, $"Raid {request.RaidServerId} reward already received");
+        // The dead-boss check rather than RaidState: a raid row exists from the moment a battle is created,
+        // and give-ups leave it rewardable if only the state is trusted.
+        if (!RaidService.IsCleared(raid))
+            throw new WebAPIException(WebAPIErrorCode.RaidRewardDataNotFound, $"Raid {request.RaidServerId} was not cleared");
+
+        var stage = _excelService.GetTable<RaidStageExcelT>().FirstOrDefault(x => x.Id == raid.UniqueId);
+        if (stage == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Raid stage {raid.UniqueId} not found");
+
+        var rewards = RaidService.RollStageRewards(
+            _excelService.GetTable<RaidStageRewardExcelT>().Where(x => x.GroupId == stage.RaidRewardGroupId));
+
+        raid.IsRewardReceived = true;
+        db.Raids.Update(raid);
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, rewards);
+        await db.SaveChangesAsync();
+
+        response.RankingPoint = account.ContentInfo.RaidDataInfo.TotalRankingPoint;
+        response.BestRankingPoint = account.ContentInfo.RaidDataInfo.BestRankingPoint;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
