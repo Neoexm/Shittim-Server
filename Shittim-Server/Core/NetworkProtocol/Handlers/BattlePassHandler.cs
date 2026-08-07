@@ -218,6 +218,52 @@ public class BattlePassHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.BattlePass_MissionSingleReward)]
+    public async Task<BattlePassMissionSingleRewardResponse> MissionSingleReward(
+        SchaleDataContext db,
+        BattlePassMissionSingleRewardRequest request,
+        BattlePassMissionSingleRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var excel = _excelTableService.GetTable<BattlePassMissionExcelT>()
+                .FirstOrDefault(x => x.BattlePassId == request.BattlePassId && x.Id == request.MissionUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.DataEntityNotFound,
+                $"Battle pass mission {request.MissionUniqueId} not found");
+
+        var progress = await db.MissionProgresses
+                .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.MissionUniqueId == request.MissionUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.MissionRewardInvalid,
+                $"Mission {request.MissionUniqueId} has no progress row");
+
+        if (!progress.Complete)
+            throw new WebAPIException(WebAPIErrorCode.MissionCannotComplete,
+                $"Mission {request.MissionUniqueId} is not complete");
+
+        var battlePass = await GetOrCreatePass(db, account, request.BattlePassId);
+        ApplyPassExp(battlePass, excel.BattlePassExpAmount);
+
+        db.MissionProgresses.Remove(progress);
+        var completeTime = account.GameSettings.ServerDateTime();
+        db.MissionHistories.Add(new MissionHistoryDBServer
+        {
+            AccountServerId = account.ServerId,
+            MissionUniqueId = request.MissionUniqueId,
+            CompleteTime = completeTime
+        });
+        await db.SaveChangesAsync();
+
+        response.AddedHistoryDB = new MissionHistoryDB
+        {
+            MissionUniqueId = request.MissionUniqueId,
+            CompleteTime = completeTime
+        };
+        response.ParcelResultDB = new ParcelResultDB();
+        response.BattlePassInfo = battlePass;
+
+        return response;
+    }
+
     private async Task<BattlePassDBServer> GetOrCreatePass(SchaleDataContext db, AccountDBServer account, long battlePassId)
     {
         var battlePass = await db.BattlePasses
