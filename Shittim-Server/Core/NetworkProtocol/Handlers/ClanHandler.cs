@@ -474,6 +474,30 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Dismiss)]
+    public async Task<ClanDismissResponse> Dismiss(
+        SchaleDataContext db,
+        ClanDismissRequest request,
+        ClanDismissResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (!state.HasClan)
+            throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyQuitClan, "Not in a clan");
+        if (!state.IsPlayerOwned)
+            throw new WebAPIException(WebAPIErrorCode.ClanCanNotDismiss, "Only the president dismisses the clan");
+
+        state.HasClan = false;
+        state.IsPlayerOwned = false;
+        state.ClanName = null;
+        state.Notice = null;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
