@@ -11,4 +11,17 @@ public class SystemHandler : ProtocolHandlerBase
     {
     }
 
+    [ProtocolHandler(Protocol.System_Version)]
+    public Task<SystemVersionResponse> Version(
+        SchaleDataContext db,
+        SystemVersionRequest request,
+        SystemVersionResponse response)
+    {
+        // Same answers Account_Auth gives: the server's data-build number, no minimum, not a dev build.
+        response.CurrentVersion = Config.Instance.ServerConfiguration.AuthCurrentVersion;
+        response.MinimumVersion = 0;
+        response.IsDevelopment = false;
+
+        return Task.FromResult(response);
+    }
 }
