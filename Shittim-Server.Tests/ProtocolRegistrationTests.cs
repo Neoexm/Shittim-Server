@@ -62,6 +62,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Billing_TransactionEndByYostar)]
     [InlineData(Protocol.BattlePass_MissionSingleReward)]
     [InlineData(Protocol.BattlePass_MissionMultipleReward)]
+    [InlineData(Protocol.Item_Sell)]
     [InlineData(Protocol.Equipment_Sell)]
     [InlineData(Protocol.Arena_EnterBattle)]
     [InlineData(Protocol.Campaign_ConfirmTutorialStage)]
