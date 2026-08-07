@@ -34,4 +34,19 @@ public class MemoryLobbyHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.MemoryLobby_SetMain)]
+    public async Task<MemoryLobbySetMainResponse> SetMain(
+        SchaleDataContext db,
+        MemoryLobbySetMainRequest request,
+        MemoryLobbySetMainResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.MemoryLobbyUniqueId = request.MemoryLobbyId;
+        await db.SaveChangesAsync();
+
+        response.AccountDB = account.ToMap(_mapper);
+        return response;
+    }
+
 }
