@@ -265,4 +265,21 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_Search)]
+    public async Task<RaidSearchResponse> Search(
+        SchaleDataContext db,
+        RaidSearchRequest request,
+        RaidSearchResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = _raidManager.GetRaidData(db, account);
+        if (raid == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidSearchNotFound, "No raid in progress to search");
+
+        response.RaidDBs = [raid.ToMap(_mapper)];
+
+        return response;
+    }
+
 }
