@@ -100,6 +100,51 @@ public class FriendHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Friend_SetIdCard)]
+    public async Task<FriendSetIdCardResponse> SetIdCard(
+        SchaleDataContext db,
+        FriendSetIdCardRequest request,
+        FriendSetIdCardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (request.Comment?.Length > 100)
+            throw new WebAPIException(WebAPIErrorCode.FriendIdCardCommentLengthOverLimit, "Comment too long");
+
+        if (request.BackgroundId != 0
+            && !db.IdCardBackgrounds.Any(x => x.AccountServerId == account.ServerId && x.UniqueId == request.BackgroundId))
+        {
+            throw new WebAPIException(WebAPIErrorCode.FriendBackgroundNotOwned,
+                $"Id card background {request.BackgroundId} not owned");
+        }
+
+        account.Comment = request.Comment;
+        var represent = db.GetAccountCharacters(account.ServerId)
+            .FirstOrDefault(c => c.UniqueId == request.RepresentCharacterUniqueId);
+        if (represent != null)
+            account.RepresentCharacterServerId = represent.ServerId;
+
+        var card = account.GameSettings.FriendIdCard ?? BuildDefaultIdCard(db, account);
+        card.Comment = request.Comment;
+        card.RepresentCharacterUniqueId = request.RepresentCharacterUniqueId;
+        card.EmblemId = request.EmblemId;
+        card.SearchPermission = request.SearchPermission;
+        card.AutoAcceptFriendRequest = request.AutoAcceptFriendRequest;
+        card.ShowAccountLevel = request.ShowAccountLevel;
+        card.ShowFriendCode = request.ShowFriendCode;
+        card.ShowRaidRanking = request.ShowRaidRanking;
+        card.ShowArenaRanking = request.ShowArenaRanking;
+        card.ShowEliminateRaidRanking = request.ShowEliminateRaidRanking;
+        card.CardBackgroundId = request.BackgroundId;
+        card.Level = account.Level;
+        account.GameSettings.FriendIdCard = card;
+
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds

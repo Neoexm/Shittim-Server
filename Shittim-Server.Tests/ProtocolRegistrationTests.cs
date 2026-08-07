@@ -47,6 +47,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_DetachNexon)]
     [InlineData(Protocol.Account_RequestBirthdayMail)]
     [InlineData(Protocol.Account_Reset)]
+    [InlineData(Protocol.Friend_SetIdCard)]
     [InlineData(Protocol.Billing_PurchaseListByYostar)]
     [InlineData(Protocol.Billing_TransactionStartByYostar)]
     [InlineData(Protocol.Billing_TransactionEndByYostar)]
