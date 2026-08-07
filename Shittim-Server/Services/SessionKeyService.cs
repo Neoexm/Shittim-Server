@@ -22,6 +22,7 @@ namespace BlueArchiveAPI.Services
             Protocol.Queuing_ProcessWaitingQueue,
             Protocol.Account_CheckYostar,
             Protocol.Account_CheckNexon,
+            Protocol.Account_PassCheck,
             Protocol.Account_Auth,
             Protocol.Account_Create,
             Protocol.ProofToken_RequestQuestion

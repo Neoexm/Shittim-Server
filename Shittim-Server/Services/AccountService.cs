@@ -384,6 +384,35 @@ namespace BlueArchiveAPI.Services
         private static ExcelTableService? _excelService;
         private static ParcelHandler? _parcelHandler;
 
+        // Cascade by hand: wipe every child table that carries an AccountServerId column, discovered from the
+        // SQLite catalogue so a new table is never missed. Leaves the Accounts/UserAccounts identity rows alone.
+        public static async Task WipeAccountData(SchaleDataContext context, long accountServerId)
+        {
+            var tables = await context.Database
+                .SqlQueryRaw<string>(
+                    "SELECT m.name AS Value FROM sqlite_master m " +
+                    "JOIN pragma_table_info(m.name) p ON 1=1 " +
+                    "WHERE m.type='table' AND p.name='AccountServerId'")
+                .ToListAsync();
+
+            foreach (var table in tables.Distinct())
+            {
+                if (!IsPlainSqlIdentifier(table))
+                    continue;
+
+                await context.Database.ExecuteSqlRawAsync(
+                    $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}", accountServerId);
+            }
+        }
+
+        // SQL identifiers cannot be parameterized, so any name that is interpolated into a statement is required to be a bare identifier first.
+        public static bool IsPlainSqlIdentifier(string name)
+        {
+            return !string.IsNullOrEmpty(name)
+                && (char.IsLetter(name[0]) || name[0] == '_')
+                && name.All(c => char.IsLetterOrDigit(c) || c == '_');
+        }
+
         public static void Initialize(ExcelTableService excelService, ParcelHandler parcelHandler)
         {
             _excelService = excelService;
