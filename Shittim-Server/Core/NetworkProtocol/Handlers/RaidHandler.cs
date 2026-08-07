@@ -248,4 +248,21 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_List)]
+    public async Task<RaidListResponse> List(
+        SchaleDataContext db,
+        RaidListRequest request,
+        RaidListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var raid = _raidManager.GetRaidData(db, account);
+
+        response.CreateRaidDBs = [];
+        response.EnterRaidDBs = raid != null ? [raid.ToMap(_mapper)] : [];
+        response.ListRaidDBs = [];
+
+        return response;
+    }
+
 }
