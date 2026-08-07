@@ -503,6 +503,86 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_ShiftingBeginProcess)]
+        public async Task<CraftShiftingBeginProcessResponse> ShiftingBeginProcess(
+            SchaleDataContext db,
+            CraftShiftingBeginProcessRequest request,
+            CraftShiftingBeginProcessResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+            var common = _excelService.GetTable<ConstCommonExcelT>().FirstOrDefault();
+
+            var maxSlots = common?.ShiftingCraftSlotMaxCapacity > 0 ? common.ShiftingCraftSlotMaxCapacity : CraftSlotCount;
+            if (request.SlotId < 1 || request.SlotId > maxSlots)
+                throw new WebAPIException(WebAPIErrorCode.CraftInvalidData, $"Shifting slot {request.SlotId} out of range");
+            if (GetShiftingSlot(db, account.ServerId, request.SlotId) != null)
+                throw new WebAPIException(WebAPIErrorCode.CraftAlreadyProcessing, $"Shifting slot {request.SlotId} is already crafting");
+
+            var recipe = _excelService.GetTable<ShiftingCraftRecipeExcelT>().FirstOrDefault(x => x.Id == request.RecipeId)
+                ?? throw new WebAPIException(WebAPIErrorCode.CraftCanNotBeginProcess, $"Shifting recipe {request.RecipeId} not found");
+
+            // CraftAmount from the ingredients about to be consumed: their ShiftingCraftQuality sum over the recipe's IngredientExp.
+            // Inferred from the field names; official's exact formula is unobserved.
+            var itemExcels = _excelService.GetTable<ItemExcelT>();
+            var accountItems = db.GetAccountItems(account.ServerId).ToList();
+            long qualitySum = 0;
+            foreach (var (serverId, consumeCount) in request.ConsumeRequestDB?.ConsumeItemServerIdAndCounts ?? new Dictionary<long, long>())
+            {
+                // The declared counts drive CraftAmount, so they have to be checked against the stack before
+                // they are believed - BuildConsumeResult commits its own transaction and cannot roll this back.
+                var item = accountItems.FirstOrDefault(x => x.ServerId == serverId);
+                if (item == null || consumeCount <= 0 || consumeCount > item.StackCount)
+                    throw new WebAPIException(WebAPIErrorCode.CraftInvalidData,
+                        $"Shifting ingredient {serverId} x{consumeCount} not available");
+
+                qualitySum += (itemExcels.FirstOrDefault(x => x.Id == item.UniqueId)?.ShiftingCraftQuality ?? 0) * consumeCount;
+            }
+            var craftAmount = recipe.IngredientExp > 0 ? System.Math.Max(1, qualitySum / recipe.IngredientExp) : 1;
+
+            // Gold first, so the currency snapshot the consume result carries already reflects it.
+            var currency = db.GetAccountCurrencies(account.ServerId).FirstOrDefault();
+            if (recipe.RequireGold > 0)
+            {
+                var gold = recipe.RequireGold * craftAmount;
+                if (currency == null || currency.CurrencyDict[CurrencyTypes.Gold] < gold)
+                    throw new WebAPIException(WebAPIErrorCode.AccountCurrencyCannotAffordCost,
+                        $"Shifting craft needs {gold} gold");
+
+                currency.CurrencyDict[CurrencyTypes.Gold] -= gold;
+                currency.UpdateTimeDict[CurrencyTypes.Gold] = now;
+                db.Currencies.Update(currency);
+            }
+
+            var consumeResult = await _consumeHandler.BuildConsumeResult(
+                db, account, request.ConsumeRequestDB ?? new ConsumeRequestDB());
+
+            var costs = new List<ParcelResult>();
+            if (recipe.RequireItemId != 0 && recipe.RequireItemAmount > 0)
+                costs.Add(new ParcelResult(ParcelType.Item, recipe.RequireItemId, recipe.RequireItemAmount * craftAmount));
+            if (recipe.AdditionalCostParcelType != ParcelType.None && recipe.AdditionalCostParcelAmount > 0)
+                costs.Add(new ParcelResult(recipe.AdditionalCostParcelType, recipe.AdditionalCostParcelId, recipe.AdditionalCostParcelAmount));
+            if (costs.Count > 0)
+                await _parcelHandler.BuildParcel(db, account, costs, consumeResult.ParcelResult, isConsume: true);
+
+            var slot = new ShiftingCraftInfoDBServer
+            {
+                AccountServerId = account.ServerId,
+                SlotSequence = request.SlotId,
+                CraftRecipeId = request.RecipeId,
+                CraftAmount = craftAmount,
+                StartTime = now,
+                EndTime = now + ShiftingDuration(common)
+            };
+            db.ShiftingCraftInfos.Add(slot);
+            await db.SaveChangesAsync();
+
+            response.CraftInfoDB = _mapper.Map<ShiftingCraftInfoDB>(slot);
+            response.ParcelResultDB = consumeResult.ParcelResult;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
