@@ -123,6 +123,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Raid_SeasonReward)]
     [InlineData(Protocol.Raid_RankingReward)]
     [InlineData(Protocol.Raid_Sweep)]
+    [InlineData(Protocol.Raid_GetBestTeam)]
     [InlineData(Protocol.EliminateRaid_GetBestTeam)]
     [InlineData(Protocol.EliminateRaid_SeasonReward)]
     [InlineData(Protocol.EliminateRaid_RankingReward)]

@@ -591,4 +591,25 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_GetBestTeam)]
+    public async Task<RaidGetBestTeamResponse> GetBestTeam(
+        SchaleDataContext db,
+        RaidGetBestTeamRequest request,
+        RaidGetBestTeamResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var best = account.RaidSummaries
+            .Where(x => x.ContentType == ContentTypeSummary.Raid &&
+                        !x.IsMock &&
+                        x.SeasonId == account.ContentInfo.RaidDataInfo.SeasonId)
+            .OrderByDescending(x => x.Score)
+            .FirstOrDefault();
+
+        response.RaidTeamSettingDBs = best == null
+            ? []
+            : RaidService.BuildBestTeams(db, best, account.ServerId, EchelonType.Raid);
+
+        return response;
+    }
 }
