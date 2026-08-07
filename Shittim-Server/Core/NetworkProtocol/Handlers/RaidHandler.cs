@@ -535,4 +535,60 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_Sweep)]
+    public async Task<RaidSweepResponse> Sweep(
+        SchaleDataContext db,
+        RaidSweepRequest request,
+        RaidSweepResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (request.SweepCount < 1)
+            throw new WebAPIException(WebAPIErrorCode.RaidRewardDataNotFound, "SweepCount must be positive");
+
+        var sweepCount = Math.Min(request.SweepCount, MaxSweepPerRequest);
+        var stage = _excelService.GetTable<RaidStageExcelT>().FirstOrDefault(x => x.Id == request.UniqueId);
+        if (stage == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Raid stage {request.UniqueId} not found");
+
+        // A sweep replays a stage the account has already beaten; without this it mints the drop table of any
+        // stage, at any difficulty, for free.
+        var cleared = db.Raids
+            .Where(x => x.AccountServerId == account.ServerId
+                && x.UniqueId == request.UniqueId
+                && x.ContentType == ContentType.Raid
+                && !x.IsPractice)
+            .ToList()
+            .Any(RaidService.IsCleared);
+        if (!cleared)
+            throw new WebAPIException(WebAPIErrorCode.RaidRewardDataNotFound, $"Raid stage {request.UniqueId} was never cleared");
+
+        var rewardRows = _excelService.GetTable<RaidStageRewardExcelT>()
+            .Where(x => x.GroupId == stage.RaidRewardGroupId)
+            .ToList();
+
+        var rewards = new List<List<ParcelInfo>>();
+        var allParcels = new List<ParcelResult>();
+        for (long i = 0; i < sweepCount; i++)
+        {
+            var rolled = RaidService.RollStageRewards(rewardRows);
+            rewards.Add(RaidService.ToParcelInfos(rolled));
+            allParcels.AddRange(rolled);
+        }
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, allParcels);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        lobby.SweepPointByRaidUniqueId.TryGetValue(request.UniqueId, out var swept);
+        lobby.SweepPointByRaidUniqueId[request.UniqueId] = swept + sweepCount;
+        db.SingleRaidLobbyInfos.Update(lobby);
+        await db.SaveChangesAsync();
+
+        response.TotalSeasonPoint = account.ContentInfo.RaidDataInfo.TotalRankingPoint;
+        response.Rewards = rewards;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }
