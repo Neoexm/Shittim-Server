@@ -106,6 +106,36 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_MainStoryCheck)]
+    public async Task<ConquestMainStoryCheckResponse> MainStoryCheck(
+        SchaleDataContext db,
+        ConquestMainStoryCheckRequest request,
+        ConquestMainStoryCheckResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var info = db.GetAccountConquestInfos(account.ServerId)
+            .FirstOrDefault(x => x.EventContentId == request.EventContentId);
+        if (info == null)
+            return response;
+
+        var summary = BuildSummary(info);
+        response.ConquestMainStorySummary = new ConquestMainStorySummary
+        {
+            EventContentId = info.EventContentId,
+            Difficulty = StageDifficulty.Normal,
+            ConquestStepSummaryDict = summary.ConquestStepSummaryDict?
+                .ToDictionary(kv => kv.Key, kv => new ConquestMainStoryStepSummary
+                {
+                    ConqueredTileCount = kv.Value.ConqueredTileCount,
+                    AllTileCount = kv.Value.AllTileCount,
+                    IsStepOpen = kv.Value.IsStepOpen
+                })
+        };
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
