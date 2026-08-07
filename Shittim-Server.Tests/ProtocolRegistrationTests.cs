@@ -31,6 +31,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_ReportXignCodeCheater)]
     [InlineData(Protocol.Account_CheckYostar)]
     [InlineData(Protocol.Account_PassCheck)]
+    [InlineData(Protocol.Account_DetachNexon)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

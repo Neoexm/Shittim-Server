@@ -764,6 +764,20 @@ public class AccountHandler : ProtocolHandlerBase
         return Task.FromResult(response);
     }
 
+    [ProtocolHandler(Protocol.Account_DetachNexon)]
+    public async Task<AccountDetachNexonResponse> DetachNexon(
+        SchaleDataContext db,
+        AccountDetachNexonRequest request,
+        AccountDetachNexonResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // Cosmetic success only: on this server CheckNexon logs in BY the publisher id, so actually severing
+        // the link would brick the only login path.
+        response.ResultState = 1;
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
