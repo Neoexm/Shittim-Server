@@ -51,6 +51,37 @@ public class EquipmentHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Equipment_Sell)]
+    public async Task<EquipmentItemSellResponse> Sell(
+        SchaleDataContext db,
+        EquipmentItemSellRequest request,
+        EquipmentItemSellResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var rows = new List<EquipmentDBServer>();
+        foreach (var id in request.TargetServerIds ?? [])
+        {
+            var equipment = db.GetAccountEquipments(account.ServerId).FirstOrDefault(x => x.ServerId == id)
+                ?? throw new WebAPIException(WebAPIErrorCode.EquipmentNotFound, $"Equipment {id} not found");
+            if (equipment.IsLocked)
+                throw new WebAPIException(WebAPIErrorCode.EquipmentLocked, $"Equipment {id} is locked");
+            if (equipment.BoundCharacterServerId != 0)
+                throw new WebAPIException(WebAPIErrorCode.EquipmentAlreadyEquiped, $"Equipment {id} is equipped");
+            rows.Add(equipment);
+        }
+
+        db.Equipments.RemoveRange(rows);
+        await db.SaveChangesAsync();
+
+        // No gold credited: a payout needs a per-item or per-rarity gold value and none ships - not in any
+        // ExcelDB table, not in the .bytes tables. The response carrying AccountCurrencyDB and nothing else
+        // says the live server had one server-side, so credit here if such a value ever surfaces. The
+        // item-to-currency GoodsExcel rows are not it: those are event-shop coin exchanges keyed by GoodsId.
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Equipment_List)]
     public async Task<EquipmentItemListResponse> List(
         SchaleDataContext db,
