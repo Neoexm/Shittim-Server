@@ -76,6 +76,25 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Campaign_WithdrawEchelon)]
+    public async Task<CampaignWithdrawEchelonResponse> WithdrawEchelon(
+        SchaleDataContext db,
+        CampaignWithdrawEchelonRequest request,
+        CampaignWithdrawEchelonResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (stageSave, echelons) = await _eventContentCampaignManager.WithdrawEchelon(db, account, new EventContentWithdrawEchelonRequest
+        {
+            StageUniqueId = request.StageUniqueId,
+            WithdrawEchelonEntityId = request.WithdrawEchelonEntityId
+        });
+
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(stageSave.ToMap(_mapper));
+        response.WithdrawEchelonDBs = echelons;
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_EnterMainStage)]
     public async Task<CampaignEnterMainStageResponse> EnterMainStage(
         SchaleDataContext db,
