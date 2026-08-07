@@ -196,6 +196,23 @@ public class CampaignHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Campaign_Heal)]
+    public async Task<CampaignHealResponse> Heal(
+        SchaleDataContext db,
+        CampaignHealRequest request,
+        CampaignHealResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (currency, save) = await _campaignManager.Heal(
+            db, account, request.CampaignStageUniqueId, request.EchelonIndex, request.CharacterServerId);
+
+        response.AccountCurrencyDB = currency.ToMap(_mapper);
+        response.SaveDataDB = ConcentrateCampaignManager.ShapeForWire(save.ToMap(_mapper));
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_RestartMainStage)]
     public async Task<CampaignRestartMainStageResponse> RestartMainStage(
         SchaleDataContext db,

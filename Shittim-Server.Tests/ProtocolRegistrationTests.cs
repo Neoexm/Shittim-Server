@@ -31,6 +31,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_ReportXignCodeCheater)]
     [InlineData(Protocol.Attachment_Get)]
     [InlineData(Protocol.Arena_Login)]
+    [InlineData(Protocol.Campaign_Heal)]
     [InlineData(Protocol.Campaign_PurchasePlayCountHardStage)]
     [InlineData(Protocol.Cafe_Travel)]
     [InlineData(Protocol.Audit_GachaStatistics)]
