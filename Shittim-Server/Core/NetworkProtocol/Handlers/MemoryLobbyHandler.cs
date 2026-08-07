@@ -22,4 +22,16 @@ public class MemoryLobbyHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.MemoryLobby_List)]
+    public async Task<MemoryLobbyListResponse> List(
+        SchaleDataContext db,
+        MemoryLobbyListRequest request,
+        MemoryLobbyListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.MemoryLobbyDBs = db.GetAccountMemoryLobbies(account.ServerId).ToMapList(_mapper);
+        return response;
+    }
+
 }
