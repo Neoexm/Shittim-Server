@@ -21,19 +21,25 @@ public class RaidHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly RaidManager _raidManager;
+    private readonly ParcelHandler _parcelHandler;
 
     public RaidHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
-        RaidManager raidManager) : base(registry)
+        RaidManager raidManager,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
         _raidManager = raidManager;
+        _parcelHandler = parcelHandler;
     }
+
+    // No excel column caps a sweep; the ceiling only has to stop a crafted count from looping unboundedly.
+    private const long MaxSweepPerRequest = 100;
 
     [ProtocolHandler(Protocol.Raid_Login)]
     public async Task<RaidLoginResponse> Login(
@@ -225,4 +231,5 @@ public class RaidHandler : ProtocolHandlerBase
 
         return response;
     }
+
 }

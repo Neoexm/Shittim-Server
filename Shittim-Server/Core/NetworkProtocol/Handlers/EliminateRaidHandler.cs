@@ -21,18 +21,21 @@ public class EliminateRaidHandler : ProtocolHandlerBase
     private readonly ExcelTableService _excelService;
     private readonly IMapper _mapper;
     private readonly EliminateRaidManager _raidManager;
+    private readonly ParcelHandler _parcelHandler;
 
     public EliminateRaidHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ExcelTableService excelService,
         IMapper mapper,
-        EliminateRaidManager raidManager) : base(registry)
+        EliminateRaidManager raidManager,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _excelService = excelService;
         _mapper = mapper;
         _raidManager = raidManager;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.EliminateRaid_Login)]
@@ -223,4 +226,5 @@ public class EliminateRaidHandler : ProtocolHandlerBase
 
         return response;
     }
+
 }

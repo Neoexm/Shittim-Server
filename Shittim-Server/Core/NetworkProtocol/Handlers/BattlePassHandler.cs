@@ -217,4 +217,41 @@ public class BattlePassHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    private async Task<BattlePassDBServer> GetOrCreatePass(SchaleDataContext db, AccountDBServer account, long battlePassId)
+    {
+        var battlePass = await db.BattlePasses
+            .FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId && x.BattlePassId == battlePassId);
+        if (battlePass != null)
+            return battlePass;
+
+        battlePass = new BattlePassDBServer
+        {
+            AccountServerId = account.ServerId,
+            BattlePassId = battlePassId,
+            PassLevel = 1,
+            LastWeeklyPassExpLimitRefreshDate = account.GameSettings.ServerDateTime()
+        };
+        db.BattlePasses.Add(battlePass);
+        await db.SaveChangesAsync();
+        return battlePass;
+    }
+
+    // Battle-pass missions carry no reward parcels - the reward IS pass exp (BattlePassMissionExcel has only BattlePassExpAmount).
+    private void ApplyPassExp(BattlePassDBServer battlePass, long amount)
+    {
+        battlePass.PassExp += amount;
+        battlePass.WeeklyPassExp += amount;
+
+        var need = _excelTableService.GetTable<BattlePassInfoExcelT>()
+            .FirstOrDefault(x => x.Id == battlePass.BattlePassId)?.NextLvNeedExp ?? 0;
+        if (need <= 0)
+            return;
+
+        while (battlePass.PassExp >= need)
+        {
+            battlePass.PassExp -= need;
+            battlePass.PassLevel++;
+        }
+    }
 }

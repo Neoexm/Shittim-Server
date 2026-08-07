@@ -44,9 +44,13 @@ public class FriendHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        response.FriendIdCardDB = account.GameSettings.FriendIdCard ?? BuildDefaultIdCard(db, account);
+        response.IdCardBackgroundDBs = db.IdCardBackgrounds
+            .Where(x => x.AccountServerId == account.ServerId).ToMapList(_mapper).ToArray();
         response.FriendDBs = [];
         response.SentRequestFriendDBs = [];
         response.ReceivedRequestFriendDBs = [];
+        response.BlockedUserDBs = BuildBlockedList(db, account);
 
         return response;
     }
@@ -67,27 +71,7 @@ public class FriendHandler : ProtocolHandlerBase
                 .Where(a => request.TargetAccountIds.Contains(a.ServerId))
                 .ToListAsync();
 
-            var friendDbs = new List<FriendDB>();
-
-            foreach (var targetAccount in targetAccounts)
-            {
-                var attachment = db.GetAccountAttachments(targetAccount.ServerId).FirstOrDefault();
-
-                friendDbs.Add(new FriendDB
-                {
-                    AccountId = targetAccount.ServerId,
-                    Nickname = targetAccount.Nickname ?? "Sensei",
-                    Level = targetAccount.Level,
-                    RepresentCharacterUniqueId = targetAccount.RepresentCharacterServerId,
-                    RepresentCharacterCostumeId = targetAccount.RepresentCharacterServerId,
-                    LastConnectTime = account.GameSettings.ServerDateTime(),
-                    ComfortValue = 10000,
-                    FriendCount = 0,
-                    AttachmentDB = attachment != null ? _mapper.Map<AccountAttachmentDB>(attachment) : null
-                });
-            }
-
-            response.ListResult = friendDbs.ToArray();
+            response.ListResult = targetAccounts.Select(x => BuildFriendDB(db, x, account)).ToArray();
         }
 
         return response;
@@ -112,6 +96,66 @@ public class FriendHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
+        response.FriendIdCardDB = account.GameSettings.FriendIdCard ?? BuildDefaultIdCard(db, account);
         return response;
     }
+
+    private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
+    {
+        return account.GameSettings.BlockedAccountIds
+            .Select(id => db.Accounts.FirstOrDefault(a => a.ServerId == id))
+            .Where(a => a != null)
+            .Select(a => BuildFriendDB(db, a!, account))
+            .ToArray();
+    }
+
+    private FriendDB BuildFriendDB(SchaleDataContext db, AccountDBServer target, AccountDBServer viewer)
+    {
+        var attachment = db.GetAccountAttachments(target.ServerId).FirstOrDefault();
+        // RepresentCharacterServerId is a Characters row id; the wire field wants the character's UniqueId.
+        var representUniqueId = RepresentCharacterUniqueId(db, target);
+        return new FriendDB
+        {
+            AccountId = target.ServerId,
+            Nickname = target.Nickname ?? "Sensei",
+            Level = target.Level,
+            RepresentCharacterUniqueId = representUniqueId,
+            RepresentCharacterCostumeId = representUniqueId,
+            LastConnectTime = viewer.GameSettings.ServerDateTime(),
+            ComfortValue = 10000,
+            FriendCount = 0,
+            AttachmentDB = attachment != null ? _mapper.Map<AccountAttachmentDB>(attachment) : null
+        };
+    }
+
+    internal static long RepresentCharacterUniqueId(SchaleDataContext db, AccountDBServer account)
+        => db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId)?.UniqueId
+            ?? account.RepresentCharacterServerId;
+
+    private static FriendIdCardDB BuildDefaultIdCard(SchaleDataContext db, AccountDBServer account) => new()
+    {
+        Level = account.Level,
+        FriendCode = AccountHandler.BuildFriendCode(account.ServerId),
+        Comment = account.Comment,
+        LastConnectTime = account.GameSettings.ServerDateTime(),
+        RepresentCharacterUniqueId = RepresentCharacterUniqueId(db, account),
+        RepresentCharacterCostumeId = RepresentCharacterUniqueId(db, account),
+        SearchPermission = true,
+        ShowAccountLevel = true,
+        ShowFriendCode = true
+    };
+
+    private static bool InLevelBand(int level, FriendSearchLevelOption option) => option switch
+    {
+        FriendSearchLevelOption.Recommend or FriendSearchLevelOption.All => true,
+        FriendSearchLevelOption.Level1To30 => level is >= 1 and <= 30,
+        FriendSearchLevelOption.Level31To40 => level is >= 31 and <= 40,
+        FriendSearchLevelOption.Level41To50 => level is >= 41 and <= 50,
+        FriendSearchLevelOption.Level51To60 => level is >= 51 and <= 60,
+        FriendSearchLevelOption.Level61To70 => level is >= 61 and <= 70,
+        FriendSearchLevelOption.Level71To80 => level is >= 71 and <= 80,
+        FriendSearchLevelOption.Level81To90 => level is >= 81 and <= 90,
+        FriendSearchLevelOption.Level91To100 => level is >= 91 and <= 100,
+        _ => true
+    };
 }

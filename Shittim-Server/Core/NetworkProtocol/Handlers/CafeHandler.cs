@@ -5,6 +5,7 @@ using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Data.ModelMapping;
+using Schale.MX.GameLogic.DBModel;
 using Schale.MX.NetworkProtocol;
 using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;

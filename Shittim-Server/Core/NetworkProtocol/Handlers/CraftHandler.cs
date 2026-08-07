@@ -23,6 +23,8 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
         // The captured 3-tier craft ran 7h30m and its CompleteProcess burned 3 tickets, so 2.5h per selected tier with 1 ticket per started 2.5h reproduces both observations.
         private static readonly TimeSpan TierDuration = TimeSpan.FromHours(2.5);
         private const long TimeSkipTicketItemId = 2;
+        // The live game's 8 chambers: ConstCommonExcelT only carries a slot cap for the shifting track.
+        private const int CraftSlotCount = 8;
 
         private readonly ISessionKeyService _sessionService;
         private readonly ExcelTableService _excelService;
@@ -70,10 +72,14 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 craftInfos = craftInfos.Except(corrupted).ToList();
             }
 
-            // Official omits both keys when there is nothing to list (the first captured sample is bare Protocol + ServerTimeTicks) and never sends
-            // ShiftingCraftInfos at all.
+            // Official omits both keys when there is nothing to list (the first captured sample is bare Protocol + ServerTimeTicks;
+            // the captured account also had no shifting crafts running).
             response.CraftInfos = craftInfos.Count > 0 ? _mapper.Map<List<CraftInfoDB>>(craftInfos) : null;
-            response.ShiftingCraftInfos = null;
+
+            var shiftingInfos = db.ShiftingCraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .ToList();
+            response.ShiftingCraftInfos = shiftingInfos.Count > 0 ? _mapper.Map<List<ShiftingCraftInfoDB>>(shiftingInfos) : null;
 
             return response;
         }
@@ -113,6 +119,7 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
                 var gold = System.Math.Min(request.ConsumeGoldAmount, currency.CurrencyDict[CurrencyTypes.Gold]);
                 currency.CurrencyDict[CurrencyTypes.Gold] -= gold;
                 currency.UpdateTimeDict[CurrencyTypes.Gold] = now;
+                db.Currencies.Update(currency);
             }
 
             // The node being leveled: the freshly selected (still seedless) node if there is one, otherwise the base node, created on the very first call.
@@ -187,6 +194,18 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             var slot = GetSlot(db, account.ServerId, request.SlotId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, $"Craft slot {request.SlotId} has no craft");
 
+            ResolveNodeResults(slot, now);
+
+            db.CraftInfos.Update(slot);
+            await db.SaveChangesAsync();
+
+            response.CraftInfoDB = _mapper.Map<CraftInfoDB>(slot);
+
+            return response;
+        }
+
+        private void ResolveNodeResults(CraftInfoDBServer slot, DateTime now)
+        {
             var selectedNodes = (slot.Nodes ?? []).Where(x => x.NodeId != 0).ToList();
             if (selectedNodes.Count == 0)
                 throw new WebAPIException(WebAPIErrorCode.ServerFailedToHandleRequest, "No nodes selected to process");
@@ -239,13 +258,6 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
 
             slot.StartTime = now;
             slot.EndTime = now + TierDuration * selectedNodes.Count;
-
-            db.CraftInfos.Update(slot);
-            await db.SaveChangesAsync();
-
-            response.CraftInfoDB = _mapper.Map<CraftInfoDB>(slot);
-
-            return response;
         }
 
         [ProtocolHandler(Protocol.Craft_CompleteProcess)]
@@ -321,6 +333,32 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
 
             return response;
         }
+
+        // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
+        private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
+        {
+            if (slot.EndTime <= now)
+                return 0;
+
+            var cost = common?.ShiftingCraftTicketConsumeAmount > 0
+                ? common.ShiftingCraftTicketConsumeAmount
+                : (long)System.Math.Ceiling((slot.EndTime - now) / ShiftingDuration(common));
+            slot.EndTime = now;
+            return cost;
+        }
+
+        private static long ShiftingTicketItemId(ConstCommonExcelT? common) =>
+            common?.CraftTicketItemUniqueId > 0 ? common.CraftTicketItemUniqueId : TimeSkipTicketItemId;
+
+        private static TimeSpan ShiftingDuration(ConstCommonExcelT? common)
+        {
+            // ShiftingCraftDuration's per-index meaning is unobserved; first entry, one hour when absent.
+            var seconds = common?.ShiftingCraftDuration?.FirstOrDefault() ?? 0;
+            return TimeSpan.FromSeconds(seconds > 0 ? seconds : 3600);
+        }
+
+        private static ShiftingCraftInfoDBServer? GetShiftingSlot(SchaleDataContext db, long accountServerId, long slotId) =>
+            db.ShiftingCraftInfos.FirstOrDefault(x => x.AccountServerId == accountServerId && x.SlotSequence == slotId);
 
         private static CraftInfoDBServer? GetSlot(SchaleDataContext db, long accountServerId, long slotId) =>
             db.CraftInfos.FirstOrDefault(x => x.AccountServerId == accountServerId && x.SlotSequence == slotId);

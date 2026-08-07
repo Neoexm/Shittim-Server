@@ -143,7 +143,7 @@ public class ArenaHandler : ProtocolHandlerBase
             NickName = account.Nickname ?? "Player",
             Rank = 1,
             Level = account.Level,
-            RepresentCharacterUniqueId = account.RepresentCharacterServerId,
+            RepresentCharacterUniqueId = FriendHandler.RepresentCharacterUniqueId(db, account),
             AccountAttachmentDB = db.GetAccountAttachments(account.ServerId).FirstMapTo(_mapper),
             TeamSettingDB = ArenaService.CreateArenaTeamSetting(db, account, _mapper, false)
         };

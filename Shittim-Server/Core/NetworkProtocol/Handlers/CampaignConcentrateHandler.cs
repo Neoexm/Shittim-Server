@@ -17,6 +17,7 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
 {
     private readonly ISessionKeyService _sessionService;
     private readonly ConcentrateCampaignManager _concentrateCampaignManager;
+    private readonly EventContentCampaignManager _eventContentCampaignManager;
     private readonly IMapper _mapper;
     private readonly ILogger<CampaignConcentrateHandler> _logger;
 
@@ -24,11 +25,13 @@ public class CampaignConcentrateHandler : ProtocolHandlerBase
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         ConcentrateCampaignManager concentrateCampaignManager,
+        EventContentCampaignManager eventContentCampaignManager,
         IMapper mapper,
         ILogger<CampaignConcentrateHandler> logger) : base(registry)
     {
         _sessionService = sessionService;
         _concentrateCampaignManager = concentrateCampaignManager;
+        _eventContentCampaignManager = eventContentCampaignManager;
         _mapper = mapper;
         _logger = logger;
     }

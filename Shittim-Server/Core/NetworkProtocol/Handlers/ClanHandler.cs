@@ -262,4 +262,113 @@ public class ClanHandler : ProtocolHandlerBase
 
         return response;
     }
+
+    private ClanDB BuildClanDB(SchaleDataContext db, AccountDBServer account)
+    {
+        var state = account.GameSettings.Clan;
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+        var aronaCharacter = aronaAccount != null
+            ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
+            : null;
+        var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
+
+        return state.IsPlayerOwned
+            ? new ClanDB
+            {
+                ClanDBId = 777,
+                ClanName = state.ClanName ?? "Schale Network",
+                ClanChannelName = "channel_777",
+                ClanPresidentNickName = account.Nickname ?? "Sensei",
+                ClanPresidentRepresentCharacterUniqueId = accountCharacter?.UniqueId ?? account.RepresentCharacterServerId,
+                ClanNotice = state.Notice ?? "",
+                ClanJoinOption = state.JoinOption,
+                ClanMemberCount = 2
+            }
+            : new ClanDB
+            {
+                ClanDBId = 777,
+                ClanName = "Schale Network",
+                ClanChannelName = "channel_777",
+                ClanPresidentNickName = aronaAccount?.Nickname ?? "Arona",
+                ClanPresidentRepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+                ClanNotice = "Welcome to Schale Network\n\nEnjoy your stay, Sensei!",
+                ClanJoinOption = ClanJoinOption.Free,
+                ClanMemberCount = 2
+            };
+    }
+
+    // official's own member entry carries no AttachmentDB; other members' do.
+    private ClanMemberDB BuildAccountMemberDB(SchaleDataContext db, AccountDBServer account)
+    {
+        var accountCharacter = db.Characters.FirstOrDefault(c => c.ServerId == account.RepresentCharacterServerId);
+        return new ClanMemberDB
+        {
+            AccountId = account.ServerId,
+            AccountLevel = account.Level,
+            ClanDBId = 777,
+            RepresentCharacterUniqueId = accountCharacter?.UniqueId ?? account.RepresentCharacterServerId,
+            ClanSocialGrade = account.GameSettings.Clan.IsPlayerOwned ? ClanSocialGrade.President : ClanSocialGrade.Member,
+            AccountNickName = account.Nickname ?? "Sensei",
+            AttendanceCount = 33,
+            GameLoginDate = account.LastConnectTime,
+            LastLoginDate = account.LastConnectTime,
+            JoinDate = account.CreateDate
+        };
+    }
+
+    private ClanMemberDB BuildAronaMemberDB(SchaleDataContext db, AccountDBServer account)
+    {
+        var aronaAccount = db.Accounts.FirstOrDefault(x => x.DevId == SchaleAI.AccountDevId);
+        var aronaCharacter = aronaAccount != null
+            ? db.Characters.FirstOrDefault(c => c.ServerId == aronaAccount.RepresentCharacterServerId)
+            : null;
+        var aronaAttachment = aronaAccount != null ? db.GetAccountAttachments(aronaAccount.ServerId).FirstOrDefault() : null;
+        var aronaCafeComfort = aronaAccount != null
+            ? db.Cafes.FirstOrDefault(x => x.AccountServerId == aronaAccount.ServerId)?.ProductionDB?.ComfortValue ?? 0
+            : 0;
+
+        return new ClanMemberDB
+        {
+            AccountId = aronaAccount?.ServerId ?? 100000,
+            AccountLevel = aronaAccount?.Level ?? 90,
+            ClanDBId = 777,
+            RepresentCharacterUniqueId = aronaCharacter?.UniqueId ?? 19900006,
+            ClanSocialGrade = account.GameSettings.Clan.IsPlayerOwned ? ClanSocialGrade.Member : ClanSocialGrade.President,
+            AccountNickName = aronaAccount?.Nickname ?? "Arona",
+            CafeComfortValue = aronaCafeComfort,
+            GameLoginDate = aronaAccount?.LastConnectTime ?? DateTime.UtcNow,
+            LastLoginDate = aronaAccount?.LastConnectTime ?? DateTime.UtcNow,
+            JoinDate = aronaAccount?.CreateDate ?? DateTime.UtcNow,
+            AttachmentDB = aronaAttachment?.ToMap(_mapper) ?? new AccountAttachmentDB
+            {
+                AccountId = aronaAccount?.ServerId ?? 100000,
+                EmblemUniqueId = aronaAccount?.RepresentCharacterServerId ?? 19900006
+            }
+        };
+    }
+
+    private IrcServerConfig BuildIrcConfig() => new()
+    {
+        HostAddress = _configuration["Irc:Address"] ?? "localhost",
+        Port = int.Parse(_configuration["Irc:Port"] ?? "6667"),
+        Password = _configuration["Irc:Password"] ?? ""
+    };
+
+    private static void JoinDefaultClan(AccountDBServer account)
+    {
+        var state = account.GameSettings.Clan;
+        state.HasClan = true;
+        state.IsPlayerOwned = false;
+        state.JoinDate = account.GameSettings.ServerDateTime();
+    }
+
+    private void ValidateClanName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new WebAPIException(WebAPIErrorCode.ClanNameEmptyString, "Clan name is empty");
+
+        var maxLength = _excelService.GetTable<ConstCommonExcelT>().First().ClanNameLength;
+        if (maxLength > 0 && name.Length > maxLength)
+            throw new WebAPIException(WebAPIErrorCode.ClanNameWithInvalidLength, $"Clan name exceeds {maxLength} characters");
+    }
 }

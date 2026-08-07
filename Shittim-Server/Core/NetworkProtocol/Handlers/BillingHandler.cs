@@ -27,6 +27,45 @@ public class BillingHandler : ProtocolHandlerBase
         _parcelHandler = parcelHandler;
     }
 
+    // A battle pass is sold through a ProductExcel row carrying a ProductBattlePass parcel; the parcel id
+    // at that slot is the BattlePassId, and billing responses key the purchase by the ShopCash row's id.
+    internal static List<BattlePassProductPurchaseDB> BuildBattlePassProductList(
+        SchaleDataContext db, Schale.Data.GameModel.AccountDBServer account, ExcelTableService excelService)
+    {
+        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
+        var result = new List<BattlePassProductPurchaseDB>();
+        if (battlePasses.Count == 0)
+            return result;
+
+        var productExcels = excelService.GetTable<ProductExcelT>();
+        var shopCashExcels = excelService.GetTable<ShopCashExcelT>();
+        var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
+
+        foreach (var bp in battlePasses)
+        {
+            var product = battlePassProducts.FirstOrDefault(x =>
+            {
+                var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
+                return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
+            });
+            if (product == null)
+                continue;
+
+            var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
+            if (shopCash == null)
+                continue;
+
+            result.Add(new BattlePassProductPurchaseDB
+            {
+                ProductId = shopCash.Id,
+                BattlePassId = bp.BattlePassId,
+                PurchaseBattlePassGroupId = bp.PurchaseGroupId
+            });
+        }
+
+        return result;
+    }
+
     [ProtocolHandler(Protocol.Billing_PurchaseListByNexon)]
     public async Task<BillingPurchaseListByNexonResponse> PurchaseListByNexon(
         SchaleDataContext db,
@@ -44,60 +83,7 @@ public class BillingHandler : ProtocolHandlerBase
         // Official's standalone response carries this (as [] when empty) and has no IsTeenage key - that's a request-side field.
         response.DailyRecordIdInMailList = [];
         
-        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
-        var battlePassProductList = new List<BattlePassProductPurchaseDB>();
-
-        if (battlePasses.Any())
-        {
-            var productExcels = _excelTableService.GetTable<ProductExcelT>();
-            var shopCashExcels = _excelTableService.GetTable<ShopCashExcelT>();
-
-            foreach (var bp in battlePasses)
-            {
-                Log.Debug("[BillingHandler] BattlePassId: {BattlePassId}. Total Products: {ProductCount}", bp.BattlePassId, productExcels.Count);
-
-                var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
-                Log.Debug("[BillingHandler] Found {MatchCount} products containing ProductBattlePass type.", battlePassProducts.Count);
-
-                ProductExcelT product = null;
-                
-                product = battlePassProducts.FirstOrDefault(x => {
-                    var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
-                    return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
-                });
-
-                if (product != null)
-                {
-                    var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
-                    
-                    if (shopCash != null)
-                    {
-                        battlePassProductList.Add(new BattlePassProductPurchaseDB
-                        {
-                            ProductId = shopCash.Id, // Billing response expects ShopCashId as ProductId
-                            BattlePassId = bp.BattlePassId,
-                            PurchaseBattlePassGroupId = bp.PurchaseGroupId
-                        });
-                        Log.Debug("[BillingHandler] Mapped BattlePassId {BattlePassId} to ShopCashId {ShopCashId} via ProductId {ProductId}",
-                            bp.BattlePassId, shopCash.Id, product.Id);
-                    }
-                    else
-                    {
-                        Log.Warning("[BillingHandler] ShopCash not found for ProductId: {ProductId} (BattlePassId: {BattlePassId})", product.Id, bp.BattlePassId);
-                    }
-                }
-                else
-                {
-                    Log.Warning("[BillingHandler] No product found for BattlePassId: {BattlePassId} among {CandidateCount} candidates.", bp.BattlePassId, battlePassProducts.Count);
-                }
-            }
-        }
-        else
-        {
-            Log.Debug("[BillingHandler] No BattlePasses found for Account: {AccountServerId} with PurchaseGroupId != 0", account.ServerId);
-        }
-
-        response.BattlePassProductList = battlePassProductList;
+        response.BattlePassProductList = BuildBattlePassProductList(db, account, _excelTableService);
         response.BattlePassIdInMailList = [];
 
         return response;
@@ -220,4 +206,5 @@ public class BillingHandler : ProtocolHandlerBase
 
         return response;
     }
+
 }

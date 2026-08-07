@@ -20,16 +20,22 @@ public class TimeAttackDungeonHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly TimeAttackDungeonManager _timeAttackDungeonManager;
     private readonly IMapper _mapper;
+    private readonly ExcelTableService _excelService;
+    private readonly ParcelHandler _parcelHandler;
 
     public TimeAttackDungeonHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         TimeAttackDungeonManager timeAttackDungeonManager,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ExcelTableService excelService,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _timeAttackDungeonManager = timeAttackDungeonManager;
         _mapper = mapper;
+        _excelService = excelService;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.TimeAttackDungeon_Login)]

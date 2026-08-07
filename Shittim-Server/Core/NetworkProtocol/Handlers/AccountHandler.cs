@@ -490,41 +490,7 @@ public class AccountHandler : ProtocolHandlerBase
             DailyRecordIdInMailList = []
         };
 
-        var battlePasses = db.BattlePasses.Where(x => x.AccountServerId == account.ServerId && x.PurchaseGroupId != 0).ToList();
-        var battlePassProductList = new List<BattlePassProductPurchaseDB>();
-
-        if (battlePasses.Any())
-        {
-            var productExcels = _excelService.GetTable<ProductExcelT>();
-            var shopCashExcels = _excelService.GetTable<ShopCashExcelT>();
-
-            foreach (var bp in battlePasses)
-            {
-                // A battle pass is sold through a ProductExcel row carrying a ProductBattlePass (28) parcel; the parcel id at that slot is the BattlePassId.
-                var battlePassProducts = productExcels.Where(x => x.ParcelType.Contains(ParcelType.ProductBattlePass)).ToList();
-
-                ProductExcelT product = battlePassProducts.FirstOrDefault(x => {
-                    var idx = x.ParcelType.IndexOf(ParcelType.ProductBattlePass);
-                    return idx >= 0 && idx < x.ParcelId.Count && x.ParcelId[idx] == bp.BattlePassId;
-                });
-
-                if (product != null)
-                {
-                    var shopCash = shopCashExcels.FirstOrDefault(x => x.CashProductId == product.Id);
-                    if (shopCash != null)
-                    {
-                        battlePassProductList.Add(new BattlePassProductPurchaseDB
-                        {
-                            ProductId = shopCash.Id, 
-                            BattlePassId = bp.BattlePassId,
-                            PurchaseBattlePassGroupId = bp.PurchaseGroupId
-                        });
-                        _logger.LogDebug("[AccountHandler] Mapped BP {BattlePassId} -> ShopCash {ShopCashId}", bp.BattlePassId, shopCash.Id);
-                    }
-                }
-            }
-        }
-        billingResponse.BattlePassProductList = battlePassProductList;
+        billingResponse.BattlePassProductList = BillingHandler.BuildBattlePassProductList(db, account, _excelService);
         response.BillingPurchaseListByNexonResponse = billingResponse;
 
         response.EventContentPermanentListResponse = new EventContentPermanentListResponse
@@ -592,7 +558,7 @@ public class AccountHandler : ProtocolHandlerBase
     }
 
     // 8-char A-Z code in the official FriendCode format, stable per account.
-    private static string BuildFriendCode(long accountServerId)
+    internal static string BuildFriendCode(long accountServerId)
     {
         var hash = System.Security.Cryptography.SHA256.HashData(
             Encoding.UTF8.GetBytes($"shittim-friend:{accountServerId}"));

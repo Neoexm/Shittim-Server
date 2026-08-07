@@ -4,11 +4,13 @@ using BlueArchiveAPI.Services;
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.Data.ModelMapping;
+using Schale.MX.GameLogic.DBModel;
 using Schale.MX.NetworkProtocol;
 using Schale.MX.GameLogic.Parcel;
 using Schale.FlatData;
 using Shittim_Server.Core;
 using Shittim_Server.Managers;
+using Shittim_Server.Services;
 
 namespace Shittim_Server.Core.NetworkProtocol.Handlers;
 
@@ -17,16 +19,22 @@ public class CharacterHandler : ProtocolHandlerBase
     private readonly ISessionKeyService _sessionService;
     private readonly CharacterManager _characterManager;
     private readonly IMapper _mapper;
+    private readonly ConsumeHandler _consumeHandler;
+    private readonly ParcelHandler _parcelHandler;
 
     public CharacterHandler(
         IProtocolHandlerRegistry registry,
         ISessionKeyService sessionService,
         CharacterManager characterManager,
-        IMapper mapper) : base(registry)
+        IMapper mapper,
+        ConsumeHandler consumeHandler,
+        ParcelHandler parcelHandler) : base(registry)
     {
         _sessionService = sessionService;
         _characterManager = characterManager;
         _mapper = mapper;
+        _consumeHandler = consumeHandler;
+        _parcelHandler = parcelHandler;
     }
 
     [ProtocolHandler(Protocol.Character_SetFavorites)]
