@@ -406,4 +406,48 @@ public class EliminateRaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.EliminateRaid_Sweep)]
+    public async Task<EliminateRaidSweepResponse> Sweep(
+        SchaleDataContext db,
+        EliminateRaidSweepRequest request,
+        EliminateRaidSweepResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var sweepCount = Math.Max(1, request.SweepCount);
+        var stage = _excelService.GetTable<EliminateRaidStageExcelT>().FirstOrDefault(x => x.Id == request.UniqueId);
+        if (stage == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Eliminate raid stage {request.UniqueId} not found");
+
+        await _parcelHandler.BuildParcel(db, account,
+            new ParcelResult(stage.RaidEnterCostType, stage.RaidEnterCostId, (long)stage.RaidEnterCostAmount * sweepCount),
+            isConsume: true);
+
+        var rewardRows = _excelService.GetTable<EliminateRaidStageRewardExcelT>()
+            .Where(x => x.GroupId == stage.RaidRewardGroupId)
+            .ToList();
+
+        var rewards = new List<List<ParcelInfo>>();
+        var allParcels = new List<ParcelResult>();
+        for (int i = 0; i < sweepCount; i++)
+        {
+            var rolled = RaidService.RollStageRewards(rewardRows);
+            rewards.Add(RaidService.ToParcelInfos(rolled));
+            allParcels.AddRange(rolled);
+        }
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, allParcels);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        lobby.SweepPointByRaidUniqueId.TryGetValue(request.UniqueId, out var swept);
+        lobby.SweepPointByRaidUniqueId[request.UniqueId] = swept + sweepCount;
+        db.EliminateRaidLobbyInfos.Update(lobby);
+        await db.SaveChangesAsync();
+
+        response.TotalSeasonPoint = account.ContentInfo.EliminateRaidDataInfo.TotalRankingPoint;
+        response.Rewards = rewards;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
 }

@@ -95,6 +95,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.EliminateRaid_SeasonReward)]
     [InlineData(Protocol.EliminateRaid_RankingReward)]
     [InlineData(Protocol.EliminateRaid_LimitedReward)]
+    [InlineData(Protocol.EliminateRaid_Sweep)]
     [InlineData(Protocol.Craft_AutoBeginProcess)]
     [InlineData(Protocol.Craft_CompleteProcessAll)]
     [InlineData(Protocol.Craft_RewardAll)]
