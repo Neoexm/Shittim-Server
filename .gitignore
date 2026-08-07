@@ -116,3 +116,4 @@ ida_pro_metadata/il2cpp.h
 # *.key, *.crt and other rules above (Git uses last-match-wins).
 !/Shittim-Server/config/
 !/Shittim-Server/config/**
+.claude/

@@ -82,9 +82,9 @@ public class RaidSeasonChangeTests : IDisposable
         using (var db = NewContext())
         {
             var lobby = await manager.GetUpdatedLobby(db, db.GetAccount(1));
-            var season = _excels.GetTable<RaidSeasonManageExcelT>().First(x => x.SeasonId == 4);
             Assert.Equal("Chesed_Outdoor", lobby.PlayableHighestDifficulty.Keys.Single());
-            Assert.Equal(season.SeasonRewardId, lobby.ReceiveRewardIds);
+            // A new season starts with nothing claimed, so Raid_SeasonReward can pay out.
+            Assert.Empty(lobby.ReceiveRewardIds);
         }
     }
 
