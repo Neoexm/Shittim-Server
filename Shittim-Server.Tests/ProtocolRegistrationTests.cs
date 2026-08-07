@@ -51,6 +51,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Friend_DeclineFriendRequest)]
     [InlineData(Protocol.Friend_CancelFriendRequest)]
     [InlineData(Protocol.Friend_Remove)]
+    [InlineData(Protocol.Friend_Block)]
     [InlineData(Protocol.Friend_Search)]
     [InlineData(Protocol.Friend_GetFriendDetailedInfo)]
     [InlineData(Protocol.Friend_SetIdCard)]

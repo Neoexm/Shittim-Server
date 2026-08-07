@@ -258,6 +258,34 @@ public class FriendHandler : ProtocolHandlerBase
         throw new WebAPIException(WebAPIErrorCode.FriendRequestNotFound, "No pending request");
     }
 
+    [ProtocolHandler(Protocol.Friend_Block)]
+    public async Task<FriendBlockResponse> Block(
+        SchaleDataContext db,
+        FriendBlockRequest request,
+        FriendBlockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (request.TargetAccountId == account.ServerId)
+            throw new WebAPIException(WebAPIErrorCode.FriendBlockTargetIsYourself, "Cannot block yourself");
+        if (!db.Accounts.Any(a => a.ServerId == request.TargetAccountId))
+            throw new WebAPIException(WebAPIErrorCode.FriendUserIsNotFriend,
+                $"Account {request.TargetAccountId} does not exist");
+        if (account.GameSettings.BlockedAccountIds.Contains(request.TargetAccountId))
+            throw new WebAPIException(WebAPIErrorCode.FriendBlockTargetIsAlreadyBlocked, "Already blocked");
+
+        account.GameSettings.BlockedAccountIds.Add(request.TargetAccountId);
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.FriendDBs = [];
+        response.SentRequestFriendDBs = [];
+        response.ReceivedRequestFriendDBs = [];
+        response.BlockedUserDBs = BuildBlockedList(db, account);
+
+        return response;
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
