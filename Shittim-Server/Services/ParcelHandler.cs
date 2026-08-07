@@ -48,6 +48,8 @@ public class ParcelHandler
         _academyLocationExpData = new ExpLevelData().ConvertExpLevelData(academyLocationLevelExcel);
     }
 
+    // Commits its own transaction, so anything that must not outlive a failed grant - a claimed-marker, a
+    // consumed flag - has to be written and Update()d before the call, not after it.
     public async Task<ParcelResolver> BuildParcel(
         SchaleDataContext context,
         AccountDBServer account,
