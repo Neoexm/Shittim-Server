@@ -35,4 +35,18 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
     private StoryStrategyStageSaveDB Wire(CampaignMainStageSaveDBServer save)
         => (StoryStrategyStageSaveDB)ConcentrateCampaignManager.ShapeForWire(_mapper.Map<StoryStrategyStageSaveDB>(save));
 
+    [ProtocolHandler(Protocol.Scenario_EnterMainStage)]
+    public async Task<ScenarioEnterMainStageResponse> EnterMainStage(
+        SchaleDataContext db,
+        ScenarioEnterMainStageRequest request,
+        ScenarioEnterMainStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var stageSave = await _concentrateCampaignManager.CreateStoryStrategyStage(db, account, request.StageUniqueId);
+
+        response.SaveDataDB = Wire(stageSave);
+        return response;
+    }
+
 }
