@@ -1,10 +1,14 @@
 using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.FlatData;
+using Schale.MX.Core.Math;
 using Schale.MX.GameLogic.DBModel;
+using Schale.MX.GameLogic.Parcel;
 using Schale.MX.Logic.Battles.Summary;
 using Schale.MX.Logic.Data;
 using Schale.MX.NetworkProtocol;
+using Shittim.Services;
+using Shittim_Server.Core.NetworkProtocol.Handlers;
 
 namespace Shittim_Server.Services;
 
@@ -205,6 +209,80 @@ public static class RaidService
         raidLobby.PlayingRaidDB.RaidBossDBs = raid.RaidBossDBs;
     }
 
+    public static List<ParcelResult> RollStageRewards(IEnumerable<RaidStageRewardExcelT> rows) =>
+        rows.Where(x => MathService.GenerateProbability(x.ClearStageRewardProb))
+            .Select(x => new ParcelResult(x.ClearStageRewardParcelType, x.ClearStageRewardParcelUniqueID, x.ClearStageRewardAmount))
+            .ToList();
+
+    public static List<ParcelResult> RollStageRewards(IEnumerable<EliminateRaidStageRewardExcelT> rows) =>
+        rows.Where(x => MathService.GenerateProbability(x.ClearStageRewardProb))
+            .Select(x => new ParcelResult(x.ClearStageRewardParcelType, x.ClearStageRewardParcelUniqueID, x.ClearStageRewardAmount))
+            .ToList();
+
+    public static List<ParcelInfo> ToParcelInfos(List<ParcelResult> parcels) =>
+        parcels.Select(r => new ParcelInfo
+        {
+            Key = new ParcelKeyPair { Type = r.Type, Id = r.Id },
+            Amount = r.Amount,
+            Multiplier = BasisPoint.One,
+            Probability = BasisPoint.One
+        }).ToList();
+
+    public static List<ParcelResult> ZipParcelColumns(List<ParcelType>? types, List<long>? ids, List<long>? amounts)
+    {
+        var count = ShopHandler.AlignedColumnCount(types?.Count, ids?.Count, amounts?.Count);
+        var parcels = new List<ParcelResult>(count);
+        for (int i = 0; i < count; i++)
+            parcels.Add(new ParcelResult(types![i], ids![i], amounts![i]));
+        return parcels;
+    }
+
+    public static List<long> ClaimableSeasonRewardIds(
+        List<long>? rewardIds, List<long>? thresholds, long gauge, ICollection<long> received)
+    {
+        var count = Math.Min(rewardIds?.Count ?? 0, thresholds?.Count ?? 0);
+        var claimable = new List<long>();
+        for (int i = 0; i < count; i++)
+        {
+            if (thresholds![i] <= gauge && !received.Contains(rewardIds![i]))
+                claimable.Add(rewardIds[i]);
+        }
+        return claimable;
+    }
+
+    // Characters were stored heroes-then-supporters (CollectAllCharacters), so the first four are the main slots.
+    public static List<RaidTeamSettingDB> BuildBestTeams(
+        SchaleDataContext context, RaidSummaryDB summary, long accountId, EchelonType echelonType)
+    {
+        var teams = new List<RaidTeamSettingDB>();
+        foreach (var battleId in summary.BattleSummaryIds)
+        {
+            var battle = context.BattleSummaries.FirstOrDefault(x => x.BattleId == battleId);
+            if (battle == null) continue;
+
+            var characters = battle.Characters.Select((c, i) => new RaidCharacterDB
+            {
+                ServerId = c.CharacterDBId,
+                UniqueId = c.UniqueId,
+                StarGrade = c.StarGrade,
+                Level = c.Level,
+                SlotIndex = i,
+                AccountId = accountId
+            }).ToList();
+
+            teams.Add(new RaidTeamSettingDB
+            {
+                AccountId = accountId,
+                TryNumber = teams.Count,
+                EchelonType = echelonType,
+                MainCharacterDBs = characters.Take(4).ToList(),
+                SupportCharacterDBs = characters.Skip(4).ToList(),
+                LeaderCharacterUniqueId = characters.FirstOrDefault()?.UniqueId ?? 0
+            });
+        }
+        return teams;
+    }
+
     public static long AIPhaseCheck(
         int bossIndex,
         long bossHp,
@@ -292,4 +370,9 @@ public static class RaidService
 
         return 0;
     }
+
+    // A raid row exists from the moment its battle is created, and EndBossBattle writes Clear even for a
+    // give-up, so "was it actually beaten" has to be read off the bosses.
+    public static bool IsCleared(Schale.Data.GameModel.RaidDBServer raid)
+        => raid.RaidBossDBs is { Count: > 0 } bosses && bosses.All(b => b.BossCurrentHP <= 0);
 }

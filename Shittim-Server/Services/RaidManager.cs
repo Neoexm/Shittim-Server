@@ -87,7 +87,7 @@ public class RaidManager
                 SeasonId = account.ContentInfo.RaidDataInfo.SeasonId,
                 BestRankingPoint = account.ContentInfo.RaidDataInfo.BestRankingPoint,
                 TotalRankingPoint = account.ContentInfo.RaidDataInfo.TotalRankingPoint,
-                ReceiveRewardIds = targetSeason.SeasonRewardId,
+                ReceiveRewardIds = [],
                 PlayableHighestDifficulty = new Dictionary<string, Difficulty>()
                 {
                     { targetSeason.OpenRaidBossGroup.FirstOrDefault(), Difficulty.Lunatic }
@@ -120,7 +120,9 @@ public class RaidManager
                 raidLobby.NextSeasonStartDate = serverTime.AddMonths(1);
                 raidLobby.NextSeasonEndDate = serverTime.AddMonths(1).AddDays(7);
                 raidLobby.NextSettlementEndDate = serverTime.AddMonths(1).AddDays(8);
-                raidLobby.ReceiveRewardIds = targetSeason.SeasonRewardId;
+                raidLobby.ReceiveRewardIds = [];
+                raidLobby.ReceiveLimitedRewardIds = [];
+                raidLobby.ReceivedRankingRewardId = 0;
                 raidLobby.PlayableHighestDifficulty = new Dictionary<string, Difficulty>()
                 {
                     { targetSeason.OpenRaidBossGroup.FirstOrDefault(), Difficulty.Lunatic }
@@ -129,6 +131,7 @@ public class RaidManager
             raidLobby.BestRankingPoint = account.ContentInfo.RaidDataInfo.BestRankingPoint;
             raidLobby.TotalRankingPoint = account.ContentInfo.RaidDataInfo.TotalRankingPoint;
         }
+        raidLobby.CanReceiveRankingReward = raidLobby.ReceivedRankingRewardId == 0 && raidLobby.TotalRankingPoint > 0;
         await context.SaveChangesAsync();
         return raidLobby;
     }
