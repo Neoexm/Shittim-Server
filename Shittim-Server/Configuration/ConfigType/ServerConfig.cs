@@ -49,6 +49,9 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool UseCustomExcel { get; set; } = false;
         // Fills every cafe with Koyuki and swaps the lobby banner list for the single webview banner. Off means stock random visitors and no banners.
         public bool KoyukiIncident { get; set; } = false;
+        // Days before resetable content counters (hard-stage play purchases, strategy-map heals, ...) reset.
+        // Official resets these daily; the long default is this server's deliberately generous limit.
+        public int ResetableContentResetDays { get; set; } = 60;
         public bool AutoCheckVersion { get; set; } = true;
         public bool AutoUpdateVersion { get; set; } = true;
         public bool AutoUpdateResources { get; set; } = true;
