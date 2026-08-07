@@ -514,6 +514,22 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_MemberList)]
+    public async Task<ClanMemberListResponse> MemberList(
+        SchaleDataContext db,
+        ClanMemberListRequest request,
+        ClanMemberListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.ClanDB = BuildClanDB(db, account);
+        response.ClanMemberDBs = account.GameSettings.Clan.IsPlayerOwned
+            ? [BuildAccountMemberDB(db, account), BuildAronaMemberDB(db, account)]
+            : [BuildAronaMemberDB(db, account), BuildAccountMemberDB(db, account)];
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
