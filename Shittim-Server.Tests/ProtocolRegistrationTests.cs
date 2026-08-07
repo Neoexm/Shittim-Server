@@ -25,6 +25,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Account_Auth2)]
     [InlineData(Protocol.Account_CurrencySync)]
     [InlineData(Protocol.Account_BirthDay)]
+    [InlineData(Protocol.Account_SetCheckAdultAgree)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

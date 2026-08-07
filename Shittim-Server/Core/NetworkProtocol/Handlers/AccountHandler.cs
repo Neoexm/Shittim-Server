@@ -653,6 +653,21 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_SetCheckAdultAgree)]
+    public async Task<AccountSetAdultCheckResponse> SetCheckAdultAgree(
+        SchaleDataContext db,
+        AccountSetAdultCheckRequest request,
+        AccountSetAdultCheckResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        account.GameSettings.CheckAdultAgree = request.CheckAdultAgree;
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
