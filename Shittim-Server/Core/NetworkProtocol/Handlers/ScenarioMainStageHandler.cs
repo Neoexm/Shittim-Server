@@ -189,4 +189,25 @@ public class ScenarioMainStageHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Scenario_Retreat)]
+    public async Task<ScenarioRetreatResponse> Retreat(
+        SchaleDataContext db,
+        ScenarioRetreatRequest request,
+        ScenarioRetreatResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var save = await _concentrateCampaignManager.GetConcentrateCampaign(db, account, request.StageUniqueId);
+        response.ReleasedEchelonNumbers = save?.EchelonInfos?.Keys.ToList() ?? [];
+
+        await _concentrateCampaignManager.CloseConcentrateCampaigns(db, account, request.StageUniqueId);
+
+        // Story stages cost nothing to enter, so there is nothing to refund.
+        response.ParcelResultDB = new()
+        {
+            AccountCurrencyDB = db.Currencies.Where(x => x.AccountServerId == account.ServerId).FirstOrDefault()?.ToMap(_mapper) ?? new()
+        };
+        return response;
+    }
+
 }
