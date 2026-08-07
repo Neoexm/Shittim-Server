@@ -145,6 +145,40 @@ public class FriendHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Friend_GetFriendDetailedInfo)]
+    public async Task<FriendGetFriendDetailedInfoResponse> GetFriendDetailedInfo(
+        SchaleDataContext db,
+        FriendGetFriendDetailedInfoRequest request,
+        FriendGetFriendDetailedInfoResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var target = db.Accounts.FirstOrDefault(a => a.ServerId == request.FriendAccountId)
+            ?? throw new WebAPIException(WebAPIErrorCode.FriendUserIsNotFriend,
+                $"Account {request.FriendAccountId} does not exist");
+
+        if (account.GameSettings.BlockedAccountIds.Contains(target.ServerId))
+            throw new WebAPIException(WebAPIErrorCode.FriendBlockUserCannotOpenProfile,
+                "Target is blocked");
+
+        var attachment = db.GetAccountAttachments(target.ServerId).FirstOrDefault();
+        var representCharacter = db.Characters.FirstOrDefault(c => c.ServerId == target.RepresentCharacterServerId);
+
+        response.Nickname = target.Nickname ?? "Sensei";
+        response.Level = target.Level;
+        response.ClanName = "Schale Network";
+        response.Comment = target.Comment;
+        response.FriendCount = 0;
+        response.FriendCode = AccountHandler.BuildFriendCode(target.ServerId);
+        response.RepresentCharacterUniqueId = representCharacter?.UniqueId ?? target.RepresentCharacterServerId;
+        response.RepresentCharacterCostumeId = representCharacter?.UniqueId ?? target.RepresentCharacterServerId;
+        response.CharacterCount = db.GetAccountCharacters(target.ServerId).Count();
+        response.AttachmentDB = attachment != null ? _mapper.Map<AccountAttachmentDB>(attachment) : null;
+        response.AssistCharacterDBs = [];
+
+        return response;
+    }
+
     private FriendDB[] BuildBlockedList(SchaleDataContext db, AccountDBServer account)
     {
         return account.GameSettings.BlockedAccountIds
