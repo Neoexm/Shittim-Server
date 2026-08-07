@@ -498,6 +498,22 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_Search)]
+    public async Task<ClanSearchResponse> Search(
+        SchaleDataContext db,
+        ClanSearchRequest request,
+        ClanSearchResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // There is exactly one club; every search finds it unless the player owns it already.
+        response.ClanDBs = account.GameSettings.Clan is { HasClan: true, IsPlayerOwned: true }
+            ? []
+            : [BuildClanDB(db, account)];
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
