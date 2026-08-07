@@ -264,6 +264,63 @@ public class ConquestHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Conquest_ManageBase)]
+    public async Task<ConquestManageBaseResponse> ManageBase(
+        SchaleDataContext db,
+        ConquestManageBaseRequest request,
+        ConquestManageBaseResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var info = _conquestManager.Require(db, account, request.EventContentId);
+
+        var tileExcel = _conquestManager.RequireTile(info.EventContentId, request.TileUniqueId);
+        if (tileExcel.TileType != ConquestTileType.Base)
+            throw new WebAPIException(WebAPIErrorCode.ConquestInvalidTileType, $"Tile {request.TileUniqueId} is not a base");
+
+        var tile = _conquestManager.StoredTile(info, request.Difficulty, request.TileUniqueId);
+        if (tile == null || tile.TileState != TileState.FullyConquested)
+            throw new WebAPIException(WebAPIErrorCode.ConquestNotFullyConquested, $"Base {request.TileUniqueId} not conquered");
+
+        // No excel column caps a manage batch, so the ceiling is fixed here; a free tile manages once.
+        var manageCount = Math.Clamp(request.ManageCount, 1, MaxManagePerRequest);
+        if (tileExcel.ManageCostType == ParcelType.None || tileExcel.ManageCostAmount <= 0)
+            manageCount = 1;
+
+        if (tileExcel.ManageCostType != ParcelType.None && tileExcel.ManageCostAmount > 0)
+        {
+            await _parcelHandler.BuildParcel(db, account,
+                new ParcelResult(tileExcel.ManageCostType, tileExcel.ManageCostId, (long)tileExcel.ManageCostAmount * manageCount),
+                isConsume: true);
+            _conquestManager.TrackConditionSpend(info, tileExcel.ManageCostType, tileExcel.ManageCostId,
+                (long)tileExcel.ManageCostAmount * manageCount);
+        }
+
+        var all = new List<ParcelResult>();
+        response.ClearParcels = [];
+        for (int i = 0; i < manageCount; i++)
+        {
+            var run = new List<ParcelResult>();
+            _conquestManager.RollRewardGroup(tileExcel.ConquestRewardId, run);
+            all.AddRange(run);
+            response.ClearParcels.Add(run.Select(x => new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = x.Type, Id = x.Id },
+                Amount = x.Amount
+            }).ToList());
+        }
+
+        var resolver = await _parcelHandler.BuildParcel(db, account, all);
+        db.ConquestInfos.Update(info);
+        await db.SaveChangesAsync();
+
+        response.ConquerBonusParcels = [];
+        response.BonusParcels = [];
+        response.ParcelResultDB = resolver.ParcelResult;
+        response.ConquestInfoDB = info.ToInfoDB(_conquestManager.CalculateConditionAmount(info.EventContentId));
+
+        return response;
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
