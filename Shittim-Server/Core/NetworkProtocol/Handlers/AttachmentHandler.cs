@@ -25,6 +25,18 @@ public class AttachmentHandler : ProtocolHandlerBase
         _mapper = mapper;
     }
 
+    [ProtocolHandler(Protocol.Attachment_Get)]
+    public async Task<AttachmentGetResponse> Get(
+        SchaleDataContext db,
+        AttachmentGetRequest request,
+        AttachmentGetResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.AccountAttachmentDB = db.GetAccountAttachments(account.ServerId).FirstMapTo(_mapper);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Attachment_EmblemList)]
     public async Task<AttachmentEmblemListResponse> EmblemList(
         SchaleDataContext db,
