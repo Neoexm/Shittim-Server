@@ -37,14 +37,23 @@ public class EchelonService
     }
 
     public static async Task<EchelonDBServer?> GetConcentratedCampaignEchelon(
-        SchaleDataContext context, 
-        long accountId, 
+        SchaleDataContext context,
+        long accountId,
         long echelonNum)
     {
+        // Story strategy stages (Vol.F) save their formations under their own echelon type; every other
+        // strategy-map deploy uses Adventure, so that stays the first match.
         return await context.Echelons
             .FirstOrDefaultAsync(e =>
                 e.AccountServerId == accountId &&
                 e.EchelonType == EchelonType.Adventure &&
+                e.EchelonNumber == echelonNum &&
+                e.ExtensionType == EchelonExtensionType.Base
+            )
+            ?? await context.Echelons
+            .FirstOrDefaultAsync(e =>
+                e.AccountServerId == accountId &&
+                e.EchelonType == EchelonType.StoryStrategyStage &&
                 e.EchelonNumber == echelonNum &&
                 e.ExtensionType == EchelonExtensionType.Base
             );

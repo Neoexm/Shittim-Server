@@ -26,7 +26,7 @@ public class ConcentrateCampaignManager
     private const long TacticRankClearTimeMsec = 120 * 1000;
 
     // HpInfos is a rate on 0..10000, not absolute hp
-    private const long FullHpRate = 10000L;
+    internal const long FullHpRate = 10000L;
 
     internal const long TacticRankS = 3L;
 
@@ -104,6 +104,122 @@ public class ConcentrateCampaignManager
     // Event runs name their map on the save row because a rerun replays the original event's file; campaign rows leave it null and the stage id is the name.
     internal Task<HexaTileMap> LoadStageMap(CampaignMainStageSaveDBServer save)
         => save.StrategyMap != null ? _hexaMapService.LoadState(save.StrategyMap) : _hexaMapService.LoadState(save.StageUniqueId);
+
+    // The story-strategy (Vol.F) twin of CreateConcentrateCampaign: the map file is named by
+    // StoryStrategyExcel, the save is keyed as StoryStrategyStage, and the table carries no entrance cost.
+    public async Task<CampaignMainStageSaveDBServer> CreateStoryStrategyStage(
+        SchaleDataContext context,
+        AccountDBServer account,
+        long stageUniqueId)
+    {
+        var stageExcel = _excelService.GetTable<StoryStrategyExcelT>().FirstOrDefault(x => x.Id == stageUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.CampaignStageStageNotFound,
+                $"Story strategy stage {stageUniqueId} not found");
+
+        var hexaData = await _hexaMapService.LoadState(stageExcel.StrategyMap);
+
+        await CloseConcentrateCampaigns(context, account);
+
+        var stageSave = new CampaignMainStageSaveDBServer
+        {
+            ContentType = Schale.FlatData.ContentType.StoryStrategyStage,
+            LastEnemyEntityId = hexaData.LastEntityId,
+            EnemyInfos = HexaMapService.AddHexaUnitList(hexaData.HexaUnitList),
+            EchelonInfos = new Dictionary<long, HexaUnit>(),
+            WithdrawInfos = new Dictionary<long, List<long>>(),
+            StrategyObjects = HexaMapService.AddHexaStrategyList(hexaData.HexaStrageyList),
+            StrategyObjectRewards = new Dictionary<long, List<ParcelInfo>>(),
+            StrategyObjectHistory = new List<long>(),
+            ActivatedHexaEventsAndConditions = BuildStartEventActivations(hexaData),
+            HexaEventDelayedExecutions = new Dictionary<long, List<long>>(),
+            TileMapStates = HexaMapService.AddHexaTileList(hexaData),
+            DisplayInfos = new List<HexaDisplayInfo>(),
+            DeployedEchelonInfos = new List<HexaUnit>(),
+            StrategyMap = stageExcel.StrategyMap,
+            CreateTime = account.GameSettings.ServerDateTime(),
+            StageUniqueId = stageUniqueId,
+            StageEntranceFee = new List<ParcelInfo>(),
+            EnemyKillCountByUniqueId = new(),
+            IsOpen = true
+        };
+        stageSave.AccountServerId = account.ServerId;
+
+        context.CampaignMainStageSaves.Add(stageSave);
+        await context.SaveChangesAsync();
+
+        return stageSave;
+    }
+
+    // Story tactics carry no stage history, stars, rewards, or missions - the story flow only needs the
+    // map state advanced and the win/lose verdict; everything else in TacticResult is campaign bookkeeping.
+    public async Task<(CampaignMainStageSaveDBServer Save, bool IsPlayerWin)> ScenarioTacticResult(
+        SchaleDataContext context,
+        AccountDBServer account,
+        CampaignTacticResultRequest req)
+    {
+        if (req.Summary == null)
+            throw new InvalidOperationException("Scenario_TacticResult carried no battle summary");
+
+        var stageSaveData = await GetConcentrateCampaign(context, account, req.Summary.StageId)
+            ?? throw new InvalidOperationException($"Story stage save not found for stage {req.Summary.StageId}");
+
+        stageSaveData.TacticClearTimeMscSum += (long)Math.Floor(req.Summary.EndFrame / 30f) * 1000;
+        stageSaveData.EchelonInfos = ChangeConcentratedEchelon(stageSaveData.EchelonInfos, req.Summary, req.Hand);
+
+        var engagedEnemyId = stageSaveData.EngagedEnemyEntityId;
+        var wasEnemyPhase = stageSaveData.CampaignState == CampaignState.EnemyPhase;
+        var isStageClear = false;
+        var tacticWon = CheckIfCleared(req.Summary);
+
+        if (!tacticWon)
+        {
+            stageSaveData.EchelonInfos?.Remove(req.Summary.Group01Summary.TeamId);
+        }
+        else
+        {
+            if (stageSaveData.EnemyInfos != null &&
+                stageSaveData.EnemyInfos.Remove(stageSaveData.EngagedEnemyEntityId))
+            {
+                stageSaveData.EnemyClearCount++;
+            }
+
+            stageSaveData.EngagedEnemyEntityId = 0;
+
+            var hexaData = await LoadStageMap(stageSaveData);
+            var endBattle = HexaMapService.FindSatisfiedEndBattle(
+                hexaData, stageSaveData.EnemyInfos, stageSaveData.ActivatedHexaEventsAndConditions);
+
+            if (endBattle is { } fired)
+            {
+                stageSaveData.ActivatedHexaEventsAndConditions ??= new Dictionary<long, List<long>>();
+                stageSaveData.ActivatedHexaEventsAndConditions[fired.Event.EventId] = fired.ConditionIds;
+                isStageClear = true;
+            }
+            else if (stageSaveData.EnemyInfos is { Count: 0 })
+            {
+                isStageClear = true;
+            }
+
+            if (isStageClear)
+                stageSaveData.IsOpen = false;
+        }
+
+        if (wasEnemyPhase && !isStageClear)
+        {
+            DecideEnemyMoves(
+                await LoadStageMap(stageSaveData), stageSaveData, engagedEnemyId,
+                _excelService.GetTable<CampaignUnitExcelT>(), _excelService.GetTable<CampaignStrategyObjectExcelT>());
+        }
+        else
+        {
+            stageSaveData.DisplayInfos = new List<HexaDisplayInfo>();
+        }
+
+        context.CampaignMainStageSaves.Update(stageSaveData);
+        await context.SaveChangesAsync();
+
+        return (stageSaveData, tacticWon);
+    }
 
     public async Task<CampaignMainStageSaveDBServer> CreateConcentrateCampaign(
         SchaleDataContext context,

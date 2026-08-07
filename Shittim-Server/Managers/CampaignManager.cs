@@ -3,6 +3,7 @@ using Schale.Data;
 using Schale.Data.GameModel;
 using Schale.FlatData;
 using Schale.Excel;
+using Schale.MX.Campaign;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.NetworkProtocol;
 using Schale.MX.Logic.Battles.Summary;
@@ -362,6 +363,122 @@ namespace Shittim_Server.Managers
         {
             if (probability == 0) return true;
             return Random.Shared.Next(10000) < probability;
+        }
+
+        // The client's IsAvailableStageToday reads TodayPurchasePlayCountHardStage, so the history counter
+        // still moves; the limit itself lives in the resetable-content ledger and returns with its window.
+        public async Task<(AccountCurrencyDBServer Currency, CampaignStageHistoryDBServer History)> PurchasePlayCountHardStage(
+            SchaleDataContext context,
+            AccountDBServer account,
+            long stageUniqueId)
+        {
+            var isHard = _campaignChapterExcels.Any(x =>
+                (x.HardCampaignStageId?.Contains(stageUniqueId) ?? false)
+                || (x.VeryHardCampaignStageId?.Contains(stageUniqueId) ?? false));
+            if (!isHard)
+                throw new WebAPIException(WebAPIErrorCode.CampaignStagePlayLimit, $"Stage {stageUniqueId} has no purchasable plays");
+
+            var window = ResetableContentService.ResetWindow;
+            var purchased = ResetableContentService.LiveValue(
+                account, ResetContentType.HardStagePlay, stageUniqueId, window);
+
+            var purchaseLimit = _excelService.GetTable<ConstCommonExcelT>().First().HardAdventurePlayCountRecoverDailyNumber;
+            if (purchased >= purchaseLimit)
+                throw new WebAPIException(WebAPIErrorCode.CampaignStagePlayLimit, $"Stage {stageUniqueId} has no purchases left this window");
+
+            // the price is not a constant anywhere - ServiceActionExcel names the goods row and the goods row is what carries the currency and the amount
+            var serviceAction = _excelService.GetTable<ServiceActionExcelT>()
+                .FirstOrDefault(x => x.ServiceActionType == ServiceActionType.HardAdventurePlayCountRecover);
+            var goods = serviceAction == null
+                ? null
+                : _excelService.GetTable<GoodsExcelT>().FirstOrDefault(x => x.Id == serviceAction.GoodsId);
+
+            if (goods != null)
+            {
+                var cost = ParcelResult.ConvertParcelResult(goods.ConsumeParcelType, goods.ConsumeParcelId, goods.ConsumeParcelAmount);
+                await _parcelHandler.BuildParcel(context, account, cost, isConsume: true);
+            }
+
+            var historyDb = context.CampaignStageHistories
+                .FirstOrDefault(x => x.AccountServerId == account.ServerId && x.StageUniqueId == stageUniqueId);
+            if (historyDb == null)
+            {
+                historyDb = new CampaignStageHistoryDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    StageUniqueId = stageUniqueId,
+                    LastPlay = account.GameSettings.ServerDateTime()
+                };
+                context.CampaignStageHistories.Add(historyDb);
+            }
+
+            historyDb.TodayPurchasePlayCountHardStage++;
+            ResetableContentService.Bump(
+                account, ResetContentType.HardStagePlay, stageUniqueId, window);
+            context.Accounts.Update(account);
+
+            await context.SaveChangesAsync();
+
+            var currency = context.Currencies.First(x => x.AccountServerId == account.ServerId);
+            return (currency, historyDb);
+        }
+
+        public async Task<(AccountCurrencyDBServer Currency, CampaignMainStageSaveDBServer Save)> Heal(
+            SchaleDataContext context,
+            AccountDBServer account,
+            long stageUniqueId,
+            long echelonIndex,
+            long characterServerId)
+        {
+            var save = context.CampaignMainStageSaves.FirstOrDefault(x =>
+                    x.AccountServerId == account.ServerId && x.IsOpen && x.StageUniqueId == stageUniqueId)
+                ?? throw new WebAPIException(WebAPIErrorCode.CampaignStageHealNotAcceptable,
+                    $"No open run on stage {stageUniqueId}");
+
+            // EchelonInfos is keyed by the deploy-time EntityId; fall back to whichever deployed unit carries
+            // the character so an index the client counts differently still heals the right student.
+            HexaUnit? unit = null;
+            if (save.EchelonInfos != null && save.EchelonInfos.TryGetValue(echelonIndex, out var byIndex)
+                && byIndex.HpInfos?.ContainsKey(characterServerId) == true)
+            {
+                unit = byIndex;
+            }
+            unit ??= save.EchelonInfos?.Values.FirstOrDefault(u => u.HpInfos?.ContainsKey(characterServerId) == true)
+                ?? throw new WebAPIException(WebAPIErrorCode.CampaignStageHealNotAcceptable,
+                    $"Character {characterServerId} is not deployed on stage {stageUniqueId}");
+
+            var constStrategy = _excelService.GetTable<ConstStrategyExcelT>().First();
+            if (unit.HpInfos![characterServerId] >= constStrategy.CanHealHpRate)
+                throw new WebAPIException(WebAPIErrorCode.CampaignStageHealNotAcceptable,
+                    $"Character {characterServerId} is above the heal threshold");
+
+            var window = ResetableContentService.ResetWindow;
+            var healsUsed = ResetableContentService.LiveValue(
+                account, ResetContentType.StarategyMapHeal, 0, window);
+
+            var costs = constStrategy.HealCostAmount ?? [];
+            if (costs.Count > 0 && healsUsed >= costs.Count)
+                throw new WebAPIException(WebAPIErrorCode.CampaignStageHealLimit, "No heals left this window");
+
+            var cost = costs.Count > 0 ? costs[(int)healsUsed] : 0;
+            if (cost > 0)
+            {
+                await _parcelHandler.BuildParcel(context, account,
+                    new ParcelResult(ParcelType.Currency, (long)constStrategy.HealCostType, cost), isConsume: true);
+            }
+
+            unit.HpInfos[characterServerId] = ConcentrateCampaignManager.FullHpRate;
+            unit.DyingInfos?.Remove(characterServerId);
+            context.Entry(save).Property(x => x.EchelonInfos).IsModified = true;
+
+            ResetableContentService.Bump(
+                account, ResetContentType.StarategyMapHeal, 0, window);
+            context.Accounts.Update(account);
+
+            await context.SaveChangesAsync();
+
+            var currency = context.Currencies.First(x => x.AccountServerId == account.ServerId);
+            return (currency, save);
         }
     }
 }
