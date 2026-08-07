@@ -97,6 +97,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Craft_ShiftingBeginProcess)]
     [InlineData(Protocol.Craft_ShiftingCompleteProcess)]
     [InlineData(Protocol.Craft_ShiftingCompleteProcessAll)]
+    [InlineData(Protocol.Craft_ShiftingReward)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

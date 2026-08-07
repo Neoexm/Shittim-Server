@@ -651,6 +651,39 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_ShiftingReward)]
+        public async Task<CraftShiftingRewardResponse> ShiftingReward(
+            SchaleDataContext db,
+            CraftShiftingRewardRequest request,
+            CraftShiftingRewardResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var slot = GetShiftingSlot(db, account.ServerId, request.SlotId)
+                ?? throw new WebAPIException(WebAPIErrorCode.CraftInfoNotFound, $"Shifting slot {request.SlotId} has no craft");
+
+            if (slot.EndTime > now)
+                throw new WebAPIException(WebAPIErrorCode.CraftProcessNotComplete, $"Shifting slot {request.SlotId} is still processing");
+
+            var recipe = _excelService.GetTable<ShiftingCraftRecipeExcelT>().FirstOrDefault(x => x.Id == slot.CraftRecipeId)
+                ?? throw new WebAPIException(WebAPIErrorCode.CraftInvalidData, $"Shifting recipe {slot.CraftRecipeId} no longer exists");
+
+            var parcelResolver = await _parcelHandler.BuildParcel(db, account,
+                new ParcelResult(recipe.ResultParcel, recipe.ResultId, recipe.ResultAmount * slot.CraftAmount));
+            response.ParcelResultDB = parcelResolver.ParcelResult;
+
+            db.ShiftingCraftInfos.Remove(slot);
+            await db.SaveChangesAsync();
+
+            _missionService.UpdateMissionProgress(db, account, MissionCompleteConditionType.Reset_CraftCount);
+
+            // Read as the claimed slot echoed back; whether official lists survivors here instead is unobserved.
+            response.TargetCraftInfos = [_mapper.Map<ShiftingCraftInfoDB>(slot)];
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
