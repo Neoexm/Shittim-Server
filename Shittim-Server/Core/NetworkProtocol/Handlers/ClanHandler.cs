@@ -430,6 +430,29 @@ public class ClanHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Clan_AutoJoin)]
+    public async Task<ClanAutoJoinResponse> AutoJoin(
+        SchaleDataContext db,
+        ClanAutoJoinRequest request,
+        ClanAutoJoinResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        var state = account.GameSettings.Clan;
+
+        if (state.HasClan)
+            throw new WebAPIException(WebAPIErrorCode.ClanAccountAlreadyJoinedClan, "Already in a clan");
+
+        JoinDefaultClan(account);
+        db.Accounts.Update(account);
+        await db.SaveChangesAsync();
+
+        response.IrcConfig = BuildIrcConfig();
+        response.ClanDB = BuildClanDB(db, account);
+        response.ClanMemberDB = BuildAccountMemberDB(db, account);
+
+        return response;
+    }
+
     private static void JoinDefaultClan(AccountDBServer account)
     {
         var state = account.GameSettings.Clan;
