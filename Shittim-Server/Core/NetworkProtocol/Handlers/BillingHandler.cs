@@ -207,4 +207,21 @@ public class BillingHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Billing_PurchaseListByYostar)]
+    public async Task<BillingPurchaseListByYostarResponse> PurchaseListByYostar(
+        SchaleDataContext db,
+        BillingPurchaseListByYostarRequest request,
+        BillingPurchaseListByYostarResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.CountList = [];
+        response.OrderList = [];
+        response.MonthlyProductList = [];
+        response.BlockedProductDBs = [];
+        response.BattlePassProductList = BuildBattlePassProductList(db, account, _excelTableService);
+
+        return response;
+    }
+
 }
