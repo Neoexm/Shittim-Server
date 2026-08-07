@@ -502,6 +502,19 @@ public class ConquestHandler : ProtocolHandlerBase
             $"Object {request.ConquestObjectDBId} does not exist");
     }
 
+    [ProtocolHandler(Protocol.Conquest_EventObjectBattleStart)]
+    public async Task<ConquestEventObjectBattleStartResponse> EventObjectBattleStart(
+        SchaleDataContext db,
+        ConquestEventObjectBattleStartRequest request,
+        ConquestEventObjectBattleStartResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+        _conquestManager.Require(db, account, request.EventContentId);
+
+        throw new WebAPIException(WebAPIErrorCode.ConquestObjectNotFound,
+            $"Object {request.ConquestObjectDBId} does not exist");
+    }
+
     private ConquestStageSaveDB StartTileBattle(
         SchaleDataContext db, AccountDBServer account, ConquestInfoDBServer info,
         StageDifficulty difficulty, long tileUniqueId)
