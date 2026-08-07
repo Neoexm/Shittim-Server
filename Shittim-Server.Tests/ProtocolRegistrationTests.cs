@@ -34,6 +34,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Campaign_Heal)]
     [InlineData(Protocol.Campaign_PurchasePlayCountHardStage)]
     [InlineData(Protocol.Character_FavorGrowth)]
+    [InlineData(Protocol.Character_SetCostume)]
     [InlineData(Protocol.Cafe_Travel)]
     [InlineData(Protocol.Audit_GachaStatistics)]
     [InlineData(Protocol.Account_CheckYostar)]

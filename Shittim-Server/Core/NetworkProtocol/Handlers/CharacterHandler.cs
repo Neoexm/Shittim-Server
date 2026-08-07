@@ -71,6 +71,42 @@ public class CharacterHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Character_SetCostume)]
+    public async Task<CharacterSetCostumeResponse> SetCostume(
+        SchaleDataContext db,
+        CharacterSetCostumeRequest request,
+        CharacterSetCostumeResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var character = db.Characters.FirstOrDefault(x =>
+                x.AccountServerId == account.ServerId && x.UniqueId == request.CharacterUniqueId)
+            ?? throw new WebAPIException(WebAPIErrorCode.CharacterNotFound,
+                $"Character {request.CharacterUniqueId} not found");
+
+        var costumes = db.GetAccountCostumes(account.ServerId).ToList();
+
+        var current = costumes.FirstOrDefault(x => x.BoundCharacterServerId == character.ServerId);
+        if (current != null)
+        {
+            current.BoundCharacterServerId = 0;
+            response.UnsetCostumeDB = current.ToMap(_mapper);
+        }
+
+        if (request.CostumeIdToSet is long costumeId)
+        {
+            var target = costumes.FirstOrDefault(x => x.UniqueId == costumeId)
+                ?? throw new WebAPIException(WebAPIErrorCode.CharacterCostumeNotFound,
+                    $"Costume {costumeId} not owned");
+
+            target.BoundCharacterServerId = character.ServerId;
+            response.SetCostumeDB = target.ToMap(_mapper);
+        }
+
+        await db.SaveChangesAsync();
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Character_SetFavorites)]
     public async Task<CharacterSetFavoritesResponse> SetFavorites(
         SchaleDataContext db,
