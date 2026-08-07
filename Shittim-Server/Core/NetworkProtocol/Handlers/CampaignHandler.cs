@@ -180,6 +180,22 @@ public class CampaignHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Campaign_PurchasePlayCountHardStage)]
+    public async Task<CampaignPurchasePlayCountHardStageResponse> PurchasePlayCountHardStage(
+        SchaleDataContext db,
+        CampaignPurchasePlayCountHardStageRequest request,
+        CampaignPurchasePlayCountHardStageResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var (currency, history) = await _campaignManager.PurchasePlayCountHardStage(db, account, request.StageUniqueId);
+
+        response.AccountCurrencyDB = currency.ToMap(_mapper);
+        response.CampaignStageHistoryDB = history.ToMap(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Campaign_RestartMainStage)]
     public async Task<CampaignRestartMainStageResponse> RestartMainStage(
         SchaleDataContext db,
