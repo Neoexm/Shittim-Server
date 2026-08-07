@@ -16,4 +16,17 @@ public class AuditHandler : ProtocolHandlerBase
         _sessionService = sessionService;
     }
 
+    [ProtocolHandler(Protocol.Audit_GachaStatistics)]
+    public async Task<AuditGachaStatisticsResponse> GachaStatistics(
+        SchaleDataContext db,
+        AuditGachaStatisticsRequest request,
+        AuditGachaStatisticsResponse response)
+    {
+        await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        // The disclosure screen aggregates pulls across the player base; there is no population here.
+        response.GachaResult = new Dictionary<long, long>();
+
+        return response;
+    }
 }
