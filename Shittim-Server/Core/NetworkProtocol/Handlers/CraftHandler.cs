@@ -334,6 +334,95 @@ namespace Shittim_Server.Core.NetworkProtocol.Handlers
             return response;
         }
 
+        [ProtocolHandler(Protocol.Craft_AutoBeginProcess)]
+        public async Task<CraftAutoBeginProcessResponse> AutoBeginProcess(
+            SchaleDataContext db,
+            CraftAutoBeginProcessRequest request,
+            CraftAutoBeginProcessResponse response)
+        {
+            var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+            var now = account.GameSettings.ServerDateTime();
+
+            var presetNodes = request.PresetSlotDB?.PresetNodeDBs?
+                .Where(x => x.IsActivated)
+                .OrderBy(x => x.NodeTier)
+                .ToList();
+            if (presetNodes == null || presetNodes.Count == 0)
+                throw new WebAPIException(WebAPIErrorCode.CraftInvalidPresetSlotDB, "Preset slot has no activated nodes");
+
+            var count = System.Math.Max(1, request.Count);
+
+            var used = db.CraftInfos
+                .Where(x => x.AccountServerId == account.ServerId)
+                .Select(x => x.SlotSequence)
+                .ToHashSet();
+            var freeSlots = Enumerable.Range(1, CraftSlotCount)
+                .Select(s => (long)s)
+                .Where(s => !used.Contains(s))
+                .ToList();
+            if (freeSlots.Count < count)
+                throw new WebAPIException(WebAPIErrorCode.CraftNotEnoughEmptySlotCount, $"Requested {count} crafts with {freeSlots.Count} free slots");
+
+            var consumes = new List<ConsumeRequestDB>();
+            for (long i = 0; i < count; i++)
+                consumes.AddRange(presetNodes.Where(x => x.ConsumeRequestDB != null).Select(x => x.ConsumeRequestDB!));
+            var consumeResult = await _consumeHandler.BuildConsumeResult(db, account, consumes);
+
+            var priorityNodeIds = presetNodes.Select(x => x.PriortyNodeId).Where(x => x != 0).ToHashSet();
+            var started = new List<CraftInfoDBServer>();
+            foreach (var slotSequence in freeSlots.Take((int)count))
+            {
+                var slot = new CraftInfoDBServer
+                {
+                    AccountServerId = account.ServerId,
+                    SlotSequence = slotSequence,
+                    StartTime = DateTime.MaxValue,
+                    EndTime = DateTime.MaxValue,
+                    CraftSlotOpenDate = now,
+                    Nodes = []
+                };
+
+                // The manual walk collapsed: each activated preset entry is one UpdateNodeLevel plus one SelectNode.
+                foreach (var _ in presetNodes)
+                {
+                    CraftNodeDB node;
+                    if (slot.Nodes.Count == 0)
+                    {
+                        node = new CraftNodeDB();
+                        slot.Nodes.Add(node);
+                    }
+                    else
+                        node = slot.Nodes[^1];
+
+                    node.NodeLevel += 1;
+                    node.NodeRandomSeed = Random.Shared.Next(1, int.MaxValue);
+                    node.LeafNodeIds = RollLeafNodes(node.NodeTier);
+                    if (node.LeafNodeIds.Count == 0)
+                        break;
+
+                    // Whether a preset entry's PriortyNodeId names its own tier or the next is unobserved, so any rolled leaf the preset asks for wins; first leaf otherwise.
+                    var leaf = node.LeafNodeIds.FirstOrDefault(priorityNodeIds.Contains);
+                    slot.Nodes.Add(new CraftNodeDB
+                    {
+                        NodeTier = node.NodeTier + 1,
+                        NodeId = leaf != 0 ? leaf : node.LeafNodeIds[0],
+                        LeafNodeIds = []
+                    });
+                }
+
+                ResolveNodeResults(slot, now);
+                db.CraftInfos.Add(slot);
+                started.Add(slot);
+            }
+
+            await db.SaveChangesAsync();
+
+            response.CraftInfoDBs = _mapper.Map<List<CraftInfoDB>>(started);
+            response.ParcelResultDB = consumeResult.ParcelResult;
+
+            return response;
+        }
+
         // Finishes the slot now and returns the skip-ticket cost that early completion carries; 0 when it was already done.
         private static long FinishShiftingSlot(ShiftingCraftInfoDBServer slot, DateTime now, ConstCommonExcelT? common)
         {
