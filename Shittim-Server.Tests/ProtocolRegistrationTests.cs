@@ -23,6 +23,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Craft_List)]
     [InlineData(Protocol.Craft_SelectNode)]
     [InlineData(Protocol.Account_Auth2)]
+    [InlineData(Protocol.Account_CurrencySync)]
     public void TheProtocolHasAHandler(Protocol protocol)
     {
         Assert.Contains(protocol, HandledProtocols);

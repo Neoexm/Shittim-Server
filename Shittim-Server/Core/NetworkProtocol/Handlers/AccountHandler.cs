@@ -622,6 +622,18 @@ public class AccountHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Account_CurrencySync)]
+    public async Task<AccountCurrencySyncResponse> CurrencySync(
+        SchaleDataContext db,
+        AccountCurrencySyncRequest request,
+        AccountCurrencySyncResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstMapTo(_mapper);
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Account_CheckAccountLevelReward)]
     public async Task<CheckAccountLevelRewardResponse> CheckLevelReward(
         SchaleDataContext db,
