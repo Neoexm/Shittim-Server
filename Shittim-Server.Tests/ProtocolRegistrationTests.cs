@@ -57,6 +57,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.ContentSweep_SetMultiSweepPresetName)]
     [InlineData(Protocol.Character_FavorGrowth)]
     [InlineData(Protocol.Character_SetCostume)]
+    [InlineData(Protocol.TTS_GetFile)]
     [InlineData(Protocol.Cafe_Travel)]
     [InlineData(Protocol.Audit_GachaStatistics)]
     [InlineData(Protocol.Recipe_Craft)]
