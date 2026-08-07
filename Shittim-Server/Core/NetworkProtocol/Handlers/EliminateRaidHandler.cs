@@ -259,4 +259,45 @@ public class EliminateRaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.EliminateRaid_SeasonReward)]
+    public async Task<EliminateRaidSeasonRewardResponse> SeasonReward(
+        SchaleDataContext db,
+        EliminateRaidSeasonRewardRequest request,
+        EliminateRaidSeasonRewardResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var lobby = await _raidManager.GetUpdatedLobby(db, account);
+        var season = _excelService.GetTable<EliminateRaidSeasonManageExcelT>()
+            .FirstOrDefault(x => x.SeasonId == account.ContentInfo.EliminateRaidDataInfo.SeasonId);
+        if (season == null)
+            throw new WebAPIException(WebAPIErrorCode.RaidExcelDataNotFound, $"Eliminate raid season {account.ContentInfo.EliminateRaidDataInfo.SeasonId} not found");
+
+        var gauge = Math.Min(account.ContentInfo.EliminateRaidDataInfo.TotalRankingPoint, season.MaxSeasonRewardGauage);
+        var claimable = RaidService.ClaimableSeasonRewardIds(
+            season.SeasonRewardId, season.StackedSeasonRewardGauge, gauge, lobby.ReceiveRewardIds);
+
+        if (claimable.Count == 0)
+        {
+            response.ReceiveRewardIds = lobby.ReceiveRewardIds;
+            return response;
+        }
+
+        var rewards = _excelService.GetTable<EliminateRaidStageSeasonRewardExcelT>()
+            .Where(x => claimable.Contains(x.SeasonRewardId))
+            .SelectMany(x => RaidService.ZipParcelColumns(x.SeasonRewardParcelType, x.SeasonRewardParcelUniqueId, x.SeasonRewardAmount))
+            .ToList();
+
+        lobby.ReceiveRewardIds.AddRange(claimable);
+        db.EliminateRaidLobbyInfos.Update(lobby);
+
+        var parcelResult = await _parcelHandler.BuildParcel(db, account, rewards);
+        await db.SaveChangesAsync();
+
+        response.ReceiveRewardIds = lobby.ReceiveRewardIds;
+        response.ParcelResultDB = parcelResult.ParcelResult;
+
+        return response;
+    }
+
 }

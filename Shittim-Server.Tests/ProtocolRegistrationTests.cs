@@ -92,6 +92,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Conquest_MainStoryConquerWithBattleStart)]
     [InlineData(Protocol.Conquest_MainStoryConquerWithBattleResult)]
     [InlineData(Protocol.EliminateRaid_GetBestTeam)]
+    [InlineData(Protocol.EliminateRaid_SeasonReward)]
     [InlineData(Protocol.Craft_AutoBeginProcess)]
     [InlineData(Protocol.Craft_CompleteProcessAll)]
     [InlineData(Protocol.Craft_RewardAll)]
