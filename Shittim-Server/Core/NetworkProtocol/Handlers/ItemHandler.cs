@@ -44,6 +44,24 @@ public class ItemHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Item_Lock)]
+    public async Task<ItemLockResponse> Lock(
+        SchaleDataContext db,
+        ItemLockRequest request,
+        ItemLockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var item = db.GetAccountItems(account.ServerId).FirstOrDefault(x => x.ServerId == request.TargetServerId)
+            ?? throw new WebAPIException(WebAPIErrorCode.ItemNotFound, $"Item {request.TargetServerId} not found");
+        item.IsLocked = request.IsLocked;
+        await db.SaveChangesAsync();
+
+        response.ItemDB = item.ToMap(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Item_SelectTicket)]
     public async Task<ItemSelectTicketResponse> SelectTicket(
         SchaleDataContext db,
