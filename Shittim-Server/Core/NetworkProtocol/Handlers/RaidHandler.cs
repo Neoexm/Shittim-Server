@@ -52,6 +52,22 @@ public class RaidHandler : ProtocolHandlerBase
         return response;
     }
 
+    [ProtocolHandler(Protocol.Raid_CompleteList)]
+    public async Task<RaidCompleteListResponse> CompleteList(
+        SchaleDataContext db,
+        RaidCompleteListRequest request,
+        RaidCompleteListResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        response.RaidDBs = db.GetAccountRaids(account.ServerId).ToMapList(_mapper);
+        response.StackedDamage = 0;
+        response.ReceiveRewardId = [];
+        response.CurSeasonUniqueId = account.ContentInfo.RaidDataInfo.SeasonId;
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Raid_Lobby)]
     public async Task<RaidLobbyResponse> Lobby(
         SchaleDataContext db,
