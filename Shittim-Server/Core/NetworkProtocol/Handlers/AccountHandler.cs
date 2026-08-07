@@ -449,6 +449,11 @@ public class AccountHandler : ProtocolHandlerBase
             AccountClanMemberDB = new ClanMemberDB { AccountId = account.ServerId }
         };
 
+        // The client caches this list for the MomoTalk screen, so a student without a row here has no conversation
+        // to open until the next login.
+        MomoTalkService.SyncOutlines(db, account, _excelService.GetTable<AcademyMessangerExcelT>());
+        await db.SaveChangesAsync();
+
         var momoTalkOutlines = db.GetAccountMomoTalkOutLines(account.ServerId).ToList();
         response.MomotalkOutlineResponse = new MomoTalkOutLineResponse
         {

@@ -12,15 +12,22 @@ namespace Shittim_Server.Tests;
 public class ShopPurchaseLimitTests
 {
     [Theory]
-    [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-30)]
     [InlineData(long.MinValue)]
-    public void ANonPositiveCountIsRefused(long count)
+    public void ANegativeCountIsRefused(long count)
     {
-        // A non-positive count is what inverted the consume into a grant.
-        var ex = Assert.Throws<WebAPIException>(() => ShopHandler.ValidatePurchaseCount(count));
+        // A negative count is what inverted the consume into a grant.
+        var ex = Assert.Throws<WebAPIException>(() => ShopHandler.NormalizePurchaseCount(count));
         Assert.Equal(WebAPIErrorCode.ShopInvalidCostOrReward, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void AnAbsentCountBuysOne()
+    {
+        // A request that omits PurchaseCount deserializes to 0. Refusing it made single-unit buys fail with
+        // ShopInvalidCostOrReward while the same item bought in bulk went through.
+        Assert.Equal(1, ShopHandler.NormalizePurchaseCount(0));
     }
 
     [Theory]
@@ -29,8 +36,8 @@ public class ShopPurchaseLimitTests
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest + 1)]
     public void ACountBigEnoughToOverflowTheCostIsRefused(long count)
     {
-        // The bound has to be two-sided: `> 0` alone still allows a count large enough that cost * count overflows to a negative number, which re-opens the same hole.
-        var ex = Assert.Throws<WebAPIException>(() => ShopHandler.ValidatePurchaseCount(count));
+        // The bound has to be two-sided: `>= 0` alone still allows a count large enough that cost * count overflows to a negative number, which re-opens the same hole.
+        var ex = Assert.Throws<WebAPIException>(() => ShopHandler.NormalizePurchaseCount(count));
         Assert.Equal(WebAPIErrorCode.ShopInvalidCostOrReward, ex.ErrorCode);
     }
 
@@ -41,7 +48,7 @@ public class ShopPurchaseLimitTests
     [InlineData(ShopHandler.MaxPurchaseCountPerRequest)]
     public void RealisticCountsPass(long count)
     {
-        ShopHandler.ValidatePurchaseCount(count);
+        Assert.Equal(count, ShopHandler.NormalizePurchaseCount(count));
     }
 
     [Fact]

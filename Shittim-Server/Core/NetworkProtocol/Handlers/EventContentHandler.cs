@@ -65,7 +65,7 @@ public class EventContentHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        ShopHandler.ValidatePurchaseCount(request.PurchaseCount);
+        var purchaseCount = ShopHandler.NormalizePurchaseCount(request.PurchaseCount);
 
         var shopExcel = EventShop(request.EventContentId).FirstOrDefault(x => x.Id == request.ShopUniqueId)
             ?? throw new WebAPIException(WebAPIErrorCode.ShopExcelNotFound, $"Shop {request.ShopUniqueId} not found");
@@ -74,21 +74,23 @@ public class EventContentHandler : ProtocolHandlerBase
             ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {request.GoodsUniqueId} not found");
 
         var purchaseHistory = await ShopManager.EnsurePurchasable(
-            db, account, request.ShopUniqueId, shopExcel, request.PurchaseCount);
+            db, account, request.ShopUniqueId, shopExcel, purchaseCount);
 
+        // Column lengths are validated up front: a ragged goods row used to throw IndexOutOfRange mid-purchase,
+        // and truncating instead silently undercharged or dropped rewards.
         var consumeParcels = new List<ParcelResult>();
-        for (int i = 0; i < (goodsExcel.ConsumeParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShopHandler.AlignedColumnCount(goodsExcel.ConsumeParcelType?.Count, goodsExcel.ConsumeParcelId?.Count, goodsExcel.ConsumeParcelAmount?.Count); i++)
             consumeParcels.Add(new ParcelResult(
                 goodsExcel.ConsumeParcelType![i],
                 goodsExcel.ConsumeParcelId![i],
-                goodsExcel.ConsumeParcelAmount![i] * request.PurchaseCount));
+                goodsExcel.ConsumeParcelAmount![i] * purchaseCount));
 
         var rewardParcels = new List<ParcelResult>();
-        for (int i = 0; i < (goodsExcel.ParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShopHandler.AlignedColumnCount(goodsExcel.ParcelType?.Count, goodsExcel.ParcelId?.Count, goodsExcel.ParcelAmount?.Count); i++)
             rewardParcels.Add(new ParcelResult(
                 goodsExcel.ParcelType![i],
                 goodsExcel.ParcelId![i],
-                goodsExcel.ParcelAmount![i] * request.PurchaseCount));
+                goodsExcel.ParcelAmount![i] * purchaseCount));
 
         if (consumeParcels.Count > 0)
             await _parcelHandler.BuildParcel(db, account, consumeParcels, isConsume: true);
@@ -101,7 +103,7 @@ public class EventContentHandler : ProtocolHandlerBase
 
         response.AccountCurrencyDB = db.GetAccountCurrencies(account.ServerId).FirstOrDefaultMapTo(_mapper);
 
-        purchaseHistory.PurchaseCount += request.PurchaseCount;
+        purchaseHistory.PurchaseCount += purchaseCount;
 
         response.ShopProductDB = new ShopProductDB
         {
@@ -321,7 +323,7 @@ public class EventContentHandler : ProtocolHandlerBase
             ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {manage.GoodsId} not found");
 
         var consumeParcels = new List<ParcelResult>();
-        for (int i = 0; i < (costGoods.ConsumeParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShopHandler.AlignedColumnCount(costGoods.ConsumeParcelType?.Count, costGoods.ConsumeParcelId?.Count, costGoods.ConsumeParcelAmount?.Count); i++)
             consumeParcels.Add(new ParcelResult(costGoods.ConsumeParcelType![i], costGoods.ConsumeParcelId![i], costGoods.ConsumeParcelAmount![i] * drawCount));
 
         var shopRows = _excelService.GetTable<EventContentBoxGachaShopExcelT>()
@@ -342,7 +344,7 @@ public class EventContentHandler : ProtocolHandlerBase
                 if (goods == null)
                     continue;
 
-                for (int i = 0; i < (goods.ParcelType?.Count ?? 0); i++)
+                for (int i = 0; i < ShopHandler.AlignedColumnCount(goods.ParcelType?.Count, goods.ParcelId?.Count, goods.ParcelAmount?.Count); i++)
                 {
                     elementRewards.AddRange(ParcelInfo.CreateParcelInfo(goods.ParcelType![i], goods.ParcelId![i], goods.ParcelAmount![i]));
                     rewardParcels.Add(new ParcelResult(goods.ParcelType![i], goods.ParcelId![i], goods.ParcelAmount![i]));
@@ -560,7 +562,7 @@ public class EventContentHandler : ProtocolHandlerBase
             var costGoods = goodsTable.FirstOrDefault(x => x.Id == card.CostGoodsId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {card.CostGoodsId} not found");
 
-            for (int i = 0; i < (costGoods.ConsumeParcelType?.Count ?? 0); i++)
+            for (int i = 0; i < ShopHandler.AlignedColumnCount(costGoods.ConsumeParcelType?.Count, costGoods.ConsumeParcelId?.Count, costGoods.ConsumeParcelAmount?.Count); i++)
                 consumeParcels.Add(new ParcelResult(costGoods.ConsumeParcelType![i], costGoods.ConsumeParcelId![i], costGoods.ConsumeParcelAmount![i]));
 
             var rewards = new List<ParcelInfo>();
@@ -674,7 +676,7 @@ public class EventContentHandler : ProtocolHandlerBase
             ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {drawn.CostGoodsId} not found");
 
         var consumeParcels = new List<ParcelResult>();
-        for (int i = 0; i < (costGoods.ConsumeParcelType?.Count ?? 0); i++)
+        for (int i = 0; i < ShopHandler.AlignedColumnCount(costGoods.ConsumeParcelType?.Count, costGoods.ConsumeParcelId?.Count, costGoods.ConsumeParcelAmount?.Count); i++)
             consumeParcels.Add(new ParcelResult(costGoods.ConsumeParcelType![i], costGoods.ConsumeParcelId![i], costGoods.ConsumeParcelAmount![i]));
 
         var rewardParcels = new List<ParcelResult>();
@@ -757,10 +759,10 @@ public class EventContentHandler : ProtocolHandlerBase
             var goods = goodsTable.FirstOrDefault(x => x.Id == row.GoodsId)
                 ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {row.GoodsId} not found");
 
-            for (int i = 0; i < (goods.ConsumeParcelType?.Count ?? 0); i++)
+            for (int i = 0; i < ShopHandler.AlignedColumnCount(goods.ConsumeParcelType?.Count, goods.ConsumeParcelId?.Count, goods.ConsumeParcelAmount?.Count); i++)
                 consumeParcels.Add(new ParcelResult(goods.ConsumeParcelType![i], goods.ConsumeParcelId![i], goods.ConsumeParcelAmount![i]));
 
-            for (int i = 0; i < (goods.ParcelType?.Count ?? 0); i++)
+            for (int i = 0; i < ShopHandler.AlignedColumnCount(goods.ParcelType?.Count, goods.ParcelId?.Count, goods.ParcelAmount?.Count); i++)
                 rewardParcels.Add(new ParcelResult(goods.ParcelType![i], goods.ParcelId![i], goods.ParcelAmount![i]));
 
             play.RefreshShopIds.Remove(row.Id);

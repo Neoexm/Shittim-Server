@@ -112,7 +112,9 @@ public class ConsumeResolver
 
     public void HandleEquipmentConsumption(ConsumeRequestDB consumeRequest)
     {
-        foreach (var consumeData in consumeRequest.ConsumeEquipmentServerIdAndCounts)
+        // The model declares this nullable and the client omits the kinds it is not consuming; iterating it raw
+        // turned every such request into a 500.
+        foreach (var consumeData in consumeRequest.ConsumeEquipmentServerIdAndCounts ?? [])
         {
             var equipment = Context.Equipments.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.ServerId == consumeData.Key);
             if (equipment == null) continue;
@@ -144,7 +146,9 @@ public class ConsumeResolver
 
     public void HandleFurnitureConsumption(ConsumeRequestDB consumeRequest)
     {
-        foreach (var consumeData in consumeRequest.ConsumeFurnitureServerIdAndCounts)
+        // The model declares this nullable and the client omits the kinds it is not consuming; iterating it raw
+        // turned every such request into a 500.
+        foreach (var consumeData in consumeRequest.ConsumeFurnitureServerIdAndCounts ?? [])
         {
             var furniture = Context.Furnitures.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.ServerId == consumeData.Key);
             if (furniture == null) continue;
@@ -176,7 +180,9 @@ public class ConsumeResolver
 
     public void HandleItemConsumption(ConsumeRequestDB consumeRequest)
     {
-        foreach (var consumeData in consumeRequest.ConsumeItemServerIdAndCounts)
+        // The model declares this nullable and the client omits the kinds it is not consuming; iterating it raw
+        // turned every such request into a 500.
+        foreach (var consumeData in consumeRequest.ConsumeItemServerIdAndCounts ?? [])
         {
             var item = Context.Items.FirstOrDefault(x => x.AccountServerId == Account.ServerId && x.ServerId == consumeData.Key);
             if (item == null) continue;
