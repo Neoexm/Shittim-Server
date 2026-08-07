@@ -83,6 +83,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Item_Sell)]
     [InlineData(Protocol.Equipment_Sell)]
     [InlineData(Protocol.Arena_EnterBattle)]
+    [InlineData(Protocol.TimeAttackDungeon_Sweep)]
     [InlineData(Protocol.Scenario_EnterMainStage)]
     [InlineData(Protocol.Scenario_ConfirmMainStage)]
     [InlineData(Protocol.Scenario_DeployEchelon)]

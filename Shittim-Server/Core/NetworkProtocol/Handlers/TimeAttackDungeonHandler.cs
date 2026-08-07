@@ -38,6 +38,89 @@ public class TimeAttackDungeonHandler : ProtocolHandlerBase
         _parcelHandler = parcelHandler;
     }
 
+    [ProtocolHandler(Protocol.TimeAttackDungeon_Sweep)]
+    public async Task<TimeAttackDungeonSweepResponse> Sweep(
+        SchaleDataContext db,
+        TimeAttackDungeonSweepRequest request,
+        TimeAttackDungeonSweepResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        if (request.SweepCount < 1)
+            throw new WebAPIException(WebAPIErrorCode.TimeAttackDungeonInvalidRequest, "SweepCount must be positive");
+
+        var info = account.ContentInfo.TimeAttackDungeonDataInfo;
+        var season = _excelService.GetTable<TimeAttackDungeonSeasonManageExcelT>()
+                .FirstOrDefault(x => x.Id == info.SeasonId)
+            ?? throw new WebAPIException(WebAPIErrorCode.TimeAttackDungeonNotOpen, $"Season {info.SeasonId} not found");
+
+        // A sweep replays the best clear; with nothing cleared there is nothing to replay.
+        if (info.SeasonBestRecord <= 0)
+            throw new WebAPIException(WebAPIErrorCode.TimeAttackDungeonInvalidRequest, "No cleared run to sweep");
+
+        var reward = _excelService.GetTable<TimeAttackDungeonRewardExcelT>()
+                .FirstOrDefault(x => x.Id == season.TimeAttackDungeonRewardId)
+            ?? throw new WebAPIException(WebAPIErrorCode.TimeAttackDungeonInvalidData, $"Reward {season.TimeAttackDungeonRewardId} not found");
+
+        var currency = db.Currencies.FirstOrDefault(x => x.AccountServerId == account.ServerId);
+        if (currency == null
+            || !currency.CurrencyDict.TryGetValue(CurrencyTypes.TimeAttackDungeonTicket, out var tickets)
+            || tickets < request.SweepCount)
+        {
+            throw new WebAPIException(WebAPIErrorCode.TimeAttackDungeonInvalidRequest, "Not enough tickets");
+        }
+
+        await _parcelHandler.BuildParcel(db, account,
+            new ParcelResult(ParcelType.Currency, (long)CurrencyTypes.TimeAttackDungeonTicket, request.SweepCount),
+            isConsume: true);
+
+        var columns = ShopHandler.AlignedColumnCount(
+            reward.RewardParcelType?.Count, reward.RewardParcelId?.Count, reward.RewardParcelDefaultAmount?.Count);
+        // The point ratio scales each parcel between its default and max amounts; the official curve is unknown,
+        // bounded here by the excel's own Default..Max so it cannot run away.
+        var ratio = reward.RewardMaxPoint > 0
+            ? System.Math.Clamp(info.SeasonBestRecord / (double)reward.RewardMaxPoint, 0d, 1d)
+            : 0d;
+
+        var perSweep = new List<ParcelInfo>();
+        for (int i = 0; i < columns; i++)
+        {
+            if (reward.RewardMinPoint != null && i < reward.RewardMinPoint.Count
+                && info.SeasonBestRecord < reward.RewardMinPoint[i])
+            {
+                continue;
+            }
+
+            var min = reward.RewardParcelDefaultAmount![i];
+            var max = (reward.RewardParcelMaxAmount != null && i < reward.RewardParcelMaxAmount.Count)
+                ? reward.RewardParcelMaxAmount[i]
+                : min;
+            var amount = min + (long)((max - min) * ratio);
+            if (amount <= 0)
+                continue;
+
+            perSweep.Add(new ParcelInfo
+            {
+                Key = new ParcelKeyPair { Type = reward.RewardParcelType![i], Id = reward.RewardParcelId![i] },
+                Amount = amount
+            });
+        }
+
+        var all = new List<ParcelResult>();
+        response.Rewards = [];
+        for (int n = 0; n < request.SweepCount; n++)
+        {
+            response.Rewards.Add(perSweep);
+            all.AddRange(perSweep.Select(x => new ParcelResult(x.Key!.Type, x.Key.Id, x.Amount)));
+        }
+
+        var resolver = await _parcelHandler.BuildParcel(db, account, all);
+        response.ParcelResultDB = resolver.ParcelResult;
+        response.RoomDB = _timeAttackDungeonManager.GetRoom(db, account)?.ToMap(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.TimeAttackDungeon_Login)]
     public async Task<TimeAttackDungeonLoginResponse> Login(
         SchaleDataContext db,
