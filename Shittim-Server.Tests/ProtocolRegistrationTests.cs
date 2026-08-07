@@ -33,6 +33,7 @@ public class ProtocolRegistrationTests
     [InlineData(Protocol.Attachment_Get)]
     [InlineData(Protocol.Arena_Login)]
     [InlineData(Protocol.ContentSweep_MultiSweepPresetList)]
+    [InlineData(Protocol.Equipment_Lock)]
     [InlineData(Protocol.ClearDeck_List)]
     [InlineData(Protocol.Campaign_Heal)]
     [InlineData(Protocol.Campaign_PurchasePlayCountHardStage)]

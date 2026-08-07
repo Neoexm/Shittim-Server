@@ -33,6 +33,24 @@ public class EquipmentHandler : ProtocolHandlerBase
         _missionService = missionService;
     }
 
+    [ProtocolHandler(Protocol.Equipment_Lock)]
+    public async Task<EquipmentItemLockResponse> Lock(
+        SchaleDataContext db,
+        EquipmentItemLockRequest request,
+        EquipmentItemLockResponse response)
+    {
+        var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var equipment = db.GetAccountEquipments(account.ServerId).FirstOrDefault(x => x.ServerId == request.TargetServerId)
+            ?? throw new WebAPIException(WebAPIErrorCode.EquipmentNotFound, $"Equipment {request.TargetServerId} not found");
+        equipment.IsLocked = request.IsLocked;
+        await db.SaveChangesAsync();
+
+        response.EquipmentDB = equipment.ToMap(_mapper);
+
+        return response;
+    }
+
     [ProtocolHandler(Protocol.Equipment_List)]
     public async Task<EquipmentItemListResponse> List(
         SchaleDataContext db,
