@@ -104,8 +104,9 @@ namespace Shittim.Commands
                 case "modify":
                     if (Target == "all")
                     {
+                        // ModifyAllCharacters messages success or failure itself; a second unconditional
+                        // "Modified All Characters" here reported success even when the input was rejected.
                         await CharacterGM.ModifyAllCharacters(connection, Options, ModifyParams);
-                        await connection.SendChatMessage("Modified All Characters");
                     }
                     else if (isValidId)
                     {

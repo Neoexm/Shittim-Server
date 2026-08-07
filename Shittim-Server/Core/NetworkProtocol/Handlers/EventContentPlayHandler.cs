@@ -41,7 +41,8 @@ public class EventContentPlayHandler : ProtocolHandlerBase
             ?? throw new WebAPIException(WebAPIErrorCode.ShopGoodsNotFound, $"Goods {goodsId} not found");
 
         var cost = new List<ParcelResult>();
-        var costCount = new[] { goods.ConsumeParcelType?.Count ?? 0, goods.ConsumeParcelId?.Count ?? 0, goods.ConsumeParcelAmount?.Count ?? 0 }.Min();
+        var costCount = ShopHandler.AlignedColumnCount(
+            goods.ConsumeParcelType?.Count, goods.ConsumeParcelId?.Count, goods.ConsumeParcelAmount?.Count);
         for (int i = 0; i < costCount; i++)
             cost.Add(new ParcelResult(goods.ConsumeParcelType![i], goods.ConsumeParcelId![i], goods.ConsumeParcelAmount![i] * multiplier));
 

@@ -515,16 +515,33 @@ public class ShopHandler : ProtocolHandlerBase
             return purchaseCount;
 
         // Logged rather than silently coerced: if this line never appears in a play session, the 10009 popups on
-        // single-unit buys come from somewhere else and this reading was wrong.
-        Serilog.Log.Warning("Shop purchase arrived with no PurchaseCount; charging one unit");
+        // single-unit buys come from somewhere else and this reading was wrong. Information, not Warning - the
+        // client sends 0 on every single-unit buy, so this fires constantly in normal play.
+        Serilog.Log.Information("Shop purchase arrived with no PurchaseCount; charging one unit");
         return 1;
     }
 
-    /// <summary>Parcels for one goods row, scaled by the purchase count. Columns are indexed to the shortest of the three so a ragged excel row degrades instead of throwing.</summary>
+    /// <summary>
+    /// The common length of a goods row's three parcel columns. A ragged row used to throw IndexOutOfRange
+    /// mid-purchase; truncating to the shortest column instead silently undercharged or dropped rewards, so
+    /// unequal lengths are rejected before any parcel is applied.
+    /// </summary>
+    internal static int AlignedColumnCount(int? types, int? ids, int? amounts)
+    {
+        var t = types ?? 0;
+        var i = ids ?? 0;
+        var a = amounts ?? 0;
+        if (t != i || t != a)
+            throw new WebAPIException(WebAPIErrorCode.ShopInvalidCostOrReward,
+                $"Ragged goods parcel columns (types:{t} ids:{i} amounts:{a})");
+        return t;
+    }
+
+    /// <summary>Parcels for one goods row, scaled by the purchase count.</summary>
     private static List<ParcelInfo> BuildParcels(
         List<ParcelType>? types, List<long>? ids, List<long>? amounts, long purchaseCount)
     {
-        var count = Math.Min(types?.Count ?? 0, Math.Min(ids?.Count ?? 0, amounts?.Count ?? 0));
+        var count = AlignedColumnCount(types?.Count, ids?.Count, amounts?.Count);
 
         var parcels = new List<ParcelInfo>(count);
         for (int i = 0; i < count; i++)

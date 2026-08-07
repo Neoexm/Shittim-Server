@@ -68,6 +68,42 @@ namespace BlueArchiveAPI.Services
         }
 
         /// <summary>
+        /// Where an existing outline should resume, or 0 to leave it. A pending gate recorded by MomoTalk_Read is
+        /// authoritative: it opens once the rank is reached. Rows without one predate the marker, and there
+        /// LatestMessageGroupId cannot distinguish "read and stopped at the next group's gate" from "next unread
+        /// group" - advancing an unread group skips its story - so those only move when a recorded choice proves
+        /// the current group was read.
+        /// </summary>
+        public static long ResumeGroup(
+            List<AcademyMessangerExcelT> messengers,
+            long currentGroupId,
+            long? pendingGateGroupId,
+            bool currentGroupWasRead,
+            long favorRank)
+        {
+            if (pendingGateGroupId is > 0)
+            {
+                var opening = messengers
+                    .Where(x => x.MessageGroupId == pendingGateGroupId)
+                    .OrderBy(x => x.Id)
+                    .FirstOrDefault();
+                if (opening == null)
+                    return 0;
+                if (opening.MessageCondition == AcademyMessageConditions.FavorRankUp
+                    && favorRank < opening.ConditionValue)
+                {
+                    return 0;
+                }
+                return pendingGateGroupId.Value;
+            }
+
+            if (!currentGroupWasRead)
+                return 0;
+
+            return RankUnlockedGroup(messengers, currentGroupId, favorRank);
+        }
+
+        /// <summary>
         /// Gives every owned student the outline row the MomoTalk list renders from, and moves a student whose
         /// conversation stopped at a FavorRankUp gate onto the conversation that rank has since opened. Without this
         /// a fresh account has no rows at all, so no conversation can be started, and a conversation that ran into a
@@ -86,17 +122,28 @@ namespace BlueArchiveAPI.Services
 
             var now = account.GameSettings.ServerDateTime();
 
+            var readGroups = context.GetAccountMomoTalkChoices(account.ServerId)
+                .Select(c => new { c.CharacterDBId, c.MessageGroupId })
+                .ToList()
+                .Select(c => (c.CharacterDBId, c.MessageGroupId))
+                .ToHashSet();
+
             foreach (var character in context.Characters
                          .Where(x => x.AccountServerId == account.ServerId).ToList())
             {
                 if (outlinesByCharacterDbId.TryGetValue(character.ServerId, out var outline))
                 {
-                    var unlocked = RankUnlockedGroup(
-                        messengers, outline.LatestMessageGroupId, character.FavorRank);
-                    if (unlocked == 0)
+                    var resume = ResumeGroup(
+                        messengers,
+                        outline.LatestMessageGroupId,
+                        outline.PendingGateGroupId,
+                        readGroups.Contains((outline.CharacterDBId, outline.LatestMessageGroupId)),
+                        character.FavorRank);
+                    if (resume == 0)
                         continue;
 
-                    outline.LatestMessageGroupId = unlocked;
+                    outline.LatestMessageGroupId = resume;
+                    outline.PendingGateGroupId = null;
                     outline.ChosenMessageId = null;
                     outline.LastUpdateDate = now;
                     continue;

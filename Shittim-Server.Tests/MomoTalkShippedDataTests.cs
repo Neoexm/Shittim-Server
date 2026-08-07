@@ -8,14 +8,25 @@ namespace Shittim_Server.Tests;
 // AcademyMessangerExcel, so the assumptions they encode - the opening group is the lowest id, its FavorRankUp
 // gate is on the first row, follow-up conversations hang off NextGroupId behind a rank gate - stay checked
 // against the shipped table rather than against my reading of it.
-// Skipped when no ExcelDB.db is available (CI, or a checkout without the client data).
+// Skipped when no ExcelDB.db is available (CI, or a checkout without the client data). The skip is decided by
+// the attribute so the runner reports these as skipped rather than green-while-asserting-nothing; a present but
+// unreadable database (rotated SQLCipher key) fails instead of passing silently.
 public class MomoTalkShippedDataTests
 {
-    [Fact]
+    private sealed class ShippedDataFactAttribute : FactAttribute
+    {
+        public ShippedDataFactAttribute()
+        {
+            var dumped = DumpedDir();
+            if (dumped == null || !File.Exists(Path.Combine(dumped, "ExcelDB.db")))
+                Skip = "Shipped ExcelDB.db not available in this checkout";
+        }
+    }
+
+    [ShippedDataFact]
     public void EveryStudentsConversationOpensAtTheLowestGroupBehindItsRankGate()
     {
         var messengers = ShippedMessengers();
-        if (messengers == null) return;
 
         var students = messengers.Where(x => x.CharacterId > 0).GroupBy(x => x.CharacterId).ToList();
         Assert.NotEmpty(students);
@@ -37,12 +48,11 @@ public class MomoTalkShippedDataTests
         }
     }
 
-    [Fact]
+    [ShippedDataFact]
     public void ARankGateIsAlwaysTheFirstRowOfTheGroupItGates()
     {
         // RankUnlockedGroup and the handler's own gate both read the condition off the group's opening row.
         var messengers = ShippedMessengers();
-        if (messengers == null) return;
 
         foreach (var group in messengers.GroupBy(x => x.MessageGroupId))
         {
@@ -52,11 +62,10 @@ public class MomoTalkShippedDataTests
         }
     }
 
-    [Fact]
+    [ShippedDataFact]
     public void AStudentsConversationsAreReachableOneRankGateAtATime()
     {
         var messengers = ShippedMessengers();
-        if (messengers == null) return;
 
         var student = messengers.Where(x => x.CharacterId > 0).GroupBy(x => x.CharacterId).OrderBy(x => x.Key).First();
 
@@ -92,26 +101,31 @@ public class MomoTalkShippedDataTests
         Assert.True(gatesCrossed > 0, "expected at least one rank-gated conversation on the sample student");
     }
 
-    private static List<AcademyMessangerExcelT>? ShippedMessengers()
+    private static string? DumpedDir()
     {
         var dir = AppContext.BaseDirectory;
         while (dir != null && !Directory.Exists(Path.Combine(dir, "Shittim-Server")))
             dir = Path.GetDirectoryName(dir);
 
-        var dumped = new[]
-        {
-            Path.Combine(dir!, "Shittim-Server", "Resources", "Dumped"),
-            Path.Combine(dir!, "Shittim-Server", "bin", "Debug", "net10.0", "Resources", "Dumped"),
-            Path.Combine(dir!, "Shittim-Server", "bin", "Release", "net10.0", "Resources", "Dumped"),
-        }.FirstOrDefault(Directory.Exists);
-
-        if (dumped == null)
+        if (dir == null)
             return null;
 
-        ExcelTableService.DumpedDir = dumped;
+        return new[]
+        {
+            Path.Combine(dir, "Shittim-Server", "Resources", "Dumped"),
+            Path.Combine(dir, "Shittim-Server", "bin", "Debug", "net10.0", "Resources", "Dumped"),
+            Path.Combine(dir, "Shittim-Server", "bin", "Release", "net10.0", "Resources", "Dumped"),
+        }.FirstOrDefault(Directory.Exists);
+    }
 
-        // Empty means the table degraded - no ExcelDB.db, or a SQLCipher key that has rotated.
+    private static List<AcademyMessangerExcelT> ShippedMessengers()
+    {
+        ExcelTableService.DumpedDir = DumpedDir()!;
+
+        // Empty means the table degraded - the SQLCipher key rotated or the dump is truncated. The attribute
+        // already skipped when the file is absent, so degradation here is a failure, not a skip.
         var messengers = new ExcelTableService().GetTable<AcademyMessangerExcelT>();
-        return messengers.Count > 0 ? messengers : null;
+        Assert.NotEmpty(messengers);
+        return messengers;
     }
 }

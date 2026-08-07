@@ -602,46 +602,54 @@ namespace Shittim.GameMasters
             switch (option.ToLower())
             {
                 case "level":
-                    if (int.TryParse(parameters, out int level))
+                    if (!int.TryParse(parameters, out int level))
                     {
-                        foreach (var character in allCharacters)
-                            character.Level = level;
+                        await connection.SendChatMessage("Invalid level parameter!");
+                        return;
                     }
+                    foreach (var character in allCharacters)
+                        character.Level = level;
                     break;
                 case "star":
                     // Same bound as the single-character path: the client draws five slots.
-                    if (int.TryParse(parameters, out int star) && star is >= 1 and <= 5)
+                    if (!int.TryParse(parameters, out int star) || star is < 1 or > 5)
                     {
-                        foreach (var character in allCharacters)
-                            character.StarGrade = star;
+                        await connection.SendChatMessage("Invalid star parameter! Expected 1-5.");
+                        return;
                     }
+                    foreach (var character in allCharacters)
+                        character.StarGrade = star;
                     break;
                 case "skill":
                     var skillLevels = parameters.Split(' ');
-                    if (skillLevels.Length == 4 && skillLevels.All(x => int.TryParse(x, out _)))
+                    if (skillLevels.Length != 4 || !skillLevels.All(x => int.TryParse(x, out _)))
                     {
-                        foreach (var character in allCharacters)
-                        {
-                            character.ExSkillLevel = int.Parse(skillLevels[0]);
-                            character.PublicSkillLevel = int.Parse(skillLevels[1]);
-                            character.PassiveSkillLevel = int.Parse(skillLevels[2]);
-                            character.ExtraPassiveSkillLevel = int.Parse(skillLevels[3]);
-                        }
+                        await connection.SendChatMessage("Invalid skill levels! Format: {skill1 skill2 skill3 skill4}");
+                        return;
+                    }
+                    foreach (var character in allCharacters)
+                    {
+                        character.ExSkillLevel = int.Parse(skillLevels[0]);
+                        character.PublicSkillLevel = int.Parse(skillLevels[1]);
+                        character.PassiveSkillLevel = int.Parse(skillLevels[2]);
+                        character.ExtraPassiveSkillLevel = int.Parse(skillLevels[3]);
                     }
                     break;
                 case "ps":
                     var potentialStats = parameters.Split(' ');
-                    if (potentialStats.Length == 3 && potentialStats.All(x => int.TryParse(x, out _)))
+                    if (potentialStats.Length != 3 || !potentialStats.All(x => int.TryParse(x, out _)))
                     {
-                        foreach (var character in allCharacters)
+                        await connection.SendChatMessage("Invalid potential stats! Format: {ps1 ps2 ps3}");
+                        return;
+                    }
+                    foreach (var character in allCharacters)
+                    {
+                        character.PotentialStats = new Dictionary<int, int>
                         {
-                            character.PotentialStats = new Dictionary<int, int>
-                            {
-                                { 1, int.Parse(potentialStats[0]) },
-                                { 2, int.Parse(potentialStats[1]) },
-                                { 3, int.Parse(potentialStats[2]) }
-                            };
-                        }
+                            { 1, int.Parse(potentialStats[0]) },
+                            { 2, int.Parse(potentialStats[1]) },
+                            { 3, int.Parse(potentialStats[2]) }
+                        };
                     }
                     break;
                 default:

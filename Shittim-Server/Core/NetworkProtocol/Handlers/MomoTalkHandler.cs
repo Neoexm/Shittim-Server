@@ -87,6 +87,11 @@ public class MomoTalkHandler : ProtocolHandlerBase
                 ? request.LastReadMessageGroupId
                 : MomoTalkService.OpeningGroup(_academyMessengers, character.UniqueId, character.FavorRank);
 
+            // A 0 here means the student has no messenger rows or their first group is still rank-locked;
+            // persisting it would recreate the stuck-conversation state this outline exists to avoid.
+            if (openingGroup == 0)
+                return response;
+
             momotalkOutline = new MomoTalkOutLineDBServer
             {
                 AccountServerId = account.ServerId,
@@ -163,6 +168,9 @@ public class MomoTalkHandler : ProtocolHandlerBase
                 && nextGroupEntry.MessageCondition == AcademyMessageConditions.FavorRankUp
                 && favorRank < nextGroupEntry.ConditionValue)
             {
+                // Remember where the conversation stopped so the login sync can resume it once the rank
+                // is reached - without this marker it cannot tell a gate-stop from an unread group.
+                momotalkOutline.PendingGateGroupId = nextGroupId;
                 nextGroupId = 0;
             }
         }
@@ -170,6 +178,7 @@ public class MomoTalkHandler : ProtocolHandlerBase
         if (nextGroupId > 0)
         {
             momotalkOutline.LatestMessageGroupId = nextGroupId;
+            momotalkOutline.PendingGateGroupId = null;
             momotalkOutline.LastUpdateDate = account.GameSettings.ServerDateTime();
             // Keep current outline choice null to prevent duplicate message bubbles.
             // Choice history is already represented by MomoTalkChoiceDBs.

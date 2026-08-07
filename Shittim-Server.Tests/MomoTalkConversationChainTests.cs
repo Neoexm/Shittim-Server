@@ -53,6 +53,34 @@ public class MomoTalkConversationChainTests
         Assert.Equal(0, MomoTalkService.RankUnlockedGroup(Messengers, currentGroupId: 100040100, favorRank: 99));
     }
 
+    [Fact]
+    public void APendingGateOpensOnceTheRankIsThere()
+    {
+        // MomoTalk_Read stopped at 100040020 because 100040090 needs rank 3.
+        Assert.Equal(0, MomoTalkService.ResumeGroup(
+            Messengers, currentGroupId: 100040020, pendingGateGroupId: 100040090, currentGroupWasRead: true, favorRank: 2));
+        Assert.Equal(100040090, MomoTalkService.ResumeGroup(
+            Messengers, currentGroupId: 100040020, pendingGateGroupId: 100040090, currentGroupWasRead: true, favorRank: 3));
+    }
+
+    [Fact]
+    public void AnUnreadGroupIsNeverSkippedBySync()
+    {
+        // The outline points at 100040020 as the NEXT unread group (set by reading 100040011); the player already
+        // has rank 3, so 100040090's gate is open - but advancing would skip 100040020's unread messages.
+        Assert.Equal(0, MomoTalkService.ResumeGroup(
+            Messengers, currentGroupId: 100040020, pendingGateGroupId: null, currentGroupWasRead: false, favorRank: 3));
+    }
+
+    [Fact]
+    public void ALegacyRowResumesPastTheGateOnlyWithProofItWasRead()
+    {
+        // Rows written before the pending-gate marker existed: a recorded choice for the current group is the
+        // proof that it was read and the stop really was the gate.
+        Assert.Equal(100040090, MomoTalkService.ResumeGroup(
+            Messengers, currentGroupId: 100040020, pendingGateGroupId: null, currentGroupWasRead: true, favorRank: 3));
+    }
+
     private static AcademyMessangerExcelT Row(
         long id,
         long group,
