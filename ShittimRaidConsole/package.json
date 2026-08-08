@@ -1,0 +1,30 @@
+{
+  "name": "shittim-raid-console",
+  "version": "2026.8.8",
+  "description": "Admin console for the Shittim world raid coordinator",
+  "main": "main.js",
+  "author": "Neoexm",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "moe.shittim.raidconsole",
+    "productName": "Shittim Raid Console",
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    }
+  }
+}
