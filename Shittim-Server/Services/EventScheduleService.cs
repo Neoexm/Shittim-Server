@@ -14,6 +14,7 @@ namespace Shittim_Server.Services;
 public static class EventScheduleService
 {
     private const string SchemaTable = "EventContentSeasonDBSchema";
+    private const string InteractiveSchemaTable = "InteractiveWorldRaidSeasonManageDBSchema";
     private const string ItemSchemaTable = "ItemDBSchema";
     private const string ForcedOpen = "2020-01-01 00:00:00";
     private const string ForcedClose = "2099-12-31 23:59:59";
@@ -94,6 +95,7 @@ public static class EventScheduleService
 
         var written = 0;
         var unmatched = 0;
+        var phaseRows = 0;
         var expiryChanged = 0;
 
         // ExcelDB flatbuffer strings are stored plaintext (the SQLCipher layer is the only encryption), so read and write them with the string cipher off or every untouched field comes back mangled. The repack is not byte-identical - the builder lays a buffer out its own way - but it is value-identical and stable, so applying the same enabled set twice writes the same bytes the second time. UseEncryption is the same process-global a table load flips, and this runs on a request thread, so it takes the loader's lock for as long as the unpack and repack below need the flag to stay put.
@@ -126,8 +128,8 @@ public static class EventScheduleService
                 {
                     var rec = EventContentSeasonExcel.GetRootAsEventContentSeasonExcel(new ByteBuffer(row.Bytes)).UnPack();
 
-                    // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. WorldRaidEntrance is the event-lobby door for the same season id and rides along.
-                    if (raid != null && rec.EventContentId == raid.seasonId && (rec.EventContentType == EventContentType.WorldRaid || rec.EventContentType == EventContentType.WorldRaidEntrance))
+                    // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. WorldRaidEntrance is the event-lobby door for the same season id and rides along. InteractiveWorldRaid is 854's flavour of the same season row; its per-phase windows live in their own table and get rewritten further down.
+                    if (raid != null && rec.EventContentId == raid.seasonId && (rec.EventContentType == EventContentType.WorldRaid || rec.EventContentType == EventContentType.WorldRaidEntrance || rec.EventContentType == EventContentType.InteractiveWorldRaid))
                     {
                         rec.BeforehandExposedTime = string.IsNullOrEmpty(raid.exposed) ? raid.open : raid.exposed;
                         rec.EventContentOpenTime = raid.open;
@@ -171,6 +173,94 @@ public static class EventScheduleService
                     written++;
                 }
                 tx.Commit();
+            }
+
+            // The interactive raid family keeps a second layer of dates the season row cannot express: per-phase windows plus per-boss spawn/eliminate lists, all in InteractiveWorldRaidSeasonManageExcel and all read client-side from ExcelDB the same way. A live manifest's boss windows land here so the phases follow the operator's schedule instead of the shipped 2026 dates; every other interactive row goes back to shipped. The replay phase is the one that reopens every boss after the season proper, so it gets close..extension.
+            var interactivePristine = excel.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
+                .GroupBy(s => s.PhaseId)
+                .ToDictionary(g => g.Key, g => g.First());
+            if (interactivePristine.Count > 0)
+            {
+                var iwrRows = new List<(long RowId, byte[] Bytes)>();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"SELECT rowid, Bytes FROM [{InteractiveSchemaTable}]";
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        iwrRows.Add((reader.GetInt64(0), (byte[])reader[1]));
+                }
+
+                using (var tx = conn.BeginTransaction())
+                {
+                    var raid = WorldRaidService.Manifest;
+
+                    foreach (var row in iwrRows)
+                    {
+                        var rec = InteractiveWorldRaidSeasonManageExcel.GetRootAsInteractiveWorldRaidSeasonManageExcel(new ByteBuffer(row.Bytes)).UnPack();
+
+                        if (raid != null && rec.SeasonId == raid.seasonId)
+                        {
+                            var end = string.IsNullOrEmpty(raid.extension) ? raid.close : raid.extension;
+                            if (rec.IsReplaySeason)
+                            {
+                                rec.PhaseStartTime = raid.close;
+                                rec.PhaseEndTime = end;
+                                for (var i = 0; i < rec.BossSpawnTime.Count; i++)
+                                    rec.BossSpawnTime[i] = raid.close;
+                                for (var i = 0; i < rec.EliminateTime.Count; i++)
+                                    rec.EliminateTime[i] = end;
+                            }
+                            else
+                            {
+                                var spawns = new List<string>();
+                                var eliminates = new List<string>();
+                                foreach (var groupId in rec.OpenRaidBossGroupId)
+                                {
+                                    var declared = raid.bosses.FirstOrDefault(b => b.groupId == groupId);
+                                    spawns.Add(string.IsNullOrEmpty(declared?.spawnTime) ? raid.open : declared.spawnTime);
+                                    eliminates.Add(string.IsNullOrEmpty(declared?.eliminateTime) ? raid.close : declared.eliminateTime);
+                                }
+                                for (var i = 0; i < rec.BossSpawnTime.Count && i < spawns.Count; i++)
+                                    rec.BossSpawnTime[i] = spawns[i];
+                                for (var i = 0; i < rec.EliminateTime.Count && i < eliminates.Count; i++)
+                                    rec.EliminateTime[i] = eliminates[i];
+                                // the first phase opens with the season; conditioned phases open a day before their first boss spawns, which is how every 854 phase shipped (the lead day is the preview). A phase closes when its last boss leaves.
+                                var firstSpawn = spawns.OrderBy(s => DateTime.TryParse(s, out var d) ? d : DateTime.MaxValue).FirstOrDefault();
+                                if (rec.PhaseStartCondition == 0)
+                                    rec.PhaseStartTime = raid.open;
+                                else if (firstSpawn != null && DateTime.TryParse(firstSpawn, out var spawnAt))
+                                    rec.PhaseStartTime = spawnAt.AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                                else
+                                    rec.PhaseStartTime = raid.open;
+                                rec.PhaseEndTime = eliminates.OrderByDescending(s => DateTime.TryParse(s, out var d) ? d : DateTime.MinValue).FirstOrDefault() ?? raid.close;
+                            }
+                        }
+                        else if (interactivePristine.TryGetValue(rec.PhaseId, out var original))
+                        {
+                            rec.PhaseStartTime = original.PhaseStartTime;
+                            rec.PhaseEndTime = original.PhaseEndTime;
+                            rec.BossSpawnTime = original.BossSpawnTime.ToList();
+                            rec.EliminateTime = original.EliminateTime.ToList();
+                        }
+                        else
+                        {
+                            unmatched++;
+                            continue;
+                        }
+
+                        var fbb = new FlatBufferBuilder(Math.Max(64, row.Bytes.Length + 64));
+                        fbb.Finish(InteractiveWorldRaidSeasonManageExcel.Pack(fbb, rec).Value);
+
+                        using var upd = conn.CreateCommand();
+                        upd.Transaction = tx;
+                        upd.CommandText = $"UPDATE [{InteractiveSchemaTable}] SET Bytes = @b WHERE rowid = @r";
+                        upd.Parameters.Add("@b", SqliteType.Blob).Value = fbb.SizedByteArray();
+                        upd.Parameters.Add("@r", SqliteType.Integer).Value = row.RowId;
+                        upd.ExecuteNonQuery();
+                        phaseRows++;
+                    }
+                    tx.Commit();
+                }
             }
 
             // Event currency disappears from the inventory once its ItemExcel.ExpirationDateTime is in the past: ItemObject.IsValid is nothing but IsRemainExpirationTime and InventoryObjectBase.GetList drops whatever is invalid, so a replayed event hands out tokens the player is told they received and then cannot find. Blanking the date on the forced-open events leaves IsRemainExpirationTime on its is-null-or-empty early out, which also keeps them out of the lobby's expiring-soon popup.
@@ -230,6 +320,9 @@ public static class EventScheduleService
                 tx.Commit();
             }
         }
+
+        if (phaseRows > 0)
+            Log.Information("Event schedule: {Count} interactive raid phase row(s) rewritten", phaseRows);
 
         if (expiryChanged > 0)
             Log.Information("Event schedule: {Count} event currency item(s) had their expiry date rewritten", expiryChanged);

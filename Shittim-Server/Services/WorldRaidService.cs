@@ -90,13 +90,28 @@ public static class WorldRaidService
         var state = new WorldRaidWorldState { seasonId = manifest.seasonId };
         var season = excel.GetTable<WorldRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == manifest.seasonId);
         var groups = excel.GetTable<WorldRaidBossGroupExcelT>();
+        var interactiveGroups = excel.GetTable<InteractiveWorldRaidBossGroupExcelT>();
 
-        foreach (var groupId in season?.OpenRaidBossGroupId ?? new List<long>())
+        // interactive seasons (854) spread their groups over per-phase rows, so the season's group list is the union of every phase's
+        var seasonGroupIds = season?.OpenRaidBossGroupId ?? excel.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
+            .Where(x => x.SeasonId == manifest.seasonId)
+            .SelectMany(x => x.OpenRaidBossGroupId)
+            .Distinct()
+            .ToList();
+
+        foreach (var groupId in seasonGroupIds)
         {
             var declared = manifest.bosses.FirstOrDefault(b => b.groupId == groupId);
             var hp = declared?.totalHP ?? 0;
             if (hp == 0)
                 hp = groups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId)?.WorldBossHP ?? 0;
+            if (hp == 0)
+            {
+                // interactive pools ship per region; the steam client is the global build
+                var interactive = interactiveGroups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId);
+                if (interactive != null)
+                    hp = interactive.WorldBossHPGlobal != 0 ? interactive.WorldBossHPGlobal : interactive.WorldBossHP;
+            }
             state.bosses[groupId] = new WorldRaidBossState { remainingHP = hp };
         }
         foreach (var declared in manifest.bosses.Where(b => !state.bosses.ContainsKey(b.groupId)))

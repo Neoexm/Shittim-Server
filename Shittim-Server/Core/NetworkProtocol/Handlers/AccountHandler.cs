@@ -341,22 +341,30 @@ public class AccountHandler : ProtocolHandlerBase
             MailNotificationService.MarkNewMail(account.ServerId);
         }
 
-        // World raid entry tickets have no refill of their own (ChargeLimit 40, no regen row), so with a raid live each login just tops the season's ticket back to its cap - a monthly event should not be lost to an empty ticket counter.
+        // World raid entry tickets have no refill of their own (ChargeLimit 40, no regen row), so with a raid live each login just tops the season's ticket back to its cap - a monthly event should not be lost to an empty ticket counter. Interactive seasons (854) bring a different ticket per phase, so every currency the phase rows name gets the same treatment.
         var raidManifest = WorldRaidService.Manifest;
         if (raidManifest != null && currencyDb != null)
         {
             var raidSeason = _excelService.GetTable<WorldRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == raidManifest.seasonId);
-            var ticketExcel = raidSeason == null ? null : _excelService.GetTable<CurrencyExcelT>().FirstOrDefault(x => x.CurrencyType == raidSeason.EnterTicket);
-            if (ticketExcel != null)
+            var raidTicketTypes = raidSeason != null
+                ? new List<CurrencyTypes> { raidSeason.EnterTicket }
+                : _excelService.GetTable<InteractiveWorldRaidSeasonManageExcelT>().Where(x => x.SeasonId == raidManifest.seasonId).Select(x => x.EnterTicket).Distinct().ToList();
+
+            var topped = false;
+            foreach (var ticketExcel in _excelService.GetTable<CurrencyExcelT>().Where(x => raidTicketTypes.Contains(x.CurrencyType)))
             {
                 currencyDb.CurrencyDict.TryGetValue(ticketExcel.CurrencyType, out var raidTickets);
                 if (raidTickets < ticketExcel.ChargeLimit)
                 {
                     currencyDb.CurrencyDict[ticketExcel.CurrencyType] = ticketExcel.ChargeLimit;
                     currencyDb.UpdateTimeDict[ticketExcel.CurrencyType] = account.GameSettings.ServerDateTime();
-                    db.Currencies.Update(currencyDb);
-                    await db.SaveChangesAsync();
+                    topped = true;
                 }
+            }
+            if (topped)
+            {
+                db.Currencies.Update(currencyDb);
+                await db.SaveChangesAsync();
             }
         }
 

@@ -35,16 +35,15 @@ public class WorldRaidManager
         AccountDBServer account,
         WorldRaidLobbyRequest req)
     {
-        var worldRaidSeasons = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>();
-        var worldSeasonExcel = worldRaidSeasons.GetWorldRaidSeasonById(req.SeasonId);
-
         var worldRaidStages = _excelTableService.GetTable<WorldRaidStageExcelT>();
         var worldRaidLocalBosses = new List<WorldRaidLocalBossDBServer>();
 
-        foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
+        foreach (var bossGroupId in SeasonBossGroups(req.SeasonId))
         {
             var worldRaidStageExcelList = worldRaidStages.GetWorldRaidStageExcelsByGroupId(bossGroupId);
-            
+            if (worldRaidStageExcelList.Count == 0)
+                worldRaidStageExcelList = _excelTableService.GetTable<InteractiveWorldRaidStageExcelT>().Where(x => x.WorldRaidBossGroupId == bossGroupId).Select(AsClassicStage).ToList();
+
             foreach (var worldRaidStageExcel in worldRaidStageExcelList)
             {
                 var worldRaidLocalDB = await context.WorldRaidLocalBosses
@@ -83,24 +82,28 @@ public class WorldRaidManager
         AccountDBServer account,
         WorldRaidBossListRequest req)
     {
-        var worldRaidSeasons = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>();
-        var worldSeasonExcel = worldRaidSeasons.GetWorldRaidSeasonById(req.SeasonId);
-
         var worldRaidBossGroups = _excelTableService.GetTable<WorldRaidBossGroupExcelT>();
         var bossList = new List<WorldRaidBossListInfoDBServer>();
 
-        foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
+        foreach (var bossGroupId in SeasonBossGroups(req.SeasonId))
         {
             var worldRaidBossList = await context.WorldRaidBossListInfos
                 .FirstOrDefaultAsync(x => x.GroupId == bossGroupId);
 
             if (worldRaidBossList == null)
             {
-                var bossGroupExcel = worldRaidBossGroups.GetWorldRaidBossGroupById(bossGroupId);
+                var seedHP = worldRaidBossGroups.FirstOrDefault(x => x.WorldRaidBossGroupId == bossGroupId)?.WorldBossHP;
+                if (seedHP == null)
+                {
+                    // interactive pools ship per region; the steam client is the global build
+                    var interactiveGroup = _excelTableService.GetTable<InteractiveWorldRaidBossGroupExcelT>().First(x => x.WorldRaidBossGroupId == bossGroupId);
+                    seedHP = interactiveGroup.WorldBossHPGlobal != 0 ? interactiveGroup.WorldBossHPGlobal : interactiveGroup.WorldBossHP;
+                }
+
                 var worldRaidWorldBossDB = new WorldRaidWorldBossDBServer
                 {
                     GroupId = bossGroupId,
-                    HP = bossGroupExcel.WorldBossHP
+                    HP = seedHP.Value
                 };
 
                 worldRaidBossList = new WorldRaidBossListInfoDBServer
@@ -114,12 +117,24 @@ public class WorldRaidManager
             }
 
             // while a manifest is live the shared pool is authoritative; without one the row itself is the pool
-            var pooledHP = WorldRaidService.RemainingHP(bossGroupId);
+            var poolGroupId = PoolGroup(bossGroupId);
+            var pooledHP = WorldRaidService.RemainingHP(poolGroupId);
             if (pooledHP != null)
             {
                 worldRaidBossList.WorldBossDB.HP = pooledHP.Value;
-                worldRaidBossList.WorldBossDB.Participants = WorldRaidService.Participants(bossGroupId);
+                worldRaidBossList.WorldBossDB.Participants = WorldRaidService.Participants(poolGroupId);
                 await context.SaveChangesAsync();
+            }
+            else if (poolGroupId != bossGroupId)
+            {
+                // linked difficulties drain the root row, so show its bar here too
+                var rootRow = await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == poolGroupId);
+                if (rootRow != null)
+                {
+                    worldRaidBossList.WorldBossDB.HP = rootRow.WorldBossDB.HP;
+                    worldRaidBossList.WorldBossDB.Participants = rootRow.WorldBossDB.Participants;
+                    await context.SaveChangesAsync();
+                }
             }
 
             worldRaidBossList.LocalBossDBs = context.GetAccountWorldRaidLocalBosses(account.ServerId)
@@ -137,8 +152,7 @@ public class WorldRaidManager
         AccountDBServer account,
         WorldRaidEnterBattleRequest req)
     {
-        var worldRaidStages = _excelTableService.GetTable<WorldRaidStageExcelT>();
-        var targetStage = worldRaidStages.GetWorldRaidStageExcelById(req.UniqueId);
+        var targetStage = GetStage(req.UniqueId);
 
         var characterStats = _excelTableService.GetTable<CharacterStatExcelT>();
         var targetBoss = characterStats.FirstOrDefault(y => y.CharacterId == targetStage.BossCharacterId.FirstOrDefault());
@@ -183,8 +197,7 @@ public class WorldRaidManager
         if (req.IsPractice)
             return null;
 
-        var worldRaidStages = _excelTableService.GetTable<WorldRaidStageExcelT>();
-        var targetStage = worldRaidStages.GetWorldRaidStageExcelById(req.UniqueId);
+        var targetStage = GetStage(req.UniqueId);
 
         var raidBattle = await context.RaidBattles
             .FirstOrDefaultAsync(x =>
@@ -203,7 +216,51 @@ public class WorldRaidManager
             var isContinue = targetStage.SaveCurrentLocalBossHP && raidBattle != null && raidBattle.CurrentBossHP < freshBossHP;
             var cost = isContinue ? targetStage.ReEnterAmount : targetStage.RaidEnterAmount;
 
-            var enterTicket = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().GetWorldRaidSeasonById(req.SeasonId).EnterTicket;
+            var classicSeason = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == req.SeasonId);
+            var enterTicket = classicSeason?.EnterTicket ?? default;
+            if (classicSeason == null)
+            {
+                // interactive seasons charge per phase and the replay phase reopens every boss on its own currency, so the latest phase that has started is the one the client is paying with. The manifest is what the client's phase dates were patched from; without one the shipped dates decide.
+                var phases = _excelTableService.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
+                    .Where(x => x.SeasonId == req.SeasonId && x.OpenRaidBossGroupId.Contains(req.GroupId))
+                    .OrderBy(x => x.PhaseId)
+                    .ToList();
+                if (phases.Count > 0)
+                {
+                    enterTicket = phases[0].EnterTicket;
+                    var manifest = WorldRaidService.Manifest;
+                    var now = DateTime.Now;
+                    foreach (var phase in phases)
+                    {
+                        DateTime start;
+                        if (manifest != null && manifest.seasonId == req.SeasonId)
+                        {
+                            if (phase.IsReplaySeason)
+                            {
+                                if (!DateTime.TryParse(manifest.close, out start))
+                                    continue;
+                            }
+                            else if (phase.PhaseStartCondition == 0)
+                            {
+                                if (!DateTime.TryParse(manifest.open, out start))
+                                    continue;
+                            }
+                            else
+                            {
+                                var spawns = phase.OpenRaidBossGroupId.Select(WorldRaidService.BossWindow).Where(w => w.HasValue).Select(w => w!.Value.Spawn).ToList();
+                                if (spawns.Count == 0)
+                                    continue;
+                                start = spawns.Min();
+                            }
+                        }
+                        else if (!DateTime.TryParse(phase.PhaseStartTime, out start))
+                            continue;
+
+                        if (start <= now)
+                            enterTicket = phase.EnterTicket;
+                    }
+                }
+            }
 
             var currency = await context.Currencies.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId);
             if (cost > 0 && currency != null && currency.CurrencyDict.TryGetValue(enterTicket, out var tickets) && tickets >= cost)
@@ -223,10 +280,11 @@ public class WorldRaidManager
             : summary.GivenDamage;
         if (contribution > 0)
         {
-            WorldRaidService.AddDamage(req.GroupId, contribution);
-            if (WorldRaidService.RemainingHP(req.GroupId) == null)
+            var poolGroupId = PoolGroup(req.GroupId);
+            WorldRaidService.AddDamage(poolGroupId, contribution);
+            if (WorldRaidService.RemainingHP(poolGroupId) == null)
             {
-                var bossListInfo = await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == req.GroupId);
+                var bossListInfo = await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == poolGroupId);
                 if (bossListInfo != null)
                 {
                     bossListInfo.WorldBossDB.HP = Math.Max(0, bossListInfo.WorldBossDB.HP - contribution);
@@ -325,7 +383,11 @@ public class WorldRaidManager
         if (manifest == null || manifest.seasonId != seasonId)
             return null;
 
-        var worldSeasonExcel = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().GetWorldRaidSeasonById(seasonId);
+        // interactive seasons get their schedule written straight into the client's ExcelDB phase rows, so there is nothing to overwrite from here
+        var worldSeasonExcel = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == seasonId);
+        if (worldSeasonExcel == null)
+            return null;
+
         var groups = new List<WorldRaidBossGroup>();
         foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
         {
@@ -345,14 +407,12 @@ public class WorldRaidManager
         return new Dictionary<long, List<WorldRaidBossGroup>> { [seasonId] = groups };
     }
 
-    // world boss clear rewards, claimable once per boss group after the shared pool hits zero. 821/823 ship no clear reward groups so this correctly hands them nothing.
+    // world boss clear rewards, claimable once per boss group after the shared pool hits zero. 821/823 ship no clear reward groups so this correctly hands them nothing, and every 854 group ships zero too.
     public async Task<ParcelResultDB?> ReceiveReward(
         SchaleDataContext context,
         AccountDBServer account,
         WorldRaidReceiveRewardRequest req)
     {
-        var worldRaidSeasons = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>();
-        var worldSeasonExcel = worldRaidSeasons.GetWorldRaidSeasonById(req.SeasonId);
         var worldRaidBossGroups = _excelTableService.GetTable<WorldRaidBossGroupExcelT>();
         var worldRaidRewards = _excelTableService.GetTable<WorldRaidStageRewardExcelT>();
 
@@ -362,21 +422,23 @@ public class WorldRaidManager
             .ToHashSet();
 
         var parcelResult = new List<ParcelResult>();
-        foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
+        foreach (var bossGroupId in SeasonBossGroups(req.SeasonId))
         {
             if (claimed.Contains(bossGroupId))
                 continue;
 
-            var bossGroupExcel = worldRaidBossGroups.GetWorldRaidBossGroupById(bossGroupId);
-            if (bossGroupExcel.WorldBossClearRewardGroupId == 0)
+            var clearRewardGroupId = worldRaidBossGroups.FirstOrDefault(x => x.WorldRaidBossGroupId == bossGroupId)?.WorldBossClearRewardGroupId
+                ?? _excelTableService.GetTable<InteractiveWorldRaidBossGroupExcelT>().First(x => x.WorldRaidBossGroupId == bossGroupId).WorldBossClearRewardGroupId;
+            if (clearRewardGroupId == 0)
                 continue;
 
-            var remaining = WorldRaidService.RemainingHP(bossGroupId)
-                ?? (await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == bossGroupId))?.WorldBossDB.HP;
+            var poolGroupId = PoolGroup(bossGroupId);
+            var remaining = WorldRaidService.RemainingHP(poolGroupId)
+                ?? (await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == poolGroupId))?.WorldBossDB.HP;
             if (remaining == null || remaining > 0)
                 continue;
 
-            foreach (var reward in worldRaidRewards.GetWorldRaidStageRewardByGroupId(bossGroupExcel.WorldBossClearRewardGroupId))
+            foreach (var reward in worldRaidRewards.GetWorldRaidStageRewardByGroupId(clearRewardGroupId))
             {
                 parcelResult.Add(new ParcelResult(
                     reward.ClearStageRewardParcelType,
@@ -400,6 +462,51 @@ public class WorldRaidManager
         await context.SaveChangesAsync();
 
         return parcelResultDB;
+    }
+
+    // interactive seasons (854) are one row per phase rather than one per season; the union covers every group the client can ask about, and the client filters what it shows by its own phase dates
+    private List<long> SeasonBossGroups(long seasonId)
+    {
+        var season = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().FirstOrDefault(x => x.SeasonId == seasonId);
+        if (season != null)
+            return season.OpenRaidBossGroupId;
+
+        return _excelTableService.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
+            .Where(x => x.SeasonId == seasonId)
+            .SelectMany(x => x.OpenRaidBossGroupId)
+            .Distinct()
+            .ToList();
+    }
+
+    // 854's stages live in the interactive table but carry the same battle fields, so an interactive row gets dressed up as a classic one and the rest of the flow does not care
+    private WorldRaidStageExcelT GetStage(long uniqueId)
+    {
+        var stage = _excelTableService.GetTable<WorldRaidStageExcelT>().FirstOrDefault(x => x.Id == uniqueId);
+        if (stage != null)
+            return stage;
+
+        return AsClassicStage(_excelTableService.GetTable<InteractiveWorldRaidStageExcelT>().First(x => x.Id == uniqueId));
+    }
+
+    private static WorldRaidStageExcelT AsClassicStage(InteractiveWorldRaidStageExcelT stage) => new()
+    {
+        Id = stage.Id,
+        WorldRaidBossGroupId = stage.WorldRaidBossGroupId,
+        BossCharacterId = stage.BossCharacterId,
+        RaidEnterAmount = stage.RaidEnterAmount,
+        ReEnterAmount = stage.ReEnterAmount,
+        RaidRewardGroupId = stage.RaidRewardGroupId,
+        RaidBattleEndRewardGroupId = stage.RaidBattleEndRewardGroupId,
+        DamageToWorldBoss = stage.DamageToWorldBoss,
+        SaveCurrentLocalBossHP = stage.SaveCurrentLocalBossHP,
+        IsRaidScenarioBattle = stage.IsRaidScenarioBattle
+    };
+
+    // Malkuth's two difficulties share one health bar: WorldBossHPLinkGroup names the pool a group drains, zero means the group is its own pool
+    private long PoolGroup(long groupId)
+    {
+        var link = _excelTableService.GetTable<InteractiveWorldRaidBossGroupExcelT>().FirstOrDefault(x => x.WorldRaidBossGroupId == groupId)?.WorldBossHPLinkGroup ?? 0;
+        return link != 0 ? link : groupId;
     }
 
     private static void CalculateRaidCollection(RaidBattleDBServer raidBattle, RaidSummary summary)
