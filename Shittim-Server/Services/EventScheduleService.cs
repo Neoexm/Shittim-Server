@@ -131,10 +131,10 @@ public static class EventScheduleService
                     // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. WorldRaidEntrance is the event-lobby door for the same season id and rides along. InteractiveWorldRaid is 854's flavour of the same season row; its per-phase windows live in their own table and get rewritten further down.
                     if (raid != null && rec.EventContentId == raid.seasonId && (rec.EventContentType == EventContentType.WorldRaid || rec.EventContentType == EventContentType.WorldRaidEntrance || rec.EventContentType == EventContentType.InteractiveWorldRaid))
                     {
-                        rec.BeforehandExposedTime = string.IsNullOrEmpty(raid.exposed) ? raid.open : raid.exposed;
-                        rec.EventContentOpenTime = raid.open;
-                        rec.EventContentCloseTime = raid.close;
-                        rec.ExtensionTime = string.IsNullOrEmpty(raid.extension) ? raid.close : raid.extension;
+                        rec.BeforehandExposedTime = WorldRaidService.LocalStamp(string.IsNullOrEmpty(raid.exposed) ? raid.open : raid.exposed);
+                        rec.EventContentOpenTime = WorldRaidService.LocalStamp(raid.open);
+                        rec.EventContentCloseTime = WorldRaidService.LocalStamp(raid.close);
+                        rec.ExtensionTime = WorldRaidService.LocalStamp(string.IsNullOrEmpty(raid.extension) ? raid.close : raid.extension);
                         rec.EventContentCloseNoteTime = "";
                     }
                     else if (Enabled.Contains(rec.EventContentId))
@@ -200,13 +200,15 @@ public static class EventScheduleService
 
                         if (raid != null && rec.SeasonId == raid.seasonId)
                         {
-                            var end = string.IsNullOrEmpty(raid.extension) ? raid.close : raid.extension;
+                            var openStamp = WorldRaidService.LocalStamp(raid.open);
+                            var closeStamp = WorldRaidService.LocalStamp(raid.close);
+                            var end = string.IsNullOrEmpty(raid.extension) ? closeStamp : WorldRaidService.LocalStamp(raid.extension);
                             if (rec.IsReplaySeason)
                             {
-                                rec.PhaseStartTime = raid.close;
+                                rec.PhaseStartTime = closeStamp;
                                 rec.PhaseEndTime = end;
                                 for (var i = 0; i < rec.BossSpawnTime.Count; i++)
-                                    rec.BossSpawnTime[i] = raid.close;
+                                    rec.BossSpawnTime[i] = closeStamp;
                                 for (var i = 0; i < rec.EliminateTime.Count; i++)
                                     rec.EliminateTime[i] = end;
                             }
@@ -217,8 +219,8 @@ public static class EventScheduleService
                                 foreach (var groupId in rec.OpenRaidBossGroupId)
                                 {
                                     var declared = raid.bosses.FirstOrDefault(b => b.groupId == groupId);
-                                    spawns.Add(string.IsNullOrEmpty(declared?.spawnTime) ? raid.open : declared.spawnTime);
-                                    eliminates.Add(string.IsNullOrEmpty(declared?.eliminateTime) ? raid.close : declared.eliminateTime);
+                                    spawns.Add(string.IsNullOrEmpty(declared?.spawnTime) ? openStamp : WorldRaidService.LocalStamp(declared.spawnTime));
+                                    eliminates.Add(string.IsNullOrEmpty(declared?.eliminateTime) ? closeStamp : WorldRaidService.LocalStamp(declared.eliminateTime));
                                 }
                                 for (var i = 0; i < rec.BossSpawnTime.Count && i < spawns.Count; i++)
                                     rec.BossSpawnTime[i] = spawns[i];
@@ -227,12 +229,12 @@ public static class EventScheduleService
                                 // the first phase opens with the season; conditioned phases open a day before their first boss spawns, which is how every 854 phase shipped (the lead day is the preview). A phase closes when its last boss leaves.
                                 var firstSpawn = spawns.OrderBy(s => DateTime.TryParse(s, out var d) ? d : DateTime.MaxValue).FirstOrDefault();
                                 if (rec.PhaseStartCondition == 0)
-                                    rec.PhaseStartTime = raid.open;
+                                    rec.PhaseStartTime = openStamp;
                                 else if (firstSpawn != null && DateTime.TryParse(firstSpawn, out var spawnAt))
                                     rec.PhaseStartTime = spawnAt.AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss");
                                 else
-                                    rec.PhaseStartTime = raid.open;
-                                rec.PhaseEndTime = eliminates.OrderByDescending(s => DateTime.TryParse(s, out var d) ? d : DateTime.MinValue).FirstOrDefault() ?? raid.close;
+                                    rec.PhaseStartTime = openStamp;
+                                rec.PhaseEndTime = eliminates.OrderByDescending(s => DateTime.TryParse(s, out var d) ? d : DateTime.MinValue).FirstOrDefault() ?? closeStamp;
                             }
                         }
                         else if (interactivePristine.TryGetValue(rec.PhaseId, out var original))

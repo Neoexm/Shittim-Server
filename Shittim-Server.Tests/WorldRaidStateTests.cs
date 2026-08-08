@@ -125,13 +125,14 @@ public class WorldRaidStateTests : IDisposable
         raid.bosses[0].eliminateTime = "2026-08-09 10:59:59";
         WorldRaidService.SetManifest(raid, new ExcelTableService());
 
+        // manifest times are utc, windows come back on this machine's clock
         var scheduled = WorldRaidService.BossWindow(814000)!.Value;
-        Assert.Equal(new DateTime(2026, 8, 5, 11, 0, 0), scheduled.Spawn);
-        Assert.Equal(new DateTime(2026, 8, 9, 10, 59, 59), scheduled.Eliminate);
+        Assert.Equal(DateTime.Parse("2026-08-05 11:00:00").ToLocalTime(), scheduled.Spawn);
+        Assert.Equal(DateTime.Parse("2026-08-09 10:59:59").ToLocalTime(), scheduled.Eliminate);
 
         var wholeSeason = WorldRaidService.BossWindow(814100)!.Value;
-        Assert.Equal(new DateTime(2026, 8, 1, 11, 0, 0), wholeSeason.Spawn);
-        Assert.Equal(new DateTime(2026, 8, 13, 10, 59, 59), wholeSeason.Eliminate);
+        Assert.Equal(DateTime.Parse("2026-08-01 11:00:00").ToLocalTime(), wholeSeason.Spawn);
+        Assert.Equal(DateTime.Parse("2026-08-13 10:59:59").ToLocalTime(), wholeSeason.Eliminate);
     }
 
     [Fact]
@@ -139,9 +140,11 @@ public class WorldRaidStateTests : IDisposable
     {
         WorldRaidService.SetManifest(Raid(814, (814000, 5000)), new ExcelTableService());
 
-        Assert.False(WorldRaidService.SeasonActive(new DateTime(2026, 7, 31, 12, 0, 0)));
-        Assert.True(WorldRaidService.SeasonActive(new DateTime(2026, 8, 5, 12, 0, 0)));
-        Assert.False(WorldRaidService.SeasonActive(new DateTime(2026, 8, 13, 10, 59, 59)));
+        var open = DateTime.Parse("2026-08-01 11:00:00").ToLocalTime();
+        var close = DateTime.Parse("2026-08-13 10:59:59").ToLocalTime();
+        Assert.False(WorldRaidService.SeasonActive(open.AddSeconds(-1)));
+        Assert.True(WorldRaidService.SeasonActive(close.AddSeconds(-1)));
+        Assert.False(WorldRaidService.SeasonActive(close));
     }
 
     [Fact]

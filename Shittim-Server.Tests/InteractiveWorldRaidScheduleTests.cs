@@ -48,10 +48,10 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
         EventScheduleService.Set([], excel);
 
         var row = ReadSeasons().Single(r => r.EventContentId == 854);
-        Assert.Equal("2026-08-08 11:00:00", row.BeforehandExposedTime);
-        Assert.Equal("2026-08-10 11:00:00", row.EventContentOpenTime);
-        Assert.Equal("2026-09-14 10:59:59", row.EventContentCloseTime);
-        Assert.Equal("2026-09-21 10:59:59", row.ExtensionTime);
+        Assert.Equal(Local("2026-08-08 11:00:00"), row.BeforehandExposedTime);
+        Assert.Equal(Local("2026-08-10 11:00:00"), row.EventContentOpenTime);
+        Assert.Equal(Local("2026-09-14 10:59:59"), row.EventContentCloseTime);
+        Assert.Equal(Local("2026-09-21 10:59:59"), row.ExtensionTime);
     }
 
     [Fact]
@@ -65,23 +65,23 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
 
         // no start condition means the phase opens with the season itself
         var opening = phases.Single(p => p.PhaseId == 85400);
-        Assert.Equal("2026-08-10 11:00:00", opening.PhaseStartTime);
-        Assert.Equal("2026-08-24 10:59:59", opening.PhaseEndTime);
-        Assert.All(opening.BossSpawnTime, t => Assert.Equal("2026-08-11 11:00:00", t));
-        Assert.All(opening.EliminateTime, t => Assert.Equal("2026-08-24 10:59:59", t));
+        Assert.Equal(Local("2026-08-10 11:00:00"), opening.PhaseStartTime);
+        Assert.Equal(Local("2026-08-24 10:59:59"), opening.PhaseEndTime);
+        Assert.All(opening.BossSpawnTime, t => Assert.Equal(Local("2026-08-11 11:00:00"), t));
+        Assert.All(opening.EliminateTime, t => Assert.Equal(Local("2026-08-24 10:59:59"), t));
 
         // conditioned phases open a day before their first boss, the lead day every shipped phase had
         var gated = phases.Single(p => p.PhaseId == 85401);
-        Assert.Equal("2026-08-24 11:00:00", gated.PhaseStartTime);
-        Assert.Equal("2026-09-14 10:59:59", gated.PhaseEndTime);
-        Assert.All(gated.BossSpawnTime, t => Assert.Equal("2026-08-25 11:00:00", t));
+        Assert.Equal(DateTime.Parse(Local("2026-08-25 11:00:00")).AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss"), gated.PhaseStartTime);
+        Assert.Equal(Local("2026-09-14 10:59:59"), gated.PhaseEndTime);
+        Assert.All(gated.BossSpawnTime, t => Assert.Equal(Local("2026-08-25 11:00:00"), t));
 
         // the replay reopens everything once the season proper closes, and runs to the extension
         var replay = phases.Single(p => p.PhaseId == 85403);
-        Assert.Equal("2026-09-14 10:59:59", replay.PhaseStartTime);
-        Assert.Equal("2026-09-21 10:59:59", replay.PhaseEndTime);
-        Assert.All(replay.BossSpawnTime, t => Assert.Equal("2026-09-14 10:59:59", t));
-        Assert.All(replay.EliminateTime, t => Assert.Equal("2026-09-21 10:59:59", t));
+        Assert.Equal(Local("2026-09-14 10:59:59"), replay.PhaseStartTime);
+        Assert.Equal(Local("2026-09-21 10:59:59"), replay.PhaseEndTime);
+        Assert.All(replay.BossSpawnTime, t => Assert.Equal(Local("2026-09-14 10:59:59"), t));
+        Assert.All(replay.EliminateTime, t => Assert.Equal(Local("2026-09-21 10:59:59"), t));
     }
 
     [Fact]
@@ -117,6 +117,9 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
         Assert.Equal(43_200_000_000_000, WorldRaidService.RemainingHP(8540800));
         Assert.Equal(43_200_000_000_000, WorldRaidService.RemainingHP(8540900));
     }
+
+    // manifest times are utc; the rows land in local wall clock, so expectations convert the same way
+    private static string Local(string utc) => DateTime.Parse(utc).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
 
     private static WorldRaidManifest Live854()
     {

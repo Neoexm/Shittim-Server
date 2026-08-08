@@ -51,11 +51,11 @@ public class WorldRaidScheduleTests : IDisposable
         Assert.Equal(2, rows.Count);
         foreach (var row in rows)
         {
-            Assert.Equal("2026-07-30 11:00:00", row.BeforehandExposedTime);
-            Assert.Equal("2026-08-01 11:00:00", row.EventContentOpenTime);
-            Assert.Equal("2026-08-13 10:59:59", row.EventContentCloseTime);
+            Assert.Equal(Local("2026-07-30 11:00:00"), row.BeforehandExposedTime);
+            Assert.Equal(Local("2026-08-01 11:00:00"), row.EventContentOpenTime);
+            Assert.Equal(Local("2026-08-13 10:59:59"), row.EventContentCloseTime);
             // no extension in the manifest, so rewardable ends when the raid does
-            Assert.Equal("2026-08-13 10:59:59", row.ExtensionTime);
+            Assert.Equal(Local("2026-08-13 10:59:59"), row.ExtensionTime);
             Assert.Equal("", row.EventContentCloseNoteTime);
         }
 
@@ -98,6 +98,9 @@ public class WorldRaidScheduleTests : IDisposable
         Assert.Equal(50_000_000_000, WorldRaidService.RemainingHP(814000));
         Assert.Equal(9_000_000_000_000, WorldRaidService.RemainingHP(814100));
     }
+
+    // manifest times are utc; the rows land in local wall clock, so expectations convert the same way
+    private static string Local(string utc) => DateTime.Parse(utc).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
 
     private static WorldRaidManifest Live814()
     {

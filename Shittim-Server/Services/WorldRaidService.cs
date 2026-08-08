@@ -195,13 +195,27 @@ public static class WorldRaidService
         }
     }
 
+    // Manifest times are utc so the raid flips at the same instant on every install regardless of where the player lives. Everything downstream runs on this machine's wall clock - the DateTime.Now checks, the dates patched into the client's ExcelDB, and the clock the client syncs its own time to - so convert once at this border. ToLocalTime treats the parsed Unspecified value as utc, which is exactly the contract; the kind goes back to Unspecified so the values serialize like the shipped excel dates do.
+    public static bool TryLocal(string? value, out DateTime local)
+    {
+        if (!DateTime.TryParse(value, out var parsed))
+        {
+            local = default;
+            return false;
+        }
+        local = DateTime.SpecifyKind(parsed.ToLocalTime(), DateTimeKind.Unspecified);
+        return true;
+    }
+
+    public static string LocalStamp(string value) => TryLocal(value, out var local) ? local.ToString("yyyy-MM-dd HH:mm:ss") : value;
+
     public static bool SeasonActive(DateTime now)
     {
         lock (_gate)
         {
             if (Manifest == null)
                 return false;
-            return DateTime.TryParse(Manifest.open, out var open) && DateTime.TryParse(Manifest.close, out var close) && open <= now && now < close;
+            return TryLocal(Manifest.open, out var open) && TryLocal(Manifest.close, out var close) && open <= now && now < close;
         }
     }
 
@@ -218,7 +232,7 @@ public static class WorldRaidService
                 spawnText = Manifest.open;
             if (string.IsNullOrEmpty(eliminateText))
                 eliminateText = Manifest.close;
-            if (!DateTime.TryParse(spawnText, out var spawn) || !DateTime.TryParse(eliminateText, out var eliminate))
+            if (!TryLocal(spawnText, out var spawn) || !TryLocal(eliminateText, out var eliminate))
                 return null;
             return (spawn, eliminate);
         }
@@ -246,7 +260,7 @@ public static class WorldRaidService
     }
 }
 
-// wire shape shared with the coordinator and its admin gui - lowercase names are the json contract
+// wire shape shared with the coordinator and its admin gui - lowercase names are the json contract, datetimes are utc
 public class WorldRaidManifest
 {
     public long seasonId { get; set; }

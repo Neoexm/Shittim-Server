@@ -73,7 +73,7 @@ public class WorldRaidSyncService : BackgroundService
             WorldRaidService.SetManifest(manifest, excel);
             logger.LogInformation(manifest == null
                 ? "World raid: coordinator reports no active raid, shipped season dates go back"
-                : $"World raid: season {manifest.seasonId} ({manifest.name}) scheduled {manifest.open} .. {manifest.close}");
+                : $"World raid: season {manifest.seasonId} ({manifest.name}) scheduled {manifest.open} .. {manifest.close} utc");
             // the raid dates only reach the player through the client's own ExcelDB, same lever as the event schedule
             try { EventScheduleService.Apply(excel); }
             catch (Exception ex) { logger.LogWarning(ex, "World raid dates could not be written into the client ExcelDB"); }

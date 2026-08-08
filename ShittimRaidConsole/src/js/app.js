@@ -43,8 +43,8 @@ function fmtHP(n) {
 function trim2(x) { return String(Math.round(x * 100) / 100); }
 
 function pad(n) { return String(n).padStart(2, '0'); }
-function dlocal(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
-// manifest datetimes go over the wire as "yyyy-MM-dd HH:mm:ss", datetime-local inputs speak "yyyy-MM-ddTHH:mm"
+function dutc(d) { return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`; }
+// manifest datetimes go over the wire as "yyyy-MM-dd HH:mm:ss" in utc - every server converts to its own clock so the raid flips at the same instant worldwide. The inputs hold the utc value directly, no local conversion.
 function toInput(wire) { return wire ? wire.slice(0, 16).replace(' ', 'T') : ''; }
 function toWire(input) { return input ? input.replace('T', ' ') + ':00' : ''; }
 
@@ -161,18 +161,18 @@ function loadPreset(seasonId) {
   const preset = SEASONS.find((s) => s.seasonId === seasonId);
   if (!preset) return;
   const open = new Date();
-  open.setHours(11, 0, 0, 0);
+  open.setUTCHours(11, 0, 0, 0);
   const close = new Date(open.getTime() + preset.days * 86400000);
-  close.setHours(10, 59, 0, 0);
-  // phased presets carry day offsets from open; spawns land on the 11:00 rollover, eliminations just before it
-  const dayOffset = (day, h, m) => { const d = new Date(open.getTime() + day * 86400000); d.setHours(h, m, 0, 0); return dlocal(d); };
+  close.setUTCHours(10, 59, 0, 0);
+  // phased presets carry day offsets from open; spawns land on the 11:00 utc rollover, eliminations just before it
+  const dayOffset = (day, h, m) => { const d = new Date(open.getTime() + day * 86400000); d.setUTCHours(h, m, 0, 0); return dutc(d); };
   draft = {
     seasonId: preset.seasonId,
     name: `Season ${preset.seasonId}`,
-    exposed: dlocal(open),
-    open: dlocal(open),
-    close: dlocal(close),
-    extension: dlocal(new Date(close.getTime() + 7 * 86400000)),
+    exposed: dutc(open),
+    open: dutc(open),
+    close: dutc(close),
+    extension: dutc(new Date(close.getTime() + 7 * 86400000)),
     minServerVersion: preset.minServerVersion || '',
     bosses: preset.bosses.map((b) => ({
       groupId: b.groupId,
@@ -203,15 +203,15 @@ function renderEditor() {
     <div class="date-grid">
       <div class="field"><label>Season id</label><input class="input" id="e-season" type="number" value="${draft.seasonId || ''}"></div>
       <div class="field"><label>Name (console only)</label><input class="input" id="e-name" value="${esc(draft.name)}"></div>
-      <div class="field"><label>Exposed from</label><input class="input" id="e-exposed" type="datetime-local" value="${draft.exposed}"></div>
-      <div class="field"><label>Open</label><input class="input" id="e-open" type="datetime-local" value="${draft.open}"></div>
-      <div class="field"><label>Close</label><input class="input" id="e-close" type="datetime-local" value="${draft.close}"></div>
-      <div class="field"><label>Extension until</label><input class="input" id="e-ext" type="datetime-local" value="${draft.extension}"></div>
+      <div class="field"><label>Exposed from (UTC)</label><input class="input" id="e-exposed" type="datetime-local" value="${draft.exposed}"></div>
+      <div class="field"><label>Open (UTC)</label><input class="input" id="e-open" type="datetime-local" value="${draft.open}"></div>
+      <div class="field"><label>Close (UTC)</label><input class="input" id="e-close" type="datetime-local" value="${draft.close}"></div>
+      <div class="field"><label>Extension until (UTC)</label><input class="input" id="e-ext" type="datetime-local" value="${draft.extension}"></div>
       <div class="field"><label>Min server version</label><input class="input" id="e-minver" placeholder="leave empty to allow all" value="${esc(draft.minServerVersion)}"></div>
     </div>
     <div class="boss-scroll">
       <table class="tbl boss-tbl">
-        <thead><tr><th>Group</th><th>World HP</th><th></th><th>Spawns</th><th>Until</th><th></th></tr></thead>
+        <thead><tr><th>Group</th><th>World HP</th><th></th><th>Spawns (UTC)</th><th>Until (UTC)</th><th></th></tr></thead>
         <tbody id="e-bosses"></tbody>
       </table>
     </div>

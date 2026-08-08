@@ -237,12 +237,12 @@ public class WorldRaidManager
                         {
                             if (phase.IsReplaySeason)
                             {
-                                if (!DateTime.TryParse(manifest.close, out start))
+                                if (!WorldRaidService.TryLocal(manifest.close, out start))
                                     continue;
                             }
                             else if (phase.PhaseStartCondition == 0)
                             {
-                                if (!DateTime.TryParse(manifest.open, out start))
+                                if (!WorldRaidService.TryLocal(manifest.open, out start))
                                     continue;
                             }
                             else
