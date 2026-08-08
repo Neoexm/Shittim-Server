@@ -42,6 +42,7 @@ namespace Shittim.CLI
                 Config.Load();
                 Shittim_Server.Services.ServerNoticeService.Load();
                 Shittim_Server.Services.EventScheduleService.Load();
+                Shittim_Server.Services.WorldRaidService.Load();
 
                 Shittim_Server.Core.Diagnostics.GatewayWireLog.Configure(
                     Config.Instance.ServerConfiguration.PacketLogging.WireDump);
@@ -103,6 +104,7 @@ namespace Shittim.CLI
                 builder.Services.AddHostedService<ClientExcelBannerPatchService>();
                 builder.Services.AddHostedService<ClientRegionLabelPatchService>();
                 builder.Services.AddHostedService<ClientStoreUrlPatchService>();
+                builder.Services.AddHostedService<WorldRaidSyncService>();
                 builder.Services.AddGameClient();
                 builder.Services.AddManagers();
                 builder.Services.AddHandlers();
@@ -199,8 +201,8 @@ namespace Shittim.CLI
                     var parcelHandler = scope.ServiceProvider.GetRequiredService<ParcelHandler>();
                     AccountInitializationService.Initialize(excelService, parcelHandler);
 
-                    // A client update replaces ExcelDB.db and takes the forced dates with it, so re-apply whatever the operator left switched on.
-                    if (Shittim_Server.Services.EventScheduleService.Configured)
+                    // A client update replaces ExcelDB.db and takes the forced dates with it, so re-apply whatever the operator left switched on. The cached world raid manifest rides the same pass.
+                    if (Shittim_Server.Services.EventScheduleService.Configured || Shittim_Server.Services.WorldRaidService.Manifest != null)
                     {
                         try { Shittim_Server.Services.EventScheduleService.Apply(excelService); }
                         catch (Exception ex) { Log.Warning(ex, "Could not re-apply the event schedule override"); }

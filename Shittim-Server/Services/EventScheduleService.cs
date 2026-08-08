@@ -120,11 +120,22 @@ public static class EventScheduleService
 
             using (var tx = conn.BeginTransaction())
             {
+                var raid = WorldRaidService.Manifest;
+
                 foreach (var row in rows)
                 {
                     var rec = EventContentSeasonExcel.GetRootAsEventContentSeasonExcel(new ByteBuffer(row.Bytes)).UnPack();
 
-                    if (Enabled.Contains(rec.EventContentId))
+                    // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. WorldRaidEntrance is the event-lobby door for the same season id and rides along.
+                    if (raid != null && rec.EventContentId == raid.seasonId && (rec.EventContentType == EventContentType.WorldRaid || rec.EventContentType == EventContentType.WorldRaidEntrance))
+                    {
+                        rec.BeforehandExposedTime = string.IsNullOrEmpty(raid.exposed) ? raid.open : raid.exposed;
+                        rec.EventContentOpenTime = raid.open;
+                        rec.EventContentCloseTime = raid.close;
+                        rec.ExtensionTime = string.IsNullOrEmpty(raid.extension) ? raid.close : raid.extension;
+                        rec.EventContentCloseNoteTime = "";
+                    }
+                    else if (Enabled.Contains(rec.EventContentId))
                     {
                         rec.BeforehandExposedTime = ForcedOpen;
                         rec.EventContentOpenTime = ForcedOpen;

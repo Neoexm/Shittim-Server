@@ -49,6 +49,8 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public bool UseCustomExcel { get; set; } = false;
         // Fills every cafe with Koyuki and swaps the lobby banner list for the single webview banner. Off means stock random visitors and no banners.
         public bool KoyukiIncident { get; set; } = false;
+        // Base url of the shared world raid coordinator. Empty means no coordinator: the raid still runs off whatever manifest is cached (or dropped) in worldraid_manifest.json, just with a purely local HP pool. Point every install at the same coordinator and they all chip away at one pool.
+        public string WorldRaidCoordinatorUrl { get; set; } = "https://raid.shittem-server.com";
         public bool AutoCheckVersion { get; set; } = true;
         public bool AutoUpdateVersion { get; set; } = true;
         public bool AutoUpdateResources { get; set; } = true;

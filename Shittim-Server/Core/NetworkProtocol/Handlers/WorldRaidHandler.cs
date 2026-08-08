@@ -50,7 +50,7 @@ public class WorldRaidHandler : ProtocolHandlerBase
             .Where(x => x.SeasonId == request.SeasonId)
             .ToMapList(_mapper);
         response.LocalBossDBs = localBoss.ToMapList(_mapper);
-        response.BossGroups = new();
+        response.BossGroups = _worldRaidManager.BuildBossGroups(request.SeasonId);
 
         return response;
     }
@@ -124,6 +124,10 @@ public class WorldRaidHandler : ProtocolHandlerBase
         WorldRaidReceiveRewardResponse response)
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
+
+        var parcelResultDB = await _worldRaidManager.ReceiveReward(db, account, request);
+
+        response.ParcelResultDB = parcelResultDB ?? new();
 
         return response;
     }

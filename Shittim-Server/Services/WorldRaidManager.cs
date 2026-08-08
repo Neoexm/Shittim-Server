@@ -113,6 +113,15 @@ public class WorldRaidManager
                 await context.SaveChangesAsync();
             }
 
+            // while a manifest is live the shared pool is authoritative; without one the row itself is the pool
+            var pooledHP = WorldRaidService.RemainingHP(bossGroupId);
+            if (pooledHP != null)
+            {
+                worldRaidBossList.WorldBossDB.HP = pooledHP.Value;
+                worldRaidBossList.WorldBossDB.Participants = WorldRaidService.Participants(bossGroupId);
+                await context.SaveChangesAsync();
+            }
+
             worldRaidBossList.LocalBossDBs = context.GetAccountWorldRaidLocalBosses(account.ServerId)
                 .GetWorldRaidLocalBossesByGroupId(bossGroupId)
                 .ToList();
@@ -170,16 +179,77 @@ public class WorldRaidManager
         AccountDBServer account,
         WorldRaidBattleResultRequest req)
     {
-        if (req.Summary.EndType != BattleEndType.Clear)
+        // practice fights touch nothing: no ticket, no pool damage, no clear
+        if (req.IsPractice)
             return null;
 
         var worldRaidStages = _excelTableService.GetTable<WorldRaidStageExcelT>();
         var targetStage = worldRaidStages.GetWorldRaidStageExcelById(req.UniqueId);
 
-        var worldRaidRewards = _excelTableService.GetTable<WorldRaidStageRewardExcelT>();
-        var rewardStage = worldRaidRewards.GetWorldRaidStageRewardByGroupId(targetStage.RaidRewardGroupId);
+        var raidBattle = await context.RaidBattles
+            .FirstOrDefaultAsync(x =>
+                x.AccountServerId == account.ServerId &&
+                x.ContentType == ContentType.WorldRaid &&
+                x.RaidUniqueId == req.UniqueId &&
+                !x.IsClear);
 
         ParcelResultDB? parcelResultDB = null;
+
+        if (req.IsTicket)
+        {
+            // the client computed the cost itself: ReEnterAmount when it resumed a saved fight, the full RaidEnterAmount otherwise. Mirror that instead of trusting a flag it never sends.
+            var characterStats = _excelTableService.GetTable<CharacterStatExcelT>();
+            var freshBossHP = characterStats.FirstOrDefault(y => y.CharacterId == targetStage.BossCharacterId.FirstOrDefault())?.MaxHP100 ?? 10000000;
+            var isContinue = targetStage.SaveCurrentLocalBossHP && raidBattle != null && raidBattle.CurrentBossHP < freshBossHP;
+            var cost = isContinue ? targetStage.ReEnterAmount : targetStage.RaidEnterAmount;
+
+            var enterTicket = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().GetWorldRaidSeasonById(req.SeasonId).EnterTicket;
+
+            var currency = await context.Currencies.FirstOrDefaultAsync(x => x.AccountServerId == account.ServerId);
+            if (cost > 0 && currency != null && currency.CurrencyDict.TryGetValue(enterTicket, out var tickets) && tickets >= cost)
+            {
+                var resolver = await _parcelHandler.BuildParcel(context, account,
+                    new ParcelResult(ParcelType.Currency, (long)enterTicket, cost),
+                    isConsume: true);
+                parcelResultDB = resolver.ParcelResult;
+            }
+        }
+
+        var summary = req.Summary.RaidSummary;
+
+        // fixed-quota stages (821's scripted fights) credit DamageToWorldBoss on a clear, everything else credits what was actually dealt
+        var contribution = targetStage.DamageToWorldBoss > 0
+            ? (req.Summary.EndType == BattleEndType.Clear ? targetStage.DamageToWorldBoss : 0)
+            : summary.GivenDamage;
+        if (contribution > 0)
+        {
+            WorldRaidService.AddDamage(req.GroupId, contribution);
+            if (WorldRaidService.RemainingHP(req.GroupId) == null)
+            {
+                var bossListInfo = await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == req.GroupId);
+                if (bossListInfo != null)
+                {
+                    bossListInfo.WorldBossDB.HP = Math.Max(0, bossListInfo.WorldBossDB.HP - contribution);
+                    if (bossListInfo.WorldBossDB.Participants == 0)
+                        bossListInfo.WorldBossDB.Participants = 1;
+                }
+            }
+        }
+
+        if (req.Summary.EndType != BattleEndType.Clear)
+        {
+            // a retreat keeps the saved fight; the next entry resumes the boss from whatever was left
+            if (raidBattle != null && targetStage.SaveCurrentLocalBossHP)
+            {
+                raidBattle.CurrentBossHP = Math.Max(1, raidBattle.CurrentBossHP - summary.GivenDamage);
+                raidBattle.CurrentBossGroggy = summary.TotalGroggyCount;
+            }
+            await context.SaveChangesAsync();
+            return parcelResultDB;
+        }
+
+        var worldRaidRewards = _excelTableService.GetTable<WorldRaidStageRewardExcelT>();
+        var rewardStage = worldRaidRewards.GetWorldRaidStageRewardByGroupId(targetStage.RaidRewardGroupId);
 
         var clearedRaidBattle = await context.RaidBattles
             .FirstOrDefaultAsync(x =>
@@ -199,16 +269,9 @@ public class WorldRaidManager
                     reward.ClearStageRewardAmount));
             }
 
-            var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelResult);
+            var parcelResolver = await _parcelHandler.BuildParcel(context, account, parcelResult, parcelResultDB);
             parcelResultDB = parcelResolver.ParcelResult;
         }
-
-        var raidBattle = await context.RaidBattles
-            .FirstOrDefaultAsync(x =>
-                x.AccountServerId == account.ServerId &&
-                x.ContentType == ContentType.WorldRaid &&
-                x.RaidUniqueId == req.UniqueId &&
-                !x.IsClear);
 
         if (raidBattle != null)
         {
@@ -249,6 +312,90 @@ public class WorldRaidManager
             worldRaidLocalDB.TacticMscSum += (long)(req.Summary.EndFrame / 30f * 1000);
             worldRaidLocalDB.IsContinue = true;
         }
+
+        await context.SaveChangesAsync();
+
+        return parcelResultDB;
+    }
+
+    // the client indexes BossGroups[phaseId] without a guard, so this is either null (excel dates rule) or a dict that definitely holds the season key. Entries overwrite the excel spawn/eliminate windows by group id, which is how the manifest's boss schedule reaches the player without touching ExcelDB.
+    public Dictionary<long, List<WorldRaidBossGroup>>? BuildBossGroups(long seasonId)
+    {
+        var manifest = WorldRaidService.Manifest;
+        if (manifest == null || manifest.seasonId != seasonId)
+            return null;
+
+        var worldSeasonExcel = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().GetWorldRaidSeasonById(seasonId);
+        var groups = new List<WorldRaidBossGroup>();
+        foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
+        {
+            var window = WorldRaidService.BossWindow(bossGroupId);
+            if (window == null)
+                continue;
+            groups.Add(new WorldRaidBossGroup
+            {
+                ContentsChangeType = ContentsChangeType.WorldRaidBossGroupDate,
+                ContentType = ContentType.WorldRaid,
+                GroupId = bossGroupId,
+                BossSpawnTime = window.Value.Spawn,
+                EliminateTime = window.Value.Eliminate
+            });
+        }
+
+        return new Dictionary<long, List<WorldRaidBossGroup>> { [seasonId] = groups };
+    }
+
+    // world boss clear rewards, claimable once per boss group after the shared pool hits zero. 821/823 ship no clear reward groups so this correctly hands them nothing.
+    public async Task<ParcelResultDB?> ReceiveReward(
+        SchaleDataContext context,
+        AccountDBServer account,
+        WorldRaidReceiveRewardRequest req)
+    {
+        var worldRaidSeasons = _excelTableService.GetTable<WorldRaidSeasonManageExcelT>();
+        var worldSeasonExcel = worldRaidSeasons.GetWorldRaidSeasonById(req.SeasonId);
+        var worldRaidBossGroups = _excelTableService.GetTable<WorldRaidBossGroupExcelT>();
+        var worldRaidRewards = _excelTableService.GetTable<WorldRaidStageRewardExcelT>();
+
+        var claimed = context.GetAccountWorldRaidClearHistories(account.ServerId)
+            .GetWorldRaidClearHistoriesBySeasonId(req.SeasonId)
+            .Select(x => x.GroupId)
+            .ToHashSet();
+
+        var parcelResult = new List<ParcelResult>();
+        foreach (var bossGroupId in worldSeasonExcel.OpenRaidBossGroupId)
+        {
+            if (claimed.Contains(bossGroupId))
+                continue;
+
+            var bossGroupExcel = worldRaidBossGroups.GetWorldRaidBossGroupById(bossGroupId);
+            if (bossGroupExcel.WorldBossClearRewardGroupId == 0)
+                continue;
+
+            var remaining = WorldRaidService.RemainingHP(bossGroupId)
+                ?? (await context.WorldRaidBossListInfos.FirstOrDefaultAsync(x => x.GroupId == bossGroupId))?.WorldBossDB.HP;
+            if (remaining == null || remaining > 0)
+                continue;
+
+            foreach (var reward in worldRaidRewards.GetWorldRaidStageRewardByGroupId(bossGroupExcel.WorldBossClearRewardGroupId))
+            {
+                parcelResult.Add(new ParcelResult(
+                    reward.ClearStageRewardParcelType,
+                    reward.ClearStageRewardParcelUniqueID,
+                    reward.ClearStageRewardAmount));
+            }
+
+            context.WorldRaidClearHistories.Add(new WorldRaidClearHistoryDBServer
+            {
+                AccountServerId = account.ServerId,
+                SeasonId = req.SeasonId,
+                GroupId = bossGroupId,
+                RewardReceiveDate = DateTime.Now
+            });
+        }
+
+        ParcelResultDB? parcelResultDB = null;
+        if (parcelResult.Count > 0)
+            parcelResultDB = (await _parcelHandler.BuildParcel(context, account, parcelResult)).ParcelResult;
 
         await context.SaveChangesAsync();
 
