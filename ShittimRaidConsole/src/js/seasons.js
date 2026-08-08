@@ -56,4 +56,26 @@ export const SEASONS = [
       { groupId: 900814100, hp: 0 },
     ],
   },
+  {
+    seasonId: 854,
+    label: '854 - steel continent, three phases plus replay (interactive)',
+    days: 35,
+    // servers older than this cannot run an interactive season - they would 500 the raid lobby - so the sync gate has to keep them out
+    minServerVersion: '2026.8.9',
+    // hp here is the global pool, not jp - 854 shipped both and global is the smaller sizing. spawnDay/elimDay stage the phases the way the event ran: the eight combined-operations bosses for two weeks, Malkuth for two, the showdown for the last. 8540900 shares Malkuth's bar through the hp link, and 8541100 is the scripted final with no pool of its own.
+    bosses: [
+      { groupId: 8540000, hp: 1270000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540100, hp: 1160000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540200, hp: 1000000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540300, hp: 4450000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540400, hp: 10500000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540500, hp: 7580000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540600, hp: 5750000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540700, hp: 3850000000000, spawnDay: 1, elimDay: 14 },
+      { groupId: 8540800, hp: 43200000000000, spawnDay: 15, elimDay: 28 },
+      { groupId: 8540900, hp: 43200000000000, spawnDay: 15, elimDay: 28 },
+      { groupId: 8541000, hp: 37100000000000, spawnDay: 29, elimDay: 35 },
+      { groupId: 8541100, hp: 0, spawnDay: 29, elimDay: 35 },
+    ],
+  },
 ];

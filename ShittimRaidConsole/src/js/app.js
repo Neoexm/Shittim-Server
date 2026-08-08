@@ -164,6 +164,8 @@ function loadPreset(seasonId) {
   open.setHours(11, 0, 0, 0);
   const close = new Date(open.getTime() + preset.days * 86400000);
   close.setHours(10, 59, 0, 0);
+  // phased presets carry day offsets from open; spawns land on the 11:00 rollover, eliminations just before it
+  const dayOffset = (day, h, m) => { const d = new Date(open.getTime() + day * 86400000); d.setHours(h, m, 0, 0); return dlocal(d); };
   draft = {
     seasonId: preset.seasonId,
     name: `Season ${preset.seasonId}`,
@@ -171,8 +173,13 @@ function loadPreset(seasonId) {
     open: dlocal(open),
     close: dlocal(close),
     extension: dlocal(new Date(close.getTime() + 7 * 86400000)),
-    minServerVersion: '',
-    bosses: preset.bosses.map((b) => ({ groupId: b.groupId, hp: b.hp, spawn: '', eliminate: '' })),
+    minServerVersion: preset.minServerVersion || '',
+    bosses: preset.bosses.map((b) => ({
+      groupId: b.groupId,
+      hp: b.hp,
+      spawn: b.spawnDay == null ? '' : dayOffset(b.spawnDay, 11, 0),
+      eliminate: b.elimDay == null ? '' : dayOffset(b.elimDay, 10, 59),
+    })),
   };
   renderEditor();
 }
