@@ -1,7 +1,7 @@
 {
   "name": "shittim-control-center",
   "productName": "Shittim Control Center",
-  "version": "2026.8.7",
+  "version": "2026.8.8",
   "description": "Blue Archive themed control center for the Shittim-Server: configure, launch, and administer the server, accounts, inventory, mail, events and gacha.",
   "main": "main.js",
   "author": "Shittim",
