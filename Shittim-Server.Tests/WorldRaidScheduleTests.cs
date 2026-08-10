@@ -84,8 +84,9 @@ public class WorldRaidScheduleTests : IDisposable
         raid.bosses = [];
         WorldRaidService.SetManifest(raid, new ExcelTableService());
 
-        Assert.Equal(9_000_000_000_000, WorldRaidService.RemainingHP(814000));
-        Assert.Equal(9_000_000_000_000, WorldRaidService.RemainingHP(814100));
+        // the asia column, not the jp one the row leads with
+        Assert.Equal(3_000_000_000_000, WorldRaidService.RemainingHP(814000));
+        Assert.Equal(3_000_000_000_000, WorldRaidService.RemainingHP(814100));
     }
 
     [Fact]
@@ -96,7 +97,7 @@ public class WorldRaidScheduleTests : IDisposable
         WorldRaidService.SetManifest(raid, new ExcelTableService());
 
         Assert.Equal(50_000_000_000, WorldRaidService.RemainingHP(814000));
-        Assert.Equal(9_000_000_000_000, WorldRaidService.RemainingHP(814100));
+        Assert.Equal(3_000_000_000_000, WorldRaidService.RemainingHP(814100));
     }
 
     // manifest times are utc; the rows land in local wall clock, so expectations convert the same way
@@ -150,7 +151,7 @@ public class WorldRaidScheduleTests : IDisposable
 
         foreach (var groupId in new long[] { 814000, 814100 })
         {
-            var boss = new WorldRaidBossGroupExcelT { WorldRaidBossGroupId = groupId, WorldBossHP = 9_000_000_000_000 };
+            var boss = new WorldRaidBossGroupExcelT { WorldRaidBossGroupId = groupId, WorldBossHP = 9_000_000_000_000, WorldBossHPAsia = 3_000_000_000_000 };
             var bfbb = new FlatBufferBuilder(256);
             bfbb.Finish(WorldRaidBossGroupExcel.Pack(bfbb, boss).Value);
             Insert(conn, "WorldRaidBossGroupDBSchema", bfbb.SizedByteArray());

@@ -1,7 +1,14 @@
 using BlueArchiveAPI.Services;
 using Google.FlatBuffers;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Schale.Data;
+using Schale.Data.GameModel;
 using Schale.FlatData;
+using Schale.MX.Data;
+using Schale.MX.GameLogic.DBModel;
+using Schale.MX.NetworkProtocol;
+using Shittim_Server.Core.NetworkProtocol.Handlers;
 using Shittim_Server.Services;
 using Xunit;
 
@@ -47,11 +54,23 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
         WorldRaidService.SetManifest(Live854(), excel);
         EventScheduleService.Set([], excel);
 
-        var row = ReadSeasons().Single(r => r.EventContentId == 854);
+        var row = ReadSeasons().Single(r => r.EventContentType == EventContentType.InteractiveWorldRaid);
         Assert.Equal(Local("2026-08-08 11:00:00"), row.BeforehandExposedTime);
         Assert.Equal(Local("2026-08-10 11:00:00"), row.EventContentOpenTime);
         Assert.Equal(Local("2026-09-14 10:59:59"), row.EventContentCloseTime);
         Assert.Equal(Local("2026-09-21 10:59:59"), row.ExtensionTime);
+    }
+
+    [Fact]
+    public void TheRestOfTheSeasonMovesWithTheRaidRow()
+    {
+        var excel = new ExcelTableService();
+        WorldRaidService.SetManifest(Live854(), excel);
+        EventScheduleService.Set([], excel);
+
+        var shop = ReadSeasons().Single(r => r.EventContentType == EventContentType.Shop);
+        Assert.Equal(Local("2026-08-10 11:00:00"), shop.EventContentOpenTime);
+        Assert.Equal(Local("2026-09-14 10:59:59"), shop.EventContentCloseTime);
     }
 
     [Fact]
@@ -110,12 +129,203 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
         raid.bosses = [];
         WorldRaidService.SetManifest(raid, new ExcelTableService());
 
-        // global pool where the row has one, jp where it doesn't - the steam client is the global build
-        Assert.Equal(1_270_000_000_000, WorldRaidService.RemainingHP(8540000));
-        Assert.Equal(7_500_000_000_000, WorldRaidService.RemainingHP(8540100));
+        // the asia column, which is the one the client divides its world bar by - the rows carry jp and global too and neither is the pool
+        Assert.Equal(6_880_000_000_000, WorldRaidService.RemainingHP(8540000));
+        Assert.Equal(6_300_000_000_000, WorldRaidService.RemainingHP(8540100));
         // listed only in the second phase - the season's groups are the union of every phase's
-        Assert.Equal(43_200_000_000_000, WorldRaidService.RemainingHP(8540800));
-        Assert.Equal(43_200_000_000_000, WorldRaidService.RemainingHP(8540900));
+        Assert.Equal(234_000_000_000_000, WorldRaidService.RemainingHP(8540800));
+        Assert.Equal(234_000_000_000_000, WorldRaidService.RemainingHP(8540900));
+    }
+
+    [Fact]
+    public async Task TheLiveSeasonComesBackAsALobbyBanner()
+    {
+        WorldRaidService.SetManifest(Live854(), new ExcelTableService());
+
+        var banner = Assert.Single((await BannerList()).BannerDBs!);
+        Assert.Equal(EventContentType.InteractiveWorldRaid, banner.BannerType);
+        Assert.Equal(854, banner.LinkedLobbyBannerId);
+        Assert.Equal("Event_Banner_854.png", banner.FileName);
+        Assert.Equal(BannerDisplayType.Lobby, banner.BannerDisplayType);
+        Assert.Equal(DateTime.Parse("2026-08-08 11:00:00").ToLocalTime(), banner.StartDate);
+        Assert.Equal(DateTime.Parse("2026-09-21 10:59:59").ToLocalTime(), banner.EndDate);
+    }
+
+    [Fact]
+    public async Task WithNoRaidRunningThereIsNothingToShow()
+    {
+        WorldRaidService.SetManifest(null, new ExcelTableService());
+
+        Assert.Empty((await BannerList()).BannerDBs!);
+    }
+
+    [Fact]
+    public async Task ASeasonWithoutPhaseRowsGetsNoBanner()
+    {
+        var classic = Live854();
+        classic.seasonId = 814;
+        WorldRaidService.SetManifest(classic, new ExcelTableService());
+
+        Assert.Empty((await BannerList()).BannerDBs!);
+    }
+
+    [Fact]
+    public void AFreshAccountLandsInTheOpeningPhaseOnTheBaseMaps()
+    {
+        WorldRaidService.SetManifest(Started854(-3, 3), new ExcelTableService());
+
+        using var db = NewContext();
+        var progress = Progress(db);
+
+        Assert.Equal(854, progress!.SeasonId);
+        Assert.Equal(85400, progress.PhaseId);
+        Assert.Equal(85400000, progress.Maps![WorldRaidMapType.Carrier]);
+        Assert.Equal(85400100, progress.Maps[WorldRaidMapType.WorldMap]);
+        Assert.Empty(progress.ClearConditionIds!);
+    }
+
+    [Fact]
+    public void OnceTheSecondPhasesBossesAreDueThatIsThePhaseTheServerNames()
+    {
+        WorldRaidService.SetManifest(Started854(-10, -2), new ExcelTableService());
+
+        using var db = NewContext();
+        var progress = Progress(db);
+
+        Assert.Equal(85401, progress!.PhaseId);
+        Assert.Equal(85401000, progress.Maps![WorldRaidMapType.Carrier]);
+        Assert.Equal(85401100, progress.Maps[WorldRaidMapType.WorldMap]);
+    }
+
+    [Fact]
+    public void ClearingTheFirstBossMovesTheCarrierUpALevel()
+    {
+        WorldRaidService.SetManifest(Started854(-3, 3), new ExcelTableService());
+
+        using var db = NewContext();
+        db.WorldRaidLocalBosses.Add(new WorldRaidLocalBossDBServer { AccountServerId = 1, SeasonId = 854, GroupId = 8540000, UniqueId = 8540001, IsCleardEver = true });
+        db.SaveChanges();
+
+        var progress = Progress(db);
+
+        // the two-boss count condition is still short, so only the single-boss one comes back and the world map has no level behind either
+        Assert.Equal([854001000L], progress!.ClearConditionIds);
+        Assert.Equal(85400001, progress.Maps![WorldRaidMapType.Carrier]);
+        Assert.Equal(85400100, progress.Maps[WorldRaidMapType.WorldMap]);
+    }
+
+    [Fact]
+    public void ABossClearedInAnotherSeasonDoesNotCount()
+    {
+        WorldRaidService.SetManifest(Started854(-3, 3), new ExcelTableService());
+
+        using var db = NewContext();
+        db.WorldRaidLocalBosses.Add(new WorldRaidLocalBossDBServer { AccountServerId = 1, SeasonId = 823, GroupId = 8540000, UniqueId = 8540001, IsCleardEver = true });
+        db.SaveChanges();
+
+        Assert.Empty(Progress(db)!.ClearConditionIds!);
+    }
+
+    [Fact]
+    public void AClassicSeasonHasNoPhaseToReport()
+    {
+        WorldRaidService.SetManifest(Live854(), new ExcelTableService());
+
+        using var db = NewContext();
+        Assert.Null(Progress(db, 823));
+    }
+
+    // the client looks its stages up by (ContentType, id) and takes the type off the row we sent, so an 854 stage stamped 17 is a lookup that finds nothing and throws inside the loading coroutine
+    [Fact]
+    public async Task AnInteractiveSeasonsBossRowsCarryItsOwnContentType()
+    {
+        using var db = NewContext();
+        var rows = await Lobby(db, 854);
+
+        Assert.Equal(3, rows.Count);
+        Assert.All(rows, row => Assert.Equal(ContentType.InteractiveWorldRaid, row.ContentType));
+    }
+
+    [Fact]
+    public async Task AClassicSeasonStaysOnTheWorldRaidType()
+    {
+        using var db = NewContext();
+        var rows = await Lobby(db, 823);
+
+        Assert.Equal(ContentType.WorldRaid, Assert.Single(rows).ContentType);
+    }
+
+    [Fact]
+    public async Task ARowWrittenBeforeTheColumnExistedGetsItFilledIn()
+    {
+        using var db = NewContext();
+        db.WorldRaidLocalBosses.Add(new WorldRaidLocalBossDBServer
+        {
+            AccountServerId = 1,
+            SeasonId = 854,
+            GroupId = 8540000,
+            UniqueId = 8540001,
+            RaidBattleDB = new RaidBattleDBServer { ContentType = ContentType.WorldRaid, RaidUniqueId = 8540001 }
+        });
+        db.SaveChanges();
+
+        var row = (await Lobby(db, 854)).Single(x => x.UniqueId == 8540001);
+
+        Assert.Equal(ContentType.InteractiveWorldRaid, row.ContentType);
+        Assert.Equal(ContentType.InteractiveWorldRaid, row.RaidBattleDB!.ContentType);
+    }
+
+    private static Task<List<WorldRaidLocalBossDBServer>> Lobby(SchaleDataContext db, long seasonId)
+    {
+        return new WorldRaidManager(new ExcelTableService(), null!, null!).WorldRaidLobby(db, db.Accounts.First(), new WorldRaidLobbyRequest { SeasonId = seasonId });
+    }
+
+    // the phase pick runs against the wall clock, so the fixture dates move with it rather than sitting at fixed strings
+    private static WorldRaidManifest Started854(double openDaysFromNow, double secondSpawnDaysFromNow)
+    {
+        var raid = Live854();
+        raid.open = DateTime.UtcNow.AddDays(openDaysFromNow).ToString("yyyy-MM-dd HH:mm:ss");
+        var secondSpawn = DateTime.UtcNow.AddDays(secondSpawnDaysFromNow).ToString("yyyy-MM-dd HH:mm:ss");
+        raid.bosses =
+        [
+            new WorldRaidManifestBoss { groupId = 8540000, spawnTime = raid.open, eliminateTime = raid.close },
+            new WorldRaidManifestBoss { groupId = 8540100, spawnTime = raid.open, eliminateTime = raid.close },
+            new WorldRaidManifestBoss { groupId = 8540800, spawnTime = secondSpawn, eliminateTime = raid.close },
+            new WorldRaidManifestBoss { groupId = 8540900, spawnTime = secondSpawn, eliminateTime = raid.close },
+        ];
+        return raid;
+    }
+
+    private static WorldRaidProgressDB? Progress(SchaleDataContext db, long seasonId = 854)
+    {
+        return new WorldRaidManager(new ExcelTableService(), null!, null!).Progress(db, db.Accounts.First(), seasonId);
+    }
+
+    private SchaleDataContext NewContext()
+    {
+        var db = new SchaleDataContext(new DbContextOptionsBuilder<SchaleDataContext>()
+            .UseSqlite($"Data Source={Path.Combine(_dir, $"{Guid.NewGuid():N}.sqlite3")}").Options);
+        db.Database.EnsureCreated();
+        db.Accounts.Add(new AccountDBServer { ServerId = 1, Nickname = "Sensei" });
+        db.SaveChanges();
+        return db;
+    }
+
+    private static async Task<ManagementBannerListResponse> BannerList()
+    {
+        var handler = new ManagementHandler(null!, new AnyAccountSessionService(), new ExcelTableService());
+        return await handler.BannerList(null!, new ManagementBannerListRequest(), new ManagementBannerListResponse());
+    }
+
+    // the banner list never reads the account back, so nothing here needs a database behind it
+    private class AnyAccountSessionService : ISessionKeyService
+    {
+        public Task<AccountDBServer> GetAuthenticatedUser(SchaleDataContext context, SessionKey? sessionKey) => Task.FromResult(new AccountDBServer());
+
+        public Task<SessionKey?> GenerateSession(long publisherAccountId, string? customToken = null) => throw new NotSupportedException();
+        public bool ValidateRequest(RequestPacket request) => true;
+        public void RevokeSession(long userId) { }
+        public int PurgeExpiredSessions(TimeSpan maxInactivity) => 0;
     }
 
     // manifest times are utc; the rows land in local wall clock, so expectations convert the same way
@@ -159,7 +369,9 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
             // Apply widens the event item expiry out of the same file, so ItemDBSchema has to be there even with nothing in it.
             create.CommandText = "CREATE TABLE EventContentSeasonDBSchema (Bytes BLOB); CREATE TABLE ItemDBSchema (Bytes BLOB); " +
                 "CREATE TABLE WorldRaidSeasonManageDBSchema (Bytes BLOB); CREATE TABLE WorldRaidBossGroupDBSchema (Bytes BLOB); " +
-                "CREATE TABLE InteractiveWorldRaidSeasonManageDBSchema (Bytes BLOB); CREATE TABLE InteractiveWorldRaidBossGroupDBSchema (Bytes BLOB)";
+                "CREATE TABLE InteractiveWorldRaidSeasonManageDBSchema (Bytes BLOB); CREATE TABLE InteractiveWorldRaidBossGroupDBSchema (Bytes BLOB); " +
+                "CREATE TABLE InteractiveWorldRaidCarrierMapDBSchema (Bytes BLOB); CREATE TABLE InteractiveWorldRaidConditionDBSchema (Bytes BLOB); " +
+                "CREATE TABLE WorldRaidStageDBSchema (Bytes BLOB); CREATE TABLE InteractiveWorldRaidStageDBSchema (Bytes BLOB)";
             create.ExecuteNonQuery();
         }
 
@@ -180,6 +392,23 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
         sfbb.Finish(EventContentSeasonExcel.Pack(sfbb, season).Value);
         Insert(conn, "EventContentSeasonDBSchema", sfbb.SizedByteArray());
 
+        var shop = new EventContentSeasonExcelT
+        {
+            EventContentId = 854,
+            OriginalEventContentId = 854,
+            Name = "Event_Name_854",
+            EventContentType = EventContentType.Shop,
+            BeforehandExposedTime = "2026-05-24 11:00:00",
+            EventContentOpenTime = "2026-05-26 11:00:00",
+            EventContentCloseNoteTime = "",
+            EventContentCloseTime = "2026-06-30 10:59:59",
+            ExtensionTime = "2026-07-14 10:59:59",
+            BeforehandScenarioGroupId = [],
+        };
+        var shopfbb = new FlatBufferBuilder(512);
+        shopfbb.Finish(EventContentSeasonExcel.Pack(shopfbb, shop).Value);
+        Insert(conn, "EventContentSeasonDBSchema", shopfbb.SizedByteArray());
+
         var phases = new[]
         {
             Phase(85400, 0, false, CurrencyTypes.WorldRaidTicketA, [8540000, 8540100], "2026-05-26 11:00:00", "2026-06-09 10:59:59", "2026-05-27 11:00:00", "2026-06-09 10:59:59"),
@@ -195,16 +424,69 @@ public class InteractiveWorldRaidScheduleTests : IDisposable
 
         var groups = new[]
         {
-            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540000, WorldBossHP = 8_250_000_000_000, WorldBossHPGlobal = 1_270_000_000_000 },
-            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540100, WorldBossHP = 7_500_000_000_000 },
-            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540800, WorldBossHPLinkGroup = 8540800, WorldBossHP = 270_000_000_000_000, WorldBossHPGlobal = 43_200_000_000_000 },
-            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540900, WorldBossHPLinkGroup = 8540800, WorldBossHP = 270_000_000_000_000, WorldBossHPGlobal = 43_200_000_000_000 },
+            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540000, WorldBossHP = 8_250_000_000_000, WorldBossHPAsia = 6_880_000_000_000, WorldBossHPGlobal = 1_270_000_000_000 },
+            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540100, WorldBossHP = 7_500_000_000_000, WorldBossHPAsia = 6_300_000_000_000, WorldBossHPGlobal = 1_160_000_000_000 },
+            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540800, WorldBossHPLinkGroup = 8540800, WorldBossHP = 270_000_000_000_000, WorldBossHPAsia = 234_000_000_000_000, WorldBossHPGlobal = 43_200_000_000_000 },
+            new InteractiveWorldRaidBossGroupExcelT { WorldRaidBossGroupId = 8540900, WorldBossHPLinkGroup = 8540800, WorldBossHP = 270_000_000_000_000, WorldBossHPAsia = 234_000_000_000_000, WorldBossHPGlobal = 43_200_000_000_000 },
         };
         foreach (var group in groups)
         {
             var gfbb = new FlatBufferBuilder(256);
             gfbb.Finish(InteractiveWorldRaidBossGroupExcel.Pack(gfbb, group).Value);
             Insert(conn, "InteractiveWorldRaidBossGroupDBSchema", gfbb.SizedByteArray());
+        }
+
+        var stages = new[]
+        {
+            new InteractiveWorldRaidStageExcelT { Id = 8540001, WorldRaidBossGroupId = 8540000, BossCharacterId = [] },
+            new InteractiveWorldRaidStageExcelT { Id = 8540002, WorldRaidBossGroupId = 8540000, BossCharacterId = [] },
+            new InteractiveWorldRaidStageExcelT { Id = 8540101, WorldRaidBossGroupId = 8540100, BossCharacterId = [] },
+        };
+        foreach (var stage in stages)
+        {
+            var stfbb = new FlatBufferBuilder(256);
+            stfbb.Finish(InteractiveWorldRaidStageExcel.Pack(stfbb, stage).Value);
+            Insert(conn, "InteractiveWorldRaidStageDBSchema", stfbb.SizedByteArray());
+        }
+
+        // one classic season alongside, so the content type the lobby stamps can be told apart from the type it defaults to
+        var classic = new WorldRaidSeasonManageExcelT { SeasonId = 823, OpenRaidBossGroupId = [823000] };
+        var cfb = new FlatBufferBuilder(256);
+        cfb.Finish(WorldRaidSeasonManageExcel.Pack(cfb, classic).Value);
+        Insert(conn, "WorldRaidSeasonManageDBSchema", cfb.SizedByteArray());
+
+        var classicStage = new WorldRaidStageExcelT { Id = 823001, WorldRaidBossGroupId = 823000, BossCharacterId = [] };
+        var csfbb = new FlatBufferBuilder(256);
+        csfbb.Finish(WorldRaidStageExcel.Pack(csfbb, classicStage).Value);
+        Insert(conn, "WorldRaidStageDBSchema", csfbb.SizedByteArray());
+
+        var conditions = new[]
+        {
+            new InteractiveWorldRaidConditionExcelT { Id = 854001000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, MultipleConditionCheckType = MultipleConditionCheckType.And, ConditionType = [WorldRaidConditionType.BossClear], ConditionValue = [8540000] },
+            new InteractiveWorldRaidConditionExcelT { Id = 854002000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, MultipleConditionCheckType = MultipleConditionCheckType.Count, MultipleConditionCheckParameter = 2, ConditionType = [WorldRaidConditionType.BossClear, WorldRaidConditionType.BossClear], ConditionValue = [8540000, 8540100] },
+            new InteractiveWorldRaidConditionExcelT { Id = 854010000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85401, MultipleConditionCheckType = MultipleConditionCheckType.And, ConditionType = [WorldRaidConditionType.EventStageClear], ConditionValue = [8541302] },
+        };
+        foreach (var condition in conditions)
+        {
+            var cfbb = new FlatBufferBuilder(256);
+            cfbb.Finish(InteractiveWorldRaidConditionExcel.Pack(cfbb, condition).Value);
+            Insert(conn, "InteractiveWorldRaidConditionDBSchema", cfbb.SizedByteArray());
+        }
+
+        var levels = new[]
+        {
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85400000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, ChangeTarget = WorldRaidMapType.Carrier, Priority = 1 },
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85400001, ConditionId = 854001000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, ChangeTarget = WorldRaidMapType.Carrier, Priority = 2 },
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85400002, ConditionId = 854002000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, ChangeTarget = WorldRaidMapType.Carrier, Priority = 3 },
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85400100, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85400, ChangeTarget = WorldRaidMapType.WorldMap, Priority = 1 },
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85401000, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85401, ChangeTarget = WorldRaidMapType.Carrier, Priority = 1 },
+            new InteractiveWorldRaidCarrierMapExcelT { Id = 85401100, WorldRaidSeasonId = 854, WorldRaidPhaseId = 85401, ChangeTarget = WorldRaidMapType.WorldMap, Priority = 1 },
+        };
+        foreach (var level in levels)
+        {
+            var lfbb = new FlatBufferBuilder(256);
+            lfbb.Finish(InteractiveWorldRaidCarrierMapExcel.Pack(lfbb, level).Value);
+            Insert(conn, "InteractiveWorldRaidCarrierMapDBSchema", lfbb.SizedByteArray());
         }
 
         SqliteConnection.ClearAllPools();
