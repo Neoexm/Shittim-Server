@@ -111,6 +111,9 @@ TESTING_ISSUES.txt
 ida_pro_metadata/il2cpp.json
 ida_pro_metadata/il2cpp.h
 
+# Names the host it pushes to.
+docs/deploy.sh
+
 # Project requirement: ALWAYS track Shittim-Server/config and every file inside it.
 # These negations MUST stay at the end of the file so they override the *.pem,
 # *.key, *.crt and other rules above (Git uses last-match-wins).
