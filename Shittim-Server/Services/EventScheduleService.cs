@@ -128,8 +128,8 @@ public static class EventScheduleService
                 {
                     var rec = EventContentSeasonExcel.GetRootAsEventContentSeasonExcel(new ByteBuffer(row.Bytes)).UnPack();
 
-                    // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. WorldRaidEntrance is the event-lobby door for the same season id and rides along. InteractiveWorldRaid is 854's flavour of the same season row; its per-phase windows live in their own table and get rewritten further down.
-                    if (raid != null && rec.EventContentId == raid.seasonId && (rec.EventContentType == EventContentType.WorldRaid || rec.EventContentType == EventContentType.WorldRaidEntrance || rec.EventContentType == EventContentType.InteractiveWorldRaid))
+                    // World raid seasons get the manifest's real window rather than the forced-open one: SetTimeTableFromEvent hands these dates straight to the season timer the raid ui counts down on, so 2099 would show a raid that never ends and the boss spawn maths would sit before every window. Every row under the season id moves together - the entrance door, the shop, the missions, the stages and the minigames all shipped inside one window with the raid, and the client has never been handed an open raid sitting in an expired event. InteractiveWorldRaid is 854's flavour of the same season row; its per-phase windows live in their own table and get rewritten further down.
+                    if (raid != null && rec.EventContentId == raid.seasonId)
                     {
                         rec.BeforehandExposedTime = WorldRaidService.LocalStamp(string.IsNullOrEmpty(raid.exposed) ? raid.open : raid.exposed);
                         rec.EventContentOpenTime = WorldRaidService.LocalStamp(raid.open);

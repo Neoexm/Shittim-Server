@@ -9,6 +9,7 @@ using Schale.MX.GameLogic.DBModel;
 using Schale.MX.GameLogic.Parcel;
 using Schale.MX.Logic.Battles;
 using Schale.MX.Logic.Battles.Summary;
+using Schale.MX.Logic.BattlesEntities;
 using Schale.MX.Logic.Data;
 using Schale.MX.NetworkProtocol;
 
@@ -37,6 +38,7 @@ public class WorldRaidManager
     {
         var worldRaidStages = _excelTableService.GetTable<WorldRaidStageExcelT>();
         var worldRaidLocalBosses = new List<WorldRaidLocalBossDBServer>();
+        var contentType = SeasonContentType(req.SeasonId);
 
         foreach (var bossGroupId in SeasonBossGroups(req.SeasonId))
         {
@@ -58,6 +60,7 @@ public class WorldRaidManager
                     worldRaidLocalDB = new WorldRaidLocalBossDBServer
                     {
                         AccountServerId = account.ServerId,
+                        ContentType = contentType,
                         SeasonId = req.SeasonId,
                         GroupId = bossGroupId,
                         UniqueId = worldRaidStageExcel.Id,
@@ -69,12 +72,76 @@ public class WorldRaidManager
                     context.WorldRaidLocalBosses.Add(worldRaidLocalDB);
                     await context.SaveChangesAsync();
                 }
+                else if (worldRaidLocalDB.ContentType != contentType)
+                {
+                    // rows written before the column existed all read as None, which is the lookup key the roomlist misses on
+                    worldRaidLocalDB.ContentType = contentType;
+                    if (worldRaidLocalDB.RaidBattleDB != null)
+                        worldRaidLocalDB.RaidBattleDB.ContentType = contentType;
+                    await context.SaveChangesAsync();
+                }
 
                 worldRaidLocalBosses.Add(worldRaidLocalDB);
             }
         }
 
         return worldRaidLocalBosses;
+    }
+
+    // InteractiveWorldRaidTask reads this off the lobby response before it does anything else and there is no error path - a season without one is a black screen and a silent log. Both map ids have to be in there: the state provider indexes them out by type, and the client counts a single-entry dictionary as corrupt map data. Classic seasons have no phases and never look at it.
+    public WorldRaidProgressDB? Progress(SchaleDataContext context, AccountDBServer account, long seasonId)
+    {
+        var phases = _excelTableService.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
+            .Where(x => x.SeasonId == seasonId)
+            .OrderBy(x => x.PhaseId)
+            .ToList();
+        if (phases.Count == 0)
+            return null;
+
+        var now = DateTime.Now;
+        var current = phases[0];
+        foreach (var phase in phases)
+        {
+            var start = PhaseStart(phase);
+            if (start != null && start <= now)
+                current = phase;
+        }
+
+        var clearedBosses = context.GetAccountWorldRaidLocalBosses(account.ServerId)
+            .Where(x => x.SeasonId == seasonId && x.IsCleardEver)
+            .Select(x => x.GroupId)
+            .ToHashSet();
+        var clearedStages = context.GetAccountCampaignStageHistories(account.ServerId).Select(x => x.StageUniqueId).ToHashSet();
+        var clearedScenarios = context.GetAccountScenarioHistories(account.ServerId).Select(x => x.ScenarioUniqueId).ToHashSet();
+        var clearedGroups = context.GetAccountScenarioGroupHistories(account.ServerId).Select(x => x.ScenarioGroupUqniueId).ToHashSet();
+
+        var clearConditionIds = _excelTableService.GetTable<InteractiveWorldRaidConditionExcelT>()
+            .Where(x => x.WorldRaidSeasonId == seasonId && x.WorldRaidPhaseId == current.PhaseId)
+            .Where(x => Satisfied(x, clearedBosses, clearedStages, clearedScenarios, clearedGroups))
+            .Select(x => x.Id)
+            .ToList();
+
+        var maps = new Dictionary<WorldRaidMapType, long>();
+        foreach (var target in new[] { WorldRaidMapType.Carrier, WorldRaidMapType.WorldMap })
+        {
+            // the furthest level the player has unlocked. Every phase ships a priority-1 row with no condition on it, so there is always something to land on.
+            var level = _excelTableService.GetTable<InteractiveWorldRaidCarrierMapExcelT>()
+                .Where(x => x.WorldRaidSeasonId == seasonId && x.WorldRaidPhaseId == current.PhaseId && x.ChangeTarget == target)
+                .Where(x => x.ConditionId == 0 || clearConditionIds.Contains(x.ConditionId))
+                .OrderByDescending(x => x.Priority)
+                .FirstOrDefault();
+            if (level != null)
+                maps[target] = level.Id;
+        }
+
+        return new WorldRaidProgressDB
+        {
+            SeasonId = seasonId,
+            PhaseId = current.PhaseId,
+            Maps = maps,
+            CarrierSkills = new Dictionary<SkillSlot, int>(),
+            ClearConditionIds = clearConditionIds
+        };
     }
 
     public async Task<List<WorldRaidBossListInfoDBServer>> GetBossList(
@@ -92,18 +159,13 @@ public class WorldRaidManager
 
             if (worldRaidBossList == null)
             {
-                var seedHP = worldRaidBossGroups.FirstOrDefault(x => x.WorldRaidBossGroupId == bossGroupId)?.WorldBossHP;
-                if (seedHP == null)
-                {
-                    // interactive pools ship per region; the steam client is the global build
-                    var interactiveGroup = _excelTableService.GetTable<InteractiveWorldRaidBossGroupExcelT>().First(x => x.WorldRaidBossGroupId == bossGroupId);
-                    seedHP = interactiveGroup.WorldBossHPGlobal != 0 ? interactiveGroup.WorldBossHPGlobal : interactiveGroup.WorldBossHP;
-                }
+                var seedHP = worldRaidBossGroups.FirstOrDefault(x => x.WorldRaidBossGroupId == bossGroupId)?.WorldBossHPAsia
+                    ?? _excelTableService.GetTable<InteractiveWorldRaidBossGroupExcelT>().First(x => x.WorldRaidBossGroupId == bossGroupId).WorldBossHPAsia;
 
                 var worldRaidWorldBossDB = new WorldRaidWorldBossDBServer
                 {
                     GroupId = bossGroupId,
-                    HP = seedHP.Value
+                    HP = seedHP
                 };
 
                 worldRaidBossList = new WorldRaidBossListInfoDBServer
@@ -153,14 +215,15 @@ public class WorldRaidManager
         WorldRaidEnterBattleRequest req)
     {
         var targetStage = GetStage(req.UniqueId);
+        var contentType = SeasonContentType(req.SeasonId);
 
         var characterStats = _excelTableService.GetTable<CharacterStatExcelT>();
         var targetBoss = characterStats.FirstOrDefault(y => y.CharacterId == targetStage.BossCharacterId.FirstOrDefault());
 
         var raidBattle = await context.RaidBattles
-            .FirstOrDefaultAsync(x => 
+            .FirstOrDefaultAsync(x =>
                 x.AccountServerId == account.ServerId &&
-                x.ContentType == ContentType.WorldRaid &&
+                x.ContentType == contentType &&
                 x.RaidUniqueId == req.UniqueId &&
                 !x.IsClear);
 
@@ -169,7 +232,7 @@ public class WorldRaidManager
             raidBattle = new RaidBattleDBServer
             {
                 AccountServerId = account.ServerId,
-                ContentType = ContentType.WorldRaid,
+                ContentType = contentType,
                 RaidUniqueId = req.UniqueId,
                 CurrentBossHP = targetBoss?.MaxHP100 ?? 10000000,
                 CurrentBossGroggy = 0,
@@ -198,11 +261,12 @@ public class WorldRaidManager
             return null;
 
         var targetStage = GetStage(req.UniqueId);
+        var contentType = SeasonContentType(req.SeasonId);
 
         var raidBattle = await context.RaidBattles
             .FirstOrDefaultAsync(x =>
                 x.AccountServerId == account.ServerId &&
-                x.ContentType == ContentType.WorldRaid &&
+                x.ContentType == contentType &&
                 x.RaidUniqueId == req.UniqueId &&
                 !x.IsClear);
 
@@ -220,7 +284,7 @@ public class WorldRaidManager
             var enterTicket = classicSeason?.EnterTicket ?? default;
             if (classicSeason == null)
             {
-                // interactive seasons charge per phase and the replay phase reopens every boss on its own currency, so the latest phase that has started is the one the client is paying with. The manifest is what the client's phase dates were patched from; without one the shipped dates decide.
+                // interactive seasons charge per phase and the replay phase reopens every boss on its own currency, so the latest phase that has started is the one the client is paying with.
                 var phases = _excelTableService.GetTable<InteractiveWorldRaidSeasonManageExcelT>()
                     .Where(x => x.SeasonId == req.SeasonId && x.OpenRaidBossGroupId.Contains(req.GroupId))
                     .OrderBy(x => x.PhaseId)
@@ -228,35 +292,11 @@ public class WorldRaidManager
                 if (phases.Count > 0)
                 {
                     enterTicket = phases[0].EnterTicket;
-                    var manifest = WorldRaidService.Manifest;
                     var now = DateTime.Now;
                     foreach (var phase in phases)
                     {
-                        DateTime start;
-                        if (manifest != null && manifest.seasonId == req.SeasonId)
-                        {
-                            if (phase.IsReplaySeason)
-                            {
-                                if (!WorldRaidService.TryLocal(manifest.close, out start))
-                                    continue;
-                            }
-                            else if (phase.PhaseStartCondition == 0)
-                            {
-                                if (!WorldRaidService.TryLocal(manifest.open, out start))
-                                    continue;
-                            }
-                            else
-                            {
-                                var spawns = phase.OpenRaidBossGroupId.Select(WorldRaidService.BossWindow).Where(w => w.HasValue).Select(w => w!.Value.Spawn).ToList();
-                                if (spawns.Count == 0)
-                                    continue;
-                                start = spawns.Min();
-                            }
-                        }
-                        else if (!DateTime.TryParse(phase.PhaseStartTime, out start))
-                            continue;
-
-                        if (start <= now)
+                        var start = PhaseStart(phase);
+                        if (start != null && start <= now)
                             enterTicket = phase.EnterTicket;
                     }
                 }
@@ -312,7 +352,7 @@ public class WorldRaidManager
         var clearedRaidBattle = await context.RaidBattles
             .FirstOrDefaultAsync(x =>
                 x.AccountServerId == account.ServerId &&
-                x.ContentType == ContentType.WorldRaid &&
+                x.ContentType == contentType &&
                 x.RaidUniqueId == req.UniqueId &&
                 x.IsClear);
 
@@ -352,6 +392,7 @@ public class WorldRaidManager
             worldRaidLocalDB = new WorldRaidLocalBossDBServer
             {
                 AccountServerId = account.ServerId,
+                ContentType = contentType,
                 SeasonId = req.SeasonId,
                 GroupId = req.GroupId,
                 UniqueId = req.UniqueId,
@@ -476,6 +517,56 @@ public class WorldRaidManager
             .SelectMany(x => x.OpenRaidBossGroupId)
             .Distinct()
             .ToList();
+    }
+
+    // the client keys its stage and boss-group dictionaries on (ContentType, id) and reads the type off the rows we send back, so 854's stages have to come back as InteractiveWorldRaid or the roomlist looks them up under 17, finds nothing and throws inside the loading coroutine. RaidBattleDB.Update fails the same lookup and never builds a result.
+    private ContentType SeasonContentType(long seasonId)
+    {
+        return _excelTableService.GetTable<WorldRaidSeasonManageExcelT>().Any(x => x.SeasonId == seasonId)
+            ? ContentType.WorldRaid
+            : ContentType.InteractiveWorldRaid;
+    }
+
+    // has to land on the same instant EventScheduleService wrote into the client's copy of the row, or the server names a phase the client does not believe is live. A conditioned phase opens the day before its first boss spawns. The manifest is what the client's phase dates were patched from; without one the shipped dates decide.
+    private static DateTime? PhaseStart(InteractiveWorldRaidSeasonManageExcelT phase)
+    {
+        var manifest = WorldRaidService.Manifest;
+        if (manifest == null || manifest.seasonId != phase.SeasonId)
+            return DateTime.TryParse(phase.PhaseStartTime, out var shipped) ? shipped : null;
+
+        if (phase.IsReplaySeason)
+            return WorldRaidService.TryLocal(manifest.close, out var reopen) ? reopen : null;
+
+        if (phase.PhaseStartCondition == 0)
+            return WorldRaidService.TryLocal(manifest.open, out var open) ? open : null;
+
+        var spawns = phase.OpenRaidBossGroupId.Select(WorldRaidService.BossWindow).Where(w => w.HasValue).Select(w => w!.Value.Spawn).ToList();
+        return spawns.Count > 0 ? spawns.Min().AddDays(-1) : null;
+    }
+
+    private static bool Satisfied(InteractiveWorldRaidConditionExcelT condition, HashSet<long> bosses, HashSet<long> stages, HashSet<long> scenarios, HashSet<long> scenarioGroups)
+    {
+        var met = 0;
+        for (var i = 0; i < condition.ConditionType.Count; i++)
+        {
+            var hit = condition.ConditionType[i] switch
+            {
+                WorldRaidConditionType.BossClear => bosses.Contains(condition.ConditionValue[i]),
+                WorldRaidConditionType.EventStageClear => stages.Contains(condition.ConditionValue[i]),
+                WorldRaidConditionType.MainScenarioClear => scenarios.Contains(condition.ConditionValue[i]),
+                WorldRaidConditionType.EventScenarioClear => scenarioGroups.Contains(condition.ConditionValue[i]),
+                _ => false
+            };
+            if (hit)
+                met++;
+        }
+
+        return condition.MultipleConditionCheckType switch
+        {
+            MultipleConditionCheckType.Or => met > 0,
+            MultipleConditionCheckType.Count => met >= condition.MultipleConditionCheckParameter,
+            _ => met > 0 && met == condition.ConditionType.Count
+        };
     }
 
     // 854's stages live in the interactive table but carry the same battle fields, so an interactive row gets dressed up as a classic one and the rest of the flow does not care

@@ -51,6 +51,7 @@ public class WorldRaidHandler : ProtocolHandlerBase
             .ToMapList(_mapper);
         response.LocalBossDBs = localBoss.ToMapList(_mapper);
         response.BossGroups = _worldRaidManager.BuildBossGroups(request.SeasonId);
+        response.WorldRaidProgressDB = _worldRaidManager.Progress(db, account, request.SeasonId);
 
         return response;
     }

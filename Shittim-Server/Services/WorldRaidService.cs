@@ -103,15 +103,11 @@ public static class WorldRaidService
         {
             var declared = manifest.bosses.FirstOrDefault(b => b.groupId == groupId);
             var hp = declared?.totalHP ?? 0;
+            // pools ship one column per region and the client draws the world bar as hp over the column for its own, which on the steam build is asia. Seeding from any other column opens the boss part-dead.
             if (hp == 0)
-                hp = groups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId)?.WorldBossHP ?? 0;
+                hp = groups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId)?.WorldBossHPAsia ?? 0;
             if (hp == 0)
-            {
-                // interactive pools ship per region; the steam client is the global build
-                var interactive = interactiveGroups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId);
-                if (interactive != null)
-                    hp = interactive.WorldBossHPGlobal != 0 ? interactive.WorldBossHPGlobal : interactive.WorldBossHP;
-            }
+                hp = interactiveGroups.FirstOrDefault(g => g.WorldRaidBossGroupId == groupId)?.WorldBossHPAsia ?? 0;
             state.bosses[groupId] = new WorldRaidBossState { remainingHP = hp };
         }
         foreach (var declared in manifest.bosses.Where(b => !state.bosses.ContainsKey(b.groupId)))

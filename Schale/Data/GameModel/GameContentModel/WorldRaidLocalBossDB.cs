@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Schale.FlatData;
 using Schale.MX.GameLogic.DBModel;
 
 namespace Schale.Data.GameModel
@@ -16,6 +17,7 @@ namespace Schale.Data.GameModel
         [JsonIgnore]
         public long ServerId { get; set; }
 
+        public ContentType ContentType { get; set; }
         public long SeasonId { get; set; }
         public long GroupId { get; set; }
         public long UniqueId { get; set; }

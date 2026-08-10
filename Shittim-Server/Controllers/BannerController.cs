@@ -8,9 +8,14 @@ namespace Shittim_Server.Controllers;
 public class BannerController : ControllerBase
 {
     [HttpGet("/banner/{**path}")]
-    public IResult Image()
+    public IResult Image(string path)
     {
-        var file = Path.Combine(AppContext.BaseDirectory, "Data", "Koyuki", "koyuki.png");
+        // GetLocalizeBannerImageName splices the client's language in ahead of the extension, so one file on disk answers for every locale
+        var name = Path.GetFileNameWithoutExtension(path);
+        var cut = name.LastIndexOf('_');
+        var art = Path.Combine(AppContext.BaseDirectory, "Data", "Banner", (cut > 0 ? name[..cut] : name) + ".png");
+
+        var file = System.IO.File.Exists(art) ? art : Path.Combine(AppContext.BaseDirectory, "Data", "Koyuki", "koyuki.png");
         if (!System.IO.File.Exists(file))
             return Results.NotFound();
 
