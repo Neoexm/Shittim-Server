@@ -113,6 +113,14 @@ export const api = {
   gachaBanners: () => req('GET', '/api/admin/gacha/banners'),
   eventSeasons: (uid) => req('GET', `/api/admin/events/seasons${uid ? `?uid=${uid}` : ''}`),
 
+  // the import rewrites three 300MB ExcelDB copies and takes a backup of each the first time, so it gets a much longer leash than a normal admin call
+  modsCharacters: () => req('GET', '/api/admin/mods/characters'),
+  modsInspect: (zipPath) => req('POST', '/api/admin/mods/characters/inspect', { zipPath }, { timeout: 30000 }),
+  modsImport: (b) => req('POST', '/api/admin/mods/characters/import', b, { timeout: 300000 }),
+  modsCharacter: (id) => req('GET', `/api/admin/mods/characters/${id}`),
+  modsUpdate: (id, b) => req('POST', `/api/admin/mods/characters/${id}/update`, b, { timeout: 120000 }),
+  modsRemove: (id) => req('POST', `/api/admin/mods/characters/${id}/remove`, null, { timeout: 120000 }),
+
   notice: () => req('GET', '/api/admin/notice'),
   setNotice: (b) => req('POST', '/api/admin/notice', b),
   eventSchedule: () => req('GET', '/api/admin/events/schedule'),

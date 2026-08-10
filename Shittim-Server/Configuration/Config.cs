@@ -237,6 +237,11 @@ namespace BlueArchiveAPI.Configuration
             return $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/api/";
         }
 
+        public static string GetAddressablesUrl()
+        {
+            return $"http://{Instance.ServerConfiguration.HostAddress}:{Instance.ServerConfiguration.HostPort}/addressables/";
+        }
+
         private static string GetGatewayUrl()
         {
             return Instance.ServerConfiguration.EnableGateway

@@ -15,9 +15,10 @@ import events from './pages/events.js';
 import schedule from './pages/schedule.js';
 import rates from './pages/rates.js';
 import notices from './pages/notices.js';
+import mods from './pages/mods.js';
 import updates from './pages/updates.js';
 
-const PAGES = [overview, accounts, inventory, mail, schedule, events, rates, notices, config, updates];
+const PAGES = [overview, accounts, inventory, mail, schedule, events, rates, notices, mods, config, updates];
 const NAV = PAGES.map((p) => p.id);
 const byId = Object.fromEntries(PAGES.map((p) => [p.id, p]));
 

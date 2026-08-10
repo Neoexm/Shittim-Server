@@ -111,6 +111,8 @@ namespace Shittim.CLI
 
                 builder.Services.AddSingleton<CafeService>();
                 builder.Services.AddSingleton<HandlerManager>();
+                builder.Services.AddSingleton<CustomCharacterService>();
+                builder.Services.AddSingleton<ModCatalogService>();
 
                 builder.Services.AddHostedService<Shittim_Server.GameClient.GameClientService>();
 

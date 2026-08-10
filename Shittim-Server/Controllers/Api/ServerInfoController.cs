@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BlueArchiveAPI.Configuration;
 using Newtonsoft.Json.Linq;
+using Shittim_Server.Services;
 using System.Text.Json.Nodes;
 
 namespace Shittim_Server.Controllers.Api
@@ -10,10 +11,12 @@ namespace Shittim_Server.Controllers.Api
     public class ServerInfoController : ControllerBase
     {
         private readonly ILogger<ServerInfoController> _logger;
+        private readonly ModCatalogService _catalog;
 
-        public ServerInfoController(ILogger<ServerInfoController> logger)
+        public ServerInfoController(ILogger<ServerInfoController> logger, ModCatalogService catalog)
         {
             _logger = logger;
+            _catalog = catalog;
         }
 
         [HttpGet("com.nexon.bluearchive/server_config/{*filename}")]
@@ -40,7 +43,10 @@ namespace Shittim_Server.Controllers.Api
                 ["ConnectionGroupsJson"] = serverInfoConfig.ConnectionGroupsJson,
                 ["desc"] = serverInfoConfig.Desc
             };
-            
+
+            if (_catalog.ShouldServe)
+                result["Mapping"] = new JObject { ["Resources"] = new JObject { ["AddressablesCatalogUrlRoot"] = Config.GetAddressablesUrl() } };
+
             return Content(result.ToString(Newtonsoft.Json.Formatting.None), "text/plain");
         }
 
