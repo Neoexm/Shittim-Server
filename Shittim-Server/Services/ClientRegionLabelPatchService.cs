@@ -53,12 +53,16 @@ namespace Shittim_Server.Services
 
         private void Apply(string text)
         {
+            var name = RegionName(text);
+            var custom = name != StockRegionName;
+
+            // A restore has to clear the saved region before any of the scans below get their chance to bail out, since the name they were pointing at is gone from the metadata either way and the client sits on the loading screen instead of saying so.
+            if (!custom)
+                WriteLastRegion(name);
+
             var path = ClientMetadataPatchService.GetMetadataPath();
             if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                 return;
-
-            var name = RegionName(text);
-            var custom = name != StockRegionName;
 
             var bytes = File.ReadAllBytes(path);
 
@@ -139,19 +143,33 @@ namespace Shittim_Server.Services
         }
 
         // The label itself. GameConfig loads this table at startup and FindLastRegion reads it straight back; the login coroutine overwrites the entry in memory without saving it, so the file keeps the configured text until the next server start.
+        // LastConnectSaveData spells it a second time for the reconnect path, and neither file lives under the install directory, so reinstalling the client leaves both of them still naming a region that only existed while the patch was on.
         private void WriteLastRegion(string region)
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow", "Nexon Games", "Blue Archive", "LocalConfig.json");
-            if (!File.Exists(path))
+            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow", "Nexon Games", "Blue Archive");
+
+            var path = Path.Combine(directory, "LocalConfig.json");
+            if (File.Exists(path))
+            {
+                var config = JsonNode.Parse(File.ReadAllText(path));
+                var stringTable = config["StringTable"];
+                if (stringTable != null && stringTable["LastRegion"]?.GetValue<string>() != region)
+                {
+                    stringTable["LastRegion"] = region;
+                    File.WriteAllText(path, config.ToJsonString());
+                }
+            }
+
+            var connectPath = Path.Combine(directory, "LastConnectSaveData");
+            if (!File.Exists(connectPath))
                 return;
 
-            var config = JsonNode.Parse(File.ReadAllText(path));
-            var stringTable = config["StringTable"];
-            if (stringTable == null || stringTable["LastRegion"]?.GetValue<string>() == region)
+            var connect = JsonNode.Parse(File.ReadAllText(connectPath));
+            if (connect["Region"]?.GetValue<string>() == region)
                 return;
 
-            stringTable["LastRegion"] = region;
-            File.WriteAllText(path, config.ToJsonString());
+            connect["Region"] = region;
+            File.WriteAllText(connectPath, connect.ToJsonString());
         }
 
         // Anchors on the members around the one it rewrites, since the blob has thousands of loose names and the field table gives no other way back to a type. The rewritten slot itself has to stay out of the match or the patch only ever applies to a stock file.
