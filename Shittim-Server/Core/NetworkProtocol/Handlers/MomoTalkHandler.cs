@@ -91,8 +91,13 @@ public class MomoTalkHandler : ProtocolHandlerBase
             // Not saved here - the SaveChanges at the end of the handler bundles it.
         }
 
-        if (request.ChosenMessageId.GetValueOrDefault() > 0)
-        {
+if (request.ChosenMessageId.GetValueOrDefault() > 0 &&
+    _excelService.GetTable<AcademyMessangerExcelT>().Any(x =>
+        x.Id == request.ChosenMessageId.Value &&
+        x.MessageGroupId == request.LastReadMessageGroupId &&
+        x.CharacterId == momotalkOutline.CharacterId &&
+        x.MessageCondition == AcademyMessageConditions.Answer))
+{
             // LastReadMessageGroupId is the Answer group and ChosenMessageId is the tapped row's Id. The transcript rebuild looks the pair up verbatim (MomoTalkDBService.RestoreMessageGroupHistory), so store it as sent.
             var existingChoice = db.MomoTalkChoices.FirstOrDefault(x =>
                 x.AccountServerId == account.ServerId &&
