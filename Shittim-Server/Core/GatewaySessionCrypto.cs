@@ -57,12 +57,15 @@ namespace Shittim_Server.Core
             var serverIv = RandomNumberGenerator.GetBytes(16);
             RememberAes(serverKey, serverIv);
 
+            // Sign the ciphertext, not the key inside it. GameSessionManager.VerifyAndSetAesParameters base64-decodes EncryptedKey/EncryptedIV and passes those bytes straight into HybridCryptor.VerifySignatureKeyAndIVWithRSA - it never decrypts them, it stores the blobs and relays them back on later requests - so the signature has to cover exactly what went over the wire.
+            var encryptedKey = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(Convert.ToBase64String(serverKey)), clientKey, clientIv);
+            var encryptedIv = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(Convert.ToBase64String(serverIv)), clientKey, clientIv);
 
             return new GatewaySessionCrypto(
-                EncryptAesBase64(Convert.ToBase64String(serverKey), clientKey, clientIv),
-                SignBase64(serverKey),
-                EncryptAesBase64(Convert.ToBase64String(serverIv), clientKey, clientIv),
-                SignBase64(serverIv));
+                Convert.ToBase64String(encryptedKey),
+                SignBase64(encryptedKey),
+                Convert.ToBase64String(encryptedIv),
+                SignBase64(encryptedIv));
         }
 
         public static (byte[] Key, byte[] Iv) DecodeClientCrypto(string? keyText, string? ivText)
@@ -231,7 +234,8 @@ namespace Shittim_Server.Core
                 if (!TryImportRsaPrivateKey(rsa, privateKey))
                     return "";
 
-                return Convert.ToBase64String(rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+                // SHA1 because that is what the client verifies with - the two rsa.VerifyData calls in HybridCryptor.VerifySignatureKeyAndIVWithRSA both take HashAlgorithmName.SHA1.
+                return Convert.ToBase64String(rsa.SignData(data, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1));
             }
             catch
             {
