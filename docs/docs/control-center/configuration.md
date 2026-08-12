@@ -42,10 +42,7 @@ Override the version id and the CDN base URL to pin the server to a specific dat
 | Switch | What it patches |
 | --- | --- |
 | Patch metadata | the gateway public key and the region label in `global-metadata.dat` |
-| Patch GameAssembly IAS | off by default; rewrites `GameAssembly.dll`, which Steam restores on a file verify |
 | Patch gamescale.core IAS | the login endpoint in `gamescale.core.dll` |
-| Patch Nexon platform IAS | the same in the Nexon platform modules |
-| Patch inface IAS | the same in inface |
 | Patch inface config | the inface configuration file |
 | Manage grap64 | grap64 plugin management |
 | Patch recruitment banners | writes banners into the client's `ExcelDB.db` |

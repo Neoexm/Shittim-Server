@@ -39,11 +39,8 @@ The file has three sections. `ServerConfiguration` is the one that matters; `Irc
 | --- | --- | --- |
 | `ClientInstallDirectory` | empty | the install everything else is derived from. Blank means find it |
 | `AutoPatchClientMetadata` | true | gateway public key and region label in `global-metadata.dat` |
-| `AutoPatchClientGameAssemblyIas` | **false** | rewrites `GameAssembly.dll`, which Steam restores on a file verify |
-| `AutoPatchClientSteamOffline` | **false** | lets the client hand out an external ticket with Steam offline or not running; also rewrites `GameAssembly.dll` |
+| `AutoPatchClientSteamOffline` | **false** | lets the client hand out an external ticket with Steam offline or not running; rewrites `GameAssembly.dll`, which Steam restores on a file verify |
 | `AutoPatchClientGamescaleIas` | true | `gamescale.core.dll` |
-| `AutoPatchClientNexonPlatformIas` | true | Nexon platform modules |
-| `AutoPatchClientInfaceIas` | true | inface |
 | `AutoPatchClientInfaceConfig` | true | the inface config file |
 | `AutoManageGrap64` | true | grap64 plugin |
 | `AutoPatchClientBanners` | true | recruitment banners into the client's `ExcelDB.db` |

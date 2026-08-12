@@ -55,14 +55,19 @@ namespace Shittim_Server.Core
             var (clientKey, clientIv) = DecodeClientCrypto(clientKeyText, clientIvText);
             var serverKey = RandomNumberGenerator.GetBytes(16);
             var serverIv = RandomNumberGenerator.GetBytes(16);
-            RememberAes(serverKey, serverIv);
 
+            // The in-session key is the CLIENT's key/IV, the pair it generated and sent here. HttpGameSession encrypts every later body with GameSessionManager's own aesKey/aesIV and relays EncryptedKey/EncryptedIV back untouched as an opaque session tag in the packet header, so serverKey/serverIv are only ever the plaintext inside that tag and nothing on the wire is encrypted with them.
+            RememberAes(clientKey, clientIv);
+
+            // Sign the ciphertext, not the key inside it. GameSessionManager.VerifyAndSetAesParameters base64-decodes EncryptedKey/EncryptedIV and passes those bytes straight into HybridCryptor.VerifySignatureKeyAndIVWithRSA - it never decrypts them, it stores the blobs and relays them back on later requests - so the signature has to cover exactly what went over the wire.
+            var encryptedKey = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(Convert.ToBase64String(serverKey)), clientKey, clientIv);
+            var encryptedIv = HybridCryptor.EncryptTextAES(Encoding.UTF8.GetBytes(Convert.ToBase64String(serverIv)), clientKey, clientIv);
 
             return new GatewaySessionCrypto(
-                EncryptAesBase64(Convert.ToBase64String(serverKey), clientKey, clientIv),
-                SignBase64(serverKey),
-                EncryptAesBase64(Convert.ToBase64String(serverIv), clientKey, clientIv),
-                SignBase64(serverIv));
+                Convert.ToBase64String(encryptedKey),
+                SignBase64(encryptedKey),
+                Convert.ToBase64String(encryptedIv),
+                SignBase64(encryptedIv));
         }
 
         public static (byte[] Key, byte[] Iv) DecodeClientCrypto(string? keyText, string? ivText)
@@ -231,7 +236,8 @@ namespace Shittim_Server.Core
                 if (!TryImportRsaPrivateKey(rsa, privateKey))
                     return "";
 
-                return Convert.ToBase64String(rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+                // SHA1 because that is what the client verifies with - the two rsa.VerifyData calls in HybridCryptor.VerifySignatureKeyAndIVWithRSA both take HashAlgorithmName.SHA1.
+                return Convert.ToBase64String(rsa.SignData(data, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1));
             }
             catch
             {

@@ -30,11 +30,7 @@ public class NativeIasPatchTransactionTests : IDisposable
 
         Environment.SetEnvironmentVariable("SHITTIM_IAS_PATCH_PORT", "5000");
         Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "true");
-        Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS", "false");
-        Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_INFACE_IAS", "false");
         Environment.SetEnvironmentVariable("SHITTIM_CLIENT_GAMESCALE_CORE_PATH", _path);
-        Environment.SetEnvironmentVariable("SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH", Path.Combine(_dir, "absent-nexon.dll"));
-        Environment.SetEnvironmentVariable("SHITTIM_CLIENT_INFACE_PATH", Path.Combine(_dir, "absent-inface.dll"));
     }
 
     [Fact]
@@ -111,24 +107,6 @@ public class NativeIasPatchTransactionTests : IDisposable
         Assert.True(File.Exists(StatePath()));
     }
 
-    // gamescale routed at the loopback server while NexonPlatformModules still talks to nexon.com is a client that gets through sign-in and dies later somewhere that has nothing to do with the module that failed.
-    [Fact]
-    public async Task AModuleThatCannotBePatchedTakesTheOnesAlreadyPatchedBackWithIt()
-    {
-        var before = File.ReadAllBytes(_path);
-        var nexon = Path.Combine(_dir, "NexonPlatformModules.dll");
-        File.WriteAllBytes(nexon, before);
-        Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS", "true");
-        Environment.SetEnvironmentVariable("SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH", nexon);
-
-        using (File.Open(nexon, FileMode.Open, FileAccess.Read, FileShare.None))
-            await Run();
-
-        Assert.Equal(before, File.ReadAllBytes(_path));
-        Assert.False(File.Exists(StatePath()));
-        Assert.Contains(_log.Entries, x => x.Level == LogLevel.Error && x.Message.Contains("rolling back", StringComparison.Ordinal));
-    }
-
     // State files written before the hashes existed are sitting beside the real client right now. The module they describe is the patched one, so there is no way to work out afterwards what it hashed to before - and recording what is in front of us would make restore verify our own bytes and call the client official.
     [Fact]
     public async Task AStateFileFromBeforeTheHashesCannotInventOne()
@@ -162,9 +140,7 @@ public class NativeIasPatchTransactionTests : IDisposable
     {
         foreach (var name in new[]
         {
-            "SHITTIM_IAS_PATCH_PORT", "SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS",
-            "SHITTIM_AUTO_PATCH_INFACE_IAS", "SHITTIM_CLIENT_GAMESCALE_CORE_PATH",
-            "SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH", "SHITTIM_CLIENT_INFACE_PATH"
+            "SHITTIM_IAS_PATCH_PORT", "SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "SHITTIM_CLIENT_GAMESCALE_CORE_PATH"
         })
             Environment.SetEnvironmentVariable(name, null);
 

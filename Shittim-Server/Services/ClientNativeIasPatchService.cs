@@ -13,17 +13,10 @@ namespace Shittim_Server.Services
 
         private static readonly byte[] HttpsSchemeBuilder = Convert.FromBase64String("SMdF9wgAAABIuGh0dHBzOi8vSIlF58ZF7wA=");
         private static readonly byte[] HttpSchemeBuilder = Convert.FromBase64String("SMdF9wcAAABIuGh0dHA6Ly8ASIlF58ZF7wA=");
-        private static readonly BinaryPatchDefinition[] NoBinaryPatches = [];
 
         // IMS base URLs used by gamescale's alternative URL builder (sub_1806FC110 / sub_18007F550). These build the IMS base WITHOUT /v1 appended; the caller appends /v1/<path>. The null terminator is included in the 36/40-byte signatures to avoid false matches with the /v1 variants which have '/' at that position rather than '\0'.
         private static readonly BinaryPatchDefinition[] GamescaleBinaryPatches =
         [
-            new(
-                "ims-primary-link-request-status-bypass-v2",
-                Convert.FromBase64String("QYH8yAAAAA+FhwAAAIA9HyqRAAAPhP8AAABMi85Ig34="),
-                Convert.FromBase64String("QYH8yAAAAEG8yAAAAIA9HyqRAAAPhP8AAABMi85Ig34="),
-                "require RequestBase status 200",
-                "force local RequestBase status 200"),
             new(
                 "ims-live-base",
                 [.. Ascii.GetBytes("https://signin.nexon.com/ims/public"), 0],
@@ -155,32 +148,6 @@ namespace Shittim_Server.Services
             ])
         ];
 
-        private static readonly StringPatchDefinition[] InfaceStringPatches =
-        [
-            new("ias-live-v1-base", true, "/ias/live/public", "/v1", 47, PatchPadding.PathSegment,
-            [
-                "https://public.api.nexon.com/ias/live/public/v1",
-                "http://192.168.20.1:5000/ias/live/public/xxx/v1"
-            ]),
-            new("ias-pre-v1-base", true, "/ias/pre/public", "/v1", 46, PatchPadding.PathSegment,
-            [
-                "https://public.api.nexon.com/ias/pre/public/v1",
-                "http://192.168.20.1:5000/ias/pre/public/xxx/v1"
-            ]),
-            new("ias-qa-v1-base", true, "/ias/qa/public", "/v1", 46, PatchPadding.PathSegment,
-            [
-                "https://public.api.nexon.com/ias/qa/public/v1",
-                "https://sandbox.api.nexon.com/ias/qa/public/v1",
-                "http://192.168.20.1:5000/ias/qa/public/xxxx/v1"
-            ]),
-            new("ias-alpha-v1-base", true, "/ias/alpha/public", "/v1", 49, PatchPadding.PathSegment,
-            [
-                "https://public.api.nexon.com/ias/alpha/public/v1",
-                "https://sandbox.api.nexon.com/ias/alpha/public/v1",
-                "http://192.168.20.1:5000/ias/alpha/public/xxxx/v1"
-            ])
-        ];
-
         private static readonly ModulePatchDefinition[] Modules =
         [
             new(
@@ -196,35 +163,7 @@ namespace Shittim_Server.Services
                 ],
                 3,
                 GamescaleBinaryPatches,
-                NativeStringPatches),
-            new(
-                "nexon-platform",
-                "NexonPlatformModules.dll",
-                "SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS",
-                () => Config.Instance.ServerConfiguration.AutoPatchClientNexonPlatformIas,
-                "SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH",
-                () => Config.Instance.ServerConfiguration.ClientNexonPlatformModulesPath,
-                () =>
-                [
-                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "NexonPlatformModules.dll")) ?? ""
-                ],
-                3,
-                NoBinaryPatches,
-                NativeStringPatches),
-            new(
-                "inface",
-                "inface.dll",
-                "SHITTIM_AUTO_PATCH_INFACE_IAS",
-                () => Config.Instance.ServerConfiguration.AutoPatchClientInfaceIas,
-                "SHITTIM_CLIENT_INFACE_PATH",
-                () => Config.Instance.ServerConfiguration.ClientInfacePath,
-                () =>
-                [
-                    SteamGameLocator.CombineGamePath(Path.Combine("BlueArchive_Data", "Plugins", "x86_64", "inface.dll")) ?? ""
-                ],
-                0,
-                NoBinaryPatches,
-                InfaceStringPatches)
+                NativeStringPatches)
         ];
 
         private static readonly JsonSerializerOptions JsonOptions = new()
