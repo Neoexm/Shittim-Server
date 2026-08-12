@@ -220,9 +220,6 @@ namespace Shittim_Server.Controllers.Api
                     return;
                 }
 
-                // Gateway responses are PLAINTEXT. Live-RE of the v1.90.433063 client: HttpGameSession.MoveNext uses aesKey = O6b74.get_Key() only when the session's O4baecbba flag (+0x80) is non-null, and GameSessionManager.O26e18cb leaves it null, so HttpGameMessage.DecryptOrReturnOriginal returns the body as-is.
-                // The post-Auth "A request that cannot be processed" popup was AccountAuthResponse content (DateTime ticks vs ISO, missing v433063 fields), not crypto.
-
                 if (!_handlerManager.IsImplemented(protocol))
                 {
                     // The payload rides along on the error rather than as a second Information-level body dump; this is a failure, so it keeps its context.
@@ -514,9 +511,7 @@ namespace Shittim_Server.Controllers.Api
                     typeConversion,
                     payload.Format);
 
-                // The request body is gzip+XOR and decodes to plaintext here, but the packet header carries the per-request AES key/IV the client will use to decrypt the response. MX.Core.Crypto.PacketCryptManager.EncryptRequest @0x180F33600 writes [crc][typeConversion][keyLen][ivLen][aesKey][aesIV][gzip+XOR body], which DecodeGatewayPayload parses as headerKey/headerIv.
-                // Handshake requests (GetCryptoKeys/CheckNexon) send keyLen=0 and get a plaintext reply.
-                // In-session requests from Account_Auth onward send the key and the reply must be encrypted with it, or HttpGameMessage.DecodeResponse fails to decrypt and the client shows "A request that cannot be processed has been received."
+                // PacketCryptManager.EncryptRequest writes [crc][typeConversion][keyLen][ivLen][aesEncryptedKey][aesEncryptedIV][gzip+XOR body], so headerKey/headerIv are the handshake blobs we handed out, not key material - 32 bytes each, since they wrap the base64 of a 16-byte key under PKCS7. Handshake requests (GetCryptoKeys/CheckNexon) send keyLen=0 and both directions stay plaintext.
                 var responseCrypto = (headerKey.Length > 0 && headerIv.Length == 16 && IsValidAesKeyLength(headerKey.Length))
                     ? new GatewayCryptoContext(true, headerKey, headerIv)
                     : GatewayCryptoContext.None;
@@ -785,31 +780,21 @@ namespace Shittim_Server.Controllers.Api
                 _wireRequestJson, res.Protocol, res.Packet,
                 ShouldUseAes(crypto), crypto.Key.Length);
 
-            // Only the inner packet is encrypted; see CreateProtocolResponse.
-            if (ShouldUseAes(crypto))
-            {
-                byte[] innerPlain = Encoding.UTF8.GetBytes(res.Packet);
-                byte[] innerEnc = HybridCryptor.EncryptGatewayResponse(innerPlain, crypto.Key, crypto.Iv);
-                res.Packet = Convert.ToBase64String(innerEnc);
-            }
-
             string json = JsonConvert.SerializeObject(res, serverPacketSettings);
+            if (ShouldUseAes(crypto))
+                json = Convert.ToBase64String(HybridCryptor.EncryptGatewayResponse(Encoding.UTF8.GetBytes(json), crypto.Key, crypto.Iv));
+
             Response.ContentType = "application/json; charset=utf-8";
             await Response.WriteAsync(json);
         }
 
         private async Task CreateProtocolResponse(ServerResponsePacket packet, GatewayCryptoContext crypto)
         {
-            // The outer {protocol, packet} envelope must stay PLAINTEXT json so the client can route it by protocol; only the inner `packet` payload is AES-encrypted. The client parses the envelope, then HttpGameMessage.DecodeResponse(aesKey, aesIV, packet) base64-decodes and AES-decrypts the packet field (DecryptOrReturnOriginal).
-            // Encrypting the whole envelope fails the client's envelope JSON parse before it ever decrypts, and it reports "A request that cannot be processed has been received." regardless of key or mode.
-            if (ShouldUseAes(crypto))
-            {
-                byte[] innerPlain = Encoding.UTF8.GetBytes(packet.Packet);
-                byte[] innerEnc = HybridCryptor.EncryptGatewayResponse(innerPlain, crypto.Key, crypto.Iv);
-                packet.Packet = Convert.ToBase64String(innerEnc);
-            }
-
+            // The whole {protocol, packet} envelope goes inside the ciphertext, not around it. HttpGameSession's WaitForRequest coroutine (0x180da2773) hands the raw DownloadText to HttpGameMessage.DecodeResponse, which base64-decodes and AES-decrypts the entire body before anything looks at the protocol field; the plaintext-envelope shape is only reachable while the client still has no session blobs.
             string json = JsonConvert.SerializeObject(packet, serverPacketSettings);
+            if (ShouldUseAes(crypto))
+                json = Convert.ToBase64String(HybridCryptor.EncryptGatewayResponse(Encoding.UTF8.GetBytes(json), crypto.Key, crypto.Iv));
+
             Response.ContentType = "application/json; charset=utf-8";
             await Response.WriteAsync(json);
         }
