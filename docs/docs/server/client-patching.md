@@ -15,17 +15,14 @@ The retail client talks to Nexon. Getting it to talk to loopback instead means e
 | --- | --- | --- |
 | Metadata | `global-metadata.dat` | the server's RSA public key, in three 150-byte chunks, and the region label |
 | Gamescale IAS | `gamescale.core.dll` | the login endpoint |
-| Nexon platform IAS | the Nexon platform modules | the same |
-| Inface IAS | inface | the same |
 | Inface config | the inface config file | endpoint configuration |
-| GameAssembly IAS | `GameAssembly.dll` | off by default |
 | Steam offline | `GameAssembly.dll` | off by default; lets the client hand out an external ticket with Steam offline |
 | grap64 | the plugin directory | plugin management |
 | Banners | the client's `ExcelDB.db` | recruitment banner rows |
 | Region label | `global-metadata.dat` | the title-screen region name |
 | Store URL | the client's store lookup | points it at this server so the shop currency check answers with no route out |
 
-The two `GameAssembly.dll` patchers are off by default because Steam restores that file on a verify, and a restored file means the patch is silently gone.
+The `GameAssembly.dll` patcher is off by default because Steam restores that file on a verify, and a restored file means the patch is silently gone.
 
 ## The region label
 
