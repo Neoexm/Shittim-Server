@@ -307,6 +307,98 @@ namespace Shittim_Server.Services
             logger.LogInformation("Custom character {Id} removed", id);
         }
 
+        // A game update or a resource re-download replaces the client's ExcelDB.db wholesale, which takes every cloned student back out of it while the account still owns one. The client cannot resolve the id anywhere in its login sync and dies there - popup, then no lobby - so any student the server's dump has and a copy does not is put back before anyone logs in.
+        public int SyncMissing()
+        {
+            var dbs = DatabasePaths();
+            if (dbs.Count < 2)
+                return 0;
+
+            using var source = Open(dbs[0], readOnly: true);
+            var known = StudentIds(source);
+            var copied = 0;
+
+            foreach (var db in dbs.Skip(1))
+            {
+                List<long> missing;
+                using (var probe = Open(db, readOnly: true))
+                    missing = known.Except(StudentIds(probe)).ToList();
+                if (missing.Count == 0)
+                    continue;
+
+                using (var target = Open(db, readOnly: false))
+                using (var tx = target.BeginTransaction())
+                {
+                    foreach (var id in missing)
+                        CopyCharacter(source, target, tx, id);
+                    tx.Commit();
+                }
+
+                copied += missing.Count;
+                logger.LogInformation("Restored student {Ids} into {Db}", string.Join(", ", missing), db);
+            }
+
+            return copied;
+        }
+
+        private static void CopyCharacter(SqliteConnection source, SqliteConnection target, SqliteTransaction tx, long id)
+        {
+            var character = LoadOne(source, "CharacterExcel", "Id", id);
+            var costumeGroup = (long)character.GetType().GetProperty("CostumeGroupId").GetValue(character);
+            var etcKey = (uint)character.GetType().GetProperty("LocalizeEtcId").GetValue(character);
+
+            foreach (var spec in Tables)
+                CopyRows(source, target, tx, TableName(spec.Type), spec.Key, spec.Type == "CostumeExcel" ? costumeGroup : id);
+
+            CopyRows(source, target, tx, "LocalizeEtcDBSchema", "Key", etcKey);
+        }
+
+        // The blobs move across verbatim - both copies are the same schema at the same version, and repacking them through FlatData would rewrite fields the clone never touched.
+        private static void CopyRows(SqliteConnection source, SqliteConnection target, SqliteTransaction tx, string table, string keyColumn, object key)
+        {
+            using (var taken = target.CreateCommand())
+            {
+                taken.Transaction = tx;
+                taken.CommandText = $"SELECT 1 FROM [{table}] WHERE [{keyColumn}] = @k LIMIT 1";
+                taken.Parameters.AddWithValue("@k", key);
+                if (taken.ExecuteScalar() != null)
+                    return;
+            }
+
+            using var read = source.CreateCommand();
+            read.CommandText = $"SELECT * FROM [{table}] WHERE [{keyColumn}] = @k";
+            read.Parameters.AddWithValue("@k", key);
+            using var reader = read.ExecuteReader();
+
+            string insert = null;
+            while (reader.Read())
+            {
+                if (insert == null)
+                {
+                    var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
+                    insert = $"INSERT INTO [{table}] ({string.Join(", ", columns.Select(c => $"[{c}]"))}) VALUES ({string.Join(", ", columns.Select((c, i) => "@p" + i))})";
+                }
+
+                using var write = target.CreateCommand();
+                write.Transaction = tx;
+                write.CommandText = insert;
+                for (var i = 0; i < reader.FieldCount; i++)
+                    write.Parameters.AddWithValue("@p" + i, reader.GetValue(i));
+                write.ExecuteNonQuery();
+            }
+        }
+
+        private static HashSet<long> StudentIds(SqliteConnection conn)
+        {
+            var ids = new HashSet<long>();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT Id FROM CharacterDBSchema WHERE Id BETWEEN 10000 AND 19999";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                ids.Add(reader.GetInt64(0));
+            return ids;
+        }
+
         private uint Clone(SqliteConnection conn, SqliteTransaction tx, long donorId, long newId, string name, Dictionary<string, JsonElement> overrides)
         {
             var donorCharacter = LoadOne(conn, "CharacterExcel", "Id", donorId, tx);
