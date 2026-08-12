@@ -10,6 +10,7 @@ protocol_dump.cleaned.json
 /Shittim-Server/shittim.sqlite3
 /Shittim-Server/shittim.sqlite3-shm
 /Shittim-Server/shittim.sqlite3-wal
+/JP_Dev
 
 # Node modules
 node_modules/
