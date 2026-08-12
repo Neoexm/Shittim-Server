@@ -96,7 +96,6 @@ namespace Shittim.CLI
                 builder.Services.AddSharedDataCache();
 
                 builder.Services.AddHostedService<ClientMetadataPatchService>();
-                builder.Services.AddHostedService<ClientGameAssemblyIasPatchService>();
                 builder.Services.AddHostedService<ClientSteamOfflinePatchService>();
                 builder.Services.AddHostedService<ClientGrap64ManagementService>();
                 builder.Services.AddHostedService<ClientInfaceConfigPatchService>();

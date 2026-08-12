@@ -19,15 +19,11 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         public string ClientInstallDirectory { get; set; } = "";
         public bool AutoPatchClientMetadata { get; set; } = true;
         public string ClientMetadataPath { get; set; } = "";
-        public bool AutoPatchClientGameAssemblyIas { get; set; } = false;
         // Lets the client hand out an external ticket with Steam offline or not running. Off by default because it rewrites GameAssembly.dll, which Steam restores on a file verify.
         public bool AutoPatchClientSteamOffline { get; set; } = false;
         public string ClientGameAssemblyPath { get; set; } = "";
         public bool AutoPatchClientGamescaleIas { get; set; } = true;
         public string ClientGamescaleCorePath { get; set; } = "";
-        public bool AutoPatchClientNexonPlatformIas { get; set; } = true;
-        public string ClientNexonPlatformModulesPath { get; set; } = "";
-        public bool AutoPatchClientInfaceIas { get; set; } = true;
         public string ClientInfacePath { get; set; } = "";
         public bool AutoPatchClientInfaceConfig { get; set; } = true;
         public string ClientInfaceConfigPath { get; set; } = "";

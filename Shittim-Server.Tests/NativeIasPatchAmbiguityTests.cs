@@ -20,10 +20,6 @@ public class NativeIasPatchAmbiguityTests : IDisposable
         Directory.CreateDirectory(_dir);
         Environment.SetEnvironmentVariable("SHITTIM_IAS_PATCH_PORT", "5000");
         Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "true");
-        Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS", "false");
-        Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_INFACE_IAS", "false");
-        Environment.SetEnvironmentVariable("SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH", Path.Combine(_dir, "absent-nexon.dll"));
-        Environment.SetEnvironmentVariable("SHITTIM_CLIENT_INFACE_PATH", Path.Combine(_dir, "absent-inface.dll"));
     }
 
     [Fact]
@@ -87,9 +83,7 @@ public class NativeIasPatchAmbiguityTests : IDisposable
     {
         foreach (var name in new[]
         {
-            "SHITTIM_IAS_PATCH_PORT", "SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "SHITTIM_AUTO_PATCH_NEXON_PLATFORM_IAS",
-            "SHITTIM_AUTO_PATCH_INFACE_IAS", "SHITTIM_CLIENT_GAMESCALE_CORE_PATH",
-            "SHITTIM_CLIENT_NEXON_PLATFORM_MODULES_PATH", "SHITTIM_CLIENT_INFACE_PATH"
+            "SHITTIM_IAS_PATCH_PORT", "SHITTIM_AUTO_PATCH_GAMESCALE_IAS", "SHITTIM_CLIENT_GAMESCALE_CORE_PATH"
         })
             Environment.SetEnvironmentVariable(name, null);
 
