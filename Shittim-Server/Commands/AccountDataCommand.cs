@@ -121,6 +121,9 @@ namespace Shittim.Commands
             await context.SaveChangesAsync();
 
             context.Weapons.RemoveRange(context.Weapons.Where(x => x.AccountServerId == connection.AccountServerId));
+            // Flush before AddWeapons: like AddItems and AddEquipment it decides insert-vs-merge
+            // with a DB query, so rows only marked Deleted still come back and get merged onto.
+            await context.SaveChangesAsync();
 
             foreach (var weapon in accountLoginSyncData.CharacterListResponse.WeaponDBs)
             {
@@ -169,6 +172,7 @@ namespace Shittim.Commands
             await context.SaveChangesAsync();
 
             context.Gears.RemoveRange(context.Gears.Where(x => x.AccountServerId == connection.AccountServerId));
+            await context.SaveChangesAsync();   // same reason as the weapons flush above
 
             foreach (var gear in accountLoginSyncData.CharacterGearListResponse.GearDBs)
             {
@@ -185,6 +189,11 @@ namespace Shittim.Commands
             Dictionary<long, EquipmentDB> oldToNewEquipmentServerId = new Dictionary<long, EquipmentDB>();
 
             context.Equipments.RemoveRange(context.GetAccountEquipments(connection.AccountServerId));
+            // Flush before AddEquipment. It merges an incoming row onto an existing one when the
+            // incoming row is an unequipped stack (BoundCharacterServerId == default), and
+            // without this the "existing" row it finds may be one pending deletion -- silently
+            // losing every unequipped stack whose UniqueId the account already had.
+            await context.SaveChangesAsync();
 
             foreach (var equipment in accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs)
             {
@@ -344,6 +353,96 @@ namespace Shittim.Commands
                 foreach (var row in strategyObjects) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
                 context.StrategyObjectHistories.AddRange(strategyObjects);
 
+                await context.SaveChangesAsync();
+            }
+
+            // Collections: costumes, emblems, momotalk, permanent event progress, stickers and
+            // the attachment row. Same re-owning as above, except where a row points back at a
+            // character -- those take the same ServerId remap weapons and gear already get.
+            var costumeList = accountLoginSyncData.CharacterListResponse?.CostumeDBs;
+            if (costumeList != null)
+            {
+                context.Costumes.RemoveRange(context.Costumes.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var costumes = connection.Mapper.Map<List<CostumeDBServer>>(costumeList);
+                foreach (var row in costumes)
+                {
+                    if (oldToNewCharacterServerId.TryGetValue(row.BoundCharacterServerId, out var owner))
+                        row.BoundCharacterServerId = owner.ServerId;
+                    row.ServerId = 0;
+                    row.AccountServerId = connection.AccountServerId;
+                }
+                context.Costumes.AddRange(costumes);
+                await context.SaveChangesAsync();
+            }
+
+            var emblemList = accountLoginSyncData.AttachmentEmblemListResponse?.EmblemDBs;
+            if (emblemList != null)
+            {
+                context.Emblems.RemoveRange(context.Emblems.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var emblems = connection.Mapper.Map<List<EmblemDBServer>>(emblemList);
+                foreach (var row in emblems) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.Emblems.AddRange(emblems);
+                await context.SaveChangesAsync();
+            }
+
+            var momotalkList = accountLoginSyncData.MomotalkOutlineResponse?.MomoTalkOutLineDBs;
+            if (momotalkList != null)
+            {
+                context.MomoTalkOutLines.RemoveRange(context.MomoTalkOutLines.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var momotalks = connection.Mapper.Map<List<MomoTalkOutLineDBServer>>(momotalkList);
+                foreach (var row in momotalks)
+                {
+                    // CharacterDBId is a character ServerId, so it moves with the roster.
+                    if (oldToNewCharacterServerId.TryGetValue(row.CharacterDBId, out var owner))
+                        row.CharacterDBId = owner.ServerId;
+                    row.ServerId = 0;
+                    row.AccountServerId = connection.AccountServerId;
+                }
+                context.MomoTalkOutLines.AddRange(momotalks);
+                await context.SaveChangesAsync();
+            }
+
+            var eventPermanentList = accountLoginSyncData.EventContentPermanentListResponse?.PermanentDBs;
+            if (eventPermanentList != null)
+            {
+                context.EventContentPermanents.RemoveRange(context.EventContentPermanents.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var permanents = connection.Mapper.Map<List<EventContentPermanentDBServer>>(eventPermanentList);
+                foreach (var row in permanents) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.EventContentPermanents.AddRange(permanents);
+                await context.SaveChangesAsync();
+            }
+
+            var stickerBook = accountLoginSyncData.StickerListResponse?.StickerBookDB;
+            if (stickerBook != null)
+            {
+                context.StickerBooks.RemoveRange(context.StickerBooks.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var book = connection.Mapper.Map<StickerBookDBServer>(stickerBook);
+                book.ServerId = 0;
+                book.AccountServerId = connection.AccountServerId;
+                context.StickerBooks.Add(book);
+                await context.SaveChangesAsync();
+            }
+
+            var attachment = accountLoginSyncData.AttachmentGetResponse?.AccountAttachmentDB;
+            if (attachment != null)
+            {
+                context.AccountAttachments.RemoveRange(context.AccountAttachments.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var row = connection.Mapper.Map<AccountAttachmentDBServer>(attachment);
+                row.ServerId = 0;
+                row.AccountServerId = connection.AccountServerId;
+                context.AccountAttachments.Add(row);
                 await context.SaveChangesAsync();
             }
 

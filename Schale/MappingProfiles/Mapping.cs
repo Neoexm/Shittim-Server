@@ -156,6 +156,11 @@ namespace Schale.MappingProfiles
             CreateMap<CampaignStageHistoryDB, CampaignStageHistoryDBServer>();
             CreateMap<CampaignChapterClearRewardHistoryDB, CampaignChapterClearRewardHistoryDBServer>();
             CreateMap<StrategyObjectHistoryDB, StrategyObjectHistoryDBServer>();
+
+            // Collections restored by accountdata load; export-direction only until now.
+            CreateMap<MomoTalkOutLineDB, MomoTalkOutLineDBServer>();
+            CreateMap<EventContentPermanentDB, EventContentPermanentDBServer>();
+            CreateMap<StickerBookDB, StickerBookDBServer>();
         }
 
         private void ConfigureNestedDTOMappings()
