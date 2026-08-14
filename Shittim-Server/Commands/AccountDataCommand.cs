@@ -73,6 +73,37 @@ namespace Shittim.Commands
             account.Exp = accountAuthData.AccountDB.Exp;
             account.RepresentCharacterServerId = accountAuthData.AccountDB.RepresentCharacterServerId;
 
+            // Currencies. ExportData writes AccountCurrencySyncResponse and the import DTO has
+            // carried the field all along, but nothing here ever read it back, so pyroxene,
+            // credits, AP, eligma and every ticket silently kept the target account's values
+            // while the rest of the account was replaced -- the export/import round trip was
+            // not lossless. Assigned field by field rather than through the mapper so the row's
+            // own ServerId/AccountServerId are left alone.
+            var incomingCurrency = accountLoginSyncData.AccountCurrencySyncResponse?.AccountCurrencyDB;
+            if (incomingCurrency?.CurrencyDict != null)
+            {
+                var currency = context.GetAccountCurrencies(connection.AccountServerId).FirstOrDefault();
+                if (currency != null)
+                {
+                    currency.CurrencyDict = incomingCurrency.CurrencyDict;
+                    currency.UpdateTimeDict = incomingCurrency.UpdateTimeDict ?? currency.UpdateTimeDict;
+                    currency.AccountLevel = incomingCurrency.AccountLevel;
+                    currency.AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum;
+                }
+                else
+                {
+                    context.Currencies.Add(new AccountCurrencyDBServer
+                    {
+                        AccountServerId = connection.AccountServerId,
+                        CurrencyDict = incomingCurrency.CurrencyDict,
+                        UpdateTimeDict = incomingCurrency.UpdateTimeDict ?? [],
+                        AccountLevel = incomingCurrency.AccountLevel,
+                        AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum,
+                    });
+                }
+                await context.SaveChangesAsync();
+            }
+
             Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
 
             foreach (var character in accountLoginSyncData.CharacterListResponse.CharacterDBs)
