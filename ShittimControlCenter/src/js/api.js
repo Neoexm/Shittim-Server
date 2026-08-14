@@ -102,7 +102,6 @@ export const api = {
 
   command: (uid, command) => req('POST', '/api/admin/command', { uid, command }),
 
-  accountDataFiles: () => req('GET', '/api/admin/accountdata/files'),
   accountDataUpload: (b) => req('POST', '/api/admin/accountdata/upload', b),
 
   staticItems: (q) => req('GET', `/api/admin/static/items?limit=400&search=${encodeURIComponent(q || '')}`),

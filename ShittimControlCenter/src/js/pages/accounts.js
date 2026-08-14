@@ -191,37 +191,35 @@ export default {
         notifyRestart();
       }
 
-      // Listed straight from the server rather than through `accountdata list`, because that
-      // route needs an account id to build a client connection -- so on a server with no
-      // accounts yet you could not see the profiles you wanted to create an account FROM.
-      async function listProfiles() {
-        const r = await api.accountDataFiles();
-        return (r?.files || []).map((f) => f.name);
-      }
-
-      // Pick a profile from anywhere on disk and copy it into the folder the server loads from,
-      // so nothing has to be placed there by hand. Returns the stored file name, or null when
-      // the dialog was cancelled. Repopulates `sel` and leaves the new file selected.
-      async function browseForProfile(sel) {
+      // Pick a profile from anywhere on disk and copy it into the folder the server loads from.
+      // The user points at their own file, so there is no list to browse and nothing has to be
+      // placed in the server's folder by hand -- which also means this works the same whether
+      // the server is a source build or the packaged release, where that folder lives elsewhere.
+      // Returns the stored file name, or null if cancelled/failed.
+      async function pickProfile() {
         if (!window.host?.pickAccountData) { toast('File picker unavailable', 'bad'); return null; }
         const picked = await window.host.pickAccountData();
         if (!picked || picked.canceled) return null;
         if (!picked.ok) { toast(picked.error || 'Could not read that file', 'bad'); return null; }
-
         try {
           const up = await api.accountDataUpload({ name: picked.name, content: picked.content });
-          const name = up?.name || picked.name;
-          const files = await listProfiles().catch(() => [name]);
-          clear(sel);
-          for (const f of (files.includes(name) ? files : [name, ...files])) {
-            const opt = document.createElement('option');
-            opt.value = f; opt.textContent = f;
-            sel.appendChild(opt);
-          }
-          sel.value = name;
-          toast(`Added "${name}"`, 'good');
-          return name;
+          return up?.name || picked.name;
         } catch (e) { toast(e.message, 'bad'); return null; }
+      }
+
+      // A Browse button paired with a label showing what is currently chosen. `onPick` fires
+      // with the stored file name so the caller can react (enable its confirm button, etc).
+      function profilePicker(onPick) {
+        const chosen = el('span.muted', { text: 'No file chosen', style: { fontSize: '12px' } });
+        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
+          onClick: async () => {
+            const name = await pickProfile();
+            if (!name) return;
+            chosen.textContent = name;
+            chosen.classList.remove('muted');
+            onPick(name);
+          } });
+        return { row: el('div.row', { style: { gap: '10px', alignItems: 'center' } }, browse, chosen), chosen };
       }
 
       // The load reports failure in its output rather than as an HTTP error.
@@ -235,32 +233,31 @@ export default {
       // target's characters, items, gear, echelons, cafe and progress first -- so it belongs
       // with the other per-account tools, behind a confirm that names what it destroys, rather
       // than anywhere it could be hit casually.
-      async function openOverwrite(d) {
-        const files = await listProfiles().catch(() => []);
-
-        const fileSel = select(files.map((f) => ({ value: f, label: f })));
-        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
-          onClick: () => browseForProfile(fileSel) });
+      function openOverwrite(d) {
+        let file = null;
         const go = button('Import and replace', { variant: 'danger', iconName: 'download' });
+        go.disabled = true;
+        const picker = profilePicker((name) => { file = name; go.disabled = false; });
+
         const cancel = button('Cancel', { variant: 'ghost' });
         const ref = modal({
           title: `Import into ${d.nickname}`,
-          body: el('div', {}, field('Profile', el('div.row', { style: { gap: '8px' } }, fileSel, browse)),
+          body: el('div', {}, field('Profile', picker.row),
             el('div.muted', { style: { fontSize: '12px', marginTop: '10px' },
               text: "Replaces this account's characters, items, gear, echelons, cafe and progress. To keep this account as it is, import into a new one instead (Roster -> New)." })),
           footer: [cancel, go],
         });
         cancel.addEventListener('click', ref.close);
         go.addEventListener('click', async () => {
-          if (!fileSel.value) { toast('Pick a profile first - use Browse to add one', 'warn'); return; }
+          if (!file) return;
           const ok = await confirmDialog({
             title: 'Overwrite account', danger: true, confirmLabel: 'Overwrite',
-            message: `"${d.nickname}" (#${d.serverId}) loses its characters, items, gear, echelons, cafe and progress, replaced by "${fileSel.value}". This cannot be undone.`,
+            message: `"${d.nickname}" (#${d.serverId}) loses its characters, items, gear, echelons, cafe and progress, replaced by "${file}". This cannot be undone.`,
           });
           if (!ok) return;
           go.disabled = true;
           try {
-            await loadProfile(d.serverId, fileSel.value);
+            await loadProfile(d.serverId, file);
             ref.close(); toast(`Imported into #${d.serverId}`, 'good');
             await loadList(); notifyRestart();
           } catch (e) { toast(e.message, 'bad'); go.disabled = false; }
@@ -271,55 +268,41 @@ export default {
       // account is the safe direction -- nothing existing is touched -- so it lives here rather
       // than as a separate action. Importing onto an account that already has data is the
       // destructive one and sits in that account's tools instead.
-      async function openCreate() {
+      function openCreate() {
         const nick = input({ value: 'Sensei' });
-        const files = await listProfiles().catch(() => []);
 
-        // Import is always offered, even with an empty AccountData folder -- Browse adds one.
-        const source = select([
-          { value: 'empty', label: 'Empty account' },
-          { value: 'profile', label: 'Import a saved profile' },
-        ]);
-        const fileSel = select(files.map((f) => ({ value: f, label: f })));
-        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
-          onClick: () => browseForProfile(fileSel) });
-        const fileRow = field('Profile', el('div.row', { style: { gap: '8px' } }, fileSel, browse));
+        // Importing into a NEW account is the safe direction -- nothing existing is touched --
+        // so it lives here. Importing onto an account that already has data is destructive and
+        // sits in that account's own tools instead.
+        let file = null;
+        const picker = profilePicker((name) => { file = name; syncHint(); });
         const hint = el('div.muted', { style: { fontSize: '12px', marginTop: '10px' } });
-
-        const syncMode = () => {
-          const importing = source.value === 'profile';
-          fileRow.style.display = importing ? '' : 'none';
-          hint.textContent = importing
-            ? (fileSel.options.length
-                ? 'The profile is loaded into this new account. Nothing existing is touched.'
-                : 'No profiles on the server yet - use Browse to pick one from disk.')
-            : '';
+        const syncHint = () => {
+          hint.textContent = file
+            ? 'This profile is loaded into the new account. Nothing existing is touched.'
+            : 'Optional. Leave empty for a fresh account, or pick an exported profile.';
         };
-        source.addEventListener('change', syncMode);
-        fileSel.addEventListener('change', syncMode);
+        syncHint();
 
         const create = button('Create account', { variant: 'primary', iconName: 'plus' });
         const cancel = button('Cancel', { variant: 'ghost' });
         const ref = modal({
           title: 'New account',
-          body: el('div', {}, field('Nickname', nick), field('Start from', source), fileRow, hint),
+          body: el('div', {}, field('Nickname', nick), field('Import a profile', picker.row), hint),
           footer: [cancel, create],
         });
-        syncMode();
         cancel.addEventListener('click', ref.close);
 
         create.addEventListener('click', async () => {
-          const importing = source.value === 'profile';
-          if (importing && !fileSel.value) { toast('Pick a profile first - use Browse to add one', 'warn'); return; }
           create.disabled = true;
           try {
             const r = await api.accountCreate({ nickname: nick.value.trim() || 'Sensei' });
-            if (importing) await loadProfile(r.serverId, fileSel.value);
+            if (file) await loadProfile(r.serverId, file);
             ref.close();
-            toast(importing ? `Created #${r.serverId} from "${fileSel.value}"` : `Created "${nick.value}" (#${r.serverId})`, 'good');
+            toast(file ? `Created #${r.serverId} from "${file}"` : `Created "${nick.value}" (#${r.serverId})`, 'good');
             store.set({ targetId: r.serverId });
             await loadList();
-            if (importing) notifyRestart();
+            if (file) notifyRestart();
           } catch (e) { toast(e.message, 'bad'); create.disabled = false; }
         });
       }

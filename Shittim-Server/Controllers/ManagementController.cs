@@ -48,26 +48,6 @@ public class ManagementController : ControllerBase
         _mapper = mapper;
     }
 
-    // Saved profiles available to `accountdata load`. A plain listing rather than a wrapper
-    // around the console command, because that route needs an account id to build a client
-    // connection -- which makes listing impossible on a server with no accounts yet, exactly
-    // when you want to create one FROM a profile.
-    [HttpGet("accountdata/files")]
-    public IActionResult AccountDataFiles()
-    {
-        var dir = Shittim.Commands.AccountDataCommand.accountDataDir;
-        if (!Directory.Exists(dir))
-            return Ok(new { files = Array.Empty<string>() });
-
-        var files = Directory.GetFiles(dir, "*.json")
-            .Select(f => new FileInfo(f))
-            .OrderByDescending(f => f.LastWriteTimeUtc)
-            .Select(f => new { name = f.Name, size = f.Length, modified = f.LastWriteTimeUtc })
-            .ToArray();
-
-        return Ok(new { files });
-    }
-
     public class UploadAccountDataRequest
     {
         public string Name { get; set; } = "";
