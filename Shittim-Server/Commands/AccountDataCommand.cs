@@ -120,6 +120,15 @@ namespace Shittim.Commands
             if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
+
+                // Flush the delete before AddItems runs. AddItems looks up existing rows with
+                // a DB query (context.Items.Where(...)), so rows that are only *marked*
+                // Deleted are still returned and fixed up to their tracked entity. It would
+                // then take its merge branch and add the incoming stack onto a row that is
+                // about to be deleted, so the incoming item is never inserted and vanishes on
+                // save -- losing exactly those items that collide with the previous inventory.
+                await context.SaveChangesAsync();
+
                 context.AddItems(connection.AccountServerId, accountLoginSyncData.ItemListResponse.ItemDBs.ToArray());
             }
             await context.SaveChangesAsync();
