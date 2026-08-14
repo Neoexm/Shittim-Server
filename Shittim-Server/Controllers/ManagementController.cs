@@ -54,18 +54,15 @@ public class ManagementController : ControllerBase
         public string Content { get; set; } = "";
     }
 
-    // Copy a profile chosen from anywhere on disk into the folder `accountdata load` reads.
-    // Takes the content rather than a path so it still works when the Control Center and the
-    // server are not on the same machine.
+    // Store a profile in the folder `accountdata load` reads. Takes content rather than a
+    // path so it works when the Control Center and the server are on different machines.
     [HttpPost("accountdata/upload")]
     public IActionResult UploadAccountData([FromBody] UploadAccountDataRequest request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Content))
             return BadRequest(new { error = "name and content are required" });
 
-        // Only ever write a bare file name into the folder. Reject anything carrying directory
-        // parts rather than quietly stripping them: silently turning "../../evil.json" into
-        // "evil.json" contains the write but hides that the caller asked for something else.
+        // Reject directory parts rather than stripping them, so the write cannot escape.
         var name = request.Name.Trim();
         if (name != Path.GetFileName(name) || name.Contains(".."))
             return BadRequest(new { error = "name must be a bare file name, without directories" });
@@ -77,7 +74,7 @@ public class ManagementController : ControllerBase
         try { using var _ = JsonDocument.Parse(request.Content); }
         catch (JsonException e) { return BadRequest(new { error = $"not valid JSON: {e.Message}" }); }
 
-        var dir = Shittim.Commands.AccountDataCommand.accountDataDir;
+        var dir = AccountDataCommand.accountDataDir;
         Directory.CreateDirectory(dir);
         var dest = Path.Combine(dir, name);
         System.IO.File.WriteAllText(dest, request.Content);

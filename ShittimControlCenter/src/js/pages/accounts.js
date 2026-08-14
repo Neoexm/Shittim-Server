@@ -191,11 +191,7 @@ export default {
         notifyRestart();
       }
 
-      // Pick a profile from anywhere on disk and copy it into the folder the server loads from.
-      // The user points at their own file, so there is no list to browse and nothing has to be
-      // placed in the server's folder by hand -- which also means this works the same whether
-      // the server is a source build or the packaged release, where that folder lives elsewhere.
-      // Returns the stored file name, or null if cancelled/failed.
+      // Uploads the chosen file to the server and returns its stored name, or null.
       async function pickProfile() {
         if (!window.host?.pickAccountData) { toast('File picker unavailable', 'bad'); return null; }
         const picked = await window.host.pickAccountData();
@@ -207,8 +203,7 @@ export default {
         } catch (e) { toast(e.message, 'bad'); return null; }
       }
 
-      // A Browse button paired with a label showing what is currently chosen. `onPick` fires
-      // with the stored file name so the caller can react (enable its confirm button, etc).
+      // Browse button plus a label of the current choice. `onPick` gets the stored name.
       function profilePicker(onPick) {
         const chosen = el('span.muted', { text: 'No file chosen', style: { fontSize: '12px' } });
         const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
@@ -229,10 +224,7 @@ export default {
         if (out && !/successfully/i.test(out)) throw new Error(out);
       }
 
-      // Importing onto an existing account. Separate from creation because the load WIPES the
-      // target's characters, items, gear, echelons, cafe and progress first -- so it belongs
-      // with the other per-account tools, behind a confirm that names what it destroys, rather
-      // than anywhere it could be hit casually.
+      // Destructive: the load wipes the target account first, so this sits behind a confirm.
       function openOverwrite(d) {
         let file = null;
         const go = button('Import and replace', { variant: 'danger', iconName: 'download' });
@@ -264,16 +256,10 @@ export default {
         });
       }
 
-      // Creating an account, optionally seeded from a saved profile. Importing into a NEW
-      // account is the safe direction -- nothing existing is touched -- so it lives here rather
-      // than as a separate action. Importing onto an account that already has data is the
-      // destructive one and sits in that account's tools instead.
+      // Optionally seeded from a profile. Safe direction: nothing existing is touched.
       function openCreate() {
         const nick = input({ value: 'Sensei' });
 
-        // Importing into a NEW account is the safe direction -- nothing existing is touched --
-        // so it lives here. Importing onto an account that already has data is destructive and
-        // sits in that account's own tools instead.
         let file = null;
         const picker = profilePicker((name) => { file = name; syncHint(); });
         const hint = el('div.muted', { style: { fontSize: '12px', marginTop: '10px' } });

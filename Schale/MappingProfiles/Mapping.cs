@@ -149,15 +149,13 @@ namespace Schale.MappingProfiles
             CreateMap<StickerDB, StickerDBServer>();
             CreateMap<AccountAttachmentDB, AccountAttachmentDBServer>();
 
-            // Progression. Only the export direction existed, so accountdata load had no way
-            // to restore story or campaign history even though ExportData writes both.
+            // Import direction for the rows accountdata load restores.
             CreateMap<ScenarioHistoryDB, ScenarioHistoryDBServer>();
             CreateMap<ScenarioGroupHistoryDB, ScenarioGroupHistoryDBServer>();
             CreateMap<CampaignStageHistoryDB, CampaignStageHistoryDBServer>();
             CreateMap<CampaignChapterClearRewardHistoryDB, CampaignChapterClearRewardHistoryDBServer>();
             CreateMap<StrategyObjectHistoryDB, StrategyObjectHistoryDBServer>();
 
-            // Collections restored by accountdata load; export-direction only until now.
             CreateMap<MomoTalkOutLineDB, MomoTalkOutLineDBServer>();
             CreateMap<EventContentPermanentDB, EventContentPermanentDBServer>();
             CreateMap<StickerBookDB, StickerBookDBServer>();

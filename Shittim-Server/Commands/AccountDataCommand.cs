@@ -18,9 +18,7 @@ namespace Shittim.Commands
         [Argument(0, @"^(list|load|export|help)$", "The operation to perform", ArgumentFlags.IgnoreCase)]
         public string Operation { get; set; } = string.Empty;
 
-        // Optional: `list` and `help` take no file name, and requiring one made them impossible
-        // to invoke -- Validate() rejected them with "Invalid args length!" before Execute ran.
-        // `load` and `export` check for it themselves below.
+        // Optional so `list` and `help` can run; `load` and `export` check for it themselves.
         [Argument(1, @"^.*$", "The file name of the packet json saved or Operation",
                   ArgumentFlags.Optional | ArgumentFlags.IgnoreCase)]
         public string DataFileName { get; set; } = string.Empty;
@@ -84,28 +82,18 @@ namespace Shittim.Commands
             account.Level = accountAuthData.AccountDB.Level;
             account.Exp = accountAuthData.AccountDB.Exp;
             account.RepresentCharacterServerId = accountAuthData.AccountDB.RepresentCharacterServerId;
-            // The greeting and sensei name are part of the account too; they were being left at
-            // whatever the target account had.
             account.Comment = accountAuthData.AccountDB.Comment;
             account.CallName = accountAuthData.AccountDB.CallName;
 
-            // Currencies. ExportData writes AccountCurrencySyncResponse and the import DTO has
-            // carried the field all along, but nothing here ever read it back, so pyroxene,
-            // credits, AP, eligma and every ticket silently kept the target account's values
-            // while the rest of the account was replaced -- the export/import round trip was
-            // not lossless. Assigned field by field rather than through the mapper so the row's
-            // own ServerId/AccountServerId are left alone.
+            // Assigned field by field rather than through the mapper, to leave the row's own
+            // ServerId and AccountServerId alone.
             var incomingCurrency = accountLoginSyncData.AccountCurrencySyncResponse?.AccountCurrencyDB;
             if (incomingCurrency?.CurrencyDict != null)
             {
-                // The AMOUNTS transfer; the update timestamps must not. They record when each
-                // currency was last recharged, on the clock of the server the save came from,
-                // and time-charged currencies are topped up as (now - UpdateTime) / interval.
-                // A save from a server whose clock is ahead of this one therefore yields a
-                // NEGATIVE elapsed and *subtracts*: an import carrying 20:44 into a server
-                // sitting at 05:49 produced 56 AP - 149 = -93 AP on the client.
-                // Stamping them with this server's now means recharge simply resumes from the
-                // import, which is what the amounts already represent.
+                // Amounts transfer, timestamps do not. Time-charged currencies recharge as
+                // (now - UpdateTime) / interval, so a save from a server whose clock is ahead
+                // of this one would give a negative elapsed and subtract. Stamping them with
+                // this server's now makes recharge resume from the import.
                 var chargedAt = account.GameSettings.ServerDateTime();
                 var updateTimes = (incomingCurrency.UpdateTimeDict ?? [])
                     .ToDictionary(entry => entry.Key, _ => chargedAt);
@@ -145,8 +133,9 @@ namespace Shittim.Commands
             await context.SaveChangesAsync();
 
             context.Weapons.RemoveRange(context.Weapons.Where(x => x.AccountServerId == connection.AccountServerId));
-            // Flush before AddWeapons: like AddItems and AddEquipment it decides insert-vs-merge
-            // with a DB query, so rows only marked Deleted still come back and get merged onto.
+            // AddWeapons, AddGears, AddItems and AddEquipment decide insert-vs-merge with a DB
+            // query, which still returns rows that are only marked Deleted. Without flushing
+            // first they merge onto a row about to be deleted and the incoming one is lost.
             await context.SaveChangesAsync();
 
             foreach (var weapon in accountLoginSyncData.CharacterListResponse.WeaponDBs)
@@ -174,29 +163,18 @@ namespace Shittim.Commands
                 }
             }
 
-            // Insert whichever source we ended up with. This used to sit in an `else`, so a
-            // list recovered from the separate packet was assigned above and then never
-            // written: neither the clear nor the insert ran, leaving the account holding
-            // its previous items while every other category had been replaced. Silent --
-            // the catch above only fires when the packet is absent or malformed.
+            // Outside the if/else above, so a list recovered from the separate packet is
+            // written too rather than only one taken from the login bundle.
             if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
-
-                // Flush the delete before AddItems runs. AddItems looks up existing rows with
-                // a DB query (context.Items.Where(...)), so rows that are only *marked*
-                // Deleted are still returned and fixed up to their tracked entity. It would
-                // then take its merge branch and add the incoming stack onto a row that is
-                // about to be deleted, so the incoming item is never inserted and vanishes on
-                // save -- losing exactly those items that collide with the previous inventory.
                 await context.SaveChangesAsync();
-
                 context.AddItems(connection.AccountServerId, accountLoginSyncData.ItemListResponse.ItemDBs.ToArray());
             }
             await context.SaveChangesAsync();
 
             context.Gears.RemoveRange(context.Gears.Where(x => x.AccountServerId == connection.AccountServerId));
-            await context.SaveChangesAsync();   // same reason as the weapons flush above
+            await context.SaveChangesAsync();
 
             foreach (var gear in accountLoginSyncData.CharacterGearListResponse.GearDBs)
             {
@@ -213,10 +191,6 @@ namespace Shittim.Commands
             Dictionary<long, EquipmentDB> oldToNewEquipmentServerId = new Dictionary<long, EquipmentDB>();
 
             context.Equipments.RemoveRange(context.GetAccountEquipments(connection.AccountServerId));
-            // Flush before AddEquipment. It merges an incoming row onto an existing one when the
-            // incoming row is an unequipped stack (BoundCharacterServerId == default), and
-            // without this the "existing" row it finds may be one pending deletion -- silently
-            // losing every unequipped stack whose UniqueId the account already had.
             await context.SaveChangesAsync();
 
             foreach (var equipment in accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs)
@@ -332,13 +306,9 @@ namespace Shittim.Commands
 
             await context.SaveChangesAsync();
 
-            // Progression. Everything above restores inventory; ExportData also writes story and
-            // campaign history but nothing here read it back, so an imported account was a
-            // max-level roster with no progress behind it -- lessons, cafe and the rest of the
-            // content gates stay locked because the records that open them were never restored.
-            // These rows are keyed by their own generated ServerId and carry no cross-references,
-            // so they only need re-owning to the target account: zero the key so the database
-            // assigns a fresh one, and point AccountServerId at this account.
+            // Story and campaign progress. Without these the account is a max-level roster
+            // with every content gate still shut. The rows carry no cross-references, so they
+            // only need re-owning: zero the key for a fresh one, and set AccountServerId.
             var scenarioList = accountLoginSyncData.ScenarioListResponse;
             if (scenarioList != null)
             {
@@ -380,9 +350,8 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Collections: costumes, emblems, momotalk, permanent event progress, stickers and
-            // the attachment row. Same re-owning as above, except where a row points back at a
-            // character -- those take the same ServerId remap weapons and gear already get.
+            // Collections. Same re-owning, except rows pointing back at a character, which
+            // take the same ServerId remap weapons and gear already get.
             var costumeList = accountLoginSyncData.CharacterListResponse?.CostumeDBs;
             if (costumeList != null)
             {
@@ -457,7 +426,7 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Multi-floor raid: cleared floor and reward progress per season.
+            // Cleared floor and reward progress per season.
             var multiFloorRaids = accountLoginSyncData.MultiFloorRaidSyncResponse?.MultiFloorRaidDBs;
             if (multiFloorRaids != null)
             {
@@ -470,8 +439,7 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Free-recruit history gates the daily free pull, so importing without it hands the
-            // account a free pull it has already used.
+            // Gates the daily free pull.
             var freeRecruits = accountLoginSyncData.ShopGachaRecruitListResponse?.ShopFreeRecruitHistoryDBs;
             if (freeRecruits != null)
             {
@@ -484,8 +452,7 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Crafting slots in progress. CraftPresetSlotDBs from the same response have no
-            // server table, so preset slots are not restorable.
+            // In-progress crafts. CraftPresetSlotDBs have no server table.
             var craftInfos = accountLoginSyncData.CraftInfoListResponse?.CraftInfos;
             if (craftInfos != null)
             {
@@ -513,10 +480,9 @@ namespace Shittim.Commands
             var idCard = accountLoginSyncData.FriendIdCardDB;
             if (idCard != null)
             {
-                // Settings live as a JSON column on the account (ContentInfo), not a table --
-                // same shape FriendHandler writes when the card is edited in game. FriendCode,
-                // Level and LastConnectTime are deliberately not copied: those belong to the
-                // account on THIS server, not to the one the save came from.
+                // Settings live on the account as JSON, the same shape FriendHandler writes.
+                // FriendCode, Level and LastConnectTime identify the account on THIS server,
+                // so they are not copied.
                 var card = account.ContentInfo.IdCard;
                 card.Comment = idCard.Comment;
                 card.RepresentCharacterUniqueId = idCard.RepresentCharacterUniqueId;
