@@ -86,11 +86,23 @@ namespace Shittim.Commands
             var incomingCurrency = accountLoginSyncData.AccountCurrencySyncResponse?.AccountCurrencyDB;
             if (incomingCurrency?.CurrencyDict != null)
             {
+                // The AMOUNTS transfer; the update timestamps must not. They record when each
+                // currency was last recharged, on the clock of the server the save came from,
+                // and time-charged currencies are topped up as (now - UpdateTime) / interval.
+                // A save from a server whose clock is ahead of this one therefore yields a
+                // NEGATIVE elapsed and *subtracts*: an import carrying 20:44 into a server
+                // sitting at 05:49 produced 56 AP - 149 = -93 AP on the client.
+                // Stamping them with this server's now means recharge simply resumes from the
+                // import, which is what the amounts already represent.
+                var chargedAt = account.GameSettings.ServerDateTime();
+                var updateTimes = (incomingCurrency.UpdateTimeDict ?? [])
+                    .ToDictionary(entry => entry.Key, _ => chargedAt);
+
                 var currency = context.GetAccountCurrencies(connection.AccountServerId).FirstOrDefault();
                 if (currency != null)
                 {
                     currency.CurrencyDict = incomingCurrency.CurrencyDict;
-                    currency.UpdateTimeDict = incomingCurrency.UpdateTimeDict ?? currency.UpdateTimeDict;
+                    currency.UpdateTimeDict = updateTimes;
                     currency.AccountLevel = incomingCurrency.AccountLevel;
                     currency.AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum;
                 }
@@ -100,7 +112,7 @@ namespace Shittim.Commands
                     {
                         AccountServerId = connection.AccountServerId,
                         CurrencyDict = incomingCurrency.CurrencyDict,
-                        UpdateTimeDict = incomingCurrency.UpdateTimeDict ?? [],
+                        UpdateTimeDict = updateTimes,
                         AccountLevel = incomingCurrency.AccountLevel,
                         AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum,
                     });
