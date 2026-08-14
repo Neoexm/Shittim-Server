@@ -433,6 +433,34 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
+            // Free-recruit history gates the daily free pull, so importing without it hands the
+            // account a free pull it has already used.
+            var freeRecruits = accountLoginSyncData.ShopGachaRecruitListResponse?.ShopFreeRecruitHistoryDBs;
+            if (freeRecruits != null)
+            {
+                context.ShopFreeRecruitHistories.RemoveRange(context.ShopFreeRecruitHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<ShopFreeRecruitHistoryDBServer>>(freeRecruits);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ShopFreeRecruitHistories.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
+            // Crafting slots in progress. CraftPresetSlotDBs from the same response have no
+            // server table, so preset slots are not restorable.
+            var craftInfos = accountLoginSyncData.CraftInfoListResponse?.CraftInfos;
+            if (craftInfos != null)
+            {
+                context.CraftInfos.RemoveRange(context.CraftInfos.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<CraftInfoDBServer>>(craftInfos);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CraftInfos.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
             var idCardBackgrounds = accountLoginSyncData.IdCardBackgroundDBs;
             if (idCardBackgrounds != null)
             {

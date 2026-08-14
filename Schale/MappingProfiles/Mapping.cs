@@ -161,6 +161,8 @@ namespace Schale.MappingProfiles
             CreateMap<MomoTalkOutLineDB, MomoTalkOutLineDBServer>();
             CreateMap<EventContentPermanentDB, EventContentPermanentDBServer>();
             CreateMap<StickerBookDB, StickerBookDBServer>();
+            CreateMap<ShopFreeRecruitHistoryDB, ShopFreeRecruitHistoryDBServer>();
+            CreateMap<CraftInfoDB, CraftInfoDBServer>();
         }
 
         private void ConfigureNestedDTOMappings()
