@@ -10,10 +10,12 @@ namespace Shittim_Server.Controllers;
 public class ModsController : ControllerBase
 {
     private readonly CustomCharacterService _characters;
+    private readonly ModCatalogService _catalog;
 
-    public ModsController(CustomCharacterService characters)
+    public ModsController(CustomCharacterService characters, ModCatalogService catalog)
     {
         _characters = characters;
+        _catalog = catalog;
     }
 
     [HttpGet("characters")]
@@ -49,7 +51,9 @@ public class ModsController : ControllerBase
         try
         {
             var name = string.IsNullOrWhiteSpace(request.Name) ? Path.GetFileNameWithoutExtension(request.ZipPath) : request.Name.Trim();
-            return Ok(_characters.Import(request.ZipPath, request.DonorId, request.Id, name, request.Overrides));
+            var result = _characters.Import(request.ZipPath, request.DonorId, request.Id, name, request.Overrides);
+            _catalog.SyncClient();
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -90,6 +94,7 @@ public class ModsController : ControllerBase
         try
         {
             _characters.Remove(id);
+            _catalog.SyncClient();
             return Ok(new { success = true });
         }
         catch (Exception ex)

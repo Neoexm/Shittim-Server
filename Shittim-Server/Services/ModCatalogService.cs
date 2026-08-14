@@ -6,7 +6,7 @@ using Schale.Crypto;
 
 namespace Shittim_Server.Services
 {
-    // Addressables only downloads a catalog when the server_config it fetched carries Mapping.Resources.AddressablesCatalogUrlRoot; with the key absent the client reuses the copy sitting in LocalLow forever, so pointing that root at us and splicing the mods in on the way out is the entire delivery path.
+    // The Steam client never fetches a catalog over the wire - it boots from catalog_Windows.bytes inside the install and refreshes its LocalLow copy from that - so mods reach it by rewriting the installed file in place. The shipped bytes are kept next to it as catalog_Windows.bytes.premods and stay the splice source, reseeded whenever Steam lands a fresh retail catalog.
     public class ModCatalogService
     {
         private const string BundleProvider = "UnityEngine.ResourceManagement.ResourceProviders.AssetBundleProvider";
@@ -26,9 +26,6 @@ namespace Shittim_Server.Services
             this.characters = characters;
             this.logger = logger;
         }
-
-        // Advertising the root turns a 64 MB download on at every client boot, so it stays off until there is a catalog to rewrite and something to splice into it.
-        public bool ShouldServe => SourcePath() != null && characters.List().Any(m => !string.IsNullOrWhiteSpace(m.Bundle));
 
         public (byte[] Bytes, string Hash) Current()
         {
@@ -56,8 +53,79 @@ namespace Shittim_Server.Services
             if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured))
                 return configured;
 
+            var install = InstallCatalogPath();
+            if (install != null && File.Exists(install + ".premods"))
+                return install + ".premods";
+
             var cached = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow", "NEXON Games", "Blue Archive", "catalog_Remote.bytes");
             return File.Exists(cached) ? cached : null;
+        }
+
+        public static string InstallCatalogPath()
+        {
+            const string relative = @"BlueArchive_Data\StreamingAssets\PUB\Resource\Catalog\Windows\catalog_Windows.bytes";
+
+            var metaPath = Config.Instance.ServerConfiguration.ClientMetadataPath;
+            if (!string.IsNullOrWhiteSpace(metaPath))
+            {
+                var idx = metaPath.IndexOf(@"\BlueArchive_Data", StringComparison.OrdinalIgnoreCase);
+                if (idx > 0)
+                {
+                    var candidate = Path.Combine(metaPath[..idx], relative);
+                    if (File.Exists(candidate))
+                        return candidate;
+                }
+            }
+
+            return SteamGameLocator.FindGameFile(relative);
+        }
+
+        public void SyncClient()
+        {
+            var install = InstallCatalogPath();
+            if (install == null)
+                return;
+
+            lock (gate)
+            {
+                var premods = install + ".premods";
+                var mods = characters.List().Where(m => !string.IsNullOrWhiteSpace(m.Bundle) && File.Exists(Path.Combine(CustomCharacterService.ModsDir, m.Id.ToString(), m.Bundle))).ToList();
+                var installed = File.ReadAllBytes(install);
+
+                if (mods.Count == 0)
+                {
+                    if (File.Exists(premods) && !((ReadOnlySpan<byte>)installed).SequenceEqual(File.ReadAllBytes(premods)))
+                    {
+                        File.Copy(premods, install, true);
+                        logger.LogInformation("No modded bundles left - put the shipped catalog back at {Path}", install);
+                    }
+                    return;
+                }
+
+                // a steam update or verify drops a fresh retail catalog over the spliced one; that unspliced file becomes the new source
+                var spliced = mods.Any(m => ((ReadOnlySpan<byte>)installed).IndexOf(Encoding.UTF8.GetBytes(m.Bundle)) >= 0);
+                if (!File.Exists(premods) || (!spliced && !((ReadOnlySpan<byte>)installed).SequenceEqual(File.ReadAllBytes(premods))))
+                    File.Copy(install, premods, true);
+
+                var gameData = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(install), "..", "..", "GameData", "Windows"));
+                foreach (var mod in mods)
+                {
+                    var src = Path.Combine(CustomCharacterService.ModsDir, mod.Id.ToString(), mod.Bundle);
+                    var dst = Path.Combine(gameData, mod.Bundle);
+                    if (!File.Exists(dst) || new FileInfo(dst).Length != new FileInfo(src).Length || File.GetLastWriteTimeUtc(dst) < File.GetLastWriteTimeUtc(src))
+                        File.Copy(src, dst, true);
+                }
+
+                var built = Build(premods);
+                if (!((ReadOnlySpan<byte>)built).SequenceEqual(installed))
+                {
+                    File.WriteAllBytes(install, built);
+                    var cached = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow", "NEXON Games", "Blue Archive", "catalog_Remote.bytes");
+                    if (File.Exists(cached))
+                        File.WriteAllBytes(cached, built);
+                    logger.LogInformation("Spliced {Count} modded bundle(s) into {Path}", mods.Count, install);
+                }
+            }
         }
 
         private byte[] Build(string source)
@@ -69,7 +137,6 @@ namespace Shittim_Server.Services
 
             // the request options carry a different field set per Addressables version, so a shipped one is cloned rather than composed from what this version happens to want. newer clients write the class name namespace-qualified where older catalogs kept it bare, hence the suffix match.
             var template = catalog.Extras.First(e => e.ClassName != null && e.ClassName.EndsWith("AssetBundleRequestOptions"));
-            var root = Config.GetAddressablesUrl();
 
             var added = 0;
             foreach (var mod in characters.List())
@@ -90,9 +157,10 @@ namespace Shittim_Server.Services
                 options["m_Hash"] = "";
                 options["m_Crc"] = 0;
 
+                // retail entries address their bundles as {PlatformUtils.AddressableLoadPath}\name, which the client expands to the GameData folder it loads every other bundle from; SyncClient copies the mod bundle there so the same expansion finds it
                 var bundle = new CatalogEntry
                 {
-                    InternalId = catalog.AddInternalId($"{root}mods/{mod.Id}/{mod.Bundle}"),
+                    InternalId = catalog.AddInternalId($@"{{PlatformUtils.AddressableLoadPath}}\{mod.Bundle}"),
                     ProviderIndex = bundleProvider,
                     ExtraIndex = catalog.AddExtra(CatalogKey.Json7(template.AssemblyName, template.ClassName, options.ToString(Newtonsoft.Json.Formatting.None))),
                     ResourceType = bundleType

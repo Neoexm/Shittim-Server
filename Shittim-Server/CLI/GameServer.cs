@@ -102,6 +102,7 @@ namespace Shittim.CLI
                 builder.Services.AddHostedService<ClientNativeIasPatchService>();
                 builder.Services.AddHostedService<ClientExcelBannerPatchService>();
                 builder.Services.AddHostedService<ClientExcelCharacterSyncService>();
+                builder.Services.AddHostedService<ClientCatalogPatchService>();
                 builder.Services.AddHostedService<ClientRegionLabelPatchService>();
                 builder.Services.AddHostedService<ClientStoreUrlPatchService>();
                 builder.Services.AddHostedService<WorldRaidSyncService>();
