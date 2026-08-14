@@ -18,7 +18,11 @@ namespace Shittim.Commands
         [Argument(0, @"^(list|load|export|help)$", "The operation to perform", ArgumentFlags.IgnoreCase)]
         public string Operation { get; set; } = string.Empty;
 
-        [Argument(1, @"^.*$", "The file name of the packet json saved or Operation", ArgumentFlags.IgnoreCase)]
+        // Optional: `list` and `help` take no file name, and requiring one made them impossible
+        // to invoke -- Validate() rejected them with "Invalid args length!" before Execute ran.
+        // `load` and `export` check for it themselves below.
+        [Argument(1, @"^.*$", "The file name of the packet json saved or Operation",
+                  ArgumentFlags.Optional | ArgumentFlags.IgnoreCase)]
         public string DataFileName { get; set; } = string.Empty;
 
         public static string accountDataDir = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "AccountData");
@@ -31,7 +35,15 @@ namespace Shittim.Commands
             using var context = await connection.Context.CreateDbContextAsync();
             var account = context.GetAccount(connection.AccountServerId);
 
-            switch (Operation.ToLower())
+            var operation = Operation.ToLower();
+            if ((operation == "load" || operation == "export") && string.IsNullOrWhiteSpace(DataFileName))
+            {
+                await connection.SendChatMessage($"'{operation}' needs a file name.");
+                await connection.SendChatMessage("Usage: !accountdata <list|load|export|help> <file_name>");
+                return;
+            }
+
+            switch (operation)
             {
                 case "list":
                     await ListData();
