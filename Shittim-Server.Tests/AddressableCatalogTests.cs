@@ -113,6 +113,32 @@ public class AddressableCatalogTests
     }
 
     [Fact]
+    public void TheInstalledCatalogStillCarriesARequestOptionsTemplate()
+    {
+        var path = InstalledCatalog();
+        if (path == null)
+            return;
+
+        // the splice clones a shipped AssetBundleRequestOptions extra; the 2026-08 client update renamed it from the bare class name to the namespace-qualified one, which is the drift this pins
+        var catalog = AddressableCatalog.Read(File.ReadAllBytes(path));
+        Assert.Contains(catalog.Extras, e => e.ClassName != null && e.ClassName.EndsWith("AssetBundleRequestOptions"));
+    }
+
+    [Fact]
+    public void AGuidAliasSharesItsTargetsEntryAndInternalId()
+    {
+        var c = SyntheticCatalog();
+        c.AddBucket(CatalogKey.Ascii("cfb8653752a2d00489f9b3580f78f1c1"), c.Buckets[1].Entries[0]);
+
+        var again = AddressableCatalog.Read(c.Write());
+
+        var alias = again.Buckets[again.Buckets.Count - 1];
+        Assert.Equal("cfb8653752a2d00489f9b3580f78f1c1", again.Keys[alias.KeyIndex].Text);
+        Assert.Equal(again.Buckets[1].Entries[0], alias.Entries[0]);
+        Assert.Equal("Assets/_MX/SpineCharacters/nx0001_spr/nx0001_spr.png", again.InternalIds[again.Entries[alias.Entries[0]].InternalId]);
+    }
+
+    [Fact]
     public void AnAddressUnderAddressableAssetIsKeyedTheWayCostumeExcelNamesIt()
     {
         Assert.Equal("uis/01_common/01_character/student_portrait_nx0001", ModCatalogService.LookupKey("Assets/_MX/AddressableAsset/UIs/01_Common/01_Character/Student_Portrait_Nx0001.png"));

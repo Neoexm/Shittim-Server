@@ -67,8 +67,8 @@ namespace Shittim_Server.Services
             var assetProvider = catalog.IndexOfProvider(AssetProvider);
             var bundleType = catalog.IndexOfResourceType(BundleResource);
 
-            // the request options carry a different field set per Addressables version, so a shipped one is cloned rather than composed from what this version happens to want
-            var template = catalog.Extras.First(e => e.ClassName == "AssetBundleRequestOptions");
+            // the request options carry a different field set per Addressables version, so a shipped one is cloned rather than composed from what this version happens to want. newer clients write the class name namespace-qualified where older catalogs kept it bare, hence the suffix match.
+            var template = catalog.Extras.First(e => e.ClassName != null && e.ClassName.EndsWith("AssetBundleRequestOptions"));
             var root = Config.GetAddressablesUrl();
 
             var added = 0;
@@ -104,6 +104,7 @@ namespace Shittim_Server.Services
                 hasher.ComputeHash(Encoding.UTF8.GetBytes(mod.Bundle));
                 var dependencyHash = unchecked((int)hasher.HashUInt32);
 
+                var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 foreach (var pair in mod.Addressables)
                 {
                     var className = string.IsNullOrWhiteSpace(pair.Value) ? TypeOf(pair.Key) : pair.Value;
@@ -131,8 +132,22 @@ namespace Shittim_Server.Services
                     if (lookup != pair.Key)
                         catalog.AddBucket(CatalogKey.Ascii(pair.Key), index);
 
+                    indices[pair.Key] = index;
                     added++;
                 }
+
+                // an alias rides the target's entry as one more key, keeping the internal id the bundle provider actually loads by - a guid minted as its own entry would put the guid where the asset path belongs and load nothing
+                if (mod.Aliases != null)
+                    foreach (var alias in mod.Aliases)
+                    {
+                        if (!indices.TryGetValue(alias.Value, out var target))
+                        {
+                            logger.LogWarning("Custom character {Id} aliases {Alias} to {Address}, which is not among its addressables", mod.Id, alias.Key, alias.Value);
+                            continue;
+                        }
+                        catalog.AddBucket(CatalogKey.Ascii(alias.Key.ToLowerInvariant()), target);
+                        added++;
+                    }
             }
 
             logger.LogInformation("Rewrote {Source} with {Added} modded addressable(s), {Total} entries total", Path.GetFileName(source), added, catalog.Entries.Count);

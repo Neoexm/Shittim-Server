@@ -155,6 +155,7 @@ namespace Shittim_Server.Services
             // the bundle and its addresses describe the package rather than the student, so they are read back off the manifest instead of coming in through the overrides the editor round-trips
             string bundle = null;
             var addressables = new Dictionary<string, string>();
+            var aliases = new Dictionary<string, string>();
             using (var zip = ZipFile.Read(zipPath))
             {
                 var manifest = zip.FirstOrDefault(e => !e.IsDirectory && Path.GetFileName(e.FileName).Equals("character.json", StringComparison.OrdinalIgnoreCase));
@@ -175,6 +176,9 @@ namespace Shittim_Server.Services
                             foreach (var address in addresses.EnumerateObject())
                                 addressables[address.Name] = address.Value.GetString();
                     }
+                    if (doc.RootElement.TryGetProperty("aliases", out var guids))
+                        foreach (var alias in guids.EnumerateObject())
+                            aliases[alias.Name] = alias.Value.GetString();
                 }
             }
 
@@ -188,7 +192,8 @@ namespace Shittim_Server.Services
                 InstalledAt = DateTime.Now.ToString("s"),
                 Assets = staged,
                 Bundle = bundle,
-                Addressables = addressables
+                Addressables = addressables,
+                Aliases = aliases
             };
             registry.RemoveAll(e => e.Id == newId);
             registry.Add(entry);
@@ -501,7 +506,7 @@ namespace Shittim_Server.Services
                     value = Pack(type, obj, sizeHint);
                 else
                 {
-                    var property = type.GetProperty(columns[i]) ?? throw new InvalidOperationException($"{table} has a key column {columns[i]} with no matching field on {type.Name}");
+                    var property = obj.GetType().GetProperty(columns[i]) ?? throw new InvalidOperationException($"{table} has a key column {columns[i]} with no matching field on {type.Name}");
                     value = ColumnValue(property.GetValue(obj));
                 }
                 cmd.Parameters.AddWithValue("@p" + i, value);
@@ -785,5 +790,7 @@ namespace Shittim_Server.Services
         public List<string> Assets { get; set; } = new();
         public string Bundle { get; set; }
         public Dictionary<string, string> Addressables { get; set; } = new();
+        // extra catalog keys over addresses already listed above - an AssetReference resolves by the asset's guid rather than any address string, so the guid maps here to the address whose entry it should share
+        public Dictionary<string, string> Aliases { get; set; }
     }
 }
