@@ -111,7 +111,11 @@ namespace Shittim.Commands
                     await connection.SendChatMessage("Could not find any packet associated with item data.");
                 }
             }
-            else
+
+            // Insert whichever source we ended up with. This used to sit in an `else`, so a
+            // list recovered from the separate packet was assigned above and then never
+            // written -- the import silently produced an account with no items at all.
+            if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
                 context.AddItems(connection.AccountServerId, accountLoginSyncData.ItemListResponse.ItemDBs.ToArray());
