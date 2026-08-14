@@ -163,6 +163,7 @@ namespace Schale.MappingProfiles
             CreateMap<StickerBookDB, StickerBookDBServer>();
             CreateMap<ShopFreeRecruitHistoryDB, ShopFreeRecruitHistoryDBServer>();
             CreateMap<CraftInfoDB, CraftInfoDBServer>();
+            CreateMap<MultiFloorRaidDB, MultiFloorRaidDBServer>();
         }
 
         private void ConfigureNestedDTOMappings()

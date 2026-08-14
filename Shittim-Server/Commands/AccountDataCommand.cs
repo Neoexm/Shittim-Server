@@ -433,6 +433,19 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
+            // Multi-floor raid: cleared floor and reward progress per season.
+            var multiFloorRaids = accountLoginSyncData.MultiFloorRaidSyncResponse?.MultiFloorRaidDBs;
+            if (multiFloorRaids != null)
+            {
+                context.MultiFloorRaids.RemoveRange(context.MultiFloorRaids.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<MultiFloorRaidDBServer>>(multiFloorRaids);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.MultiFloorRaids.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
             // Free-recruit history gates the daily free pull, so importing without it hands the
             // account a free pull it has already used.
             var freeRecruits = accountLoginSyncData.ShopGachaRecruitListResponse?.ShopFreeRecruitHistoryDBs;
