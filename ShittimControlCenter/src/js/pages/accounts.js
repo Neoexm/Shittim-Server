@@ -46,11 +46,10 @@ export default {
 
       const searchInput = input({ placeholder: 'Filter...', className: 'input btn-sm', style: { height: '32px', width: '130px', minWidth: '0', flex: '0 1 130px' } });
       const createBtn = button('New', { variant: 'primary', sm: true, iconName: 'plus', onClick: openCreate });
-      const importBtn = button('Import', { variant: 'ghost', sm: true, iconName: 'download', onClick: openImport });
       const refreshBtn = button('', { variant: 'ghost', sm: true, iconName: 'refresh', onClick: loadList });
 
       listCard.appendChild(el('div.card-head', {}, el('span.tab-mark', {}), el('h3', { text: 'Roster' }),
-        el('div.spacer', {}), searchInput, refreshBtn, importBtn, createBtn));
+        el('div.spacer', {}), searchInput, refreshBtn, createBtn));
       const listBody = el('div.list-scroll', { style: { maxHeight: '64vh' } });
       listCard.appendChild(listBody);
 
@@ -163,6 +162,8 @@ export default {
         tools.appendChild(cmdButton(d.serverId, 'Unlock all characters', 'giveall'));
         tools.appendChild(cmdButton(d.serverId, 'Unlock campaign + story', ['unlockall campaign', 'unlockall story']));
         tools.appendChild(cmdButton(d.serverId, 'Unlock battlepass', 'unlockall battlepass'));
+        tools.appendChild(button('Import profile...', { variant: 'ghost', sm: true, iconName: 'download',
+          onClick: () => openOverwrite(d) }));
         body.appendChild(tools);
 
         body.appendChild(frag(`<div class="muted" style="font-size:12px;margin-top:18px">${d.itemCount} items · ${d.characterCount} characters · ${d.mailCount} mails · ${escapeHtml(d.state || '')}</div>`));
@@ -190,119 +191,135 @@ export default {
         notifyRestart();
       }
 
-      // Import a saved profile from the server's AccountData folder.
-      //
-      // Defaults to creating a NEW account rather than overwriting, because the load wipes the
-      // target's characters, items, gear, echelons, cafe and progress before inserting. Anyone
-      // importing usually wants their captured account *alongside* whatever they were already
-      // playing, and an unwanted new account is one click to delete -- an overwritten one is
-      // gone. Overwrite stays available, behind a danger confirm, since re-importing a fresher
-      // capture onto the same account is the other common case.
-      async function openImport() {
-        let files = [];
+      // Listed straight from the server rather than through `accountdata list`, because that
+      // route needs an account id to build a client connection -- so on a server with no
+      // accounts yet you could not see the profiles you wanted to create an account FROM.
+      async function listProfiles() {
+        const r = await api.accountDataFiles();
+        return (r?.files || []).map((f) => f.name);
+      }
+
+      // Pick a profile from anywhere on disk and copy it into the folder the server loads from,
+      // so nothing has to be placed there by hand. Returns the stored file name, or null when
+      // the dialog was cancelled. Repopulates `sel` and leaves the new file selected.
+      async function browseForProfile(sel) {
+        if (!window.host?.pickAccountData) { toast('File picker unavailable', 'bad'); return null; }
+        const picked = await window.host.pickAccountData();
+        if (!picked || picked.canceled) return null;
+        if (!picked.ok) { toast(picked.error || 'Could not read that file', 'bad'); return null; }
+
         try {
-          files = await listProfiles();
-        } catch (e) {
-          toast(`Could not read AccountData: ${e.message}`, 'bad');
-          return;
-        }
-        if (!files.length) {
-          toast('No profiles in the server\'s AccountData folder', 'warn');
-          return;
-        }
+          const up = await api.accountDataUpload({ name: picked.name, content: picked.content });
+          const name = up?.name || picked.name;
+          const files = await listProfiles().catch(() => [name]);
+          clear(sel);
+          for (const f of (files.includes(name) ? files : [name, ...files])) {
+            const opt = document.createElement('option');
+            opt.value = f; opt.textContent = f;
+            sel.appendChild(opt);
+          }
+          sel.value = name;
+          toast(`Added "${name}"`, 'good');
+          return name;
+        } catch (e) { toast(e.message, 'bad'); return null; }
+      }
+
+      // The load reports failure in its output rather than as an HTTP error.
+      async function loadProfile(uid, file) {
+        const r = await api.command(uid, `accountdata load ${file}`);
+        const out = String(r?.output || '').trim();
+        if (out && !/successfully/i.test(out)) throw new Error(out);
+      }
+
+      // Importing onto an existing account. Separate from creation because the load WIPES the
+      // target's characters, items, gear, echelons, cafe and progress first -- so it belongs
+      // with the other per-account tools, behind a confirm that names what it destroys, rather
+      // than anywhere it could be hit casually.
+      async function openOverwrite(d) {
+        const files = await listProfiles().catch(() => []);
 
         const fileSel = select(files.map((f) => ({ value: f, label: f })));
-        const nick = input({ value: 'Sensei' });
-
-        const target = select([
-          { value: 'new', label: 'Create a new account' },
-          ...(store.get().targetId ? [{ value: 'overwrite', label: 'Overwrite the selected account' }] : []),
-        ]);
-
-        const nickRow = field('Nickname for the new account', nick);
-        const warn = el('div.muted', { style: { fontSize: '12px', marginTop: '10px' } });
-        const syncMode = () => {
-          const isNew = target.value === 'new';
-          nickRow.style.display = isNew ? '' : 'none';
-          warn.textContent = isNew
-            ? 'The profile is loaded into a fresh account. Nothing existing is touched.'
-            : 'Replaces that account\'s characters, items, gear, echelons, cafe and progress.';
-        };
-        target.addEventListener('change', syncMode);
-
-        const go = button('Import', { variant: 'primary', iconName: 'download' });
+        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
+          onClick: () => browseForProfile(fileSel) });
+        const go = button('Import and replace', { variant: 'danger', iconName: 'download' });
         const cancel = button('Cancel', { variant: 'ghost' });
         const ref = modal({
-          title: 'Import profile',
-          body: el('div', {}, field('Profile', fileSel), field('Import into', target), nickRow, warn),
+          title: `Import into ${d.nickname}`,
+          body: el('div', {}, field('Profile', el('div.row', { style: { gap: '8px' } }, fileSel, browse)),
+            el('div.muted', { style: { fontSize: '12px', marginTop: '10px' },
+              text: "Replaces this account's characters, items, gear, echelons, cafe and progress. To keep this account as it is, import into a new one instead (Roster -> New)." })),
           footer: [cancel, go],
+        });
+        cancel.addEventListener('click', ref.close);
+        go.addEventListener('click', async () => {
+          if (!fileSel.value) { toast('Pick a profile first - use Browse to add one', 'warn'); return; }
+          const ok = await confirmDialog({
+            title: 'Overwrite account', danger: true, confirmLabel: 'Overwrite',
+            message: `"${d.nickname}" (#${d.serverId}) loses its characters, items, gear, echelons, cafe and progress, replaced by "${fileSel.value}". This cannot be undone.`,
+          });
+          if (!ok) return;
+          go.disabled = true;
+          try {
+            await loadProfile(d.serverId, fileSel.value);
+            ref.close(); toast(`Imported into #${d.serverId}`, 'good');
+            await loadList(); notifyRestart();
+          } catch (e) { toast(e.message, 'bad'); go.disabled = false; }
+        });
+      }
+
+      // Creating an account, optionally seeded from a saved profile. Importing into a NEW
+      // account is the safe direction -- nothing existing is touched -- so it lives here rather
+      // than as a separate action. Importing onto an account that already has data is the
+      // destructive one and sits in that account's tools instead.
+      async function openCreate() {
+        const nick = input({ value: 'Sensei' });
+        const files = await listProfiles().catch(() => []);
+
+        // Import is always offered, even with an empty AccountData folder -- Browse adds one.
+        const source = select([
+          { value: 'empty', label: 'Empty account' },
+          { value: 'profile', label: 'Import a saved profile' },
+        ]);
+        const fileSel = select(files.map((f) => ({ value: f, label: f })));
+        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
+          onClick: () => browseForProfile(fileSel) });
+        const fileRow = field('Profile', el('div.row', { style: { gap: '8px' } }, fileSel, browse));
+        const hint = el('div.muted', { style: { fontSize: '12px', marginTop: '10px' } });
+
+        const syncMode = () => {
+          const importing = source.value === 'profile';
+          fileRow.style.display = importing ? '' : 'none';
+          hint.textContent = importing
+            ? (fileSel.options.length
+                ? 'The profile is loaded into this new account. Nothing existing is touched.'
+                : 'No profiles on the server yet - use Browse to pick one from disk.')
+            : '';
+        };
+        source.addEventListener('change', syncMode);
+        fileSel.addEventListener('change', syncMode);
+
+        const create = button('Create account', { variant: 'primary', iconName: 'plus' });
+        const cancel = button('Cancel', { variant: 'ghost' });
+        const ref = modal({
+          title: 'New account',
+          body: el('div', {}, field('Nickname', nick), field('Start from', source), fileRow, hint),
+          footer: [cancel, create],
         });
         syncMode();
         cancel.addEventListener('click', ref.close);
 
-        go.addEventListener('click', async () => {
-          const file = fileSel.value;
-          const overwrite = target.value === 'overwrite';
-          let uid = store.get().targetId;
-
-          if (overwrite) {
-            const row = allRows.find((a) => a.serverId === uid);
-            const ok = await confirmDialog({
-              title: 'Overwrite account', danger: true, confirmLabel: 'Overwrite',
-              message: `"${row ? row.nickname : uid}" (#${uid}) loses its characters, items, gear, echelons, cafe and progress, replaced by "${file}". This cannot be undone.`,
-            });
-            if (!ok) return;
-          }
-
-          go.disabled = true;
-          try {
-            if (!overwrite) {
-              const created = await api.accountCreate({ nickname: nick.value.trim() || 'Sensei' });
-              uid = created.serverId;
-            }
-            const r = await api.command(uid, `accountdata load ${file}`);
-            const out = String(r?.output || '').trim();
-            // The command reports failures in its output rather than as an HTTP error.
-            if (out && !/successfully/i.test(out)) throw new Error(out);
-
-            ref.close();
-            toast(overwrite ? `Imported into #${uid}` : `Imported "${file}" as #${uid}`, 'good');
-            store.set({ targetId: uid });
-            await loadList();
-            notifyRestart();
-          } catch (e) {
-            toast(e.message, 'bad');
-            go.disabled = false;
-          }
-        });
-      }
-
-      // `accountdata list` prints a header line then one file per line. It needs a connection
-      // id but only reads the folder, so any existing account will do.
-      async function listProfiles() {
-        const uid = store.get().targetId || allRows[0]?.serverId;
-        if (!uid) throw new Error('create an account first');
-        const r = await api.command(uid, 'accountdata list');
-        return String(r?.output || '')
-          .split(/\r?\n/)
-          .map((s) => s.trim())
-          .filter((s) => s.toLowerCase().endsWith('.json'));
-      }
-
-      function openCreate() {
-        const nick = input({ value: 'Sensei' });
-        const create = button('Create account', { variant: 'primary', iconName: 'plus' });
-        const cancel = button('Cancel', { variant: 'ghost' });
-        const ref = modal({ title: 'New account', body: el('div', {}, field('Nickname', nick)),
-          footer: [cancel, create] });
-        cancel.addEventListener('click', ref.close);
         create.addEventListener('click', async () => {
+          const importing = source.value === 'profile';
+          if (importing && !fileSel.value) { toast('Pick a profile first - use Browse to add one', 'warn'); return; }
           create.disabled = true;
           try {
             const r = await api.accountCreate({ nickname: nick.value.trim() || 'Sensei' });
-            ref.close(); toast(`Created "${nick.value}" (#${r.serverId})`, 'good');
+            if (importing) await loadProfile(r.serverId, fileSel.value);
+            ref.close();
+            toast(importing ? `Created #${r.serverId} from "${fileSel.value}"` : `Created "${nick.value}" (#${r.serverId})`, 'good');
             store.set({ targetId: r.serverId });
             await loadList();
+            if (importing) notifyRestart();
           } catch (e) { toast(e.message, 'bad'); create.disabled = false; }
         });
       }

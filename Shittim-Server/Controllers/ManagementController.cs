@@ -48,6 +48,58 @@ public class ManagementController : ControllerBase
         _mapper = mapper;
     }
 
+    // Saved profiles available to `accountdata load`. A plain listing rather than a wrapper
+    // around the console command, because that route needs an account id to build a client
+    // connection -- which makes listing impossible on a server with no accounts yet, exactly
+    // when you want to create one FROM a profile.
+    [HttpGet("accountdata/files")]
+    public IActionResult AccountDataFiles()
+    {
+        var dir = Shittim.Commands.AccountDataCommand.accountDataDir;
+        if (!Directory.Exists(dir))
+            return Ok(new { files = Array.Empty<string>() });
+
+        var files = Directory.GetFiles(dir, "*.json")
+            .Select(f => new FileInfo(f))
+            .OrderByDescending(f => f.LastWriteTimeUtc)
+            .Select(f => new { name = f.Name, size = f.Length, modified = f.LastWriteTimeUtc })
+            .ToArray();
+
+        return Ok(new { files });
+    }
+
+    public class UploadAccountDataRequest
+    {
+        public string Name { get; set; } = "";
+        public string Content { get; set; } = "";
+    }
+
+    // Copy a profile chosen from anywhere on disk into the folder `accountdata load` reads.
+    // Takes the content rather than a path so it still works when the Control Center and the
+    // server are not on the same machine.
+    [HttpPost("accountdata/upload")]
+    public IActionResult UploadAccountData([FromBody] UploadAccountDataRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { error = "name and content are required" });
+
+        // Only ever write a bare file name into the folder: a name carrying directory
+        // separators or ".." would otherwise land anywhere on disk.
+        var name = Path.GetFileName(request.Name);
+        if (string.IsNullOrWhiteSpace(name) || !name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "name must be a .json file" });
+
+        try { using var _ = JsonDocument.Parse(request.Content); }
+        catch (JsonException e) { return BadRequest(new { error = $"not valid JSON: {e.Message}" }); }
+
+        var dir = Shittim.Commands.AccountDataCommand.accountDataDir;
+        Directory.CreateDirectory(dir);
+        var dest = Path.Combine(dir, name);
+        System.IO.File.WriteAllText(dest, request.Content);
+
+        return Ok(new { success = true, name });
+    }
+
     [HttpGet("status")]
     public async Task<IActionResult> Status()
     {
