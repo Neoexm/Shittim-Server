@@ -162,8 +162,6 @@ export default {
         tools.appendChild(cmdButton(d.serverId, 'Unlock all characters', 'giveall'));
         tools.appendChild(cmdButton(d.serverId, 'Unlock campaign + story', ['unlockall campaign', 'unlockall story']));
         tools.appendChild(cmdButton(d.serverId, 'Unlock battlepass', 'unlockall battlepass'));
-        tools.appendChild(button('Import profile...', { variant: 'ghost', sm: true, iconName: 'download',
-          onClick: () => openOverwrite(d) }));
         body.appendChild(tools);
 
         body.appendChild(frag(`<div class="muted" style="font-size:12px;margin-top:18px">${d.itemCount} items · ${d.characterCount} characters · ${d.mailCount} mails · ${escapeHtml(d.state || '')}</div>`));
@@ -224,39 +222,9 @@ export default {
         if (out && !/successfully/i.test(out)) throw new Error(out);
       }
 
-      // Destructive: the load wipes the target account first, so this sits behind a confirm.
-      function openOverwrite(d) {
-        let file = null;
-        const go = button('Import and replace', { variant: 'danger', iconName: 'download' });
-        go.disabled = true;
-        const picker = profilePicker((name) => { file = name; go.disabled = false; });
-
-        const cancel = button('Cancel', { variant: 'ghost' });
-        const ref = modal({
-          title: `Import into ${d.nickname}`,
-          body: el('div', {}, field('Profile', picker.row),
-            el('div.muted', { style: { fontSize: '12px', marginTop: '10px' },
-              text: "Replaces this account's characters, items, gear, echelons, cafe and progress. To keep this account as it is, import into a new one instead (Roster -> New)." })),
-          footer: [cancel, go],
-        });
-        cancel.addEventListener('click', ref.close);
-        go.addEventListener('click', async () => {
-          if (!file) return;
-          const ok = await confirmDialog({
-            title: 'Overwrite account', danger: true, confirmLabel: 'Overwrite',
-            message: `"${d.nickname}" (#${d.serverId}) loses its characters, items, gear, echelons, cafe and progress, replaced by "${file}". This cannot be undone.`,
-          });
-          if (!ok) return;
-          go.disabled = true;
-          try {
-            await loadProfile(d.serverId, file);
-            ref.close(); toast(`Imported into #${d.serverId}`, 'good');
-            await loadList(); notifyRestart();
-          } catch (e) { toast(e.message, 'bad'); go.disabled = false; }
-        });
-      }
-
-      // Optionally seeded from a profile. Safe direction: nothing existing is touched.
+      // Import creates a new account, never replaces one. Loading over an account the client
+      // has already logged into leaves it holding stale cached state -- the level it shows
+      // stops matching the level on the server. A fresh account has no such history.
       function openCreate() {
         const nick = input({ value: 'Sensei' });
 
