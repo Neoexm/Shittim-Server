@@ -63,10 +63,15 @@ public class ManagementController : ControllerBase
         if (request == null || string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Content))
             return BadRequest(new { error = "name and content are required" });
 
-        // Only ever write a bare file name into the folder: a name carrying directory
-        // separators or ".." would otherwise land anywhere on disk.
-        var name = Path.GetFileName(request.Name);
-        if (string.IsNullOrWhiteSpace(name) || !name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        // Only ever write a bare file name into the folder. Reject anything carrying directory
+        // parts rather than quietly stripping them: silently turning "../../evil.json" into
+        // "evil.json" contains the write but hides that the caller asked for something else.
+        var name = request.Name.Trim();
+        if (name != Path.GetFileName(name) || name.Contains(".."))
+            return BadRequest(new { error = "name must be a bare file name, without directories" });
+        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return BadRequest(new { error = "name contains characters that are not valid in a file name" });
+        if (!name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             return BadRequest(new { error = "name must be a .json file" });
 
         try { using var _ = JsonDocument.Parse(request.Content); }
