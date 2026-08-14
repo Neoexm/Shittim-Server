@@ -189,7 +189,6 @@ export default {
         notifyRestart();
       }
 
-      // Uploads the chosen file to the server and returns its stored name, or null.
       async function pickProfile() {
         if (!window.host?.pickAccountData) { toast('File picker unavailable', 'bad'); return null; }
         const picked = await window.host.pickAccountData();
@@ -201,7 +200,6 @@ export default {
         } catch (e) { toast(e.message, 'bad'); return null; }
       }
 
-      // Browse button plus a label of the current choice. `onPick` gets the stored name.
       function profilePicker(onPick) {
         const chosen = el('span.muted', { text: 'No file chosen', style: { fontSize: '12px' } });
         const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
@@ -222,9 +220,7 @@ export default {
         if (out && !/successfully/i.test(out)) throw new Error(out);
       }
 
-      // Import creates a new account, never replaces one. Loading over an account the client
-      // has already logged into leaves it holding stale cached state -- the level it shows
-      // stops matching the level on the server. A fresh account has no such history.
+      // Only ever creates a new account: loading over one the client has already logged into leaves it holding stale cached state and the level it shows stops matching the server.
       function openCreate() {
         const nick = input({ value: 'Sensei' });
 

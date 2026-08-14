@@ -1046,8 +1046,7 @@ async function buildDiagnosticInfo() {
   ].join('\r\n');
 }
 
-// Returns the chosen profile's name and content; the renderer uploads it, since the server
-// only loads from its own folder and may not be on this machine.
+// Returns the chosen profile's name and content; the renderer uploads it, since the server only loads from its own folder and may not be on this machine.
 async function pickAccountDataFile() {
   const res = await dialog.showOpenDialog({
     title: 'Import profile',
@@ -1060,7 +1059,6 @@ async function pickAccountDataFile() {
   const file = res.filePaths[0];
   try {
     const content = fs.readFileSync(file, 'utf8');
-    // Checked here so the message can name the file just chosen.
     try { JSON.parse(content); }
     catch { return { ok: false, error: `${path.basename(file)} is not valid JSON` }; }
     return { ok: true, name: path.basename(file), content };

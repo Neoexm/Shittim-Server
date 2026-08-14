@@ -85,15 +85,11 @@ namespace Shittim.Commands
             account.Comment = accountAuthData.AccountDB.Comment;
             account.CallName = accountAuthData.AccountDB.CallName;
 
-            // Assigned field by field rather than through the mapper, to leave the row's own
-            // ServerId and AccountServerId alone.
+            // Assigned field by field rather than mapped, so the row keeps its own ServerId and AccountServerId.
             var incomingCurrency = accountLoginSyncData.AccountCurrencySyncResponse?.AccountCurrencyDB;
             if (incomingCurrency?.CurrencyDict != null)
             {
-                // Amounts transfer, timestamps do not. Time-charged currencies recharge as
-                // (now - UpdateTime) / interval, so a save from a server whose clock is ahead
-                // of this one would give a negative elapsed and subtract. Stamping them with
-                // this server's now makes recharge resume from the import.
+                // Time-charged currencies recharge as (now - UpdateTime) / interval, so timestamps from a server whose clock is ahead of this one make the recharge subtract; restamping resumes it from the import instead.
                 var chargedAt = account.GameSettings.ServerDateTime();
                 var updateTimes = (incomingCurrency.UpdateTimeDict ?? [])
                     .ToDictionary(entry => entry.Key, _ => chargedAt);
@@ -122,10 +118,7 @@ namespace Shittim.Commands
 
             context.Characters.RemoveRange(context.Characters.Where(x => x.AccountServerId == connection.AccountServerId));
 
-            // ServerId is the key of a table shared by every account, so the save's own ids
-            // collide when it is imported twice. Zero them and let the database assign. The map
-            // must hold the inserted instances: everything pointing at a character reads its new
-            // id back out of here after the save below.
+            // ServerId keys a table shared by every account, so the save's own ids collide on a second import; zero them and let the database assign. The map must hold the inserted instances, since everything pointing at a character reads its new id back out of here after the save.
             var sourceCharacters = accountLoginSyncData.CharacterListResponse.CharacterDBs.ToList();
             var characterData = connection.Mapper.Map<List<CharacterDBServer>>(sourceCharacters);
             Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
@@ -138,14 +131,11 @@ namespace Shittim.Commands
             var charactersAdded = context.AddCharacters(connection.AccountServerId, characterData.ToArray());
             await context.SaveChangesAsync();
 
-            // The account's represent character points at one of the ids just replaced.
             if (oldToNewCharacterServerId.TryGetValue(account.RepresentCharacterServerId, out var represent))
                 account.RepresentCharacterServerId = represent.ServerId;
 
             context.Weapons.RemoveRange(context.Weapons.Where(x => x.AccountServerId == connection.AccountServerId));
-            // AddWeapons, AddGears, AddItems and AddEquipment decide insert-vs-merge with a DB
-            // query, which still returns rows that are only marked Deleted. Without flushing
-            // first they merge onto a row about to be deleted and the incoming one is lost.
+            // AddWeapons, AddGears, AddItems and AddEquipment pick insert vs merge with a DB query, which still returns rows only marked Deleted, so without flushing first they merge onto a doomed row and the incoming one is lost.
             await context.SaveChangesAsync();
 
             foreach (var weapon in accountLoginSyncData.CharacterListResponse.WeaponDBs)
@@ -174,8 +164,7 @@ namespace Shittim.Commands
                 }
             }
 
-            // Outside the if/else above, so a list recovered from the separate packet is
-            // written too rather than only one taken from the login bundle.
+            // Outside the if/else above so a list recovered from the separate packet is written too, not only one taken from the login bundle.
             if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
@@ -204,8 +193,7 @@ namespace Shittim.Commands
             context.Equipments.RemoveRange(context.GetAccountEquipments(connection.AccountServerId));
             await context.SaveChangesAsync();
 
-            // Same as characters: zero the key so the database assigns a fresh one, and keep the
-            // inserted instances so the characters below can find what their gear became.
+            // As with characters: zero the key, and keep the inserted instances so the characters below can find what their gear became.
             var sourceEquipment = accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs.ToList();
             var equipmentData = connection.Mapper.Map<List<EquipmentDBServer>>(sourceEquipment);
             Dictionary<long, EquipmentDBServer> oldToNewEquipmentServerId = new();
@@ -325,9 +313,7 @@ namespace Shittim.Commands
 
             await context.SaveChangesAsync();
 
-            // Story and campaign progress. Without these the account is a max-level roster
-            // with every content gate still shut. The rows carry no cross-references, so they
-            // only need re-owning: zero the key for a fresh one, and set AccountServerId.
+            // Without story and campaign progress the account is max level with every content gate still shut. These rows carry no cross-references, so re-owning them is enough.
             var scenarioList = accountLoginSyncData.ScenarioListResponse;
             if (scenarioList != null)
             {
@@ -369,8 +355,6 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Collections. Same re-owning, except rows pointing back at a character, which
-            // take the same ServerId remap weapons and gear already get.
             var costumeList = accountLoginSyncData.CharacterListResponse?.CostumeDBs;
             if (costumeList != null)
             {
@@ -445,7 +429,6 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Cleared floor and reward progress per season.
             var multiFloorRaids = accountLoginSyncData.MultiFloorRaidSyncResponse?.MultiFloorRaidDBs;
             if (multiFloorRaids != null)
             {
@@ -458,7 +441,6 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // Gates the daily free pull.
             var freeRecruits = accountLoginSyncData.ShopGachaRecruitListResponse?.ShopFreeRecruitHistoryDBs;
             if (freeRecruits != null)
             {
@@ -471,7 +453,7 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            // In-progress crafts. CraftPresetSlotDBs have no server table.
+            // CraftPresetSlotDBs from the same response have no server table.
             var craftInfos = accountLoginSyncData.CraftInfoListResponse?.CraftInfos;
             if (craftInfos != null)
             {
@@ -499,9 +481,7 @@ namespace Shittim.Commands
             var idCard = accountLoginSyncData.FriendIdCardDB;
             if (idCard != null)
             {
-                // Settings live on the account as JSON, the same shape FriendHandler writes.
-                // FriendCode, Level and LastConnectTime identify the account on THIS server,
-                // so they are not copied.
+                // Settings live on the account as JSON, the same shape FriendHandler writes. FriendCode, Level and LastConnectTime identify the account on this server, so they are not copied.
                 var card = account.ContentInfo.IdCard;
                 card.Comment = idCard.Comment;
                 card.RepresentCharacterUniqueId = idCard.RepresentCharacterUniqueId;

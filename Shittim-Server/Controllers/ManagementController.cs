@@ -54,8 +54,7 @@ public class ManagementController : ControllerBase
         public string Content { get; set; } = "";
     }
 
-    // Store a profile in the folder `accountdata load` reads. Takes content rather than a
-    // path so it works when the Control Center and the server are on different machines.
+    // Store a profile in the folder `accountdata load` reads. Takes content rather than a path so it works when the Control Center and the server are on different machines.
     [HttpPost("accountdata/upload")]
     public IActionResult UploadAccountData([FromBody] UploadAccountDataRequest request)
     {
