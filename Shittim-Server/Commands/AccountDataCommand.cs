@@ -72,6 +72,10 @@ namespace Shittim.Commands
             account.Level = accountAuthData.AccountDB.Level;
             account.Exp = accountAuthData.AccountDB.Exp;
             account.RepresentCharacterServerId = accountAuthData.AccountDB.RepresentCharacterServerId;
+            // The greeting and sensei name are part of the account too; they were being left at
+            // whatever the target account had.
+            account.Comment = accountAuthData.AccountDB.Comment;
+            account.CallName = accountAuthData.AccountDB.CallName;
 
             // Currencies. ExportData writes AccountCurrencySyncResponse and the import DTO has
             // carried the field all along, but nothing here ever read it back, so pyroxene,
@@ -292,6 +296,56 @@ namespace Shittim.Commands
 
             var echelonData = connection.Mapper.Map<List<EchelonDBServer>>(accountLoginSyncData.EchelonListResponse.EchelonDBs);
             context.AddEchelons(connection.AccountServerId, echelonData.ToArray());
+
+            await context.SaveChangesAsync();
+
+            // Progression. Everything above restores inventory; ExportData also writes story and
+            // campaign history but nothing here read it back, so an imported account was a
+            // max-level roster with no progress behind it -- lessons, cafe and the rest of the
+            // content gates stay locked because the records that open them were never restored.
+            // These rows are keyed by their own generated ServerId and carry no cross-references,
+            // so they only need re-owning to the target account: zero the key so the database
+            // assigns a fresh one, and point AccountServerId at this account.
+            var scenarioList = accountLoginSyncData.ScenarioListResponse;
+            if (scenarioList != null)
+            {
+                context.ScenarioHistories.RemoveRange(context.ScenarioHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.ScenarioGroupHistories.RemoveRange(context.ScenarioGroupHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var scenarioHistories = connection.Mapper.Map<List<ScenarioHistoryDBServer>>(scenarioList.ScenarioHistoryDBs ?? []);
+                foreach (var row in scenarioHistories) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ScenarioHistories.AddRange(scenarioHistories);
+
+                var scenarioGroups = connection.Mapper.Map<List<ScenarioGroupHistoryDBServer>>(scenarioList.ScenarioGroupHistoryDBs ?? []);
+                foreach (var row in scenarioGroups) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ScenarioGroupHistories.AddRange(scenarioGroups);
+
+                await context.SaveChangesAsync();
+            }
+
+            var campaignList = accountLoginSyncData.CampaignListResponse;
+            if (campaignList != null)
+            {
+                context.CampaignStageHistories.RemoveRange(context.CampaignStageHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.CampaignChapterClearRewardHistories.RemoveRange(context.CampaignChapterClearRewardHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.StrategyObjectHistories.RemoveRange(context.StrategyObjectHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var stageHistories = connection.Mapper.Map<List<CampaignStageHistoryDBServer>>(campaignList.StageHistoryDBs ?? []);
+                foreach (var row in stageHistories) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CampaignStageHistories.AddRange(stageHistories);
+
+                var chapterRewards = connection.Mapper.Map<List<CampaignChapterClearRewardHistoryDBServer>>(campaignList.CampaignChapterClearRewardHistoryDBs ?? []);
+                foreach (var row in chapterRewards) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CampaignChapterClearRewardHistories.AddRange(chapterRewards);
+
+                var strategyObjects = connection.Mapper.Map<List<StrategyObjectHistoryDBServer>>(campaignList.StrategyObjecthistoryDBs ?? []);
+                foreach (var row in strategyObjects) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.StrategyObjectHistories.AddRange(strategyObjects);
+
+                await context.SaveChangesAsync();
+            }
 
             await context.SaveChangesAsync();
             await connection.SendChatMessage("Successfully Loaded All Data from the save file.");

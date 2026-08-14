@@ -148,6 +148,14 @@ namespace Schale.MappingProfiles
             CreateMap<CostumeDB, CostumeDBServer>();
             CreateMap<StickerDB, StickerDBServer>();
             CreateMap<AccountAttachmentDB, AccountAttachmentDBServer>();
+
+            // Progression. Only the export direction existed, so accountdata load had no way
+            // to restore story or campaign history even though ExportData writes both.
+            CreateMap<ScenarioHistoryDB, ScenarioHistoryDBServer>();
+            CreateMap<ScenarioGroupHistoryDB, ScenarioGroupHistoryDBServer>();
+            CreateMap<CampaignStageHistoryDB, CampaignStageHistoryDBServer>();
+            CreateMap<CampaignChapterClearRewardHistoryDB, CampaignChapterClearRewardHistoryDBServer>();
+            CreateMap<StrategyObjectHistoryDB, StrategyObjectHistoryDBServer>();
         }
 
         private void ConfigureNestedDTOMappings()
