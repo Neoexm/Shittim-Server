@@ -98,6 +98,10 @@ namespace Shittim.Utils
 		public MultiFloorRaidSyncResponse MultiFloorRaidSyncResponse { get; set; }
 		public long FriendCount { get; set; }
 		public string FriendCode { get; set; }
+		// The ID card and its backgrounds arrive in the friend-list packet rather than the
+		// login bundle, so a capture-derived save carries them spliced onto it.
+		public FriendIdCardDB FriendIdCardDB { get; set; }
+		public List<IdCardBackgroundDB> IdCardBackgroundDBs { get; set; }
 	}
 
 	public class ImportItemListRequest

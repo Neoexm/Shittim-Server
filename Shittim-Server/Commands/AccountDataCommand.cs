@@ -433,6 +433,43 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
+            var idCardBackgrounds = accountLoginSyncData.IdCardBackgroundDBs;
+            if (idCardBackgrounds != null)
+            {
+                context.IdCardBackgrounds.RemoveRange(context.IdCardBackgrounds.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var backgrounds = connection.Mapper.Map<List<IdCardBackgroundDBServer>>(idCardBackgrounds);
+                foreach (var row in backgrounds) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.IdCardBackgrounds.AddRange(backgrounds);
+                await context.SaveChangesAsync();
+            }
+
+            var idCard = accountLoginSyncData.FriendIdCardDB;
+            if (idCard != null)
+            {
+                // Settings live as a JSON column on the account (ContentInfo), not a table --
+                // same shape FriendHandler writes when the card is edited in game. FriendCode,
+                // Level and LastConnectTime are deliberately not copied: those belong to the
+                // account on THIS server, not to the one the save came from.
+                var card = account.ContentInfo.IdCard;
+                card.Comment = idCard.Comment;
+                card.RepresentCharacterUniqueId = idCard.RepresentCharacterUniqueId;
+                card.RepresentCharacterCostumeId = idCard.RepresentCharacterCostumeId;
+                card.CardBackgroundId = idCard.CardBackgroundId;
+                card.SearchPermission = idCard.SearchPermission;
+                card.AutoAcceptFriendRequest = idCard.AutoAcceptFriendRequest;
+                card.ShowAccountLevel = idCard.ShowAccountLevel;
+                card.ShowFriendCode = idCard.ShowFriendCode;
+                card.ShowRaidRanking = idCard.ShowRaidRanking;
+                card.ShowArenaRanking = idCard.ShowArenaRanking;
+                card.ShowEliminateRaidRanking = idCard.ShowEliminateRaidRanking;
+                card.ShowMultiFloorRaidClearedDifficulty = idCard.ShowMultiFloorRaidClearedDifficulty;
+
+                context.Entry(account).Property(x => x.ContentInfo).IsModified = true;
+                await context.SaveChangesAsync();
+            }
+
             var attachment = accountLoginSyncData.AttachmentGetResponse?.AccountAttachmentDB;
             if (attachment != null)
             {
