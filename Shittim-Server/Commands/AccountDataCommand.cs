@@ -114,7 +114,9 @@ namespace Shittim.Commands
 
             // Insert whichever source we ended up with. This used to sit in an `else`, so a
             // list recovered from the separate packet was assigned above and then never
-            // written -- the import silently produced an account with no items at all.
+            // written: neither the clear nor the insert ran, leaving the account holding
+            // its previous items while every other category had been replaced. Silent --
+            // the catch above only fires when the packet is absent or malformed.
             if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
