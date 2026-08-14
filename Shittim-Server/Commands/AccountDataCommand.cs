@@ -120,17 +120,27 @@ namespace Shittim.Commands
                 await context.SaveChangesAsync();
             }
 
-            Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
+            context.Characters.RemoveRange(context.Characters.Where(x => x.AccountServerId == connection.AccountServerId));
 
-            foreach (var character in accountLoginSyncData.CharacterListResponse.CharacterDBs)
+            // ServerId is the key of a table shared by every account, so the save's own ids
+            // collide when it is imported twice. Zero them and let the database assign. The map
+            // must hold the inserted instances: everything pointing at a character reads its new
+            // id back out of here after the save below.
+            var sourceCharacters = accountLoginSyncData.CharacterListResponse.CharacterDBs.ToList();
+            var characterData = connection.Mapper.Map<List<CharacterDBServer>>(sourceCharacters);
+            Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
+            for (var i = 0; i < sourceCharacters.Count; i++)
             {
-                oldToNewCharacterServerId.Add(character.ServerId, connection.Mapper.Map<CharacterDBServer>(character));
+                oldToNewCharacterServerId[sourceCharacters[i].ServerId] = characterData[i];
+                characterData[i].ServerId = 0;
             }
 
-            context.Characters.RemoveRange(context.Characters.Where(x => x.AccountServerId == connection.AccountServerId));
-            var characterData = connection.Mapper.Map<List<CharacterDBServer>>(accountLoginSyncData.CharacterListResponse.CharacterDBs);
             var charactersAdded = context.AddCharacters(connection.AccountServerId, characterData.ToArray());
             await context.SaveChangesAsync();
+
+            // The account's represent character points at one of the ids just replaced.
+            if (oldToNewCharacterServerId.TryGetValue(account.RepresentCharacterServerId, out var represent))
+                account.RepresentCharacterServerId = represent.ServerId;
 
             context.Weapons.RemoveRange(context.Weapons.Where(x => x.AccountServerId == connection.AccountServerId));
             // AddWeapons, AddGears, AddItems and AddEquipment decide insert-vs-merge with a DB
@@ -147,6 +157,7 @@ namespace Shittim.Commands
             }
 
             var weaponData = connection.Mapper.Map<List<WeaponDBServer>>(accountLoginSyncData.CharacterListResponse.WeaponDBs);
+            weaponData.ForEach(x => x.ServerId = 0);
             context.AddWeapons(connection.AccountServerId, weaponData.ToArray());
             await context.SaveChangesAsync();
 
@@ -169,6 +180,7 @@ namespace Shittim.Commands
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
                 await context.SaveChangesAsync();
+                accountLoginSyncData.ItemListResponse.ItemDBs.ForEach(x => x.ServerId = 0);
                 context.AddItems(connection.AccountServerId, accountLoginSyncData.ItemListResponse.ItemDBs.ToArray());
             }
             await context.SaveChangesAsync();
@@ -185,20 +197,24 @@ namespace Shittim.Commands
             }
 
             var gearData = connection.Mapper.Map<List<GearDBServer>>(accountLoginSyncData.CharacterGearListResponse.GearDBs);
+            gearData.ForEach(x => x.ServerId = 0);
             context.AddGears(connection.AccountServerId, gearData.ToArray());
             await context.SaveChangesAsync();
-
-            Dictionary<long, EquipmentDB> oldToNewEquipmentServerId = new Dictionary<long, EquipmentDB>();
 
             context.Equipments.RemoveRange(context.GetAccountEquipments(connection.AccountServerId));
             await context.SaveChangesAsync();
 
-            foreach (var equipment in accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs)
+            // Same as characters: zero the key so the database assigns a fresh one, and keep the
+            // inserted instances so the characters below can find what their gear became.
+            var sourceEquipment = accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs.ToList();
+            var equipmentData = connection.Mapper.Map<List<EquipmentDBServer>>(sourceEquipment);
+            Dictionary<long, EquipmentDBServer> oldToNewEquipmentServerId = new();
+            for (var i = 0; i < sourceEquipment.Count; i++)
             {
-                oldToNewEquipmentServerId.Add(equipment.ServerId, equipment);
+                oldToNewEquipmentServerId[sourceEquipment[i].ServerId] = equipmentData[i];
+                equipmentData[i].ServerId = 0;
             }
 
-            var equipmentData = connection.Mapper.Map<List<EquipmentDBServer>>(accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs);
             context.AddEquipment(connection.AccountServerId, equipmentData.ToArray());
             await context.SaveChangesAsync();
 
@@ -215,6 +231,7 @@ namespace Shittim.Commands
 
             context.MemoryLobbies.RemoveRange(context.MemoryLobbies.Where(x => x.AccountServerId == connection.AccountServerId));
             var memoryLobbyData = connection.Mapper.Map<List<MemoryLobbyDBServer>>(accountLoginSyncData.MemoryLobbyListResponse.MemoryLobbyDBs);
+            memoryLobbyData.ForEach(x => x.ServerId = 0);
             context.AddMemoryLobbies(connection.AccountServerId, memoryLobbyData.ToArray());
 
             Dictionary<long, long> oldCafeDbIdToCafeId = new();
@@ -257,6 +274,7 @@ namespace Shittim.Commands
             }
 
             var furnitureData = connection.Mapper.Map<List<FurnitureDBServer>>(accountLoginSyncData.CafeGetInfoResponse.FurnitureDBs);
+            furnitureData.ForEach(x => x.ServerId = 0);
             context.AddFurnitures(connection.AccountServerId, furnitureData.ToArray());
             await context.SaveChangesAsync();
 
@@ -302,6 +320,7 @@ namespace Shittim.Commands
             }
 
             var echelonData = connection.Mapper.Map<List<EchelonDBServer>>(accountLoginSyncData.EchelonListResponse.EchelonDBs);
+            echelonData.ForEach(x => x.ServerId = 0);
             context.AddEchelons(connection.AccountServerId, echelonData.ToArray());
 
             await context.SaveChangesAsync();
