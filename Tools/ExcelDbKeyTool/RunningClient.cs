@@ -4,20 +4,25 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
 
 namespace ExcelDbKeyTool;
 
-// The 32 bytes Queuing_GetCryptoKeys handed over are still on the client's il2cpp heap as the base64 string they arrived in, so with the game open the key can be lifted straight out of it instead of out of a capture. Nothing about the heap layout survives a client update, which is why this looks for the shape of a key rather than walking to an offset, and why every hit is then tried against the client's own ExcelDB.db - a scan that loose would be useless without something to check its answers against, and nothing but the real key opens that file.
+// The client never holds the ExcelDB key in one piece. The holder it keeps it in splits the 32 bytes across three byte[] fields at 10, 10 and 12 and only ever joins them inside a property getter, so there is no key-shaped run of bytes on the heap to search for, and the base64 it arrived as and the hex it was handed to SQLCipher as are both garbage a few seconds later - which is why looking for either of those only ever worked by winning a race against the lobby's allocations. The three arrays themselves stay live for as long as the client does, and the object pointing at them is just three pointers side by side, so this reads every 10 and 12 byte managed array out of the process and then looks for a triple of pointers at 10/10/12 sharing one class. What that joins up to is judged by recomputing page 1's HMAC rather than by opening the file, and the winner is confirmed with a real open before it is returned.
 internal static class RunningClient
 {
     private const string ExcelDbRelative = @"BlueArchive_Data\StreamingAssets\PUB\Resource\Preload\TableBundles\ExcelDB.db";
 
-    // Longest thing Collect can match is a 64 character hex key in UTF-16, so chunks have to share at least that much or a key straddling the boundary is lost.
+    // An array header and its elements come to 0x2c bytes and a holder is three pointers, so chunks only have to share enough for the longer of the two to survive the boundary.
     private const int Overlap = 256;
+
+    // il2cpp lays a managed array out as class pointer, monitor, bounds, length, then the elements.
+    private const int ArrayBounds = 0x10;
+    private const int ArrayLength = 0x18;
+    private const int ArrayData = 0x20;
 
     private static int sqliteReady;
 
@@ -31,7 +36,7 @@ internal static class RunningClient
 
         var process = Process.GetProcessesByName("BlueArchive").FirstOrDefault();
         if (process == null)
-            throw new InvalidOperationException("BlueArchive.exe is not running. Start the game, let it reach the title screen so it has asked for the crypto keys, then try again.");
+            throw new InvalidOperationException("BlueArchive.exe is not running. Start the game, let it get past the title screen so it has asked for the crypto keys, then try again.");
 
         // Before MainModule, which needs the same rights and would otherwise report an elevated client as a bare "Access is denied".
         var processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, process.Id);
@@ -39,39 +44,45 @@ internal static class RunningClient
             throw new InvalidOperationException($"Could not open BlueArchive.exe (PID {process.Id}) for reading. Run this tool as administrator.");
 
         string excelDbPath;
-        List<string> candidates;
+        string? keyHex = null;
         try
         {
             excelDbPath = Path.Combine(Path.GetDirectoryName(process.MainModule!.FileName)!, ExcelDbRelative);
             if (!File.Exists(excelDbPath))
                 throw new InvalidOperationException($"Found BlueArchive.exe (PID {process.Id}) but there is no ExcelDB.db at {excelDbPath}, and without it a candidate key cannot be checked.");
 
-            candidates = Scan(processHandle, progress);
+            var page1 = new byte[PageValidator.PageSize];
+            using (var file = File.OpenRead(excelDbPath))
+                file.ReadExactly(page1);
+
+            var arrays = new Dictionary<long, (long Klass, byte[] Data)>();
+            Sweep(processHandle, "Reading the client's heap", progress, (address, buffer, read) =>
+            {
+                CollectArrays(address, buffer, read, arrays);
+                return false;
+            });
+
+            progress($"{arrays.Count:N0} arrays the right size to be a piece of the key. Looking for what holds them...");
+
+            var validator = new PageValidator(page1);
+            Sweep(processHandle, "Looking for the key's holder", progress, (_, buffer, read) => (keyHex = FindHolder(buffer, read, arrays, validator)) != null);
         }
         finally
         {
             CloseHandle(processHandle);
         }
 
-        progress($"Trying {candidates.Count} candidates against ExcelDB.db...");
+        if (keyHex == null)
+            throw new InvalidOperationException("Nothing in the client's memory was holding the three pieces of an ExcelDB key. It only builds them once it has been through Queuing_GetCryptoKeys, so take the game past the title screen first.");
 
-        foreach (var hex in candidates)
-        {
-            if (!Opens(excelDbPath, hex))
-                continue;
+        if (!Opens(excelDbPath, keyHex))
+            throw new InvalidOperationException($"The key read out of the client did not open {excelDbPath}.");
 
-            return (new DecodeResult(hex, Convert.ToBase64String(Convert.FromHexString(hex))), $"BlueArchive.exe (PID {process.Id})");
-        }
-
-        throw new InvalidOperationException(candidates.Count == 0
-            ? "Nothing in the client's memory was shaped like an ExcelDB key. The key only lands there once the client has been through Queuing_GetCryptoKeys, so take it as far as the title screen first."
-            : $"None of the {candidates.Count} candidates read out of the client opened {excelDbPath}.");
+        return (new DecodeResult(keyHex, Convert.ToBase64String(Convert.FromHexString(keyHex))), $"BlueArchive.exe (PID {process.Id})");
     }
 
-    private static List<string> Scan(IntPtr processHandle, Action<string> progress)
+    private static void Sweep(IntPtr processHandle, string what, Action<string> progress, Func<long, byte[], int, bool> onChunk)
     {
-        var hits = new List<string>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
         var buffer = new byte[4 * 1024 * 1024];
         long scanned = 0;
         long reported = 0;
@@ -86,24 +97,26 @@ internal static class RunningClient
             long next = memInfo.BaseAddress.ToInt64() + regionSize;
             uint protect = memInfo.Protect & 0xFF;
 
-            // Managed strings sit on writable commit. Skipping everything else leaves out the mapped images and the read-only asset views, which is most of a Unity process.
+            // The managed heap sits on writable commit. Skipping everything else leaves out the mapped images and the read-only asset views, which is most of a Unity process.
             if (memInfo.State == MEM_COMMIT && (memInfo.Protect & PAGE_GUARD) == 0 &&
                 (protect == PAGE_READWRITE || protect == PAGE_WRITECOPY || protect == PAGE_EXECUTE_READWRITE))
             {
                 for (long offset = 0; offset < regionSize; offset += buffer.Length - Overlap)
                 {
                     int want = (int)Math.Min(buffer.Length, regionSize - offset);
-                    if (!ReadProcessMemory(processHandle, new IntPtr(memInfo.BaseAddress.ToInt64() + offset), buffer, want, out int read) || read <= 0)
+                    long chunkBase = memInfo.BaseAddress.ToInt64() + offset;
+                    if (!ReadProcessMemory(processHandle, new IntPtr(chunkBase), buffer, want, out int read) || read <= 0)
                         continue;
 
-                    Collect(buffer, read, hits, seen);
                     scanned += read;
+                    if (onChunk(chunkBase, buffer, read))
+                        return;
                 }
 
                 if (scanned - reported >= 256L * 1024 * 1024)
                 {
                     reported = scanned;
-                    progress($"Read {scanned / (1024 * 1024):N0} MB of the client, {hits.Count} candidates so far...");
+                    progress($"{what}: {scanned / (1024 * 1024):N0} MB...");
                 }
             }
 
@@ -111,97 +124,55 @@ internal static class RunningClient
             if (next <= 0)
                 break;
         }
-
-        return hits;
     }
 
-    // Both encodings because a managed string is UTF-16 but the same value can have been marshalled out to a narrow one, and both spellings because the key travels as base64 and is handed to SQLCipher as hex.
-    public static void Collect(byte[] buffer, int length, List<string> hits, HashSet<string> seen)
+    // The class pointer is not known ahead of time, so the only filters going in are a null bounds pointer, a length of exactly 10 or 12, and a first word that could be a pointer at all. That keeps every same-sized array in the process, which is the point - the triple is what narrows it.
+    public static void CollectArrays(long baseAddress, byte[] buffer, int length, Dictionary<long, (long Klass, byte[] Data)> arrays)
     {
-        for (var i = 0; i < length; i++)
+        for (var i = 0; i + ArrayData + 12 <= length; i += 8)
         {
-            if (i + 44 <= length && buffer[i + 43] == (byte)'=' && (i == 0 || !IsBase64(buffer[i - 1])) && IsBase64Run(buffer, i, 1))
-                Add(ReadBase64(buffer, i, 1), hits, seen);
-
-            if (i + 88 <= length && buffer[i + 86] == (byte)'=' && buffer[i + 87] == 0 && (i < 2 || !(IsBase64(buffer[i - 2]) && buffer[i - 1] == 0)) && IsBase64Run(buffer, i, 2))
-                Add(ReadBase64(buffer, i, 2), hits, seen);
-
-            // Nine in ten bytes are not hex at all, and skipping them here is worth a third of the scan.
-            if (!IsHex(buffer[i]))
+            if (BitConverter.ToInt64(buffer, i + ArrayBounds) != 0)
                 continue;
 
-            if (i + 64 <= length && IsHexRun(buffer, i, 1) && (i == 0 || !IsHex(buffer[i - 1])) && (i + 64 >= length || !IsHex(buffer[i + 64])))
-                Add(ReadHex(buffer, i, 1), hits, seen);
+            var count = BitConverter.ToInt64(buffer, i + ArrayLength);
+            if (count != 10 && count != 12)
+                continue;
 
-            if (i + 128 <= length && IsHexRun(buffer, i, 2) && (i < 2 || !(IsHex(buffer[i - 2]) && buffer[i - 1] == 0)) && (i + 128 >= length || !IsHex(buffer[i + 128])))
-                Add(ReadHex(buffer, i, 2), hits, seen);
+            var klass = BitConverter.ToInt64(buffer, i);
+            if (klass < 0x10000 || (klass & 7) != 0)
+                continue;
+
+            var data = new byte[count];
+            Buffer.BlockCopy(buffer, i + ArrayData, data, 0, (int)count);
+            arrays[baseAddress + i] = (klass, data);
         }
     }
 
-    private static void Add(string? hex, List<string> hits, HashSet<string> seen)
+    // Three reference fields in declaration order come out as three pointers side by side. Two same-sized arrays landing next to each other is ordinary, but three at 10, 10 and 12 in that order sharing a class is not, and page 1 settles whatever is left.
+    public static string? FindHolder(byte[] buffer, int length, Dictionary<long, (long Klass, byte[] Data)> arrays, PageValidator validator)
     {
-        if (hex != null && seen.Add(hex))
-            hits.Add(hex);
-    }
+        var key = new byte[32];
 
-    private static bool IsBase64Run(byte[] buffer, int start, int stride)
-    {
-        for (var j = 0; j < 43; j++)
+        for (var i = 0; i + 24 <= length; i += 8)
         {
-            var at = start + j * stride;
-            if (!IsBase64(buffer[at]) || (stride == 2 && buffer[at + 1] != 0))
-                return false;
+            if (!arrays.TryGetValue(BitConverter.ToInt64(buffer, i), out var part1) || part1.Data.Length != 10)
+                continue;
+
+            if (!arrays.TryGetValue(BitConverter.ToInt64(buffer, i + 8), out var part2) || part2.Data.Length != 10 || part2.Klass != part1.Klass)
+                continue;
+
+            if (!arrays.TryGetValue(BitConverter.ToInt64(buffer, i + 16), out var part3) || part3.Data.Length != 12 || part3.Klass != part1.Klass)
+                continue;
+
+            part1.Data.CopyTo(key, 0);
+            part2.Data.CopyTo(key, 10);
+            part3.Data.CopyTo(key, 20);
+
+            if (validator.Validate(key))
+                return Convert.ToHexString(key).ToLowerInvariant();
         }
 
-        return true;
-    }
-
-    private static bool IsHexRun(byte[] buffer, int start, int stride)
-    {
-        for (var j = 0; j < 64; j++)
-        {
-            var at = start + j * stride;
-            if (!IsHex(buffer[at]) || (stride == 2 && buffer[at + 1] != 0))
-                return false;
-        }
-
-        return true;
-    }
-
-    private static string? ReadBase64(byte[] buffer, int start, int stride)
-    {
-        var chars = new char[44];
-        for (var j = 0; j < 44; j++)
-            chars[j] = (char)buffer[start + j * stride];
-
-        try
-        {
-            var bytes = Convert.FromBase64CharArray(chars, 0, chars.Length);
-            return bytes.Length == 32 ? Convert.ToHexString(bytes).ToLowerInvariant() : null;
-        }
-        catch (FormatException)
-        {
-            return null;
-        }
-    }
-
-    private static string ReadHex(byte[] buffer, int start, int stride)
-    {
-        var chars = new char[64];
-        for (var j = 0; j < 64; j++)
-            chars[j] = char.ToLowerInvariant((char)buffer[start + j * stride]);
-
-        return new string(chars);
-    }
-
-    private static bool IsBase64(byte value)
-    {
-        return (value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z') || (value >= '0' && value <= '9') || value == '+' || value == '/';
-    }
-
-    private static bool IsHex(byte value)
-    {
-        return (value >= '0' && value <= '9') || (value >= 'a' && value <= 'f') || (value >= 'A' && value <= 'F');
+        return null;
     }
 
     private static bool Opens(string dbPath, string keyHex)
@@ -264,36 +235,120 @@ internal static class RunningClient
     }
 }
 
+// Reproduces SQLCipher 4's page-1 HMAC so a candidate can be judged without opening the file. The main key is used raw (a 64 hex PRAGMA key skips the KDF), only the HMAC subkey is derived, and a match on page 1's stored MAC is the same certainty a successful open gives.
+internal sealed class PageValidator
+{
+    public const int PageSize = 4096;
+    private const int Reserve = 80;      // iv(16) + hmac-sha512(64)
+    private const int IvSz = 16;
+    private const int SaltSz = 16;
+    private const int KeySz = 32;
+    private const int FastKdfIter = 2;
+    private const byte HmacSaltMask = 0x3a;
+
+    private readonly byte[] page;
+    private readonly byte[] hmacSalt = new byte[SaltSz];
+
+    public PageValidator(byte[] page1)
+    {
+        page = page1;
+        for (var i = 0; i < SaltSz; i++)
+            hmacSalt[i] = (byte)(page[i] ^ HmacSaltMask);
+    }
+
+    public bool Validate(ReadOnlySpan<byte> key)
+    {
+        Span<byte> hmacKey = stackalloc byte[KeySz];
+        Rfc2898DeriveBytes.Pbkdf2(key, hmacSalt, hmacKey, FastKdfIter, HashAlgorithmName.SHA512);
+
+        int dataLen = PageSize - Reserve - SaltSz + IvSz;   // ciphertext after the salt, plus the iv
+        Span<byte> input = stackalloc byte[dataLen + 4];
+        page.AsSpan(SaltSz, dataLen).CopyTo(input);
+        input[dataLen] = 1;                                 // page number, little-endian
+
+        Span<byte> computed = stackalloc byte[64];
+        using (var mac = new HMACSHA512(hmacKey.ToArray()))
+            mac.TryComputeHash(input, computed, out _);
+
+        return computed.SequenceEqual(page.AsSpan(PageSize - Reserve + IvSz, 64));
+    }
+}
+
 internal static class MemoryScanSelfTest
 {
+    private const long HeapBase = 0x1000000;
+    private const long Klass = 0x7ff800112240;
+
     public static int Run()
     {
         var key = Enumerable.Range(0, 32).Select(value => (byte)(value * 7 + 3)).ToArray();
         var expected = Convert.ToHexString(key).ToLowerInvariant();
 
-        foreach (var text in new[] { Convert.ToBase64String(key), expected })
+        var heap = new byte[8192];
+        Array.Fill(heap, (byte)0xEE);
+
+        // Same order and spacing the client leaves them in: part3 first, something else in the gap, then part2 and part1 back to back.
+        var part3 = WriteArray(heap, 0x40, key, 20, 12);
+        var part2 = WriteArray(heap, 0xa0, key, 10, 10);
+        var part1 = WriteArray(heap, 0xd0, key, 0, 10);
+
+        // A decoy triple of the right lengths and the wrong bytes, so this only passes if page 1 is what picks the winner.
+        var decoy3 = WriteArray(heap, 0x400, key, 0, 12);
+        var decoy2 = WriteArray(heap, 0x430, key, 0, 10);
+        var decoy1 = WriteArray(heap, 0x460, key, 4, 10);
+
+        WriteHolder(heap, 0x800, decoy1, decoy2, decoy3);
+        WriteHolder(heap, 0x900, part1, part2, part3);
+
+        var arrays = new Dictionary<long, (long Klass, byte[] Data)>();
+        RunningClient.CollectArrays(HeapBase, heap, heap.Length, arrays);
+
+        var found = RunningClient.FindHolder(heap, heap.Length, arrays, new PageValidator(BuildPage(key)));
+        if (found != expected)
         {
-            foreach (var encoding in new Encoding[] { Encoding.ASCII, Encoding.Unicode })
-            {
-                var haystack = new byte[8192];
-                Array.Fill(haystack, (byte)0xFF);
-
-                var needle = encoding.GetBytes(text);
-                Array.Copy(needle, 0, haystack, 2048, needle.Length);
-                Array.Fill(haystack, (byte)0, 2044, 4);
-                Array.Fill(haystack, (byte)0, 2048 + needle.Length, 4);
-
-                var hits = new List<string>();
-                RunningClient.Collect(haystack, haystack.Length, hits, new HashSet<string>(StringComparer.Ordinal));
-
-                if (!hits.Contains(expected))
-                {
-                    Console.Error.WriteLine($"{encoding.WebName} {(text == expected ? "hex" : "base64")} key was not found by the memory scan.");
-                    return 1;
-                }
-            }
+            Console.Error.WriteLine($"The split key was not put back together out of the heap image (got {found ?? "nothing"}).");
+            return 1;
         }
 
         return 0;
+    }
+
+    private static int WriteArray(byte[] heap, int at, byte[] key, int from, int count)
+    {
+        BitConverter.GetBytes(Klass).CopyTo(heap, at);
+        BitConverter.GetBytes(0L).CopyTo(heap, at + 0x08);
+        BitConverter.GetBytes(0L).CopyTo(heap, at + 0x10);
+        BitConverter.GetBytes((long)count).CopyTo(heap, at + 0x18);
+        Buffer.BlockCopy(key, from, heap, at + 0x20, count);
+        return at;
+    }
+
+    private static void WriteHolder(byte[] heap, int at, int part1, int part2, int part3)
+    {
+        BitConverter.GetBytes(HeapBase + part1).CopyTo(heap, at);
+        BitConverter.GetBytes(HeapBase + part2).CopyTo(heap, at + 8);
+        BitConverter.GetBytes(HeapBase + part3).CopyTo(heap, at + 16);
+    }
+
+    // A page 1 whose stored MAC is the one this key produces, so the validator has something real to say yes to.
+    private static byte[] BuildPage(byte[] key)
+    {
+        var page = new byte[PageValidator.PageSize];
+        for (var i = 0; i < page.Length; i++)
+            page[i] = (byte)(i * 31 + 7);
+
+        var hmacSalt = new byte[16];
+        for (var i = 0; i < hmacSalt.Length; i++)
+            hmacSalt[i] = (byte)(page[i] ^ 0x3a);
+
+        var hmacKey = Rfc2898DeriveBytes.Pbkdf2(key, hmacSalt, 2, HashAlgorithmName.SHA512, 32);
+
+        var input = new byte[4016 + 4];
+        Buffer.BlockCopy(page, 16, input, 0, 4016);
+        input[4016] = 1;
+
+        using var mac = new HMACSHA512(hmacKey);
+        mac.ComputeHash(input).CopyTo(page, 4032);
+        return page;
     }
 }

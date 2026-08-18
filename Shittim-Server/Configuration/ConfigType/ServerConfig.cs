@@ -55,7 +55,7 @@ namespace BlueArchiveAPI.Configuration.ConfigType
         // Shared secret for the /api/admin surface, sent by the client as an X-Admin-Key header and overridable per-machine with SHITTIM_ADMIN_API_KEY.
         // Empty by default, which restricts admin endpoints to loopback (see AdminAuthAttribute) - enough for the Control Center, which connects to 127.0.0.1. Set this only if you need to administer the server remotely.
         public string AdminApiKey { get; set; } = "";
-        public string ExcelDbSqlCipherKey { get; set; } = "efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0";
+        public string ExcelDbSqlCipherKey { get; set; } = "ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4";
         public string ExcelDbSqlCipherLicense { get; set; } = "OmNpZDowMDFWSjAwMDAwY3pzaVlZQVE6cGxhdGZvcm06MjY6ZXhwaXJlOm5ldmVyOnZlcnNpb246MTpsaWJ2ZXI6NC4xMC4wOmhtYWM6ODQ1Y2JkMzQ0MDc3YjIxNmRlYTgyOWI3OTIyMzRkM2UwYmUyMzNhYw==";
         public string ServerInfoUrl { get; set; } = "https://d2vaidpni345rp.cloudfront.net/com.nexon.bluearchivesteam/server_config/439170_Live_77acRXMErRIj8461BJ0KXJP3t.json";
         public PacketLogging PacketLogging { get; set; } = new();

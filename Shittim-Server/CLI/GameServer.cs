@@ -18,6 +18,7 @@ using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
 using Shittim.Utils;
 using Serilog;
+using Serilog.Events;
 using AutoMapper;
 
 namespace Shittim.CLI
@@ -231,7 +232,14 @@ namespace Shittim.CLI
                 }
 
                 app.UseAuthorization();
-                app.UseSerilogRequestLogging();
+                app.UseSerilogRequestLogging(options =>
+                {
+                    // The Control Center polls /health on a timer whenever it is open, and at Information that is most of the request log. Below the pipeline minimum it costs nothing and a failing probe still comes through as an error.
+                    options.GetLevel = (context, elapsed, ex) =>
+                        ex != null || context.Response.StatusCode > 499 ? LogEventLevel.Error :
+                        context.Request.Path.StartsWithSegments("/health") ? LogEventLevel.Debug :
+                        LogEventLevel.Information;
+                });
                 app.Use(async (context, next) =>
                 {
                     if (context.Request.Path.Value?.Contains("/ias", StringComparison.OrdinalIgnoreCase) == true)

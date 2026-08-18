@@ -48,11 +48,14 @@ namespace BlueArchiveAPI.Services
                 response.EnsureSuccessStatusCode();
                 var body = await response.Content.ReadAsStringAsync(ct);
 
-                var match = Regex.Match(body, @"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)");
-                
-                if (match.Success)
+                // The listing carries every past build next to the current one, so the first match is whichever version happens to be printed first rather than the newest.
+                var version = Regex.Matches(body, @"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
+                    .Select(m => m.Value)
+                    .OrderBy(v => Version.Parse(v))
+                    .LastOrDefault();
+
+                if (version != null)
                 {
-                    var version = match.Value;
                     _logger.LogInformation("Found Global Android version: {Version}", version);
                     return version;
                 }
@@ -66,9 +69,33 @@ namespace BlueArchiveAPI.Services
             }
         }
 
-        public async Task<string> GetResourcePathAsync(CancellationToken ct = default)
+        public async Task<(string ResourcePath, string BuildVersion)> GetResourcePathAsync(string? fallbackBuildVersion = null, CancellationToken ct = default)
         {
-            var currBuildVersion = await GetGlobalAndroidVersionAsync(ct);
+            string currBuildVersion;
+            try
+            {
+                currBuildVersion = await GetGlobalAndroidVersionAsync(ct);
+            }
+            catch when (!string.IsNullOrWhiteSpace(fallbackBuildVersion))
+            {
+                currBuildVersion = fallbackBuildVersion;
+                _logger.LogWarning("PureAPK is unavailable; starting the patch check from the last known build {Version} instead", currBuildVersion);
+            }
+
+            var (resourcePath, latestBuildVersion) = await CheckVersionAsync(currBuildVersion, ct);
+
+            // The patch API answers as whatever build you claim to be, so an out of date curr_build_version hands back that build's resource set - and with it the ExcelDB.db still on the previous SQLCipher key. Ask again as the build it just named current.
+            if (latestBuildVersion != currBuildVersion)
+            {
+                (resourcePath, _) = await CheckVersionAsync(latestBuildVersion, ct);
+                currBuildVersion = latestBuildVersion;
+            }
+
+            return (resourcePath, currBuildVersion);
+        }
+
+        private async Task<(string ResourcePath, string LatestBuildVersion)> CheckVersionAsync(string currBuildVersion, CancellationToken ct)
+        {
             var parts = currBuildVersion.Split('.');
             var currBuildNumber = parts[^1];
 
@@ -112,7 +139,7 @@ namespace BlueArchiveAPI.Services
                         throw new Exception("Nexon Patch API returned empty resource_path.");
                     }
                     _logger.LogInformation("Received resource path: {ResourcePath}", path);
-                    return path;
+                    return (path, root.GetProperty("latest_build_version").GetString()!);
                 }
 
                 throw new Exception("Nexon Patch API response did not contain 'patch.resource_path'.");
@@ -184,15 +211,14 @@ namespace BlueArchiveAPI.Services
 
             try
             {
-                var resourcePath = await GetResourcePathAsync(ct);
+                var (resourcePath, buildVersion) = await GetResourcePathAsync(cache?.SourceBuildVersion, ct);
                 var (versionId, cdnBaseUrl) = ParseVersionIdFromResourcePath(resourcePath);
 
                 var newCache = new VersionIdCache
                 {
                     VersionId = versionId,
                     CdnBaseUrl = cdnBaseUrl,
-                    // Second call: GetResourcePathAsync already fetched this internally, but the value isn't threaded back out. Cheap enough (cached upstream) to just re-ask.
-                    SourceBuildVersion = await GetGlobalAndroidVersionAsync(ct),
+                    SourceBuildVersion = buildVersion,
                     LastUpdatedUtc = DateTime.UtcNow
                 };
 

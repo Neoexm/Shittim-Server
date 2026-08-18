@@ -25,7 +25,7 @@ const DEFAULT_SERVER_CONFIG = {
   AutoUpdateResources: false,
   OverrideVersionId: null,
   OverrideCdnBaseUrl: null,
-  ExcelDbSqlCipherKey: 'efa143094711b6563ec2132d4d6bbe8533d4e291ed4820bdb515b26bb57bb3f0',
+  ExcelDbSqlCipherKey: 'ef0aaca06f34b4a4be3172a75a3ea565e815f9ece35b1fb12b7a166ba0807bc4',
   ExcelDbSqlCipherLicense: 'OmNpZDowMDFWSjAwMDAwY3pzaVlZQVE6cGxhdGZvcm06MjY6ZXhwaXJlOm5ldmVyOnZlcnNpb246MTpsaWJ2ZXI6NC4xMC4wOmhtYWM6ODQ1Y2JkMzQ0MDc3YjIxNmRlYTgyOWI3OTIyMzRkM2UwYmUyMzNhYw==',
   ServerInfoUrl: 'https://d2vaidpni345rp.cloudfront.net/com.nexon.bluearchivesteam/server_config/433063_Live_77acRXMErRIj8461BJ0KXJP3t.json',
   PacketLogging: { RequestPacket: true, ResponsePacket: false, ErrorPacket: false },
