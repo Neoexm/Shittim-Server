@@ -174,6 +174,9 @@ namespace BlueArchiveAPI.Services
             return unpacked;
         }
 
+        // A clone written into ExcelDB.db under a running server is invisible to everything here until the tables are read again, so importing one drops the lot rather than guessing which tables it touched.
+        public void DropCache() => caches.Clear();
+
         // vtable layout: [0] its own size in bytes, [2] the table's inline size, then one uint16 per field.
         private static int RowSlotCount(byte[] row)
         {
