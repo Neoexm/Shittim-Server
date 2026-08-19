@@ -9,6 +9,7 @@ using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using Schale.Crypto;
 using Schale.FlatData;
+using Serilog;
 
 namespace Shittim_Server.Services
 {
@@ -104,6 +105,17 @@ namespace Shittim_Server.Services
                 var premods = install + ".premods";
                 var mods = characters.List().Where(m => !string.IsNullOrWhiteSpace(m.Bundle) && File.Exists(Path.Combine(CustomCharacterService.ModsDir, m.Id.ToString(), m.Bundle))).ToList();
                 var installed = File.ReadAllBytes(install);
+                // a steam update or verify drops a fresh retail catalog over the spliced one; that unspliced file becomes the new source
+                var spliced = mods.Any(m => ((ReadOnlySpan<byte>)installed).IndexOf(Encoding.UTF8.GetBytes(m.Bundle)) >= 0);
+
+                // steam bumps catalog_Windows.hash with the build, and a copy taken before that names bundle files the update has already deleted, so putting it back leaves the client resolving addresses to files that are not on disk and sitting on the unpack screen
+                var shippedHash = Path.ChangeExtension(install, ".hash");
+                var seededHash = premods + ".hash";
+                if (File.Exists(premods) && !spliced && File.ReadAllText(shippedHash) != (File.Exists(seededHash) ? File.ReadAllText(seededHash) : ""))
+                {
+                    File.Delete(premods);
+                    logger.LogInformation("Client build moved on - dropped the stale catalog copy at {Path}", premods);
+                }
 
                 if (mods.Count == 0)
                 {
@@ -115,10 +127,11 @@ namespace Shittim_Server.Services
                     return;
                 }
 
-                // a steam update or verify drops a fresh retail catalog over the spliced one; that unspliced file becomes the new source
-                var spliced = mods.Any(m => ((ReadOnlySpan<byte>)installed).IndexOf(Encoding.UTF8.GetBytes(m.Bundle)) >= 0);
                 if (!File.Exists(premods) || (!spliced && !((ReadOnlySpan<byte>)installed).SequenceEqual(File.ReadAllBytes(premods))))
+                {
                     File.Copy(install, premods, true);
+                    File.Copy(shippedHash, seededHash, true);
+                }
 
                 var gameData = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(install), "..", "..", "GameData", "Windows"));
                 foreach (var mod in mods)
@@ -312,7 +325,7 @@ namespace Shittim_Server.Services
         }
 
         // Every .db sitting in Preload\TableBundles is checksummed against TableCatalog.bytes on the way into a battle, and a mismatch is the "resources are damaged" notice plus a restore of the whole set, which puts the shipped ExcelDB.db back and takes the clone's rows with it. The zips are stored as a zero checksum and go unchecked, which is why Excel.zip has never needed any of this.
-        private void SyncTableCatalog(string install)
+        internal static void SyncTableCatalog(string install)
         {
             var catalog = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(install), "..", "TableBundles", "TableCatalog.bytes"));
             if (!File.Exists(catalog))
@@ -346,7 +359,7 @@ namespace Shittim_Server.Services
 
                 BitConverter.GetBytes(actual).CopyTo(blob, at + anchor.Length);
                 patched++;
-                logger.LogInformation("Checksum for {File} read {Stored:X8} in the table catalog, wrote {Actual:X8}", Path.GetFileName(path), stored, actual);
+                Log.Information("Checksum for {File} read {Stored:X8} in the table catalog, wrote {Actual:X8}", Path.GetFileName(path), stored, actual);
             }
 
             if (patched > 0)

@@ -34,6 +34,8 @@ SOFTWARE. */
 
 #define HIGHER_VERSIONS
 
+#nullable disable
+
 using System.Security.Cryptography;
 #if HIGHER_VERSIONS
 using System.Runtime.CompilerServices;

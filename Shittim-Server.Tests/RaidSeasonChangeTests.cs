@@ -162,7 +162,7 @@ public class RaidSeasonChangeTests : IDisposable
     {
         using var output = new MemoryStream();
         var writer = new StreamWriter(output) { AutoFlush = true };
-        var connection = new WebClientConnection(new Factory(_path), null, _excels, writer, 1);
+        var connection = new WebClientConnection(new Factory(_path), null!, _excels, writer, 1);
 
         var cmd = CommandFactory.CreateCommand("setseason", connection, [type, seasonId.ToString()]);
         try

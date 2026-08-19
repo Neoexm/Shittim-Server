@@ -106,6 +106,44 @@ public class ClientExcelSchemaTests
         Assert.True(compiled > candidate, $"a shifted row scored {compiled} against our layout and {candidate} against the client's");
     }
 
+    // ClientExcelBannerPatchService and EventScheduleService each rewrite one string field of a row they cannot repack, because Pack would re-emit at our slot indices and scatter a drifted row.
+    [Fact]
+    public void RepointingAStringLeavesTheRestOfTheRowAlone()
+    {
+        var patched = RealignedRowReader.WithString(ShiftedRow(), 2, "Hoshino");
+
+        var row = (TestRow)RealignedRowReader.Read(patched, typeof(TestRow), [0, 2, 3, 4]);
+        Assert.Equal("Hoshino", row.Name);
+        Assert.Equal(4021, row.Id);
+        Assert.Equal(55, row.Amount);
+        Assert.Equal(new List<long> { 7, 8 }, row.Tags);
+    }
+
+    [Fact]
+    public void RepointingAStringAtTheEmptyStringStillProducesAReadableRow()
+    {
+        var patched = RealignedRowReader.WithString(ShiftedRow(), 2, "");
+
+        Assert.Equal("", ((TestRow)RealignedRowReader.Read(patched, typeof(TestRow), [0, 2, 3, 4])).Name);
+    }
+
+    // flatbuffers omit a field left at its default, and there is nowhere to point a string the row never allocated
+    [Fact]
+    public void ARowThatDoesNotCarryTheFieldCannotBeRepointed()
+    {
+        var builder = new FlatBufferBuilder(64);
+        var tagsVector = TagsVector(builder);
+
+        builder.StartTable(5);
+        builder.AddLong(0, 4021, 0);
+        builder.AddLong(1, 999, 0);
+        builder.AddInt(3, 55, 0);
+        builder.AddOffset(4, tagsVector.Value, 0);
+        builder.Finish(builder.EndTable());
+
+        Assert.Null(RealignedRowReader.WithString(builder.SizedByteArray(), 2, "Hoshino"));
+    }
+
     private static byte[] AlignedRow()
     {
         var builder = new FlatBufferBuilder(64);

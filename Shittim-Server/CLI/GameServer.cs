@@ -25,7 +25,7 @@ namespace Shittim.CLI
 {
     public class GameServer
     {
-        public static async Task Main(bool update, bool console, long? id)
+        public static async Task Run(bool update, bool console, long? id)
         {
             // Prevent console freezes: disables QuickEdit mode on Windows and replaces Console.Out with a non-blocking async writer so that pipe buffer saturation can never block request threads.
             ConsoleHelper.Harden();
@@ -146,7 +146,7 @@ namespace Shittim.CLI
                         var certPem = File.ReadAllText(certPath);
                         var keyPem = File.ReadAllText(keyPath);
                         var cert = X509Certificate2.CreateFromPem(certPem, keyPem);
-                        httpsCert = new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+                        httpsCert = X509CertificateLoader.LoadPkcs12(cert.Export(X509ContentType.Pkcs12), null);
                         Console.WriteLine($"Loaded certificate for HTTPS: {Path.GetFileName(certPath)}");
                     }
                     catch (Exception ex)

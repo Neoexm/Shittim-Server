@@ -285,6 +285,10 @@ public static class EventScheduleService
                 .GroupBy(x => x.Id)
                 .ToDictionary(g => g.Key, g => g.First().ExpirationDateTime);
 
+            // ItemExcel drifted the same way ShopRecruitExcel did, and the write has to poke the one field rather than repack: Pack re-emits at our slot indices, so ExpirationDateTime would land on the client's slot 28 (ShopCategory) and every slot past our last field would be dropped.
+            var itemSlots = ClientExcelSchema.RowSlots(typeof(ItemExcelT), "ItemExcel");
+            var expirySlot = itemSlots[Array.FindIndex(typeof(ItemExcelT).GetProperties(), p => p.Name == nameof(ItemExcelT.ExpirationDateTime))];
+
             var itemRows = new List<(long RowId, byte[] Bytes)>();
             using (var cmd = conn.CreateCommand())
             {
@@ -298,7 +302,7 @@ public static class EventScheduleService
             {
                 foreach (var row in itemRows)
                 {
-                    var rec = ItemExcel.GetRootAsItemExcel(new ByteBuffer(row.Bytes)).UnPack();
+                    var rec = (ItemExcelT)RealignedRowReader.Read(row.Bytes, typeof(ItemExcelT), itemSlots);
                     if (!itemOwners.TryGetValue(rec.Id, out var owners) || !shippedExpiry.TryGetValue(rec.Id, out var shipped))
                         continue;
 
@@ -306,15 +310,14 @@ public static class EventScheduleService
                     if (rec.ExpirationDateTime == wanted)
                         continue;
 
-                    rec.ExpirationDateTime = wanted;
-
-                    var fbb = new FlatBufferBuilder(Math.Max(64, row.Bytes.Length + 64));
-                    fbb.Finish(ItemExcel.Pack(fbb, rec).Value);
+                    var newBytes = RealignedRowReader.WithString(row.Bytes, expirySlot, wanted);
+                    if (newBytes == null)
+                        continue;
 
                     using var upd = conn.CreateCommand();
                     upd.Transaction = tx;
                     upd.CommandText = $"UPDATE [{ItemSchemaTable}] SET Bytes = @b WHERE rowid = @r";
-                    upd.Parameters.Add("@b", SqliteType.Blob).Value = fbb.SizedByteArray();
+                    upd.Parameters.Add("@b", SqliteType.Blob).Value = newBytes;
                     upd.Parameters.Add("@r", SqliteType.Integer).Value = row.RowId;
                     upd.ExecuteNonQuery();
                     expiryChanged++;
@@ -322,6 +325,11 @@ public static class EventScheduleService
                 tx.Commit();
             }
         }
+
+        // every .db under Preload\TableBundles is crc32'd against TableCatalog.bytes, and the pass that keeps those in step runs earlier in startup than this one does, so the rows just written have to carry the recorded checksum with them or the client calls the set damaged and restores the shipped ExcelDB.db over them.
+        var install = ModCatalogService.InstallCatalogPath();
+        if (install != null)
+            ModCatalogService.SyncTableCatalog(install);
 
         if (phaseRows > 0)
             Log.Information("Event schedule: {Count} interactive raid phase row(s) rewritten", phaseRows);

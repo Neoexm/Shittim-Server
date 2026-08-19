@@ -87,7 +87,7 @@ namespace Shittim_Server.Core
             }
 
             // Two handshakes share this field with different framing. Queuing_GetCryptoKeys sends the AES key/IV as raw bytes (16/24/32 + 16) in the clear.
-            // Account_CheckNexon / Queuing_GetAuthTicket instead RSA-encrypt the key+IV with the gateway PUBLIC key that ClientMetadataPatchService injects into the client (256 bytes for the RSA-2048 key pair), so they arrive as RSA ciphertext.
+            // Account_CheckNexon / Queuing_GetAuthTicket instead RSA-encrypt the key+IV with the gateway PUBLIC key that ClientMetadataPatchService injects into the client (512 bytes for the RSA-4096 key pair), so they arrive as RSA ciphertext.
             // RSA-decrypt with the matching gateway private key when the bytes are not already a valid AES key/IV, and accept only a result of the right length, so a wrong-padding garbage decrypt is rejected.
             if (!IsValidAesKeyLength(key.Length) && TryRsaDecrypt(key, IsValidAesKeyLength, out var decryptedKey))
                 key = decryptedKey;

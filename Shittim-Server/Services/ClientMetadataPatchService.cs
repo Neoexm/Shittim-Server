@@ -7,23 +7,29 @@ namespace Shittim_Server.Services
 {
     public class ClientMetadataPatchService : IHostedService
     {
-        private const int ChunkLength = 150;
+        // The key is three separate string literals in the metadata rather than one run, and the split lands wherever the build's literal packing put it: 272/272/255 for the RSA-4096 key, and 150/150/150 for the RSA-2048 one it replaced.
+        private static readonly int[] ChunkLengths = [272, 272, 255];
         private const int ChunkCount = 3;
 
-        // The official Nexon gateway RSA-2048 public key, exactly as it is embedded (split into three 150-byte string literals) inside the client's global-metadata.dat.
-        // The client RSA-encrypts the 50001 gateway handshake with this key, so swapping in the private server's own key is what lets the gateway decode the handshake.
+        // The official Nexon gateway RSA-4096 public key, exactly as it is embedded inside the client's global-metadata.dat.
+        // The client RSA-encrypts the 50001 gateway handshake with this key, so swapping in the private server's own key is what lets the gateway decode the handshake. Ours has to be 4096-bit as well: the chunks are fixed-size holes in fieldAndParameterDefaultValueData, and a PEM of any other length cannot go into them without shifting the section and every offset past it.
         //
         // The three byte runs are located by content (an AOB scan) rather than by fixed file offsets: the offsets move every time the client is rebuilt, and build 439170 shifted all three by +0x49B0.
         // Writing at a stale offset corrupts whatever IL2CPP metadata now lives there and hangs the client at "Unpacking game resources". A scan also fails safe: a chunk that cannot be found means no write at all.
         private const string OfficialGatewayPublicKeyPem =
             "-----BEGIN PUBLIC KEY-----\n" +
-            "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtgS2BXLKIrI8OFIZi3ge\n" +
-            "sVQLQq8Epwb0XLSKAmF15r5CT4EF9xaKXOIYho5Iwljdk3FDuhqCwnZL9Xrzb1o8\n" +
-            "PPdi49woZgiFvf6hU5k9fH7NGCFq9aadhguGfLMtPo5yIp+awemawtSZkR6rZhWa\n" +
-            "wH0DBh4grcSaqofZYhyT5ISOUm+BcTS1WYgujgcpuDyxE34EkUW4PNF8eqrefruw\n" +
-            "7YzIPAI9k9yOQvu0yKobRD1pJHM47DN/WMDqRp8+mmImHUbL+tUoeHyEUU/HMk7N\n" +
-            "WSmRTH2UXC/ijIW9yFTxzef3c1M+j2xG4O74ztAP88DKMZwsfgZzDNRe8bep2buS\n" +
-            "OQIDAQAB\n" +
+            "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAz1oODtVINPQsTIbFDiL2\n" +
+            "IIj3YqDGxZ1WqJWfJrpo7ZqdnSIMXaVqVyM07Zguc9wczPrluDNowheP8NXe8uTR\n" +
+            "prO7jpF9bOcrrit9Xyxf57NA5rIMqOj6/XgWzzptvvt3oUrOQJRTvEjusQCX79Ds\n" +
+            "fhhbPRfdPzZUOPYa49MM385Z05ndNiTB9/yhxP5+5zm7TS3f6/o1Ntw9yXoRYmgR\n" +
+            "8+JYGL6TpqtZHkqPTp6kIJrnsLyT1wRteh3oQKJaze0CM0DUUzFiqieRE8c8JAoV\n" +
+            "jk/yRQUqVMoKbdpINYlWhF+GFE/ccSpqQymepHxfR0alspynqJwJgODCeHtwuno5\n" +
+            "HEOwdbA8NanLVnE9qlvdeNkbODdt/XTHKOaXx+SUMHezUY0rEXp8WMim0i9IQTGa\n" +
+            "YWeW25RjXIZswKdg0gLRJXYZXUgF3nVcqr0hi4kv1pgrFPsjI7yIThxLY0UfomkR\n" +
+            "oe6sSBBtQUDI85s+1pZRcl8xygxOxMfFSk5RB3EntFmcf/AKaLYQbXN9RxgrvqRS\n" +
+            "9koBBEnnrIN0zXDBioZUDOWVBeBZwAydpPGKu2mkqu3BI/Al92noEHc6fmkG5+Qm\n" +
+            "b237xSh1DFbbQO6lxg4ABdsqgvZskYS+7BcQPjs1z2zftrnesFkqD7BhbqXUBuDY\n" +
+            "D80B8Be5I483qSSy8DsW458CAwEAAQ==\n" +
             "-----END PUBLIC KEY-----";
 
         private static readonly JsonSerializerOptions JsonOptions = new()
@@ -189,7 +195,7 @@ namespace Shittim_Server.Services
             logger.LogInformation("Restored client metadata: {MetadataPath}", path);
         }
 
-        // Splits a PEM public key into ChunkCount fixed-size byte runs, matching how the client stores it. Newlines are normalized to '\n' and any trailing newline trimmed so the byte layout is identical to the metadata's embedded copy.
+        // Splits a PEM public key at the lengths the client stores its own in. Newlines are normalized to '\n' and any trailing newline trimmed so the byte layout is identical to the metadata's embedded copy.
         private static byte[][] BuildKeyChunks(string publicKey, string label)
         {
             var normalized = publicKey
@@ -198,12 +204,16 @@ namespace Shittim_Server.Services
                 .TrimEnd('\n');
 
             var publicKeyBytes = Encoding.ASCII.GetBytes(normalized);
-            if (publicKeyBytes.Length != ChunkLength * ChunkCount)
-                throw new InvalidOperationException($"The {label} must be {ChunkLength * ChunkCount} ASCII bytes after newline normalization, got {publicKeyBytes.Length}");
+            if (publicKeyBytes.Length != ChunkLengths.Sum())
+                throw new InvalidOperationException($"The {label} must be {ChunkLengths.Sum()} ASCII bytes after newline normalization, got {publicKeyBytes.Length}");
 
             var chunks = new byte[ChunkCount][];
+            var at = 0;
             for (var i = 0; i < ChunkCount; i++)
-                chunks[i] = publicKeyBytes.Skip(i * ChunkLength).Take(ChunkLength).ToArray();
+            {
+                chunks[i] = publicKeyBytes.Skip(at).Take(ChunkLengths[i]).ToArray();
+                at += ChunkLengths[i];
+            }
 
             return chunks;
         }
@@ -241,11 +251,11 @@ namespace Shittim_Server.Services
 
             for (var i = 0; i < offsets.Length; i++)
             {
-                chunks[i] = new byte[ChunkLength];
+                chunks[i] = new byte[ChunkLengths[i]];
                 stream.Position = offsets[i];
 
-                var read = stream.Read(chunks[i], 0, ChunkLength);
-                if (read != ChunkLength)
+                var read = stream.Read(chunks[i], 0, ChunkLengths[i]);
+                if (read != ChunkLengths[i])
                     throw new IOException($"Could not read metadata patch chunk at 0x{offsets[i]:X}");
             }
 
@@ -259,7 +269,7 @@ namespace Shittim_Server.Services
 
             for (var i = 0; i < offsets.Length; i++)
             {
-                if (chunks[i].Length != ChunkLength)
+                if (chunks[i].Length != ChunkLengths[i])
                     throw new InvalidOperationException("Invalid metadata patch chunk length");
 
                 stream.Position = offsets[i];

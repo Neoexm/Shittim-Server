@@ -18,7 +18,7 @@ namespace Schale.Data.GameModel
 
         public long StageUniqueId { get; set; }
         public long BestStarRecord { get; set; }
-        public bool[] StarFlags { get; set; }
+        public bool[] StarFlags { get; set; } = [];
         public bool Star1Flag { get; set; }
         public bool Star2Flag { get; set; }
         public bool Star3Flag { get; set; }

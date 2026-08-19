@@ -8,7 +8,7 @@ namespace Shittim.CLI
             long? id = null
         )
         {
-            await GameServer.Main(update, console, id);
+            await GameServer.Run(update, console, id);
         }
     }
 }

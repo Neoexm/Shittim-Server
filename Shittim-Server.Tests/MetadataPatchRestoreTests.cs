@@ -27,17 +27,24 @@ public class MetadataPatchRestoreTests : IDisposable
             .GetRawConstantValue();
 
         var key = Encoding.ASCII.GetBytes(officialPem.Replace("\r\n", "\n").TrimEnd('\n'));
+        var lengths = (int[])typeof(ClientMetadataPatchService)
+            .GetField("ChunkLengths", BindingFlags.NonPublic | BindingFlags.Static)!
+            .GetValue(null)!;
+
         var data = new byte[8192];
         Array.Fill(data, (byte)0x41);
-        // The client stores the key as three 150-byte runs, and they are not adjacent.
-        key.AsSpan(0, 150).CopyTo(data.AsSpan(512));
-        key.AsSpan(150, 150).CopyTo(data.AsSpan(3000));
-        key.AsSpan(300, 150).CopyTo(data.AsSpan(6400));
+        // The client stores the key as three separate runs, and they are not adjacent.
+        var at = 0;
+        foreach (var (offset, length) in new[] { 512, 3000, 6400 }.Zip(lengths))
+        {
+            key.AsSpan(at, length).CopyTo(data.AsSpan(offset));
+            at += length;
+        }
 
         File.WriteAllBytes(_path, data);
         _official = data;
 
-        using var rsa = RSA.Create(2048);
+        using var rsa = RSA.Create(4096);
         Environment.SetEnvironmentVariable("SHITTIM_GATEWAY_RSA_PUBLIC_KEY", rsa.ExportSubjectPublicKeyInfoPem());
         Environment.SetEnvironmentVariable("SHITTIM_CLIENT_METADATA_PATH", _path);
         Environment.SetEnvironmentVariable("SHITTIM_AUTO_PATCH_METADATA", "true");

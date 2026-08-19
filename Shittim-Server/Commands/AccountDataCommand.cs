@@ -106,7 +106,7 @@ namespace Shittim.Commands
                     var seperateItemListPacket = JsonSerializer.Deserialize<ImportItemListResponse>(accountData[5].Payload.GetRawText());
                     accountLoginSyncData.ItemListResponse = seperateItemListPacket;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await connection.SendChatMessage("Could not find any packet associated with item data.");
                 }

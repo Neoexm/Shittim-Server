@@ -1,6 +1,5 @@
 using BlueArchiveAPI.Configuration;
 using BlueArchiveAPI.Services;
-using Google.FlatBuffers;
 using Microsoft.Data.Sqlite;
 using Schale.Crypto;
 using Schale.FlatData;
@@ -63,6 +62,10 @@ namespace Shittim_Server.Services
             conn.Open();
             ApplyKey(conn);
 
+            // ShopRecruitExcel has drifted - the client inserted two fields mid-table since the models were generated - so a straight UnPack walks a later field's offset into the middle of another one and throws.
+            var slots = ClientExcelSchema.RowSlots(typeof(ShopRecruitExcelT), "ShopRecruitExcel");
+            var artSlot = slots[Array.FindIndex(typeof(ShopRecruitExcelT).GetProperties(), p => p.Name == nameof(ShopRecruitExcelT.GachaBannerPath))];
+
             var rows = new List<BannerRow>();
             using (var cmd = conn.CreateCommand())
             {
@@ -72,7 +75,7 @@ namespace Shittim_Server.Services
                 {
                     var rowid = reader.GetInt64(0);
                     var bytes = (byte[])reader[1];
-                    var rec = ShopRecruitExcel.GetRootAsShopRecruitExcel(new ByteBuffer(bytes)).UnPack();
+                    var rec = (ShopRecruitExcelT)RealignedRowReader.Read(bytes, typeof(ShopRecruitExcelT), slots);
                     rows.Add(new BannerRow(rowid, rec.Id, rec.GachaBannerPath ?? string.Empty, rec.SalePeriodTo, bytes));
                 }
             }
@@ -103,12 +106,9 @@ namespace Shittim_Server.Services
                 foreach (var target in targets)
                 {
                     var art = PickRelatedArt(target.Id, withArt);
-                    var rec = ShopRecruitExcel.GetRootAsShopRecruitExcel(new ByteBuffer(target.Bytes)).UnPack();
-                    rec.GachaBannerPath = art;
-
-                    var fbb = new FlatBufferBuilder(Math.Max(64, target.Bytes.Length + 64));
-                    fbb.Finish(ShopRecruitExcel.Pack(fbb, rec).Value);
-                    var newBytes = fbb.SizedByteArray();
+                    var newBytes = RealignedRowReader.WithString(target.Bytes, artSlot, art);
+                    if (newBytes == null)
+                        continue;
 
                     using var upd = conn.CreateCommand();
                     upd.Transaction = tx;

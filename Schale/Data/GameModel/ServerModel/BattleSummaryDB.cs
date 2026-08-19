@@ -163,7 +163,7 @@ namespace Schale.Data.GameModel
                 BossGroggyPoint = bossData.BossGroggyPoint
             };
 
-            if (summary.RaidSummary.RaidBossResults == null)
+            if (summary.RaidSummary?.RaidBossResults == null)
                 return raidSummary;
 
             if (summary.RaidSummary.RaidBossResults.Contains(bossData.BossIndex))

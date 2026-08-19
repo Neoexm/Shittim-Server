@@ -32,6 +32,19 @@ namespace BlueArchiveAPI.Services
             return null;
         }
 
+        // Where the current client keeps each of our properties, identity when the layouts already agree or global-metadata.dat could not be read. For code that pokes one field of a raw ExcelDB row rather than going through ExcelTableService.
+        internal static int[] RowSlots(Type ourType, string excelName)
+        {
+            var map = SlotMapFor(ourType, excelName);
+            if (map != null)
+                return map;
+
+            map = new int[ourType.GetProperties().Length];
+            for (var i = 0; i < map.Length; i++)
+                map[i] = i;
+            return map;
+        }
+
         // Anchor by name, then pair off equal-length unmatched runs between anchors positionally - that is what a rename is, and it is also what recovers our UnknownSlotNN placeholders (RaidStageExcel slot 14 is RaidBossGroupType in the current client).
         internal static int[] Align(string[] ours, List<string> client)
         {
@@ -326,6 +339,35 @@ namespace BlueArchiveAPI.Services
         {
             var length = BinaryPrimitives.ReadInt32LittleEndian(row.AsSpan(pos));
             return Encoding.UTF8.GetString(row, pos + 4, length);
+        }
+
+        // Repoints one string field at a fresh copy appended past the end of the row, leaving every other byte as the client shipped it. Repacking through FooExcelT.Pack cannot be used to write these back: it re-emits the row at the compiled model's slot indices, so on a drifted table every value lands in whatever field the client now keeps at that index and every slot past our last field is dropped outright.
+        // Null when this row has no offset for the field - flatbuffers omit a field set to its default, and there is nowhere to point without rebuilding the vtable.
+        internal static byte[] WithString(byte[] row, int slot, string value)
+        {
+            var table = Follow(row, 0);
+            var vtable = table - BinaryPrimitives.ReadInt32LittleEndian(row.AsSpan(table));
+            var vtableBytes = BinaryPrimitives.ReadUInt16LittleEndian(row.AsSpan(vtable));
+
+            var slotPos = 4 + slot * 2;
+            if (slotPos + 2 > vtableBytes)
+                return null;
+
+            var fieldOffset = BinaryPrimitives.ReadUInt16LittleEndian(row.AsSpan(vtable + slotPos));
+            if (fieldOffset == 0)
+                return null;
+
+            var text = Encoding.UTF8.GetBytes(value);
+            var pad = (4 - (row.Length & 3)) & 3;
+            var at = row.Length + pad;
+            var patched = new byte[at + 4 + text.Length + 1];
+            row.CopyTo(patched, 0);
+            BinaryPrimitives.WriteInt32LittleEndian(patched.AsSpan(at), text.Length);
+            text.CopyTo(patched, at + 4);
+
+            var fieldPos = table + fieldOffset;
+            BinaryPrimitives.WriteInt32LittleEndian(patched.AsSpan(fieldPos), at - fieldPos);
+            return patched;
         }
 
         private static int Follow(byte[] row, int pos) => pos + BinaryPrimitives.ReadInt32LittleEndian(row.AsSpan(pos));

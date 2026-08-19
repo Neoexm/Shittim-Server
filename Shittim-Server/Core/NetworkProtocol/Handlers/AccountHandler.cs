@@ -943,8 +943,8 @@ public class AccountHandler : ProtocolHandlerBase
 
         foreach (var table in tables.Distinct())
         {
-            await db.Database.ExecuteSqlRawAsync(
-                $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}", account.ServerId);
+            var delete = $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}";
+            await db.Database.ExecuteSqlRawAsync(delete, account.ServerId);
         }
 
         account.Nickname = string.Empty;

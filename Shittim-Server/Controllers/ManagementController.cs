@@ -217,8 +217,8 @@ public class ManagementController : ControllerBase
                 if (!IsPlainSqlIdentifier(table))
                     continue;
 
-                await db.Database.ExecuteSqlRawAsync(
-                    $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}", request.ServerId);
+                var delete = $"DELETE FROM \"{table}\" WHERE AccountServerId = {{0}}";
+                await db.Database.ExecuteSqlRawAsync(delete, request.ServerId);
             }
 
             await db.Database.ExecuteSqlRawAsync(

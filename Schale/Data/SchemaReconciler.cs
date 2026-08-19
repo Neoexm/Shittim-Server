@@ -57,8 +57,8 @@ namespace Schale.Data
                         ? "NULL"
                         : $"NOT NULL DEFAULT {ZeroLiteralFor(property)}";
 
-                    await context.Database.ExecuteSqlRawAsync(
-                        $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {property.GetColumnType()} {nullability}");
+                    var alter = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {property.GetColumnType()} {nullability}";
+                    await context.Database.ExecuteSqlRawAsync(alter);
 
                     applied.Add($"added column {table}.{column}");
                 }

@@ -62,7 +62,7 @@ namespace Shittim.Commands
             else
             {
                 await connection.SendChatMessage("Invalid Account Property!");
-                ShowHelp();
+                await ShowHelp();
             }
         }
 

@@ -591,8 +591,14 @@ namespace Shittim_Server.Services
             foreach (var offset in FindAll(data, definition.Original))
                 offsets.Add(offset);
 
+            var claimed = existingState?.Patches.Where(x => !x.Name.StartsWith(definition.Name, StringComparison.Ordinal)).Select(x => x.Offset).ToHashSet() ?? [];
+
+            // ims-live-base and ims-dev-base land on the same bytes down to the trailing nulls, so once both are applied each one finds the other's site as well and the pair gets refused for matching twice. The saved offsets are all that still tells them apart.
             foreach (var offset in FindAll(data, definition.Patched))
-                offsets.Add(offset);
+            {
+                if (!claimed.Contains(offset))
+                    offsets.Add(offset);
+            }
 
             var results = new List<PatchResult>();
             foreach (var offset in offsets)
@@ -645,6 +651,9 @@ namespace Shittim_Server.Services
                     offsets.Add(entry.Offset);
             }
 
+            // once patched the ims slots all read the same loopback url, so a definition that rescans by target text lands on its neighbours' slots too and records their shipped urls as its own original
+            var claimed = existingState?.Patches.Where(x => !x.Name.StartsWith(definition.Name, StringComparison.Ordinal)).Select(x => x.Offset).Where(x => !offsets.Contains(x)).ToHashSet() ?? [];
+
             var candidates = definition.SearchTargetText
                 ? definition.Candidates.Append(targetText)
                 : definition.Candidates;
@@ -666,7 +675,7 @@ namespace Shittim_Server.Services
             }
 
             var results = new List<PatchResult>();
-            var orderedOffsets = offsets.ToList();
+            var orderedOffsets = offsets.Where(x => !claimed.Contains(x)).ToList();
 
             for (var i = 0; i < orderedOffsets.Count; i++)
             {

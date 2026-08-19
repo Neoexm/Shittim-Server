@@ -51,7 +51,7 @@ public class ConsumeHandler
 
             return consumeResultDatas;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             throw;
