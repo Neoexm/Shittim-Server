@@ -5867,6 +5867,11 @@ namespace Schale.MX.NetworkProtocol
         public string? ClientVersion { get; set; }
         public string? OSType { get; set; }
         public string? AuthTicket { get; set; }
+        public long NpSN { get; set; }
+        public string? NpToken { get; set; }
+        public string? Npacode { get; set; }
+        public string? AccessIP { get; set; }
+        public string? NgsmToken { get; set; }
     }
 
     public class QueuingProcessWaitingQueueResponse : ResponsePacket

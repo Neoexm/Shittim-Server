@@ -103,7 +103,10 @@ public class QueuingHandler : ProtocolHandlerBase
         QueuingProcessWaitingQueueResponse response)
     {
         response.WaitingTicket = request.WaitingTicket;
-        response.EnterTicket = string.IsNullOrEmpty(request.AuthTicket) ? request.WaitingTicket : request.AuthTicket;
+        // the steam build asks for its enter ticket here instead of through Queuing_GetTicket, and only the first call carries the nexon credentials - a retry after being queued sends the waiting ticket alone. an empty EnterTicket is what holds the client on the queue popup, so mint one from NpSN/NpToken the moment they arrive.
+        response.EnterTicket = request.NpSN != 0
+            ? Convert.ToBase64String(Encoding.UTF8.GetBytes($"{request.NpSN}/{request.NpToken}"))
+            : string.IsNullOrEmpty(request.AuthTicket) ? request.WaitingTicket : request.AuthTicket;
         response.ServerSeed = "";
         response.ServerTimeTicks = 0;
 
