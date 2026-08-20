@@ -35,22 +35,26 @@ public struct SkillAdditionalTooltipExcel : IFlatbufferObject
   public ArraySegment<byte>? GetShowSkillSlotBytes() { return __p.__vector_as_arraysegment(8); }
 #endif
   public byte[] GetShowSkillSlotArray() { return __p.__vector_as_array<byte>(8); }
+  public bool DisplayIconBg { get { int o = __p.__offset(10); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
 
   public static Offset<Schale.FlatData.SkillAdditionalTooltipExcel> CreateSkillAdditionalTooltipExcel(FlatBufferBuilder builder,
       long GroupId = 0,
       StringOffset AdditionalSkillGroupIdOffset = default(StringOffset),
-      StringOffset ShowSkillSlotOffset = default(StringOffset)) {
-    builder.StartTable(3);
+      StringOffset ShowSkillSlotOffset = default(StringOffset),
+      bool DisplayIconBg = false) {
+    builder.StartTable(4);
     SkillAdditionalTooltipExcel.AddGroupId(builder, GroupId);
     SkillAdditionalTooltipExcel.AddShowSkillSlot(builder, ShowSkillSlotOffset);
     SkillAdditionalTooltipExcel.AddAdditionalSkillGroupId(builder, AdditionalSkillGroupIdOffset);
+    SkillAdditionalTooltipExcel.AddDisplayIconBg(builder, DisplayIconBg);
     return SkillAdditionalTooltipExcel.EndSkillAdditionalTooltipExcel(builder);
   }
 
-  public static void StartSkillAdditionalTooltipExcel(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void StartSkillAdditionalTooltipExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddGroupId(FlatBufferBuilder builder, long groupId) { builder.AddLong(0, groupId, 0); }
   public static void AddAdditionalSkillGroupId(FlatBufferBuilder builder, StringOffset additionalSkillGroupIdOffset) { builder.AddOffset(1, additionalSkillGroupIdOffset.Value, 0); }
   public static void AddShowSkillSlot(FlatBufferBuilder builder, StringOffset showSkillSlotOffset) { builder.AddOffset(2, showSkillSlotOffset.Value, 0); }
+  public static void AddDisplayIconBg(FlatBufferBuilder builder, bool displayIconBg) { builder.AddBool(3, displayIconBg, false); }
   public static Offset<Schale.FlatData.SkillAdditionalTooltipExcel> EndSkillAdditionalTooltipExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.SkillAdditionalTooltipExcel>(o);
@@ -65,6 +69,7 @@ public struct SkillAdditionalTooltipExcel : IFlatbufferObject
     _o.GroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GroupId, key) : this.GroupId;
     _o.AdditionalSkillGroupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AdditionalSkillGroupId, key) : this.AdditionalSkillGroupId;
     _o.ShowSkillSlot = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShowSkillSlot, key) : this.ShowSkillSlot;
+    _o.DisplayIconBg = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayIconBg, key) : this.DisplayIconBg;
   }
   public static Offset<Schale.FlatData.SkillAdditionalTooltipExcel> Pack(FlatBufferBuilder builder, SkillAdditionalTooltipExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.SkillAdditionalTooltipExcel>);
@@ -74,7 +79,8 @@ public struct SkillAdditionalTooltipExcel : IFlatbufferObject
       builder,
       _o.GroupId,
       _AdditionalSkillGroupId,
-      _ShowSkillSlot);
+      _ShowSkillSlot,
+      _o.DisplayIconBg);
   }
 }
 
@@ -83,11 +89,13 @@ public class SkillAdditionalTooltipExcelT
   public long GroupId { get; set; }
   public string AdditionalSkillGroupId { get; set; }
   public string ShowSkillSlot { get; set; }
+  public bool DisplayIconBg { get; set; }
 
   public SkillAdditionalTooltipExcelT() {
     this.GroupId = 0;
     this.AdditionalSkillGroupId = null;
     this.ShowSkillSlot = null;
+    this.DisplayIconBg = false;
   }
 }
 
@@ -100,6 +108,7 @@ static public class SkillAdditionalTooltipExcelVerify
       && verifier.VerifyField(tablePos, 4 /*GroupId*/, 8 /*long*/, 8, false)
       && verifier.VerifyString(tablePos, 6 /*AdditionalSkillGroupId*/, false)
       && verifier.VerifyString(tablePos, 8 /*ShowSkillSlot*/, false)
+      && verifier.VerifyField(tablePos, 10 /*DisplayIconBg*/, 1 /*bool*/, 1, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

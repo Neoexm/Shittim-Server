@@ -10,6 +10,7 @@ namespace BlueArchiveAPI.Services
     public class ExcelTableService
     {
         private readonly ConcurrentDictionary<Type, object> caches = [];
+        private readonly ConcurrentDictionary<Type, byte> incomplete = [];
 
         // TableEncryptionService.UseEncryption is a global static selecting XOR-decryption of every string and numeric field, read per field deep inside the generated UnPackTo methods rather than once up front.
         // The two branches below set it to opposite values and ConcurrentDictionary.GetOrAdd does not serialize factories across keys, so two first-time loads of different tables can flip the flag out from under each other's in-flight unpack and produce garbled rows that the row-level catch swallows. Both branches are live - .bytes files and ExcelDB.db coexist in Resources/Dumped.
@@ -144,19 +145,25 @@ namespace BlueArchiveAPI.Services
                             {
                                 Console.WriteLine($"[ExcelTableService] {baseTypeName}: layout drift detected; realigned {realigned.Count} row(s) against the installed client's schema" +
                                     (unreadable > 0 ? $" ({unreadable} still unreadable)" : "") + ". Regenerate the model to make this permanent.");
+                                if (unreadable > 0)
+                                    incomplete[type] = 0;
                                 return realigned;
                             }
                             Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName}: realignment read fewer rows ({realigned.Count}) than the compiled model ({excelList.Count}); keeping the compiled model's result");
                         }
 
                         if (skippedRows > 0)
+                        {
+                            incomplete[type] = 0;
                             Console.WriteLine($"[ExcelTableService] WARNING: {baseTypeName}: skipped {skippedRows} unreadable row(s), loaded {excelList.Count}");
+                        }
                     }
 
                     return excelList;
                 }
                 else
                 {
+                    incomplete[type] = 0;
                     Console.WriteLine($"[ExcelTableService] WARNING: No Excel data found for {baseTypeName}, returning empty list");
                     return new List<T>();
                 }
@@ -165,6 +172,7 @@ namespace BlueArchiveAPI.Services
                 {
                     // A dumped table whose bytes don't match the current Schale FlatBuffer schema (e.g. RaidStageExcel.GroundDevName offset mismatch) would otherwise throw out of the handler and become Error 500 -> client shows "Server failed to process request. Returning to the title screen."
                     // Degrade to an empty table instead so the request still completes.
+                    incomplete[type] = 0;
                     Console.WriteLine($"[ExcelTableService] WARNING: failed to load {type.Name} table ({ex.GetBaseException().Message}); degrading to empty table");
                     return new List<T>();
                 }
@@ -174,8 +182,19 @@ namespace BlueArchiveAPI.Services
             return unpacked;
         }
 
+        // A table that lost rows to drift still answers every lookup, it just answers "not found" for the rows it could not read. Anything that deletes player data on a miss has to ask this first.
+        public bool IsTableComplete<T>()
+        {
+            GetTable<T>();
+            return !incomplete.ContainsKey(typeof(T));
+        }
+
         // A clone written into ExcelDB.db under a running server is invisible to everything here until the tables are read again, so importing one drops the lot rather than guessing which tables it touched.
-        public void DropCache() => caches.Clear();
+        public void DropCache()
+        {
+            caches.Clear();
+            incomplete.Clear();
+        }
 
         // vtable layout: [0] its own size in bytes, [2] the table's inline size, then one uint16 per field.
         private static int RowSlotCount(byte[] row)

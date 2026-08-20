@@ -309,7 +309,8 @@ enum Club: int{
     PrefectBrigade = 53,
     FreeTradeCartel = 54,
     NicomediasTroop = 55,
-    PublishingDepartment = 56
+    PublishingDepartment = 56,
+    FoxSquad = 57
 }
 
 enum CollectionUnlockType: int{
@@ -352,7 +353,8 @@ enum ConditionType: int{
     StayMemorialLobby = 8,
     OpenSeasonBirthdayPlayerDialog = 9,
     AssistUsedByOther = 10,
-    EquipCharacterGear = 11
+    EquipCharacterGear = 11,
+    CompleteTutorial = 12
 }
 
 enum ConquestConditionType: int{
@@ -602,7 +604,9 @@ enum DialogCategory: int{
     UIAttendanceEvent19 = 74,
     UIAttendanceEvent20 = 75,
     UIAttendanceEvent21 = 76,
-    UIEventClueSearch = 77
+    UIEventClueSearch = 77,
+    UIWorkAronaWatering = 78,
+    UIWorkCoexist_PlanaWatchPot = 79
 }
 
 enum DialogCondition: int{
@@ -1224,7 +1228,9 @@ enum FieldConditionType: int{
     HasKeyword = 6,
     HasEvidence = 7,
     OpenDate = 8,
-    OpenDateAfter = 9
+    OpenDateAfter = 9,
+    Scenario = 10,
+    Timeline = 11
 }
 
 enum FieldDialogType: int{
@@ -1254,7 +1260,12 @@ enum FieldDialogType: int{
     Sweat_Nobubble = 23,
     Twinkle_Nobubble = 24,
     ZZZ_Nobubble = 25,
-    Chat_Nobubble = 26
+    Chat_Nobubble = 26,
+    Keyword_90101000 = 27,
+    SNS = 28,
+    ItemSack = 29,
+    ItemFlyer = 30,
+    ItemDocument = 31
 }
 
 enum FieldInteractionType: int{
@@ -1269,7 +1280,8 @@ enum FieldInteractionType: int{
     Timeline = 8,
     ActionTrigger = 9,
     Interplay = 10,
-    UnderCoverStage = 11
+    UnderCoverStage = 11,
+    SNSOpen = 12
 }
 
 enum FieldTutorialType: int{
@@ -1346,7 +1358,8 @@ enum GachaDisplayTag: int{
     SelectRecruit = 7,
     LimitedThreeStar = 8,
     Revival = 9,
-    SelectLimited = 10
+    SelectLimited = 10,
+    NewbieDateLimited = 11
 }
 
 enum GachaGroupType: int{
@@ -1643,7 +1656,8 @@ enum MissionCategory: int{
     EventAchievement = 8,
     DailySudden = 9,
     DailyFixed = 10,
-    EventFixed = 11
+    EventFixed = 11,
+    WelcomeMission = 12
 }
 
 enum MissionCompleteConditionType: int{
@@ -1835,7 +1849,8 @@ enum MissionCompleteConditionType: int{
     Reset_ConcentrationClearCount = 185,
     Reset_WorldRaidSpecificBossClear = 186,
     Reset_WorldRaidActivateCoreCount = 187,
-    Reset_WorldRaidActivateUSBCount = 188
+    Reset_WorldRaidActivateUSBCount = 188,
+    Reset_EnterUICount = 189
 }
 
 enum MissionResetType: int{
@@ -1940,7 +1955,9 @@ enum OpenConditionContent: int{
     MinigameDreamMaker = 55,
     MiniGameDefense = 56,
     MiniGameCCG = 57,
-    Main_L_1_5 = 58
+    Main_L_1_5 = 58,
+    Main_SNS = 59,
+    PermanentRaid = 60
 }
 
 enum OperatorCondition: int{
@@ -2118,7 +2135,8 @@ enum RaidBossGroupType: int{
     EN0005 = 10,
     EN0006 = 11,
     EN0010 = 12,
-    EN0013 = 13
+    EN0013 = 13,
+    EN0022 = 14
 }
 
 enum Rarity: int{
@@ -2269,7 +2287,9 @@ enum ScenarioModeReplayTypes: int{
 
 enum ScenarioModeSubTypes: int{
     None = 0,
-    Club = 1
+    Club = 1,
+    Series1 = 2,
+    Series2 = 3
 }
 
 enum ScenarioModeTypes: int{
@@ -2639,7 +2659,11 @@ enum StatType: int{
     EnhanceCompositeArmorRate = 86,
     EnhanceWeakDamageRate = 87,
     ReduceWeakDamagedRate = 88,
-    Max = 89
+    WeakDamagedRatio = 89,
+    EffectiveDamagedRatio = 90,
+    NormalDamagedRatio = 91,
+    ResistDamagedRatio = 92,
+    Max = 93
 }
 
 enum StickerCheckPassType: int{
@@ -6048,6 +6072,67 @@ enum WorldRaidMapType: int{
     WorldMap = 2
 }
 
+enum AutoSelectPopupType: int{
+    None = 0,
+    FavorItem = 1,
+    GrowthItem = 2
+}
+
+enum DirectingCharacter: int{
+    None = 0,
+    Arona = 1,
+    Plana = 2,
+    Both = 3
+}
+
+enum FieldContentType: int{
+    Event = 0,
+    Narrative = 1
+}
+
+enum FieldSNSPostType: int{
+    None = 0,
+    Normal = 1,
+    Bookmark = 2
+}
+
+enum FieldSNSStateType: int{
+    Open = 0,
+    Close = 1
+}
+
+enum GachaPhase: int{
+    GachaIntro = 0,
+    CharacterAppearance = 1,
+    SignatureIntro = 2,
+    SignatureWait = 3,
+    SignatureConfirm = 4,
+    Result = 5
+}
+
+enum MissionCompleteUIPrefabType: int{
+    None = 0,
+    UIStageSelect = 1,
+    UIAcademyLobby = 2,
+    UIArena = 3,
+    UIRaidLobby = 4,
+    UICafe = 5,
+    UIShop = 6,
+    UIGacha = 7,
+    UIScenarioMode = 8,
+    UICharacterCollection = 9,
+    UIWeekDungeonLobby = 10,
+    UISchoolDungeonLobby = 11,
+    UIMultiFloorRaid_Lobby = 12,
+    UIWeekDungeonLobby_Chaser = 13,
+    UIEliminateRaidLobby = 14
+}
+
+enum WelcomeCampaignAttendanceType: int{
+    Normal = 0,
+    Continuous = 1
+}
+
 table AcademyFavorScheduleExcel{
     Id: long;
     CharacterId: long;
@@ -6993,14 +7078,16 @@ table CharacterExcel{
     ExternalBTId: long;
     MainCombatStyleId: long;
     CombatStyleIndex: int;
+    UseRepStyleOnCharacterGrowth: bool;
     ScenarioCharacter: string;
     SpawnTemplateId: uint;
     FavorLevelupType: int;
     EquipmentSlot: [EquipmentCategory];
     WeaponLocalizeId: uint;
     DisplayEnemyInfo: bool;
-    BodyRadius: long;
+    bodyRadius: long;
     RandomEffectRadius: long;
+    TargetGuideScale: float;
     HPBarHide: bool;
     HpBarHeight: float;
     HighlightFloaterHeight: float;
@@ -7209,6 +7296,10 @@ table CharacterStatExcel{
     ReduceBasicsDamagedRate: long;
     EnhanceWeakDamageRate: long;
     ReduceWeakDamagedRate: long;
+    WeakDamagedRatio: long;
+    EffectiveDamagedRatio: long;
+    NormalDamagedRatio: long;
+    ResistDamagedRatio: long;
     HealRate: long;
     HealLightArmorRate: long;
     HealHeavyArmorRate: long;
@@ -7896,7 +7987,7 @@ table ConstCommonExcel{
     ShiftingCraftSlotMaxCapacity: int;
     CraftTicketItemUniqueId: int;
     CraftTicketConsumeAmount: int;
-    AcademyEnterCostType: ParcelType;
+    AcademyEnterCostType: ParcelType = None;
     AcademyEnterCostId: long;
     AcademyTicketCost: int;
     MassangerMessageExpireDay: int;
@@ -7922,7 +8013,7 @@ table ConstCommonExcel{
     TutorialHardStage11: long;
     TutorialSpeedButtonStage: long;
     TutorialCharacterDefaultCount: long;
-    TutorialShopCategoryType: ShopCategoryType;
+    TutorialShopCategoryType: ShopCategoryType = General;
     AdventureStrategyPlayTimeLimitInSeconds: long;
     WeekDungoenTacticPlayTimeLimitInSeconds: long;
     RaidTacticPlayTimeLimitInSeconds: long;
@@ -7956,12 +8047,12 @@ table ConstCommonExcel{
     MonthlyProductCheckDays: int;
     WeaponLvUpCoefficient: int;
     ShowRaidMyListCount: int;
-    RaidEnterCostType: ParcelType;
+    RaidEnterCostType: ParcelType = None;
     RaidEnterCostId: long;
     RaidTicketCost: long;
     TimeAttackDungeonScenarioId: string;
     TimeAttackDungoenPlayCountPerTicket: int;
-    TimeAttackDungeonEnterCostType: ParcelType;
+    TimeAttackDungeonEnterCostType: ParcelType = None;
     TimeAttackDungeonEnterCostId: long;
     TimeAttackDungeonEnterCost: long;
     ClanLeaderTransferLastLoginLimit: long;
@@ -8008,7 +8099,7 @@ table ConstCommonExcel{
     EmblemDefaultId: long;
     BirthdayMailStartDate: string;
     BirthdayMailRemainDate: int;
-    BirthdayMailParcelType: ParcelType;
+    BirthdayMailParcelType: ParcelType = None;
     BirthdayMailParcelId: long;
     BirthdayMailParcelAmount: int;
     ClearDeckAverageDeckCount: int;
@@ -8065,6 +8156,8 @@ table ConstCommonExcel{
     NewbieStateHoldDay: int;
     QRIconUrlDev: string;
     QRIconUrlLive: string;
+    ProbablityInfoBtnLinkKR: string;
+    ClearDeckEchelonShowMaxCount: int;
 }
 
 table ConstConquestExcelTable{
@@ -8087,6 +8180,8 @@ table ConstContentsExcelTable{
 table ConstContentsExcel{
     UseSearchFieldOptimize: bool;
     SearchUpdateTime: float;
+    LobbyDayTimeFrom: int;
+    LobbyNightTimeFrom: int;
 }
 
 table ConstEventCommonExcelTable{
@@ -8333,6 +8428,7 @@ table ContentsShortcutExcel{
     ContentType: ContentType = None;
     EventContentId: long;
     ScenarioModeType: ScenarioModeTypes = None;
+    ScenarioModeSubType: ScenarioModeSubTypes = None;
     ScenarioModeVolume: long;
     ScenarioModeChapter: long;
     ShortcutOpenTime: string;
@@ -9488,6 +9584,7 @@ table EventContentStageExcel{
     PrevStageId: long;
     OpenDate: long;
     OpenEventPoint: long;
+    OpenConditionScenarioPermanentSubEventId: long;
     PrevStageSubEventId: long;
     OpenConditionScenarioId: long;
     OpenConditionContentType: EventContentType = Stage;
@@ -9821,6 +9918,7 @@ table FieldQuestExcel{
     IsDaily: bool;
     FieldDateId: long;
     Opendate: long;
+    QuestGroupId: long;
     AssetPath: string;
     RewardId: long;
     Prob: int;
@@ -9865,6 +9963,7 @@ table FieldSeasonExcelTable{
 
 table FieldSeasonExcel{
     UniqueId: long;
+    FieldContentType: FieldContentType = Event;
     EventContentId: long;
     EntryDateId: long;
     InstantEntryDateId: long;
@@ -10178,6 +10277,7 @@ table GroundExcel{
     StageTopography: StageTopography = Street;
     EnemyBulletType: BulletType = Normal;
     EnemyArmorType: ArmorType = LightArmor;
+    EnemySubArmorType: ArmorType = LightArmor;
     LevelNPC: long;
     LevelMinion: long;
     LevelElite: long;
@@ -10608,6 +10708,7 @@ table ItemExcel{
     CanTierUpgrade: bool;
     TierUpgradeRecipeCraftId: long;
     Tags: [Tag];
+    isCollaboration: bool;
     CraftQualityTier0: long;
     CraftQualityTier1: long;
     CraftQualityTier2: long;
@@ -10616,6 +10717,7 @@ table ItemExcel{
     ShopCategory: [ShopCategoryType];
     ExpirationDateTime: string;
     ExpirationNotifyDateIn: int;
+    IsOverrideExpiration: bool;
     ShortcutTypeId: long;
     GachaTicket: GachaTicketType = None;
     AlertPopupId: long;
@@ -10845,6 +10947,11 @@ table LocalizeCharProfileExcel{
     PersonalNameEn: string;
     PersonalNameRubyEn: string;
     Club: Club = None;
+    ClubNameForGachaKr: string;
+    ClubNameForGachaJp: string;
+    ClubNameForGachaTh: string;
+    ClubNameForGachaTw: string;
+    ClubNameForGachaEn: string;
     SchoolYearKr: string;
     SchoolYearJp: string;
     SchoolYearTh: string;
@@ -11987,6 +12094,10 @@ table ObstacleStatExcel{
     ReduceExDamagedRate: long;
     ReduceBasicsDamagedRate: long;
     ReduceWeakDamagedRate: long;
+    WeakDamagedRatio: long;
+    EffectiveDamagedRatio: long;
+    NormalDamagedRatio: long;
+    ResistDamagedRatio: long;
 }
 
 table OpenConditionExcel{
@@ -12043,6 +12154,7 @@ table ParcelAutoSynthExcel{
 table PermanentRaidManageExcel{
     Type: RaidBossGroupType = None;
     OpenRaidBossGroup: [string];
+    HideDifficulty: [string];
     OpenDate: string;
 }
 
@@ -12236,6 +12348,7 @@ table ProductMonthlyExcel{
 table ProductSelectExcel{
     Id: long;
     ProductSelectSubType: ProductSelectSubType = Select;
+    AutoSelectPopupType: AutoSelectPopupType = None;
     ProductId: string;
     TeenProductId: string;
     StoreType: StoreType = None;
@@ -12557,6 +12670,7 @@ table ScenarioModeExcel{
     ModeId: long;
     ModeType: ScenarioModeTypes = None;
     SubType: ScenarioModeSubTypes = None;
+    DisplayVolumeId: string;
     VolumeId: long;
     ChapterId: long;
     EpisodeId: long;
@@ -12572,10 +12686,13 @@ table ScenarioModeExcel{
     GroundId: long;
     IsDefeatBattle: bool;
     BattleDuration: long;
+    FieldDateId: long;
     BackScenarioGroupId: [long];
     ClearedModeId: [long];
     ScenarioModeRewardId: long;
     IsScenarioSpecialReward: bool;
+    SpecialRewardPrefabName: string;
+    SpecialRewardLogOut: bool;
     AccountLevelLimit: long;
     ClearedStageId: long;
     NeedClub: Club = None;
@@ -12589,7 +12706,7 @@ table ScenarioModeExcel{
     RecommendLevel: int;
     EventIconParcelPath: string;
     EventBannerTitle: uint;
-    Lof: bool;
+    lof: bool;
     StageTopography: StageTopography = Street;
     FixedEchelonId: long;
     CompleteReportEventName: string;
@@ -12610,6 +12727,7 @@ table ScenarioModeRewardExcel{
 
 table ScenarioModeSpoilerPopupExcel{
     ModeType: ScenarioModeTypes = None;
+    SubType: ScenarioModeSubTypes = None;
     VolumeId: long;
     ChapterId: long;
     SpoilerPopupTitle: uint;
@@ -12646,7 +12764,10 @@ table ScenarioResourceInfoExcel{
     Ratio: int;
     LobbyAniPath: string;
     MovieCGPath: string;
+    ScenarioForceEnter: ScenarioModeSubTypes = None;
     LocalizeId: uint;
+    AcademyLobbyCharacterId: [long];
+    SweepAnimation: [string];
 }
 
 table ScenarioScriptExcel{
@@ -12872,9 +12993,12 @@ table ShopRecruitExcel{
     PurchaseCooltimeMin: long;
     PurchaseCountLimit: long;
     PurchaseCountResetType: PurchaseCountResetType = None;
+    SalePeriodDayParameter: long;
+    IsOverrideSalePeriodTo: bool;
     IsNewbie: bool;
     IsSelectRecruit: bool;
     DirectPayInvisibleTokenId: long;
+    DirectPayProductId: string;
     DirectPayAndroidShopCashId: long;
     DirectPayAppleShopCashId: long;
     SelectAbleGachaGroupId: long;
@@ -12919,6 +13043,7 @@ table SkillAdditionalTooltipExcel{
     GroupId: long;
     AdditionalSkillGroupId: string;
     ShowSkillSlot: string;
+    DisplayIconBg: bool;
 }
 
 table SkillExcel{
@@ -13212,6 +13337,7 @@ table TerrainAdaptationFactorExcel{
     AccuracyFactor: long;
     DodgeFactor: long;
     AttackPowerFactor: long;
+    TerrainFactorDescription: string;
 }
 
 table TimeAttackDungeonExcel{
@@ -13602,4 +13728,177 @@ table WorldRaidStageRewardExcel{
     ClearStageRewardParcelType: ParcelType = None;
     ClearStageRewardParcelUniqueID: long;
     ClearStageRewardAmount: long;
+}
+
+table EquipmentChangePieceExcel{
+    EquipmentId: long;
+    ChangeEquipmentId: long;
+    ChangeAmount: long;
+}
+
+table FieldQuestGroupExcel{
+    Id: long;
+    SkipFromInteractionId: long;
+    SkipToInteractionId: long;
+    NextSceneId: long;
+    SkipResultUI: bool;
+}
+
+table FieldSNSInfoExcel{
+    Id: long;
+    InteractionGroupId: long;
+    SNSStateType: FieldSNSStateType = Open;
+    StateLocalizeKey: uint;
+    DescLocalizeKey: uint;
+}
+
+table FieldSNSPostExcel{
+    Id: long;
+    GroupInteractionId: long;
+    PostType: FieldSNSPostType = None;
+    SNSPostId: long;
+    IsSequence: bool;
+    Order: long;
+    DelayTime: long;
+    RepostMinNum: long;
+    RepostMaxNum: long;
+    FavorMinNum: long;
+    FavorMaxNum: long;
+}
+
+table FieldWarpExcel{
+    UniqueId: long;
+    CurrentSceneId: long;
+    ResultSceneId: long;
+    ResultSceneNameKey: uint;
+    ResultSceneImagePath: string;
+}
+
+table RaidSkillDescriptionListExcel{
+    BossGroup: string;
+    Difficulty: string;
+    PhaseNameOverrideKey: string;
+    SkillGroupId: [string];
+    SkillUsePhase: [long];
+    ShowSkillSlot: [SkillSlotShowType];
+    HighlightResource: [SkillSlotHighLightType];
+}
+
+table SNSInfoExcel{
+    Id: long;
+    OpenScenarioModeId: long;
+    CloseScenarioModeId: long;
+    OpenTitleLocalizeKey: uint;
+    CloseTitleLocalizeKey: uint;
+    OpenDescLocalizeKey: uint;
+    CloseDescLocalizeKey: uint;
+}
+
+table SNSPostExcel{
+    Id: long;
+    SNSInfoId: long;
+    MasterPostId: long;
+    RepostSNSProfileId: long;
+    SNSProfileId: long;
+    PostTextLocalizeKey: uint;
+    PostImagePath: [string];
+    RepostMinNum: long;
+    RepostMaxNum: long;
+    FavorMinNum: long;
+    FavorMaxNum: long;
+}
+
+table SNSProfileExcel{
+    Id: long;
+    DevName: string;
+    ProfileImagePath: string;
+    NameLocalizeKey: uint;
+    IdLocalizeKey: uint;
+    MarkIconVisible: bool;
+}
+
+table ShopRecruitDirectingExcel{
+    Path: string;
+    Phase: GachaPhase = GachaIntro;
+    GachaAmount: int;
+    IsSSR: bool;
+    Character: DirectingCharacter = None;
+}
+
+table ShopRecruitSettingExcel{
+    Id: long;
+    RecruitChangeScenarioModeID: long;
+    PriorityOrder: long;
+    TogetherPercentage: int;
+    AnotherPercentage: int;
+    TwistPercentage: int;
+    RecruitChangeIcon: string;
+    SeriesForceEnter: ScenarioModeSubTypes = None;
+}
+
+table WelcomeCampaignAttendanceRewardExcel{
+    Id: long;
+    SeasonId: long;
+    CountCheckType: WelcomeCampaignAttendanceType = Normal;
+    Day: long;
+    RewardParcelType: ParcelType = None;
+    RewardId: long;
+    RewardAmount: long;
+}
+
+table WelcomeCampaignEnterRewardExcel{
+    GroupId: long;
+    RewardParcelType: ParcelType = None;
+    RewardParcelUniqueID: long;
+    RewardAmount: long;
+}
+
+table WelcomeCampaignMissionExcel{
+    SeasonId: long;
+    Id: long;
+    Category: MissionCategory = Challenge;
+    IsLegacy: bool;
+    Day: int;
+    PreMissionId: [long];
+    Description: uint;
+    ToastDisplayType: MissionToastDisplayConditionType = Always;
+    ToastImagePath: string;
+    ShortcutUI: [string];
+    CompleteConditionDayBlock: bool;
+    CompleteConditionType: MissionCompleteConditionType = None;
+    CompleteConditionCount: long;
+    CompleteConditionParameter: [long];
+    CompleteConditionParameterTag: [Tag];
+    CompleteConditionParameterUIPrefabType: MissionCompleteUIPrefabType = None;
+    MissionRewardParcelType: [ParcelType];
+    MissionRewardParcelId: [long];
+    MissionRewardAmount: [int];
+}
+
+table WelcomeCampaignRewardIncreaseExcel{
+    Id: int;
+    GroupId: long;
+    LocalizeCodeId: uint;
+    IconPath: string;
+    EventTargetType: EventTargetType = WeekDungeon;
+    IncreaseRatio: int;
+    ShortcutEventTargetType: EventTargetType = WeekDungeon;
+}
+
+table WelcomeCampaignSeasonExcel{
+    Id: long;
+    TitleLocalizeCode: uint;
+    TargetGroup: TargetGroup = WaitingSignIn;
+    ActiveOrder: int;
+    StartDate: string;
+    EndDate: string;
+    ExpiryDate: long;
+    EnterIconImage: string;
+    BackgroundImage: string;
+    TitleImage: string;
+    EnterRewardGroupId: long;
+    RewardIncreaseId: long;
+    MaximumLoginCount: long;
+    AttendanceBookSize: long;
+    ContinuousAttendance: bool;
 }

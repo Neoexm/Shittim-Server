@@ -21,40 +21,44 @@ public struct ScenarioModeSpoilerPopupExcel : IFlatbufferObject
   public ScenarioModeSpoilerPopupExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public Schale.FlatData.ScenarioModeTypes ModeType { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.ScenarioModeTypes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ScenarioModeTypes.None; } }
-  public long VolumeId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ChapterId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public uint SpoilerPopupTitle { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public uint SpoilerPopupDescription { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public Schale.FlatData.SpoilerPopupType PopupType { get { int o = __p.__offset(14); return o != 0 ? (Schale.FlatData.SpoilerPopupType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.SpoilerPopupType.None; } }
-  public long ConditionScenarioModeId { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ScenarioModeSubTypes SubType { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.ScenarioModeSubTypes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ScenarioModeSubTypes.None; } }
+  public long VolumeId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ChapterId { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public uint SpoilerPopupTitle { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public uint SpoilerPopupDescription { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public Schale.FlatData.SpoilerPopupType PopupType { get { int o = __p.__offset(16); return o != 0 ? (Schale.FlatData.SpoilerPopupType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.SpoilerPopupType.None; } }
+  public long ConditionScenarioModeId { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ScenarioModeSpoilerPopupExcel> CreateScenarioModeSpoilerPopupExcel(FlatBufferBuilder builder,
       Schale.FlatData.ScenarioModeTypes ModeType = Schale.FlatData.ScenarioModeTypes.None,
+      Schale.FlatData.ScenarioModeSubTypes SubType = Schale.FlatData.ScenarioModeSubTypes.None,
       long VolumeId = 0,
       long ChapterId = 0,
       uint SpoilerPopupTitle = 0,
       uint SpoilerPopupDescription = 0,
       Schale.FlatData.SpoilerPopupType PopupType = Schale.FlatData.SpoilerPopupType.None,
       long ConditionScenarioModeId = 0) {
-    builder.StartTable(7);
+    builder.StartTable(8);
     ScenarioModeSpoilerPopupExcel.AddConditionScenarioModeId(builder, ConditionScenarioModeId);
     ScenarioModeSpoilerPopupExcel.AddChapterId(builder, ChapterId);
     ScenarioModeSpoilerPopupExcel.AddVolumeId(builder, VolumeId);
     ScenarioModeSpoilerPopupExcel.AddPopupType(builder, PopupType);
     ScenarioModeSpoilerPopupExcel.AddSpoilerPopupDescription(builder, SpoilerPopupDescription);
     ScenarioModeSpoilerPopupExcel.AddSpoilerPopupTitle(builder, SpoilerPopupTitle);
+    ScenarioModeSpoilerPopupExcel.AddSubType(builder, SubType);
     ScenarioModeSpoilerPopupExcel.AddModeType(builder, ModeType);
     return ScenarioModeSpoilerPopupExcel.EndScenarioModeSpoilerPopupExcel(builder);
   }
 
-  public static void StartScenarioModeSpoilerPopupExcel(FlatBufferBuilder builder) { builder.StartTable(7); }
+  public static void StartScenarioModeSpoilerPopupExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
   public static void AddModeType(FlatBufferBuilder builder, Schale.FlatData.ScenarioModeTypes modeType) { builder.AddInt(0, (int)modeType, 0); }
-  public static void AddVolumeId(FlatBufferBuilder builder, long volumeId) { builder.AddLong(1, volumeId, 0); }
-  public static void AddChapterId(FlatBufferBuilder builder, long chapterId) { builder.AddLong(2, chapterId, 0); }
-  public static void AddSpoilerPopupTitle(FlatBufferBuilder builder, uint spoilerPopupTitle) { builder.AddUint(3, spoilerPopupTitle, 0); }
-  public static void AddSpoilerPopupDescription(FlatBufferBuilder builder, uint spoilerPopupDescription) { builder.AddUint(4, spoilerPopupDescription, 0); }
-  public static void AddPopupType(FlatBufferBuilder builder, Schale.FlatData.SpoilerPopupType popupType) { builder.AddInt(5, (int)popupType, 0); }
-  public static void AddConditionScenarioModeId(FlatBufferBuilder builder, long conditionScenarioModeId) { builder.AddLong(6, conditionScenarioModeId, 0); }
+  public static void AddSubType(FlatBufferBuilder builder, Schale.FlatData.ScenarioModeSubTypes subType) { builder.AddInt(1, (int)subType, 0); }
+  public static void AddVolumeId(FlatBufferBuilder builder, long volumeId) { builder.AddLong(2, volumeId, 0); }
+  public static void AddChapterId(FlatBufferBuilder builder, long chapterId) { builder.AddLong(3, chapterId, 0); }
+  public static void AddSpoilerPopupTitle(FlatBufferBuilder builder, uint spoilerPopupTitle) { builder.AddUint(4, spoilerPopupTitle, 0); }
+  public static void AddSpoilerPopupDescription(FlatBufferBuilder builder, uint spoilerPopupDescription) { builder.AddUint(5, spoilerPopupDescription, 0); }
+  public static void AddPopupType(FlatBufferBuilder builder, Schale.FlatData.SpoilerPopupType popupType) { builder.AddInt(6, (int)popupType, 0); }
+  public static void AddConditionScenarioModeId(FlatBufferBuilder builder, long conditionScenarioModeId) { builder.AddLong(7, conditionScenarioModeId, 0); }
   public static Offset<Schale.FlatData.ScenarioModeSpoilerPopupExcel> EndScenarioModeSpoilerPopupExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ScenarioModeSpoilerPopupExcel>(o);
@@ -67,6 +71,7 @@ public struct ScenarioModeSpoilerPopupExcel : IFlatbufferObject
   public void UnPackTo(ScenarioModeSpoilerPopupExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("ScenarioModeSpoilerPopup");
     _o.ModeType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ModeType, key) : this.ModeType;
+    _o.SubType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SubType, key) : this.SubType;
     _o.VolumeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.VolumeId, key) : this.VolumeId;
     _o.ChapterId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ChapterId, key) : this.ChapterId;
     _o.SpoilerPopupTitle = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SpoilerPopupTitle, key) : this.SpoilerPopupTitle;
@@ -79,6 +84,7 @@ public struct ScenarioModeSpoilerPopupExcel : IFlatbufferObject
     return CreateScenarioModeSpoilerPopupExcel(
       builder,
       _o.ModeType,
+      _o.SubType,
       _o.VolumeId,
       _o.ChapterId,
       _o.SpoilerPopupTitle,
@@ -91,6 +97,7 @@ public struct ScenarioModeSpoilerPopupExcel : IFlatbufferObject
 public class ScenarioModeSpoilerPopupExcelT
 {
   public Schale.FlatData.ScenarioModeTypes ModeType { get; set; }
+  public Schale.FlatData.ScenarioModeSubTypes SubType { get; set; }
   public long VolumeId { get; set; }
   public long ChapterId { get; set; }
   public uint SpoilerPopupTitle { get; set; }
@@ -100,6 +107,7 @@ public class ScenarioModeSpoilerPopupExcelT
 
   public ScenarioModeSpoilerPopupExcelT() {
     this.ModeType = Schale.FlatData.ScenarioModeTypes.None;
+    this.SubType = Schale.FlatData.ScenarioModeSubTypes.None;
     this.VolumeId = 0;
     this.ChapterId = 0;
     this.SpoilerPopupTitle = 0;
@@ -116,12 +124,13 @@ static public class ScenarioModeSpoilerPopupExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*ModeType*/, 4 /*Schale.FlatData.ScenarioModeTypes*/, 4, false)
-      && verifier.VerifyField(tablePos, 6 /*VolumeId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*ChapterId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 10 /*SpoilerPopupTitle*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyField(tablePos, 12 /*SpoilerPopupDescription*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyField(tablePos, 14 /*PopupType*/, 4 /*Schale.FlatData.SpoilerPopupType*/, 4, false)
-      && verifier.VerifyField(tablePos, 16 /*ConditionScenarioModeId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 6 /*SubType*/, 4 /*Schale.FlatData.ScenarioModeSubTypes*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*VolumeId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*ChapterId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 12 /*SpoilerPopupTitle*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 14 /*SpoilerPopupDescription*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 16 /*PopupType*/, 4 /*Schale.FlatData.SpoilerPopupType*/, 4, false)
+      && verifier.VerifyField(tablePos, 18 /*ConditionScenarioModeId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

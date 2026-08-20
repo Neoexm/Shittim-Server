@@ -196,6 +196,7 @@ public enum MissionCompleteConditionType : int
   Reset_WorldRaidSpecificBossClear = 186,
   Reset_WorldRaidActivateCoreCount = 187,
   Reset_WorldRaidActivateUSBCount = 188,
+  Reset_EnterUICount = 189,
 };
 
 

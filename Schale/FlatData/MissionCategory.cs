@@ -19,6 +19,7 @@ public enum MissionCategory : int
   DailySudden = 9,
   DailyFixed = 10,
   EventFixed = 11,
+  WelcomeMission = 12,
 };
 
 

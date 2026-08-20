@@ -5,12 +5,10 @@
 namespace Schale.FlatData
 {
 
-public enum ScenarioModeSubTypes : int
+public enum FieldContentType : int
 {
-  None = 0,
-  Club = 1,
-  Series1 = 2,
-  Series2 = 3,
+  Event = 0,
+  Narrative = 1,
 };
 
 

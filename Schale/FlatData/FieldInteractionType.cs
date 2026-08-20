@@ -19,6 +19,7 @@ public enum FieldInteractionType : int
   ActionTrigger = 9,
   Interplay = 10,
   UnderCoverStage = 11,
+  SNSOpen = 12,
 };
 
 

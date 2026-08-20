@@ -79,56 +79,58 @@ public struct CharacterExcel : IFlatbufferObject
   public long ExternalBTId { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long MainCombatStyleId { get { int o = __p.__offset(70); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public int CombatStyleIndex { get { int o = __p.__offset(72); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public string ScenarioCharacter { get { int o = __p.__offset(74); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public bool UseRepStyleOnCharacterGrowth { get { int o = __p.__offset(74); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public string ScenarioCharacter { get { int o = __p.__offset(76); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetScenarioCharacterBytes() { return __p.__vector_as_span<byte>(74, 1); }
+  public Span<byte> GetScenarioCharacterBytes() { return __p.__vector_as_span<byte>(76, 1); }
 #else
-  public ArraySegment<byte>? GetScenarioCharacterBytes() { return __p.__vector_as_arraysegment(74); }
+  public ArraySegment<byte>? GetScenarioCharacterBytes() { return __p.__vector_as_arraysegment(76); }
 #endif
-  public byte[] GetScenarioCharacterArray() { return __p.__vector_as_array<byte>(74); }
-  public uint SpawnTemplateId { get { int o = __p.__offset(76); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public int FavorLevelupType { get { int o = __p.__offset(78); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.EquipmentCategory EquipmentSlot(int j) { int o = __p.__offset(80); return o != 0 ? (Schale.FlatData.EquipmentCategory)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.EquipmentCategory)0; }
-  public int EquipmentSlotLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte[] GetScenarioCharacterArray() { return __p.__vector_as_array<byte>(76); }
+  public uint SpawnTemplateId { get { int o = __p.__offset(78); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public int FavorLevelupType { get { int o = __p.__offset(80); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.EquipmentCategory EquipmentSlot(int j) { int o = __p.__offset(82); return o != 0 ? (Schale.FlatData.EquipmentCategory)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.EquipmentCategory)0; }
+  public int EquipmentSlotLength { get { int o = __p.__offset(82); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.EquipmentCategory> GetEquipmentSlotBytes() { return __p.__vector_as_span<Schale.FlatData.EquipmentCategory>(80, 4); }
+  public Span<Schale.FlatData.EquipmentCategory> GetEquipmentSlotBytes() { return __p.__vector_as_span<Schale.FlatData.EquipmentCategory>(82, 4); }
 #else
-  public ArraySegment<byte>? GetEquipmentSlotBytes() { return __p.__vector_as_arraysegment(80); }
+  public ArraySegment<byte>? GetEquipmentSlotBytes() { return __p.__vector_as_arraysegment(82); }
 #endif
-  public Schale.FlatData.EquipmentCategory[] GetEquipmentSlotArray() { int o = __p.__offset(80); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.EquipmentCategory[] a = new Schale.FlatData.EquipmentCategory[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.EquipmentCategory)__p.bb.GetInt(p + i * 4); } return a; }
-  public uint WeaponLocalizeId { get { int o = __p.__offset(82); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public bool DisplayEnemyInfo { get { int o = __p.__offset(84); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long BodyRadius { get { int o = __p.__offset(86); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long RandomEffectRadius { get { int o = __p.__offset(88); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool HPBarHide { get { int o = __p.__offset(90); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public float HpBarHeight { get { int o = __p.__offset(92); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float HighlightFloaterHeight { get { int o = __p.__offset(94); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float EmojiOffsetX { get { int o = __p.__offset(96); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float EmojiOffsetY { get { int o = __p.__offset(98); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public int MoveStartFrame { get { int o = __p.__offset(100); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public int MoveEndFrame { get { int o = __p.__offset(102); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public int JumpMotionFrame { get { int o = __p.__offset(104); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public int AppearFrame { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public bool CanMove { get { int o = __p.__offset(108); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool CanFix { get { int o = __p.__offset(110); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool CanCrowdControl { get { int o = __p.__offset(112); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool CanBattleItemMove { get { int o = __p.__offset(114); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IgnoreObstacle { get { int o = __p.__offset(116); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool IsAirUnit { get { int o = __p.__offset(118); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long AirUnitHeight { get { int o = __p.__offset(120); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.Tag Tags(int j) { int o = __p.__offset(122); return o != 0 ? (Schale.FlatData.Tag)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.Tag)0; }
-  public int TagsLength { get { int o = __p.__offset(122); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.EquipmentCategory[] GetEquipmentSlotArray() { int o = __p.__offset(82); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.EquipmentCategory[] a = new Schale.FlatData.EquipmentCategory[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.EquipmentCategory)__p.bb.GetInt(p + i * 4); } return a; }
+  public uint WeaponLocalizeId { get { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool DisplayEnemyInfo { get { int o = __p.__offset(86); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long BodyRadius { get { int o = __p.__offset(88); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long RandomEffectRadius { get { int o = __p.__offset(90); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public float TargetGuideScale { get { int o = __p.__offset(92); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public bool HPBarHide { get { int o = __p.__offset(94); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public float HpBarHeight { get { int o = __p.__offset(96); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float HighlightFloaterHeight { get { int o = __p.__offset(98); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float EmojiOffsetX { get { int o = __p.__offset(100); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float EmojiOffsetY { get { int o = __p.__offset(102); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int MoveStartFrame { get { int o = __p.__offset(104); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int MoveEndFrame { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int JumpMotionFrame { get { int o = __p.__offset(108); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int AppearFrame { get { int o = __p.__offset(110); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public bool CanMove { get { int o = __p.__offset(112); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool CanFix { get { int o = __p.__offset(114); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool CanCrowdControl { get { int o = __p.__offset(116); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool CanBattleItemMove { get { int o = __p.__offset(118); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IgnoreObstacle { get { int o = __p.__offset(120); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool IsAirUnit { get { int o = __p.__offset(122); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long AirUnitHeight { get { int o = __p.__offset(124); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.Tag Tags(int j) { int o = __p.__offset(126); return o != 0 ? (Schale.FlatData.Tag)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.Tag)0; }
+  public int TagsLength { get { int o = __p.__offset(126); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.Tag> GetTagsBytes() { return __p.__vector_as_span<Schale.FlatData.Tag>(122, 4); }
+  public Span<Schale.FlatData.Tag> GetTagsBytes() { return __p.__vector_as_span<Schale.FlatData.Tag>(126, 4); }
 #else
-  public ArraySegment<byte>? GetTagsBytes() { return __p.__vector_as_arraysegment(122); }
+  public ArraySegment<byte>? GetTagsBytes() { return __p.__vector_as_arraysegment(126); }
 #endif
-  public Schale.FlatData.Tag[] GetTagsArray() { int o = __p.__offset(122); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
-  public long SecretStoneItemId { get { int o = __p.__offset(124); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int SecretStoneItemAmount { get { int o = __p.__offset(126); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long CharacterPieceItemId { get { int o = __p.__offset(128); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int CharacterPieceItemAmount { get { int o = __p.__offset(130); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long CombineRecipeId { get { int o = __p.__offset(132); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.Tag[] GetTagsArray() { int o = __p.__offset(126); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
+  public long SecretStoneItemId { get { int o = __p.__offset(128); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int SecretStoneItemAmount { get { int o = __p.__offset(130); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CharacterPieceItemId { get { int o = __p.__offset(132); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int CharacterPieceItemAmount { get { int o = __p.__offset(134); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CombineRecipeId { get { int o = __p.__offset(136); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.CharacterExcel> CreateCharacterExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -166,14 +168,16 @@ public struct CharacterExcel : IFlatbufferObject
       long ExternalBTId = 0,
       long MainCombatStyleId = 0,
       int CombatStyleIndex = 0,
+      bool UseRepStyleOnCharacterGrowth = false,
       StringOffset ScenarioCharacterOffset = default(StringOffset),
       uint SpawnTemplateId = 0,
       int FavorLevelupType = 0,
       VectorOffset EquipmentSlotOffset = default(VectorOffset),
       uint WeaponLocalizeId = 0,
       bool DisplayEnemyInfo = false,
-      long BodyRadius = 0,
+      long bodyRadius = 0,
       long RandomEffectRadius = 0,
+      float TargetGuideScale = 0.0f,
       bool HPBarHide = false,
       float HpBarHeight = 0.0f,
       float HighlightFloaterHeight = 0.0f,
@@ -196,13 +200,13 @@ public struct CharacterExcel : IFlatbufferObject
       long CharacterPieceItemId = 0,
       int CharacterPieceItemAmount = 0,
       long CombineRecipeId = 0) {
-    builder.StartTable(65);
+    builder.StartTable(67);
     CharacterExcel.AddCombineRecipeId(builder, CombineRecipeId);
     CharacterExcel.AddCharacterPieceItemId(builder, CharacterPieceItemId);
     CharacterExcel.AddSecretStoneItemId(builder, SecretStoneItemId);
     CharacterExcel.AddAirUnitHeight(builder, AirUnitHeight);
     CharacterExcel.AddRandomEffectRadius(builder, RandomEffectRadius);
-    CharacterExcel.AddBodyRadius(builder, BodyRadius);
+    CharacterExcel.AddBodyRadius(builder, bodyRadius);
     CharacterExcel.AddMainCombatStyleId(builder, MainCombatStyleId);
     CharacterExcel.AddExternalBTId(builder, ExternalBTId);
     CharacterExcel.AddCharacterAIId(builder, CharacterAIId);
@@ -220,6 +224,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddEmojiOffsetX(builder, EmojiOffsetX);
     CharacterExcel.AddHighlightFloaterHeight(builder, HighlightFloaterHeight);
     CharacterExcel.AddHpBarHeight(builder, HpBarHeight);
+    CharacterExcel.AddTargetGuideScale(builder, TargetGuideScale);
     CharacterExcel.AddWeaponLocalizeId(builder, WeaponLocalizeId);
     CharacterExcel.AddEquipmentSlot(builder, EquipmentSlotOffset);
     CharacterExcel.AddFavorLevelupType(builder, FavorLevelupType);
@@ -255,6 +260,7 @@ public struct CharacterExcel : IFlatbufferObject
     CharacterExcel.AddCanMove(builder, CanMove);
     CharacterExcel.AddHPBarHide(builder, HPBarHide);
     CharacterExcel.AddDisplayEnemyInfo(builder, DisplayEnemyInfo);
+    CharacterExcel.AddUseRepStyleOnCharacterGrowth(builder, UseRepStyleOnCharacterGrowth);
     CharacterExcel.AddJumpable(builder, Jumpable);
     CharacterExcel.AddIsDummy(builder, IsDummy);
     CharacterExcel.AddCanSurvive(builder, CanSurvive);
@@ -265,7 +271,7 @@ public struct CharacterExcel : IFlatbufferObject
     return CharacterExcel.EndCharacterExcel(builder);
   }
 
-  public static void StartCharacterExcel(FlatBufferBuilder builder) { builder.StartTable(65); }
+  public static void StartCharacterExcel(FlatBufferBuilder builder) { builder.StartTable(67); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddDevName(FlatBufferBuilder builder, StringOffset devNameOffset) { builder.AddOffset(1, devNameOffset.Value, 0); }
   public static void AddCostumeGroupId(FlatBufferBuilder builder, long costumeGroupId) { builder.AddLong(2, costumeGroupId, 0); }
@@ -301,46 +307,48 @@ public struct CharacterExcel : IFlatbufferObject
   public static void AddExternalBTId(FlatBufferBuilder builder, long externalBTId) { builder.AddLong(32, externalBTId, 0); }
   public static void AddMainCombatStyleId(FlatBufferBuilder builder, long mainCombatStyleId) { builder.AddLong(33, mainCombatStyleId, 0); }
   public static void AddCombatStyleIndex(FlatBufferBuilder builder, int combatStyleIndex) { builder.AddInt(34, combatStyleIndex, 0); }
-  public static void AddScenarioCharacter(FlatBufferBuilder builder, StringOffset scenarioCharacterOffset) { builder.AddOffset(35, scenarioCharacterOffset.Value, 0); }
-  public static void AddSpawnTemplateId(FlatBufferBuilder builder, uint spawnTemplateId) { builder.AddUint(36, spawnTemplateId, 0); }
-  public static void AddFavorLevelupType(FlatBufferBuilder builder, int favorLevelupType) { builder.AddInt(37, favorLevelupType, 0); }
-  public static void AddEquipmentSlot(FlatBufferBuilder builder, VectorOffset equipmentSlotOffset) { builder.AddOffset(38, equipmentSlotOffset.Value, 0); }
+  public static void AddUseRepStyleOnCharacterGrowth(FlatBufferBuilder builder, bool useRepStyleOnCharacterGrowth) { builder.AddBool(35, useRepStyleOnCharacterGrowth, false); }
+  public static void AddScenarioCharacter(FlatBufferBuilder builder, StringOffset scenarioCharacterOffset) { builder.AddOffset(36, scenarioCharacterOffset.Value, 0); }
+  public static void AddSpawnTemplateId(FlatBufferBuilder builder, uint spawnTemplateId) { builder.AddUint(37, spawnTemplateId, 0); }
+  public static void AddFavorLevelupType(FlatBufferBuilder builder, int favorLevelupType) { builder.AddInt(38, favorLevelupType, 0); }
+  public static void AddEquipmentSlot(FlatBufferBuilder builder, VectorOffset equipmentSlotOffset) { builder.AddOffset(39, equipmentSlotOffset.Value, 0); }
   public static VectorOffset CreateEquipmentSlotVector(FlatBufferBuilder builder, Schale.FlatData.EquipmentCategory[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateEquipmentSlotVectorBlock(FlatBufferBuilder builder, Schale.FlatData.EquipmentCategory[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEquipmentSlotVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.EquipmentCategory> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEquipmentSlotVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.EquipmentCategory>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartEquipmentSlotVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddWeaponLocalizeId(FlatBufferBuilder builder, uint weaponLocalizeId) { builder.AddUint(39, weaponLocalizeId, 0); }
-  public static void AddDisplayEnemyInfo(FlatBufferBuilder builder, bool displayEnemyInfo) { builder.AddBool(40, displayEnemyInfo, false); }
-  public static void AddBodyRadius(FlatBufferBuilder builder, long bodyRadius) { builder.AddLong(41, bodyRadius, 0); }
-  public static void AddRandomEffectRadius(FlatBufferBuilder builder, long randomEffectRadius) { builder.AddLong(42, randomEffectRadius, 0); }
-  public static void AddHPBarHide(FlatBufferBuilder builder, bool hPBarHide) { builder.AddBool(43, hPBarHide, false); }
-  public static void AddHpBarHeight(FlatBufferBuilder builder, float hpBarHeight) { builder.AddFloat(44, hpBarHeight, 0.0f); }
-  public static void AddHighlightFloaterHeight(FlatBufferBuilder builder, float highlightFloaterHeight) { builder.AddFloat(45, highlightFloaterHeight, 0.0f); }
-  public static void AddEmojiOffsetX(FlatBufferBuilder builder, float emojiOffsetX) { builder.AddFloat(46, emojiOffsetX, 0.0f); }
-  public static void AddEmojiOffsetY(FlatBufferBuilder builder, float emojiOffsetY) { builder.AddFloat(47, emojiOffsetY, 0.0f); }
-  public static void AddMoveStartFrame(FlatBufferBuilder builder, int moveStartFrame) { builder.AddInt(48, moveStartFrame, 0); }
-  public static void AddMoveEndFrame(FlatBufferBuilder builder, int moveEndFrame) { builder.AddInt(49, moveEndFrame, 0); }
-  public static void AddJumpMotionFrame(FlatBufferBuilder builder, int jumpMotionFrame) { builder.AddInt(50, jumpMotionFrame, 0); }
-  public static void AddAppearFrame(FlatBufferBuilder builder, int appearFrame) { builder.AddInt(51, appearFrame, 0); }
-  public static void AddCanMove(FlatBufferBuilder builder, bool canMove) { builder.AddBool(52, canMove, false); }
-  public static void AddCanFix(FlatBufferBuilder builder, bool canFix) { builder.AddBool(53, canFix, false); }
-  public static void AddCanCrowdControl(FlatBufferBuilder builder, bool canCrowdControl) { builder.AddBool(54, canCrowdControl, false); }
-  public static void AddCanBattleItemMove(FlatBufferBuilder builder, bool canBattleItemMove) { builder.AddBool(55, canBattleItemMove, false); }
-  public static void AddIgnoreObstacle(FlatBufferBuilder builder, bool ignoreObstacle) { builder.AddBool(56, ignoreObstacle, false); }
-  public static void AddIsAirUnit(FlatBufferBuilder builder, bool isAirUnit) { builder.AddBool(57, isAirUnit, false); }
-  public static void AddAirUnitHeight(FlatBufferBuilder builder, long airUnitHeight) { builder.AddLong(58, airUnitHeight, 0); }
-  public static void AddTags(FlatBufferBuilder builder, VectorOffset tagsOffset) { builder.AddOffset(59, tagsOffset.Value, 0); }
+  public static void AddWeaponLocalizeId(FlatBufferBuilder builder, uint weaponLocalizeId) { builder.AddUint(40, weaponLocalizeId, 0); }
+  public static void AddDisplayEnemyInfo(FlatBufferBuilder builder, bool displayEnemyInfo) { builder.AddBool(41, displayEnemyInfo, false); }
+  public static void AddBodyRadius(FlatBufferBuilder builder, long bodyRadius) { builder.AddLong(42, bodyRadius, 0); }
+  public static void AddRandomEffectRadius(FlatBufferBuilder builder, long randomEffectRadius) { builder.AddLong(43, randomEffectRadius, 0); }
+  public static void AddTargetGuideScale(FlatBufferBuilder builder, float targetGuideScale) { builder.AddFloat(44, targetGuideScale, 0.0f); }
+  public static void AddHPBarHide(FlatBufferBuilder builder, bool hPBarHide) { builder.AddBool(45, hPBarHide, false); }
+  public static void AddHpBarHeight(FlatBufferBuilder builder, float hpBarHeight) { builder.AddFloat(46, hpBarHeight, 0.0f); }
+  public static void AddHighlightFloaterHeight(FlatBufferBuilder builder, float highlightFloaterHeight) { builder.AddFloat(47, highlightFloaterHeight, 0.0f); }
+  public static void AddEmojiOffsetX(FlatBufferBuilder builder, float emojiOffsetX) { builder.AddFloat(48, emojiOffsetX, 0.0f); }
+  public static void AddEmojiOffsetY(FlatBufferBuilder builder, float emojiOffsetY) { builder.AddFloat(49, emojiOffsetY, 0.0f); }
+  public static void AddMoveStartFrame(FlatBufferBuilder builder, int moveStartFrame) { builder.AddInt(50, moveStartFrame, 0); }
+  public static void AddMoveEndFrame(FlatBufferBuilder builder, int moveEndFrame) { builder.AddInt(51, moveEndFrame, 0); }
+  public static void AddJumpMotionFrame(FlatBufferBuilder builder, int jumpMotionFrame) { builder.AddInt(52, jumpMotionFrame, 0); }
+  public static void AddAppearFrame(FlatBufferBuilder builder, int appearFrame) { builder.AddInt(53, appearFrame, 0); }
+  public static void AddCanMove(FlatBufferBuilder builder, bool canMove) { builder.AddBool(54, canMove, false); }
+  public static void AddCanFix(FlatBufferBuilder builder, bool canFix) { builder.AddBool(55, canFix, false); }
+  public static void AddCanCrowdControl(FlatBufferBuilder builder, bool canCrowdControl) { builder.AddBool(56, canCrowdControl, false); }
+  public static void AddCanBattleItemMove(FlatBufferBuilder builder, bool canBattleItemMove) { builder.AddBool(57, canBattleItemMove, false); }
+  public static void AddIgnoreObstacle(FlatBufferBuilder builder, bool ignoreObstacle) { builder.AddBool(58, ignoreObstacle, false); }
+  public static void AddIsAirUnit(FlatBufferBuilder builder, bool isAirUnit) { builder.AddBool(59, isAirUnit, false); }
+  public static void AddAirUnitHeight(FlatBufferBuilder builder, long airUnitHeight) { builder.AddLong(60, airUnitHeight, 0); }
+  public static void AddTags(FlatBufferBuilder builder, VectorOffset tagsOffset) { builder.AddOffset(61, tagsOffset.Value, 0); }
   public static VectorOffset CreateTagsVector(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateTagsVectorBlock(FlatBufferBuilder builder, Schale.FlatData.Tag[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateTagsVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.Tag> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateTagsVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.Tag>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartTagsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddSecretStoneItemId(FlatBufferBuilder builder, long secretStoneItemId) { builder.AddLong(60, secretStoneItemId, 0); }
-  public static void AddSecretStoneItemAmount(FlatBufferBuilder builder, int secretStoneItemAmount) { builder.AddInt(61, secretStoneItemAmount, 0); }
-  public static void AddCharacterPieceItemId(FlatBufferBuilder builder, long characterPieceItemId) { builder.AddLong(62, characterPieceItemId, 0); }
-  public static void AddCharacterPieceItemAmount(FlatBufferBuilder builder, int characterPieceItemAmount) { builder.AddInt(63, characterPieceItemAmount, 0); }
-  public static void AddCombineRecipeId(FlatBufferBuilder builder, long combineRecipeId) { builder.AddLong(64, combineRecipeId, 0); }
+  public static void AddSecretStoneItemId(FlatBufferBuilder builder, long secretStoneItemId) { builder.AddLong(62, secretStoneItemId, 0); }
+  public static void AddSecretStoneItemAmount(FlatBufferBuilder builder, int secretStoneItemAmount) { builder.AddInt(63, secretStoneItemAmount, 0); }
+  public static void AddCharacterPieceItemId(FlatBufferBuilder builder, long characterPieceItemId) { builder.AddLong(64, characterPieceItemId, 0); }
+  public static void AddCharacterPieceItemAmount(FlatBufferBuilder builder, int characterPieceItemAmount) { builder.AddInt(65, characterPieceItemAmount, 0); }
+  public static void AddCombineRecipeId(FlatBufferBuilder builder, long combineRecipeId) { builder.AddLong(66, combineRecipeId, 0); }
   public static Offset<Schale.FlatData.CharacterExcel> EndCharacterExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.CharacterExcel>(o);
@@ -387,6 +395,7 @@ public struct CharacterExcel : IFlatbufferObject
     _o.ExternalBTId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExternalBTId, key) : this.ExternalBTId;
     _o.MainCombatStyleId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MainCombatStyleId, key) : this.MainCombatStyleId;
     _o.CombatStyleIndex = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CombatStyleIndex, key) : this.CombatStyleIndex;
+    _o.UseRepStyleOnCharacterGrowth = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UseRepStyleOnCharacterGrowth, key) : this.UseRepStyleOnCharacterGrowth;
     _o.ScenarioCharacter = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioCharacter, key) : this.ScenarioCharacter;
     _o.SpawnTemplateId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SpawnTemplateId, key) : this.SpawnTemplateId;
     _o.FavorLevelupType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FavorLevelupType, key) : this.FavorLevelupType;
@@ -396,6 +405,7 @@ public struct CharacterExcel : IFlatbufferObject
     _o.DisplayEnemyInfo = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DisplayEnemyInfo, key) : this.DisplayEnemyInfo;
     _o.BodyRadius = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.BodyRadius, key) : this.BodyRadius;
     _o.RandomEffectRadius = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.RandomEffectRadius, key) : this.RandomEffectRadius;
+    _o.TargetGuideScale = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TargetGuideScale, key) : this.TargetGuideScale;
     _o.HPBarHide = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HPBarHide, key) : this.HPBarHide;
     _o.HpBarHeight = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HpBarHeight, key) : this.HpBarHeight;
     _o.HighlightFloaterHeight = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HighlightFloaterHeight, key) : this.HighlightFloaterHeight;
@@ -474,6 +484,7 @@ public struct CharacterExcel : IFlatbufferObject
       _o.ExternalBTId,
       _o.MainCombatStyleId,
       _o.CombatStyleIndex,
+      _o.UseRepStyleOnCharacterGrowth,
       _ScenarioCharacter,
       _o.SpawnTemplateId,
       _o.FavorLevelupType,
@@ -482,6 +493,7 @@ public struct CharacterExcel : IFlatbufferObject
       _o.DisplayEnemyInfo,
       _o.BodyRadius,
       _o.RandomEffectRadius,
+      _o.TargetGuideScale,
       _o.HPBarHide,
       _o.HpBarHeight,
       _o.HighlightFloaterHeight,
@@ -544,6 +556,7 @@ public class CharacterExcelT
   public long ExternalBTId { get; set; }
   public long MainCombatStyleId { get; set; }
   public int CombatStyleIndex { get; set; }
+  public bool UseRepStyleOnCharacterGrowth { get; set; }
   public string ScenarioCharacter { get; set; }
   public uint SpawnTemplateId { get; set; }
   public int FavorLevelupType { get; set; }
@@ -552,6 +565,7 @@ public class CharacterExcelT
   public bool DisplayEnemyInfo { get; set; }
   public long BodyRadius { get; set; }
   public long RandomEffectRadius { get; set; }
+  public float TargetGuideScale { get; set; }
   public bool HPBarHide { get; set; }
   public float HpBarHeight { get; set; }
   public float HighlightFloaterHeight { get; set; }
@@ -611,6 +625,7 @@ public class CharacterExcelT
     this.ExternalBTId = 0;
     this.MainCombatStyleId = 0;
     this.CombatStyleIndex = 0;
+    this.UseRepStyleOnCharacterGrowth = false;
     this.ScenarioCharacter = null;
     this.SpawnTemplateId = 0;
     this.FavorLevelupType = 0;
@@ -619,6 +634,7 @@ public class CharacterExcelT
     this.DisplayEnemyInfo = false;
     this.BodyRadius = 0;
     this.RandomEffectRadius = 0;
+    this.TargetGuideScale = 0.0f;
     this.HPBarHide = false;
     this.HpBarHeight = 0.0f;
     this.HighlightFloaterHeight = 0.0f;
@@ -685,36 +701,38 @@ static public class CharacterExcelVerify
       && verifier.VerifyField(tablePos, 68 /*ExternalBTId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 70 /*MainCombatStyleId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 72 /*CombatStyleIndex*/, 4 /*int*/, 4, false)
-      && verifier.VerifyString(tablePos, 74 /*ScenarioCharacter*/, false)
-      && verifier.VerifyField(tablePos, 76 /*SpawnTemplateId*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyField(tablePos, 78 /*FavorLevelupType*/, 4 /*int*/, 4, false)
-      && verifier.VerifyVectorOfData(tablePos, 80 /*EquipmentSlot*/, 4 /*Schale.FlatData.EquipmentCategory*/, false)
-      && verifier.VerifyField(tablePos, 82 /*WeaponLocalizeId*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyField(tablePos, 84 /*DisplayEnemyInfo*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 86 /*BodyRadius*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 88 /*RandomEffectRadius*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 90 /*HPBarHide*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 92 /*HpBarHeight*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 94 /*HighlightFloaterHeight*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 96 /*EmojiOffsetX*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 98 /*EmojiOffsetY*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 100 /*MoveStartFrame*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 102 /*MoveEndFrame*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 104 /*JumpMotionFrame*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 106 /*AppearFrame*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 108 /*CanMove*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 110 /*CanFix*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 112 /*CanCrowdControl*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 114 /*CanBattleItemMove*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 116 /*IgnoreObstacle*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 118 /*IsAirUnit*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 120 /*AirUnitHeight*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfData(tablePos, 122 /*Tags*/, 4 /*Schale.FlatData.Tag*/, false)
-      && verifier.VerifyField(tablePos, 124 /*SecretStoneItemId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 126 /*SecretStoneItemAmount*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 128 /*CharacterPieceItemId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 130 /*CharacterPieceItemAmount*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 132 /*CombineRecipeId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 74 /*UseRepStyleOnCharacterGrowth*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyString(tablePos, 76 /*ScenarioCharacter*/, false)
+      && verifier.VerifyField(tablePos, 78 /*SpawnTemplateId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 80 /*FavorLevelupType*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 82 /*EquipmentSlot*/, 4 /*Schale.FlatData.EquipmentCategory*/, false)
+      && verifier.VerifyField(tablePos, 84 /*WeaponLocalizeId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 86 /*DisplayEnemyInfo*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 88 /*BodyRadius*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 90 /*RandomEffectRadius*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 92 /*TargetGuideScale*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 94 /*HPBarHide*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 96 /*HpBarHeight*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 98 /*HighlightFloaterHeight*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 100 /*EmojiOffsetX*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 102 /*EmojiOffsetY*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 104 /*MoveStartFrame*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 106 /*MoveEndFrame*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 108 /*JumpMotionFrame*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 110 /*AppearFrame*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 112 /*CanMove*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 114 /*CanFix*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 116 /*CanCrowdControl*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 118 /*CanBattleItemMove*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 120 /*IgnoreObstacle*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 122 /*IsAirUnit*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 124 /*AirUnitHeight*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 126 /*Tags*/, 4 /*Schale.FlatData.Tag*/, false)
+      && verifier.VerifyField(tablePos, 128 /*SecretStoneItemId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 130 /*SecretStoneItemAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 132 /*CharacterPieceItemId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 134 /*CharacterPieceItemAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 136 /*CombineRecipeId*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

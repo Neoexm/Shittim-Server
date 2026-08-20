@@ -90,21 +90,25 @@ public struct CharacterStatExcel : IFlatbufferObject
   public long ReduceBasicsDamagedRate { get { int o = __p.__offset(138); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long EnhanceWeakDamageRate { get { int o = __p.__offset(140); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ReduceWeakDamagedRate { get { int o = __p.__offset(142); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealRate { get { int o = __p.__offset(144); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealLightArmorRate { get { int o = __p.__offset(146); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealHeavyArmorRate { get { int o = __p.__offset(148); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealUnarmedRate { get { int o = __p.__offset(150); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealElasticArmorRate { get { int o = __p.__offset(152); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealNormalArmorRate { get { int o = __p.__offset(154); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealedExplosionRate { get { int o = __p.__offset(156); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealedPierceRate { get { int o = __p.__offset(158); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealedMysticRate { get { int o = __p.__offset(160); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealedSonicRate { get { int o = __p.__offset(162); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long HealedNormalRate { get { int o = __p.__offset(164); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.TerrainAdaptationStat StreetBattleAdaptation { get { int o = __p.__offset(166); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
-  public Schale.FlatData.TerrainAdaptationStat OutdoorBattleAdaptation { get { int o = __p.__offset(168); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
-  public Schale.FlatData.TerrainAdaptationStat IndoorBattleAdaptation { get { int o = __p.__offset(170); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
-  public long RegenCost { get { int o = __p.__offset(172); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WeakDamagedRatio { get { int o = __p.__offset(144); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EffectiveDamagedRatio { get { int o = __p.__offset(146); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long NormalDamagedRatio { get { int o = __p.__offset(148); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ResistDamagedRatio { get { int o = __p.__offset(150); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealRate { get { int o = __p.__offset(152); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealLightArmorRate { get { int o = __p.__offset(154); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealHeavyArmorRate { get { int o = __p.__offset(156); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealUnarmedRate { get { int o = __p.__offset(158); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealElasticArmorRate { get { int o = __p.__offset(160); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealNormalArmorRate { get { int o = __p.__offset(162); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealedExplosionRate { get { int o = __p.__offset(164); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealedPierceRate { get { int o = __p.__offset(166); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealedMysticRate { get { int o = __p.__offset(168); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealedSonicRate { get { int o = __p.__offset(170); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long HealedNormalRate { get { int o = __p.__offset(172); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.TerrainAdaptationStat StreetBattleAdaptation { get { int o = __p.__offset(174); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
+  public Schale.FlatData.TerrainAdaptationStat OutdoorBattleAdaptation { get { int o = __p.__offset(176); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
+  public Schale.FlatData.TerrainAdaptationStat IndoorBattleAdaptation { get { int o = __p.__offset(178); return o != 0 ? (Schale.FlatData.TerrainAdaptationStat)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TerrainAdaptationStat.D; } }
+  public long RegenCost { get { int o = __p.__offset(180); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.CharacterStatExcel> CreateCharacterStatExcel(FlatBufferBuilder builder,
       long CharacterId = 0,
@@ -177,6 +181,10 @@ public struct CharacterStatExcel : IFlatbufferObject
       long ReduceBasicsDamagedRate = 0,
       long EnhanceWeakDamageRate = 0,
       long ReduceWeakDamagedRate = 0,
+      long WeakDamagedRatio = 0,
+      long EffectiveDamagedRatio = 0,
+      long NormalDamagedRatio = 0,
+      long ResistDamagedRatio = 0,
       long HealRate = 0,
       long HealLightArmorRate = 0,
       long HealHeavyArmorRate = 0,
@@ -192,7 +200,7 @@ public struct CharacterStatExcel : IFlatbufferObject
       Schale.FlatData.TerrainAdaptationStat OutdoorBattleAdaptation = Schale.FlatData.TerrainAdaptationStat.D,
       Schale.FlatData.TerrainAdaptationStat IndoorBattleAdaptation = Schale.FlatData.TerrainAdaptationStat.D,
       long RegenCost = 0) {
-    builder.StartTable(85);
+    builder.StartTable(89);
     CharacterStatExcel.AddRegenCost(builder, RegenCost);
     CharacterStatExcel.AddHealedNormalRate(builder, HealedNormalRate);
     CharacterStatExcel.AddHealedSonicRate(builder, HealedSonicRate);
@@ -205,6 +213,10 @@ public struct CharacterStatExcel : IFlatbufferObject
     CharacterStatExcel.AddHealHeavyArmorRate(builder, HealHeavyArmorRate);
     CharacterStatExcel.AddHealLightArmorRate(builder, HealLightArmorRate);
     CharacterStatExcel.AddHealRate(builder, HealRate);
+    CharacterStatExcel.AddResistDamagedRatio(builder, ResistDamagedRatio);
+    CharacterStatExcel.AddNormalDamagedRatio(builder, NormalDamagedRatio);
+    CharacterStatExcel.AddEffectiveDamagedRatio(builder, EffectiveDamagedRatio);
+    CharacterStatExcel.AddWeakDamagedRatio(builder, WeakDamagedRatio);
     CharacterStatExcel.AddReduceWeakDamagedRate(builder, ReduceWeakDamagedRate);
     CharacterStatExcel.AddEnhanceWeakDamageRate(builder, EnhanceWeakDamageRate);
     CharacterStatExcel.AddReduceBasicsDamagedRate(builder, ReduceBasicsDamagedRate);
@@ -281,7 +293,7 @@ public struct CharacterStatExcel : IFlatbufferObject
     return CharacterStatExcel.EndCharacterStatExcel(builder);
   }
 
-  public static void StartCharacterStatExcel(FlatBufferBuilder builder) { builder.StartTable(85); }
+  public static void StartCharacterStatExcel(FlatBufferBuilder builder) { builder.StartTable(89); }
   public static void AddCharacterId(FlatBufferBuilder builder, long characterId) { builder.AddLong(0, characterId, 0); }
   public static void AddStabilityRate(FlatBufferBuilder builder, long stabilityRate) { builder.AddLong(1, stabilityRate, 0); }
   public static void AddStabilityPoint(FlatBufferBuilder builder, long stabilityPoint) { builder.AddLong(2, stabilityPoint, 0); }
@@ -352,21 +364,25 @@ public struct CharacterStatExcel : IFlatbufferObject
   public static void AddReduceBasicsDamagedRate(FlatBufferBuilder builder, long reduceBasicsDamagedRate) { builder.AddLong(67, reduceBasicsDamagedRate, 0); }
   public static void AddEnhanceWeakDamageRate(FlatBufferBuilder builder, long enhanceWeakDamageRate) { builder.AddLong(68, enhanceWeakDamageRate, 0); }
   public static void AddReduceWeakDamagedRate(FlatBufferBuilder builder, long reduceWeakDamagedRate) { builder.AddLong(69, reduceWeakDamagedRate, 0); }
-  public static void AddHealRate(FlatBufferBuilder builder, long healRate) { builder.AddLong(70, healRate, 0); }
-  public static void AddHealLightArmorRate(FlatBufferBuilder builder, long healLightArmorRate) { builder.AddLong(71, healLightArmorRate, 0); }
-  public static void AddHealHeavyArmorRate(FlatBufferBuilder builder, long healHeavyArmorRate) { builder.AddLong(72, healHeavyArmorRate, 0); }
-  public static void AddHealUnarmedRate(FlatBufferBuilder builder, long healUnarmedRate) { builder.AddLong(73, healUnarmedRate, 0); }
-  public static void AddHealElasticArmorRate(FlatBufferBuilder builder, long healElasticArmorRate) { builder.AddLong(74, healElasticArmorRate, 0); }
-  public static void AddHealNormalArmorRate(FlatBufferBuilder builder, long healNormalArmorRate) { builder.AddLong(75, healNormalArmorRate, 0); }
-  public static void AddHealedExplosionRate(FlatBufferBuilder builder, long healedExplosionRate) { builder.AddLong(76, healedExplosionRate, 0); }
-  public static void AddHealedPierceRate(FlatBufferBuilder builder, long healedPierceRate) { builder.AddLong(77, healedPierceRate, 0); }
-  public static void AddHealedMysticRate(FlatBufferBuilder builder, long healedMysticRate) { builder.AddLong(78, healedMysticRate, 0); }
-  public static void AddHealedSonicRate(FlatBufferBuilder builder, long healedSonicRate) { builder.AddLong(79, healedSonicRate, 0); }
-  public static void AddHealedNormalRate(FlatBufferBuilder builder, long healedNormalRate) { builder.AddLong(80, healedNormalRate, 0); }
-  public static void AddStreetBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat streetBattleAdaptation) { builder.AddInt(81, (int)streetBattleAdaptation, 0); }
-  public static void AddOutdoorBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat outdoorBattleAdaptation) { builder.AddInt(82, (int)outdoorBattleAdaptation, 0); }
-  public static void AddIndoorBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat indoorBattleAdaptation) { builder.AddInt(83, (int)indoorBattleAdaptation, 0); }
-  public static void AddRegenCost(FlatBufferBuilder builder, long regenCost) { builder.AddLong(84, regenCost, 0); }
+  public static void AddWeakDamagedRatio(FlatBufferBuilder builder, long weakDamagedRatio) { builder.AddLong(70, weakDamagedRatio, 0); }
+  public static void AddEffectiveDamagedRatio(FlatBufferBuilder builder, long effectiveDamagedRatio) { builder.AddLong(71, effectiveDamagedRatio, 0); }
+  public static void AddNormalDamagedRatio(FlatBufferBuilder builder, long normalDamagedRatio) { builder.AddLong(72, normalDamagedRatio, 0); }
+  public static void AddResistDamagedRatio(FlatBufferBuilder builder, long resistDamagedRatio) { builder.AddLong(73, resistDamagedRatio, 0); }
+  public static void AddHealRate(FlatBufferBuilder builder, long healRate) { builder.AddLong(74, healRate, 0); }
+  public static void AddHealLightArmorRate(FlatBufferBuilder builder, long healLightArmorRate) { builder.AddLong(75, healLightArmorRate, 0); }
+  public static void AddHealHeavyArmorRate(FlatBufferBuilder builder, long healHeavyArmorRate) { builder.AddLong(76, healHeavyArmorRate, 0); }
+  public static void AddHealUnarmedRate(FlatBufferBuilder builder, long healUnarmedRate) { builder.AddLong(77, healUnarmedRate, 0); }
+  public static void AddHealElasticArmorRate(FlatBufferBuilder builder, long healElasticArmorRate) { builder.AddLong(78, healElasticArmorRate, 0); }
+  public static void AddHealNormalArmorRate(FlatBufferBuilder builder, long healNormalArmorRate) { builder.AddLong(79, healNormalArmorRate, 0); }
+  public static void AddHealedExplosionRate(FlatBufferBuilder builder, long healedExplosionRate) { builder.AddLong(80, healedExplosionRate, 0); }
+  public static void AddHealedPierceRate(FlatBufferBuilder builder, long healedPierceRate) { builder.AddLong(81, healedPierceRate, 0); }
+  public static void AddHealedMysticRate(FlatBufferBuilder builder, long healedMysticRate) { builder.AddLong(82, healedMysticRate, 0); }
+  public static void AddHealedSonicRate(FlatBufferBuilder builder, long healedSonicRate) { builder.AddLong(83, healedSonicRate, 0); }
+  public static void AddHealedNormalRate(FlatBufferBuilder builder, long healedNormalRate) { builder.AddLong(84, healedNormalRate, 0); }
+  public static void AddStreetBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat streetBattleAdaptation) { builder.AddInt(85, (int)streetBattleAdaptation, 0); }
+  public static void AddOutdoorBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat outdoorBattleAdaptation) { builder.AddInt(86, (int)outdoorBattleAdaptation, 0); }
+  public static void AddIndoorBattleAdaptation(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat indoorBattleAdaptation) { builder.AddInt(87, (int)indoorBattleAdaptation, 0); }
+  public static void AddRegenCost(FlatBufferBuilder builder, long regenCost) { builder.AddLong(88, regenCost, 0); }
   public static Offset<Schale.FlatData.CharacterStatExcel> EndCharacterStatExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.CharacterStatExcel>(o);
@@ -448,6 +464,10 @@ public struct CharacterStatExcel : IFlatbufferObject
     _o.ReduceBasicsDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceBasicsDamagedRate, key) : this.ReduceBasicsDamagedRate;
     _o.EnhanceWeakDamageRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnhanceWeakDamageRate, key) : this.EnhanceWeakDamageRate;
     _o.ReduceWeakDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceWeakDamagedRate, key) : this.ReduceWeakDamagedRate;
+    _o.WeakDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WeakDamagedRatio, key) : this.WeakDamagedRatio;
+    _o.EffectiveDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EffectiveDamagedRatio, key) : this.EffectiveDamagedRatio;
+    _o.NormalDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NormalDamagedRatio, key) : this.NormalDamagedRatio;
+    _o.ResistDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ResistDamagedRatio, key) : this.ResistDamagedRatio;
     _o.HealRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HealRate, key) : this.HealRate;
     _o.HealLightArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HealLightArmorRate, key) : this.HealLightArmorRate;
     _o.HealHeavyArmorRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HealHeavyArmorRate, key) : this.HealHeavyArmorRate;
@@ -538,6 +558,10 @@ public struct CharacterStatExcel : IFlatbufferObject
       _o.ReduceBasicsDamagedRate,
       _o.EnhanceWeakDamageRate,
       _o.ReduceWeakDamagedRate,
+      _o.WeakDamagedRatio,
+      _o.EffectiveDamagedRatio,
+      _o.NormalDamagedRatio,
+      _o.ResistDamagedRatio,
       _o.HealRate,
       _o.HealLightArmorRate,
       _o.HealHeavyArmorRate,
@@ -628,6 +652,10 @@ public class CharacterStatExcelT
   public long ReduceBasicsDamagedRate { get; set; }
   public long EnhanceWeakDamageRate { get; set; }
   public long ReduceWeakDamagedRate { get; set; }
+  public long WeakDamagedRatio { get; set; }
+  public long EffectiveDamagedRatio { get; set; }
+  public long NormalDamagedRatio { get; set; }
+  public long ResistDamagedRatio { get; set; }
   public long HealRate { get; set; }
   public long HealLightArmorRate { get; set; }
   public long HealHeavyArmorRate { get; set; }
@@ -715,6 +743,10 @@ public class CharacterStatExcelT
     this.ReduceBasicsDamagedRate = 0;
     this.EnhanceWeakDamageRate = 0;
     this.ReduceWeakDamagedRate = 0;
+    this.WeakDamagedRatio = 0;
+    this.EffectiveDamagedRatio = 0;
+    this.NormalDamagedRatio = 0;
+    this.ResistDamagedRatio = 0;
     this.HealRate = 0;
     this.HealLightArmorRate = 0;
     this.HealHeavyArmorRate = 0;
@@ -809,21 +841,25 @@ static public class CharacterStatExcelVerify
       && verifier.VerifyField(tablePos, 138 /*ReduceBasicsDamagedRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 140 /*EnhanceWeakDamageRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 142 /*ReduceWeakDamagedRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 144 /*HealRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 146 /*HealLightArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 148 /*HealHeavyArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 150 /*HealUnarmedRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 152 /*HealElasticArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 154 /*HealNormalArmorRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 156 /*HealedExplosionRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 158 /*HealedPierceRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 160 /*HealedMysticRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 162 /*HealedSonicRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 164 /*HealedNormalRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 166 /*StreetBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
-      && verifier.VerifyField(tablePos, 168 /*OutdoorBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
-      && verifier.VerifyField(tablePos, 170 /*IndoorBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
-      && verifier.VerifyField(tablePos, 172 /*RegenCost*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 144 /*WeakDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 146 /*EffectiveDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 148 /*NormalDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 150 /*ResistDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 152 /*HealRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 154 /*HealLightArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 156 /*HealHeavyArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 158 /*HealUnarmedRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 160 /*HealElasticArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 162 /*HealNormalArmorRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 164 /*HealedExplosionRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 166 /*HealedPierceRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 168 /*HealedMysticRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 170 /*HealedSonicRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 172 /*HealedNormalRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 174 /*StreetBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
+      && verifier.VerifyField(tablePos, 176 /*OutdoorBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
+      && verifier.VerifyField(tablePos, 178 /*IndoorBattleAdaptation*/, 4 /*Schale.FlatData.TerrainAdaptationStat*/, 4, false)
+      && verifier.VerifyField(tablePos, 180 /*RegenCost*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

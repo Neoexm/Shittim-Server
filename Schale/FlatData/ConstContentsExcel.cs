@@ -22,19 +22,27 @@ public struct ConstContentsExcel : IFlatbufferObject
 
   public bool UseSearchFieldOptimize { get { int o = __p.__offset(4); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
   public float SearchUpdateTime { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int LobbyDayTimeFrom { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int LobbyNightTimeFrom { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
 
   public static Offset<Schale.FlatData.ConstContentsExcel> CreateConstContentsExcel(FlatBufferBuilder builder,
       bool UseSearchFieldOptimize = false,
-      float SearchUpdateTime = 0.0f) {
-    builder.StartTable(2);
+      float SearchUpdateTime = 0.0f,
+      int LobbyDayTimeFrom = 0,
+      int LobbyNightTimeFrom = 0) {
+    builder.StartTable(4);
+    ConstContentsExcel.AddLobbyNightTimeFrom(builder, LobbyNightTimeFrom);
+    ConstContentsExcel.AddLobbyDayTimeFrom(builder, LobbyDayTimeFrom);
     ConstContentsExcel.AddSearchUpdateTime(builder, SearchUpdateTime);
     ConstContentsExcel.AddUseSearchFieldOptimize(builder, UseSearchFieldOptimize);
     return ConstContentsExcel.EndConstContentsExcel(builder);
   }
 
-  public static void StartConstContentsExcel(FlatBufferBuilder builder) { builder.StartTable(2); }
+  public static void StartConstContentsExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddUseSearchFieldOptimize(FlatBufferBuilder builder, bool useSearchFieldOptimize) { builder.AddBool(0, useSearchFieldOptimize, false); }
   public static void AddSearchUpdateTime(FlatBufferBuilder builder, float searchUpdateTime) { builder.AddFloat(1, searchUpdateTime, 0.0f); }
+  public static void AddLobbyDayTimeFrom(FlatBufferBuilder builder, int lobbyDayTimeFrom) { builder.AddInt(2, lobbyDayTimeFrom, 0); }
+  public static void AddLobbyNightTimeFrom(FlatBufferBuilder builder, int lobbyNightTimeFrom) { builder.AddInt(3, lobbyNightTimeFrom, 0); }
   public static Offset<Schale.FlatData.ConstContentsExcel> EndConstContentsExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ConstContentsExcel>(o);
@@ -48,13 +56,17 @@ public struct ConstContentsExcel : IFlatbufferObject
 		byte[] key = TableEncryptionService.CreateKey("ConstContents");
     _o.UseSearchFieldOptimize = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UseSearchFieldOptimize, key) : this.UseSearchFieldOptimize;
     _o.SearchUpdateTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SearchUpdateTime, key) : this.SearchUpdateTime;
+    _o.LobbyDayTimeFrom = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyDayTimeFrom, key) : this.LobbyDayTimeFrom;
+    _o.LobbyNightTimeFrom = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyNightTimeFrom, key) : this.LobbyNightTimeFrom;
   }
   public static Offset<Schale.FlatData.ConstContentsExcel> Pack(FlatBufferBuilder builder, ConstContentsExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstContentsExcel>);
     return CreateConstContentsExcel(
       builder,
       _o.UseSearchFieldOptimize,
-      _o.SearchUpdateTime);
+      _o.SearchUpdateTime,
+      _o.LobbyDayTimeFrom,
+      _o.LobbyNightTimeFrom);
   }
 }
 
@@ -62,10 +74,14 @@ public class ConstContentsExcelT
 {
   public bool UseSearchFieldOptimize { get; set; }
   public float SearchUpdateTime { get; set; }
+  public int LobbyDayTimeFrom { get; set; }
+  public int LobbyNightTimeFrom { get; set; }
 
   public ConstContentsExcelT() {
     this.UseSearchFieldOptimize = false;
     this.SearchUpdateTime = 0.0f;
+    this.LobbyDayTimeFrom = 0;
+    this.LobbyNightTimeFrom = 0;
   }
 }
 
@@ -77,6 +93,8 @@ static public class ConstContentsExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*UseSearchFieldOptimize*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 6 /*SearchUpdateTime*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*LobbyDayTimeFrom*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 10 /*LobbyNightTimeFrom*/, 4 /*int*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

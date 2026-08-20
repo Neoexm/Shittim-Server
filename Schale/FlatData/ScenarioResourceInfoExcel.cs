@@ -55,7 +55,18 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
   public ArraySegment<byte>? GetMovieCGPathBytes() { return __p.__vector_as_arraysegment(24); }
 #endif
   public byte[] GetMovieCGPathArray() { return __p.__vector_as_array<byte>(24); }
-  public uint LocalizeId { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public Schale.FlatData.ScenarioModeSubTypes ScenarioForceEnter { get { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.ScenarioModeSubTypes)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ScenarioModeSubTypes.None; } }
+  public uint LocalizeId { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public long AcademyLobbyCharacterId(int j) { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int AcademyLobbyCharacterIdLength { get { int o = __p.__offset(30); return o != 0 ? __p.__vector_len(o) : 0; } }
+#if ENABLE_SPAN_T
+  public Span<long> GetAcademyLobbyCharacterIdBytes() { return __p.__vector_as_span<long>(30, 8); }
+#else
+  public ArraySegment<byte>? GetAcademyLobbyCharacterIdBytes() { return __p.__vector_as_arraysegment(30); }
+#endif
+  public long[] GetAcademyLobbyCharacterIdArray() { return __p.__vector_as_array<long>(30); }
+  public string SweepAnimation(int j) { int o = __p.__offset(32); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int SweepAnimationLength { get { int o = __p.__offset(32); return o != 0 ? __p.__vector_len(o) : 0; } }
 
   public static Offset<Schale.FlatData.ScenarioResourceInfoExcel> CreateScenarioResourceInfoExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -69,15 +80,21 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
       int Ratio = 0,
       StringOffset LobbyAniPathOffset = default(StringOffset),
       StringOffset MovieCGPathOffset = default(StringOffset),
-      uint LocalizeId = 0) {
-    builder.StartTable(12);
+      Schale.FlatData.ScenarioModeSubTypes ScenarioForceEnter = Schale.FlatData.ScenarioModeSubTypes.None,
+      uint LocalizeId = 0,
+      VectorOffset AcademyLobbyCharacterIdOffset = default(VectorOffset),
+      VectorOffset SweepAnimationOffset = default(VectorOffset)) {
+    builder.StartTable(15);
     ScenarioResourceInfoExcel.AddBgmId(builder, BgmId);
     ScenarioResourceInfoExcel.AddVideoId(builder, VideoId);
     ScenarioResourceInfoExcel.AddPVDisplayOrder(builder, PVDisplayOrder);
     ScenarioResourceInfoExcel.AddPriorityOrder(builder, PriorityOrder);
     ScenarioResourceInfoExcel.AddScenarioModeId(builder, ScenarioModeId);
     ScenarioResourceInfoExcel.AddId(builder, Id);
+    ScenarioResourceInfoExcel.AddSweepAnimation(builder, SweepAnimationOffset);
+    ScenarioResourceInfoExcel.AddAcademyLobbyCharacterId(builder, AcademyLobbyCharacterIdOffset);
     ScenarioResourceInfoExcel.AddLocalizeId(builder, LocalizeId);
+    ScenarioResourceInfoExcel.AddScenarioForceEnter(builder, ScenarioForceEnter);
     ScenarioResourceInfoExcel.AddMovieCGPath(builder, MovieCGPathOffset);
     ScenarioResourceInfoExcel.AddLobbyAniPath(builder, LobbyAniPathOffset);
     ScenarioResourceInfoExcel.AddRatio(builder, Ratio);
@@ -86,7 +103,7 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
     return ScenarioResourceInfoExcel.EndScenarioResourceInfoExcel(builder);
   }
 
-  public static void StartScenarioResourceInfoExcel(FlatBufferBuilder builder) { builder.StartTable(12); }
+  public static void StartScenarioResourceInfoExcel(FlatBufferBuilder builder) { builder.StartTable(15); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddScenarioModeId(FlatBufferBuilder builder, long scenarioModeId) { builder.AddLong(1, scenarioModeId, 0); }
   public static void AddPriorityOrder(FlatBufferBuilder builder, long priorityOrder) { builder.AddLong(2, priorityOrder, 0); }
@@ -98,7 +115,20 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
   public static void AddRatio(FlatBufferBuilder builder, int ratio) { builder.AddInt(8, ratio, 0); }
   public static void AddLobbyAniPath(FlatBufferBuilder builder, StringOffset lobbyAniPathOffset) { builder.AddOffset(9, lobbyAniPathOffset.Value, 0); }
   public static void AddMovieCGPath(FlatBufferBuilder builder, StringOffset movieCGPathOffset) { builder.AddOffset(10, movieCGPathOffset.Value, 0); }
-  public static void AddLocalizeId(FlatBufferBuilder builder, uint localizeId) { builder.AddUint(11, localizeId, 0); }
+  public static void AddScenarioForceEnter(FlatBufferBuilder builder, Schale.FlatData.ScenarioModeSubTypes scenarioForceEnter) { builder.AddInt(11, (int)scenarioForceEnter, 0); }
+  public static void AddLocalizeId(FlatBufferBuilder builder, uint localizeId) { builder.AddUint(12, localizeId, 0); }
+  public static void AddAcademyLobbyCharacterId(FlatBufferBuilder builder, VectorOffset academyLobbyCharacterIdOffset) { builder.AddOffset(13, academyLobbyCharacterIdOffset.Value, 0); }
+  public static VectorOffset CreateAcademyLobbyCharacterIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
+  public static VectorOffset CreateAcademyLobbyCharacterIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateAcademyLobbyCharacterIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateAcademyLobbyCharacterIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartAcademyLobbyCharacterIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
+  public static void AddSweepAnimation(FlatBufferBuilder builder, VectorOffset sweepAnimationOffset) { builder.AddOffset(14, sweepAnimationOffset.Value, 0); }
+  public static VectorOffset CreateSweepAnimationVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateSweepAnimationVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateSweepAnimationVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateSweepAnimationVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartSweepAnimationVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
   public static Offset<Schale.FlatData.ScenarioResourceInfoExcel> EndScenarioResourceInfoExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ScenarioResourceInfoExcel>(o);
@@ -121,7 +151,12 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
     _o.Ratio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Ratio, key) : this.Ratio;
     _o.LobbyAniPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LobbyAniPath, key) : this.LobbyAniPath;
     _o.MovieCGPath = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.MovieCGPath, key) : this.MovieCGPath;
+    _o.ScenarioForceEnter = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ScenarioForceEnter, key) : this.ScenarioForceEnter;
     _o.LocalizeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LocalizeId, key) : this.LocalizeId;
+    _o.AcademyLobbyCharacterId = new List<long>();
+    for (var _j = 0; _j < this.AcademyLobbyCharacterIdLength; ++_j) {_o.AcademyLobbyCharacterId.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AcademyLobbyCharacterId(_j), key) : this.AcademyLobbyCharacterId(_j));}
+    _o.SweepAnimation = new List<string>();
+    for (var _j = 0; _j < this.SweepAnimationLength; ++_j) {_o.SweepAnimation.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SweepAnimation(_j), key) : this.SweepAnimation(_j));}
   }
   public static Offset<Schale.FlatData.ScenarioResourceInfoExcel> Pack(FlatBufferBuilder builder, ScenarioResourceInfoExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ScenarioResourceInfoExcel>);
@@ -129,6 +164,17 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
     var _SpinePath = _o.SpinePath == null ? default(StringOffset) : builder.CreateString(_o.SpinePath);
     var _LobbyAniPath = _o.LobbyAniPath == null ? default(StringOffset) : builder.CreateString(_o.LobbyAniPath);
     var _MovieCGPath = _o.MovieCGPath == null ? default(StringOffset) : builder.CreateString(_o.MovieCGPath);
+    var _AcademyLobbyCharacterId = default(VectorOffset);
+    if (_o.AcademyLobbyCharacterId != null) {
+      var __AcademyLobbyCharacterId = _o.AcademyLobbyCharacterId.ToArray();
+      _AcademyLobbyCharacterId = CreateAcademyLobbyCharacterIdVector(builder, __AcademyLobbyCharacterId);
+    }
+    var _SweepAnimation = default(VectorOffset);
+    if (_o.SweepAnimation != null) {
+      var __SweepAnimation = new StringOffset[_o.SweepAnimation.Count];
+      for (var _j = 0; _j < __SweepAnimation.Length; ++_j) { __SweepAnimation[_j] = builder.CreateString(_o.SweepAnimation[_j]); }
+      _SweepAnimation = CreateSweepAnimationVector(builder, __SweepAnimation);
+    }
     return CreateScenarioResourceInfoExcel(
       builder,
       _o.Id,
@@ -142,7 +188,10 @@ public struct ScenarioResourceInfoExcel : IFlatbufferObject
       _o.Ratio,
       _LobbyAniPath,
       _MovieCGPath,
-      _o.LocalizeId);
+      _o.ScenarioForceEnter,
+      _o.LocalizeId,
+      _AcademyLobbyCharacterId,
+      _SweepAnimation);
   }
 }
 
@@ -159,7 +208,10 @@ public class ScenarioResourceInfoExcelT
   public int Ratio { get; set; }
   public string LobbyAniPath { get; set; }
   public string MovieCGPath { get; set; }
+  public Schale.FlatData.ScenarioModeSubTypes ScenarioForceEnter { get; set; }
   public uint LocalizeId { get; set; }
+  public List<long> AcademyLobbyCharacterId { get; set; }
+  public List<string> SweepAnimation { get; set; }
 
   public ScenarioResourceInfoExcelT() {
     this.Id = 0;
@@ -173,7 +225,10 @@ public class ScenarioResourceInfoExcelT
     this.Ratio = 0;
     this.LobbyAniPath = null;
     this.MovieCGPath = null;
+    this.ScenarioForceEnter = Schale.FlatData.ScenarioModeSubTypes.None;
     this.LocalizeId = 0;
+    this.AcademyLobbyCharacterId = null;
+    this.SweepAnimation = null;
   }
 }
 
@@ -194,7 +249,10 @@ static public class ScenarioResourceInfoExcelVerify
       && verifier.VerifyField(tablePos, 20 /*Ratio*/, 4 /*int*/, 4, false)
       && verifier.VerifyString(tablePos, 22 /*LobbyAniPath*/, false)
       && verifier.VerifyString(tablePos, 24 /*MovieCGPath*/, false)
-      && verifier.VerifyField(tablePos, 26 /*LocalizeId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 26 /*ScenarioForceEnter*/, 4 /*Schale.FlatData.ScenarioModeSubTypes*/, 4, false)
+      && verifier.VerifyField(tablePos, 28 /*LocalizeId*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 30 /*AcademyLobbyCharacterId*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 32 /*SweepAnimation*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

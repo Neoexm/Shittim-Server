@@ -64,6 +64,7 @@ public enum Club : int
   FreeTradeCartel = 54,
   NicomediasTroop = 55,
   PublishingDepartment = 56,
+  FoxSquad = 57,
 };
 
 

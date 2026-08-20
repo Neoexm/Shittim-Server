@@ -377,12 +377,40 @@ public class AccountHandler : ProtocolHandlerBase
         };
 
         // Item_SelectTicket used to record furniture box picks as characters, leaving rows keyed by furniture ids. The client aborts loading on a character id with no excel entry, so drop those rows here - same repair-on-login idea as the scenario seeding in Auth.
-        var characterExcelIds = _excelService.GetTable<CharacterExcelT>().Select(x => x.Id).ToHashSet();
-        var phantomCharacters = db.GetAccountCharacters(account.ServerId).AsEnumerable().Where(x => !characterExcelIds.Contains(x.UniqueId)).ToList();
-        if (phantomCharacters.Count > 0)
+        // Only worth trusting when CharacterExcel came up whole. A table that lost rows to layout drift answers "no excel entry" for real students too, and the row being deleted is the only record of which student it was - there is nothing left to repair it from afterwards.
+        if (_excelService.IsTableComplete<CharacterExcelT>())
         {
-            _logger.LogWarning("Removing {Count} character rows with no excel entry for account {AccountId}", phantomCharacters.Count, account.ServerId);
-            db.Characters.RemoveRange(phantomCharacters);
+            var characterExcelIds = _excelService.GetTable<CharacterExcelT>().Select(x => x.Id).ToHashSet();
+            var phantomCharacters = db.GetAccountCharacters(account.ServerId).AsEnumerable().Where(x => !characterExcelIds.Contains(x.UniqueId)).ToList();
+            if (phantomCharacters.Count > 0)
+            {
+                _logger.LogWarning("Removing {Count} character rows with no excel entry for account {AccountId}", phantomCharacters.Count, account.ServerId);
+                db.Characters.RemoveRange(phantomCharacters);
+                await db.SaveChangesAsync();
+            }
+        }
+
+        // Echelon slots and the lobby assistant hold character ServerIds, and a row the purge above already took leaves them pointing at nothing - the client stops on a blank screen instead of reporting it, so an account in that state never gets far enough to be fixed from in game.
+        var ownedCharacterIds = db.GetAccountCharacters(account.ServerId).Select(x => x.ServerId).ToHashSet();
+        var danglingEchelons = db.GetAccountEchelons(account.ServerId).AsEnumerable()
+            .Where(x => x.MainSlotServerIds.Concat(x.SupportSlotServerIds).Any(s => s != 0 && !ownedCharacterIds.Contains(s))).ToList();
+        if (danglingEchelons.Count > 0)
+        {
+            foreach (var echelon in danglingEchelons)
+            {
+                echelon.MainSlotServerIds = echelon.MainSlotServerIds.Select(s => ownedCharacterIds.Contains(s) ? s : 0).ToList();
+                echelon.SupportSlotServerIds = echelon.SupportSlotServerIds.Select(s => ownedCharacterIds.Contains(s) ? s : 0).ToList();
+                if (!ownedCharacterIds.Contains(echelon.LeaderServerId))
+                    echelon.LeaderServerId = echelon.MainSlotServerIds.FirstOrDefault(s => s != 0);
+            }
+            _logger.LogWarning("Cleared dangling character slots on {Count} echelon(s) for account {AccountId}", danglingEchelons.Count, account.ServerId);
+            await db.SaveChangesAsync();
+        }
+
+        if (account.RepresentCharacterServerId != 0 && !ownedCharacterIds.Contains(account.RepresentCharacterServerId))
+        {
+            account.RepresentCharacterServerId = ownedCharacterIds.OrderBy(x => x).FirstOrDefault();
+            db.Accounts.Update(account);
             await db.SaveChangesAsync();
         }
 

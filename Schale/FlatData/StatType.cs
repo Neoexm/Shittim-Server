@@ -96,7 +96,11 @@ public enum StatType : int
   EnhanceCompositeArmorRate = 86,
   EnhanceWeakDamageRate = 87,
   ReduceWeakDamagedRate = 88,
-  Max = 89,
+  WeakDamagedRatio = 89,
+  EffectiveDamagedRatio = 90,
+  NormalDamagedRatio = 91,
+  ResistDamagedRatio = 92,
+  Max = 93,
 };
 
 

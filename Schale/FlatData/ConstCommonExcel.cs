@@ -304,8 +304,16 @@ public struct ConstCommonExcel : IFlatbufferObject
   public ArraySegment<byte>? GetQRIconUrlLiveBytes() { return __p.__vector_as_arraysegment(416); }
 #endif
   public byte[] GetQRIconUrlLiveArray() { return __p.__vector_as_array<byte>(416); }
+  public string ProbablityInfoBtnLinkKR { get { int o = __p.__offset(418); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetProbablityInfoBtnLinkKRBytes() { return __p.__vector_as_span<byte>(418, 1); }
+#else
+  public ArraySegment<byte>? GetProbablityInfoBtnLinkKRBytes() { return __p.__vector_as_arraysegment(418); }
+#endif
+  public byte[] GetProbablityInfoBtnLinkKRArray() { return __p.__vector_as_array<byte>(418); }
+  public int ClearDeckEchelonShowMaxCount { get { int o = __p.__offset(420); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
 
-  public static void StartConstCommonExcel(FlatBufferBuilder builder) { builder.StartTable(207); }
+  public static void StartConstCommonExcel(FlatBufferBuilder builder) { builder.StartTable(209); }
   public static void AddCampaignMainStageMaxRank(FlatBufferBuilder builder, int campaignMainStageMaxRank) { builder.AddInt(0, campaignMainStageMaxRank, 0); }
   public static void AddCampaignMainStageBestRecord(FlatBufferBuilder builder, int campaignMainStageBestRecord) { builder.AddInt(1, campaignMainStageBestRecord, 0); }
   public static void AddHardAdventurePlayCountRecoverDailyNumber(FlatBufferBuilder builder, int hardAdventurePlayCountRecoverDailyNumber) { builder.AddInt(2, hardAdventurePlayCountRecoverDailyNumber, 0); }
@@ -538,6 +546,8 @@ public struct ConstCommonExcel : IFlatbufferObject
   public static void AddNewbieStateHoldDay(FlatBufferBuilder builder, int newbieStateHoldDay) { builder.AddInt(204, newbieStateHoldDay, 0); }
   public static void AddQRIconUrlDev(FlatBufferBuilder builder, StringOffset qRIconUrlDevOffset) { builder.AddOffset(205, qRIconUrlDevOffset.Value, 0); }
   public static void AddQRIconUrlLive(FlatBufferBuilder builder, StringOffset qRIconUrlLiveOffset) { builder.AddOffset(206, qRIconUrlLiveOffset.Value, 0); }
+  public static void AddProbablityInfoBtnLinkKR(FlatBufferBuilder builder, StringOffset probablityInfoBtnLinkKROffset) { builder.AddOffset(207, probablityInfoBtnLinkKROffset.Value, 0); }
+  public static void AddClearDeckEchelonShowMaxCount(FlatBufferBuilder builder, int clearDeckEchelonShowMaxCount) { builder.AddInt(208, clearDeckEchelonShowMaxCount, 0); }
   public static Offset<Schale.FlatData.ConstCommonExcel> EndConstCommonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ConstCommonExcel>(o);
@@ -761,6 +771,8 @@ public struct ConstCommonExcel : IFlatbufferObject
     _o.NewbieStateHoldDay = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NewbieStateHoldDay, key) : this.NewbieStateHoldDay;
     _o.QRIconUrlDev = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.QRIconUrlDev, key) : this.QRIconUrlDev;
     _o.QRIconUrlLive = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.QRIconUrlLive, key) : this.QRIconUrlLive;
+    _o.ProbablityInfoBtnLinkKR = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ProbablityInfoBtnLinkKR, key) : this.ProbablityInfoBtnLinkKR;
+    _o.ClearDeckEchelonShowMaxCount = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClearDeckEchelonShowMaxCount, key) : this.ClearDeckEchelonShowMaxCount;
   }
   public static Offset<Schale.FlatData.ConstCommonExcel> Pack(FlatBufferBuilder builder, ConstCommonExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ConstCommonExcel>);
@@ -796,6 +808,7 @@ public struct ConstCommonExcel : IFlatbufferObject
     var _ReviewEventDateGL = _o.ReviewEventDateGL == null ? default(StringOffset) : builder.CreateString(_o.ReviewEventDateGL);
     var _QRIconUrlDev = _o.QRIconUrlDev == null ? default(StringOffset) : builder.CreateString(_o.QRIconUrlDev);
     var _QRIconUrlLive = _o.QRIconUrlLive == null ? default(StringOffset) : builder.CreateString(_o.QRIconUrlLive);
+    var _ProbablityInfoBtnLinkKR = _o.ProbablityInfoBtnLinkKR == null ? default(StringOffset) : builder.CreateString(_o.ProbablityInfoBtnLinkKR);
     StartConstCommonExcel(builder);
     AddCampaignMainStageMaxRank(builder, _o.CampaignMainStageMaxRank);
     AddCampaignMainStageBestRecord(builder, _o.CampaignMainStageBestRecord);
@@ -1004,6 +1017,8 @@ public struct ConstCommonExcel : IFlatbufferObject
     AddNewbieStateHoldDay(builder, _o.NewbieStateHoldDay);
     AddQRIconUrlDev(builder, _QRIconUrlDev);
     AddQRIconUrlLive(builder, _QRIconUrlLive);
+    AddProbablityInfoBtnLinkKR(builder, _ProbablityInfoBtnLinkKR);
+    AddClearDeckEchelonShowMaxCount(builder, _o.ClearDeckEchelonShowMaxCount);
     return EndConstCommonExcel(builder);
   }
 }
@@ -1217,6 +1232,8 @@ public class ConstCommonExcelT
   public int NewbieStateHoldDay { get; set; }
   public string QRIconUrlDev { get; set; }
   public string QRIconUrlLive { get; set; }
+  public string ProbablityInfoBtnLinkKR { get; set; }
+  public int ClearDeckEchelonShowMaxCount { get; set; }
 
   public ConstCommonExcelT() {
     this.CampaignMainStageMaxRank = 0;
@@ -1426,6 +1443,8 @@ public class ConstCommonExcelT
     this.NewbieStateHoldDay = 0;
     this.QRIconUrlDev = null;
     this.QRIconUrlLive = null;
+    this.ProbablityInfoBtnLinkKR = null;
+    this.ClearDeckEchelonShowMaxCount = 0;
   }
 }
 
@@ -1642,6 +1661,8 @@ static public class ConstCommonExcelVerify
       && verifier.VerifyField(tablePos, 412 /*NewbieStateHoldDay*/, 4 /*int*/, 4, false)
       && verifier.VerifyString(tablePos, 414 /*QRIconUrlDev*/, false)
       && verifier.VerifyString(tablePos, 416 /*QRIconUrlLive*/, false)
+      && verifier.VerifyString(tablePos, 418 /*ProbablityInfoBtnLinkKR*/, false)
+      && verifier.VerifyField(tablePos, 420 /*ClearDeckEchelonShowMaxCount*/, 4 /*int*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

@@ -85,6 +85,8 @@ public enum DialogCategory : int
   UIAttendanceEvent20 = 75,
   UIAttendanceEvent21 = 76,
   UIEventClueSearch = 77,
+  UIWorkAronaWatering = 78,
+  UIWorkCoexist_PlanaWatchPot = 79,
 };
 
 

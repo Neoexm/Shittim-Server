@@ -23,26 +23,30 @@ public struct PermanentRaidManageExcel : IFlatbufferObject
   public Schale.FlatData.RaidBossGroupType Type { get { int o = __p.__offset(4); return o != 0 ? (Schale.FlatData.RaidBossGroupType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.RaidBossGroupType.None; } }
   public string OpenRaidBossGroup(int j) { int o = __p.__offset(6); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int OpenRaidBossGroupLength { get { int o = __p.__offset(6); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public string OpenDate { get { int o = __p.__offset(8); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string HideDifficulty(int j) { int o = __p.__offset(8); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int HideDifficultyLength { get { int o = __p.__offset(8); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public string OpenDate { get { int o = __p.__offset(10); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetOpenDateBytes() { return __p.__vector_as_span<byte>(8, 1); }
+  public Span<byte> GetOpenDateBytes() { return __p.__vector_as_span<byte>(10, 1); }
 #else
-  public ArraySegment<byte>? GetOpenDateBytes() { return __p.__vector_as_arraysegment(8); }
+  public ArraySegment<byte>? GetOpenDateBytes() { return __p.__vector_as_arraysegment(10); }
 #endif
-  public byte[] GetOpenDateArray() { return __p.__vector_as_array<byte>(8); }
+  public byte[] GetOpenDateArray() { return __p.__vector_as_array<byte>(10); }
 
   public static Offset<Schale.FlatData.PermanentRaidManageExcel> CreatePermanentRaidManageExcel(FlatBufferBuilder builder,
       Schale.FlatData.RaidBossGroupType Type = Schale.FlatData.RaidBossGroupType.None,
       VectorOffset OpenRaidBossGroupOffset = default(VectorOffset),
+      VectorOffset HideDifficultyOffset = default(VectorOffset),
       StringOffset OpenDateOffset = default(StringOffset)) {
-    builder.StartTable(3);
+    builder.StartTable(4);
     PermanentRaidManageExcel.AddOpenDate(builder, OpenDateOffset);
+    PermanentRaidManageExcel.AddHideDifficulty(builder, HideDifficultyOffset);
     PermanentRaidManageExcel.AddOpenRaidBossGroup(builder, OpenRaidBossGroupOffset);
     PermanentRaidManageExcel.AddType(builder, Type);
     return PermanentRaidManageExcel.EndPermanentRaidManageExcel(builder);
   }
 
-  public static void StartPermanentRaidManageExcel(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void StartPermanentRaidManageExcel(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddType(FlatBufferBuilder builder, Schale.FlatData.RaidBossGroupType type) { builder.AddInt(0, (int)type, 0); }
   public static void AddOpenRaidBossGroup(FlatBufferBuilder builder, VectorOffset openRaidBossGroupOffset) { builder.AddOffset(1, openRaidBossGroupOffset.Value, 0); }
   public static VectorOffset CreateOpenRaidBossGroupVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
@@ -50,7 +54,13 @@ public struct PermanentRaidManageExcel : IFlatbufferObject
   public static VectorOffset CreateOpenRaidBossGroupVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateOpenRaidBossGroupVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartOpenRaidBossGroupVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddOpenDate(FlatBufferBuilder builder, StringOffset openDateOffset) { builder.AddOffset(2, openDateOffset.Value, 0); }
+  public static void AddHideDifficulty(FlatBufferBuilder builder, VectorOffset hideDifficultyOffset) { builder.AddOffset(2, hideDifficultyOffset.Value, 0); }
+  public static VectorOffset CreateHideDifficultyVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
+  public static VectorOffset CreateHideDifficultyVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateHideDifficultyVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
+  public static VectorOffset CreateHideDifficultyVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
+  public static void StartHideDifficultyVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
+  public static void AddOpenDate(FlatBufferBuilder builder, StringOffset openDateOffset) { builder.AddOffset(3, openDateOffset.Value, 0); }
   public static Offset<Schale.FlatData.PermanentRaidManageExcel> EndPermanentRaidManageExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.PermanentRaidManageExcel>(o);
@@ -65,6 +75,8 @@ public struct PermanentRaidManageExcel : IFlatbufferObject
     _o.Type = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Type, key) : this.Type;
     _o.OpenRaidBossGroup = new List<string>();
     for (var _j = 0; _j < this.OpenRaidBossGroupLength; ++_j) {_o.OpenRaidBossGroup.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenRaidBossGroup(_j), key) : this.OpenRaidBossGroup(_j));}
+    _o.HideDifficulty = new List<string>();
+    for (var _j = 0; _j < this.HideDifficultyLength; ++_j) {_o.HideDifficulty.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.HideDifficulty(_j), key) : this.HideDifficulty(_j));}
     _o.OpenDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenDate, key) : this.OpenDate;
   }
   public static Offset<Schale.FlatData.PermanentRaidManageExcel> Pack(FlatBufferBuilder builder, PermanentRaidManageExcelT _o) {
@@ -75,11 +87,18 @@ public struct PermanentRaidManageExcel : IFlatbufferObject
       for (var _j = 0; _j < __OpenRaidBossGroup.Length; ++_j) { __OpenRaidBossGroup[_j] = builder.CreateString(_o.OpenRaidBossGroup[_j]); }
       _OpenRaidBossGroup = CreateOpenRaidBossGroupVector(builder, __OpenRaidBossGroup);
     }
+    var _HideDifficulty = default(VectorOffset);
+    if (_o.HideDifficulty != null) {
+      var __HideDifficulty = new StringOffset[_o.HideDifficulty.Count];
+      for (var _j = 0; _j < __HideDifficulty.Length; ++_j) { __HideDifficulty[_j] = builder.CreateString(_o.HideDifficulty[_j]); }
+      _HideDifficulty = CreateHideDifficultyVector(builder, __HideDifficulty);
+    }
     var _OpenDate = _o.OpenDate == null ? default(StringOffset) : builder.CreateString(_o.OpenDate);
     return CreatePermanentRaidManageExcel(
       builder,
       _o.Type,
       _OpenRaidBossGroup,
+      _HideDifficulty,
       _OpenDate);
   }
 }
@@ -88,11 +107,13 @@ public class PermanentRaidManageExcelT
 {
   public Schale.FlatData.RaidBossGroupType Type { get; set; }
   public List<string> OpenRaidBossGroup { get; set; }
+  public List<string> HideDifficulty { get; set; }
   public string OpenDate { get; set; }
 
   public PermanentRaidManageExcelT() {
     this.Type = Schale.FlatData.RaidBossGroupType.None;
     this.OpenRaidBossGroup = null;
+    this.HideDifficulty = null;
     this.OpenDate = null;
   }
 }
@@ -105,7 +126,8 @@ static public class PermanentRaidManageExcelVerify
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*Type*/, 4 /*Schale.FlatData.RaidBossGroupType*/, 4, false)
       && verifier.VerifyVectorOfStrings(tablePos, 6 /*OpenRaidBossGroup*/, false)
-      && verifier.VerifyString(tablePos, 8 /*OpenDate*/, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 8 /*HideDifficulty*/, false)
+      && verifier.VerifyString(tablePos, 10 /*OpenDate*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

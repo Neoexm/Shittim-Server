@@ -34,86 +34,87 @@ public struct GroundExcel : IFlatbufferObject
   public Schale.FlatData.StageTopography StageTopography { get { int o = __p.__offset(12); return o != 0 ? (Schale.FlatData.StageTopography)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StageTopography.Street; } }
   public Schale.FlatData.BulletType EnemyBulletType { get { int o = __p.__offset(14); return o != 0 ? (Schale.FlatData.BulletType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.BulletType.Normal; } }
   public Schale.FlatData.ArmorType EnemyArmorType { get { int o = __p.__offset(16); return o != 0 ? (Schale.FlatData.ArmorType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ArmorType.LightArmor; } }
-  public long LevelNPC { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long LevelMinion { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long LevelElite { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long LevelChampion { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long LevelBoss { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ObstacleLevel { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GradeNPC { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GradeMinion { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GradeElite { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GradeChampion { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long GradeBoss { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerSightPointAdd { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerSightPointRate { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerAttackRangeAdd { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerAttackRangeRate { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemySightPointAdd { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemySightPointRate { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemyAttackRangeAdd { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemyAttackRangeRate { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerSkillRangeAdd { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerSkillRangeRate { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemySkillRangeAdd { get { int o = __p.__offset(60); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemySkillRangeRate { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PlayerMinimumPositionGapRate { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnemyMinimumPositionGapRate { get { int o = __p.__offset(66); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool PlayerSightRangeMax { get { int o = __p.__offset(68); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool EnemySightRangeMax { get { int o = __p.__offset(70); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long TSSAirUnitHeight { get { int o = __p.__offset(72); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool IsPhaseBGM { get { int o = __p.__offset(74); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long BGMId { get { int o = __p.__offset(76); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool WarningUI { get { int o = __p.__offset(78); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool TSSHatchOpen { get { int o = __p.__offset(80); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public Schale.FlatData.TacticSpeed ForcedTacticSpeed { get { int o = __p.__offset(82); return o != 0 ? (Schale.FlatData.TacticSpeed)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TacticSpeed.None; } }
-  public Schale.FlatData.TacticSkillUse ForcedSkillUse { get { int o = __p.__offset(84); return o != 0 ? (Schale.FlatData.TacticSkillUse)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TacticSkillUse.None; } }
-  public Schale.FlatData.ShowSkillCutIn ShowNPCSkillCutIn { get { int o = __p.__offset(86); return o != 0 ? (Schale.FlatData.ShowSkillCutIn)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ShowSkillCutIn.None; } }
-  public bool ImmuneHitBeforeTimeOutEnd { get { int o = __p.__offset(88); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool UIBattleHideFromScratch { get { int o = __p.__offset(90); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public Schale.FlatData.UIEnemyCountType UIEnemyCount { get { int o = __p.__offset(92); return o != 0 ? (Schale.FlatData.UIEnemyCountType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.UIEnemyCountType.Normal; } }
-  public string BattleReadyTimelinePath { get { int o = __p.__offset(94); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.ArmorType EnemySubArmorType { get { int o = __p.__offset(18); return o != 0 ? (Schale.FlatData.ArmorType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ArmorType.LightArmor; } }
+  public long LevelNPC { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LevelMinion { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LevelElite { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LevelChampion { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long LevelBoss { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ObstacleLevel { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GradeNPC { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GradeMinion { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GradeElite { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GradeChampion { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long GradeBoss { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerSightPointAdd { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerSightPointRate { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerAttackRangeAdd { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerAttackRangeRate { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemySightPointAdd { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemySightPointRate { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemyAttackRangeAdd { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemyAttackRangeRate { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerSkillRangeAdd { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerSkillRangeRate { get { int o = __p.__offset(60); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemySkillRangeAdd { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemySkillRangeRate { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PlayerMinimumPositionGapRate { get { int o = __p.__offset(66); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnemyMinimumPositionGapRate { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool PlayerSightRangeMax { get { int o = __p.__offset(70); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool EnemySightRangeMax { get { int o = __p.__offset(72); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long TSSAirUnitHeight { get { int o = __p.__offset(74); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool IsPhaseBGM { get { int o = __p.__offset(76); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long BGMId { get { int o = __p.__offset(78); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool WarningUI { get { int o = __p.__offset(80); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool TSSHatchOpen { get { int o = __p.__offset(82); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.TacticSpeed ForcedTacticSpeed { get { int o = __p.__offset(84); return o != 0 ? (Schale.FlatData.TacticSpeed)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TacticSpeed.None; } }
+  public Schale.FlatData.TacticSkillUse ForcedSkillUse { get { int o = __p.__offset(86); return o != 0 ? (Schale.FlatData.TacticSkillUse)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.TacticSkillUse.None; } }
+  public Schale.FlatData.ShowSkillCutIn ShowNPCSkillCutIn { get { int o = __p.__offset(88); return o != 0 ? (Schale.FlatData.ShowSkillCutIn)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ShowSkillCutIn.None; } }
+  public bool ImmuneHitBeforeTimeOutEnd { get { int o = __p.__offset(90); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool UIBattleHideFromScratch { get { int o = __p.__offset(92); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.UIEnemyCountType UIEnemyCount { get { int o = __p.__offset(94); return o != 0 ? (Schale.FlatData.UIEnemyCountType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.UIEnemyCountType.Normal; } }
+  public string BattleReadyTimelinePath { get { int o = __p.__offset(96); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBattleReadyTimelinePathBytes() { return __p.__vector_as_span<byte>(94, 1); }
+  public Span<byte> GetBattleReadyTimelinePathBytes() { return __p.__vector_as_span<byte>(96, 1); }
 #else
-  public ArraySegment<byte>? GetBattleReadyTimelinePathBytes() { return __p.__vector_as_arraysegment(94); }
+  public ArraySegment<byte>? GetBattleReadyTimelinePathBytes() { return __p.__vector_as_arraysegment(96); }
 #endif
-  public byte[] GetBattleReadyTimelinePathArray() { return __p.__vector_as_array<byte>(94); }
-  public string BeforeVictoryTimelinePath { get { int o = __p.__offset(96); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBattleReadyTimelinePathArray() { return __p.__vector_as_array<byte>(96); }
+  public string BeforeVictoryTimelinePath { get { int o = __p.__offset(98); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBeforeVictoryTimelinePathBytes() { return __p.__vector_as_span<byte>(96, 1); }
+  public Span<byte> GetBeforeVictoryTimelinePathBytes() { return __p.__vector_as_span<byte>(98, 1); }
 #else
-  public ArraySegment<byte>? GetBeforeVictoryTimelinePathBytes() { return __p.__vector_as_arraysegment(96); }
+  public ArraySegment<byte>? GetBeforeVictoryTimelinePathBytes() { return __p.__vector_as_arraysegment(98); }
 #endif
-  public byte[] GetBeforeVictoryTimelinePathArray() { return __p.__vector_as_array<byte>(96); }
-  public bool SkipBattleEnd { get { int o = __p.__offset(98); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool HideNPCWhenBattleEnd { get { int o = __p.__offset(100); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public bool CoverPointOff { get { int o = __p.__offset(102); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public float UIHpScale { get { int o = __p.__offset(104); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float UIEmojiScale { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public float UISkillMainLogScale { get { int o = __p.__offset(108); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
-  public int EffectCountLimit { get { int o = __p.__offset(110); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long CarrierSkillGroupId { get { int o = __p.__offset(112); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string AllyPassiveSkillId(int j) { int o = __p.__offset(114); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int AllyPassiveSkillIdLength { get { int o = __p.__offset(114); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public int AllyPassiveSkillLevel(int j) { int o = __p.__offset(116); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
-  public int AllyPassiveSkillLevelLength { get { int o = __p.__offset(116); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte[] GetBeforeVictoryTimelinePathArray() { return __p.__vector_as_array<byte>(98); }
+  public bool SkipBattleEnd { get { int o = __p.__offset(100); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool HideNPCWhenBattleEnd { get { int o = __p.__offset(102); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool CoverPointOff { get { int o = __p.__offset(104); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public float UIHpScale { get { int o = __p.__offset(106); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float UIEmojiScale { get { int o = __p.__offset(108); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public float UISkillMainLogScale { get { int o = __p.__offset(110); return o != 0 ? __p.bb.GetFloat(o + __p.bb_pos) : (float)0.0f; } }
+  public int EffectCountLimit { get { int o = __p.__offset(112); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long CarrierSkillGroupId { get { int o = __p.__offset(114); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string AllyPassiveSkillId(int j) { int o = __p.__offset(116); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int AllyPassiveSkillIdLength { get { int o = __p.__offset(116); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public int AllyPassiveSkillLevel(int j) { int o = __p.__offset(118); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int AllyPassiveSkillLevelLength { get { int o = __p.__offset(118); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<int> GetAllyPassiveSkillLevelBytes() { return __p.__vector_as_span<int>(116, 4); }
+  public Span<int> GetAllyPassiveSkillLevelBytes() { return __p.__vector_as_span<int>(118, 4); }
 #else
-  public ArraySegment<byte>? GetAllyPassiveSkillLevelBytes() { return __p.__vector_as_arraysegment(116); }
+  public ArraySegment<byte>? GetAllyPassiveSkillLevelBytes() { return __p.__vector_as_arraysegment(118); }
 #endif
-  public int[] GetAllyPassiveSkillLevelArray() { return __p.__vector_as_array<int>(116); }
-  public string EnemyPassiveSkillId(int j) { int o = __p.__offset(118); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
-  public int EnemyPassiveSkillIdLength { get { int o = __p.__offset(118); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public int EnemyPassiveSkillLevel(int j) { int o = __p.__offset(120); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
-  public int EnemyPassiveSkillLevelLength { get { int o = __p.__offset(120); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public int[] GetAllyPassiveSkillLevelArray() { return __p.__vector_as_array<int>(118); }
+  public string EnemyPassiveSkillId(int j) { int o = __p.__offset(120); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
+  public int EnemyPassiveSkillIdLength { get { int o = __p.__offset(120); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public int EnemyPassiveSkillLevel(int j) { int o = __p.__offset(122); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int EnemyPassiveSkillLevelLength { get { int o = __p.__offset(122); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<int> GetEnemyPassiveSkillLevelBytes() { return __p.__vector_as_span<int>(120, 4); }
+  public Span<int> GetEnemyPassiveSkillLevelBytes() { return __p.__vector_as_span<int>(122, 4); }
 #else
-  public ArraySegment<byte>? GetEnemyPassiveSkillLevelBytes() { return __p.__vector_as_arraysegment(120); }
+  public ArraySegment<byte>? GetEnemyPassiveSkillLevelBytes() { return __p.__vector_as_arraysegment(122); }
 #endif
-  public int[] GetEnemyPassiveSkillLevelArray() { return __p.__vector_as_array<int>(120); }
+  public int[] GetEnemyPassiveSkillLevelArray() { return __p.__vector_as_array<int>(122); }
 
   public static Offset<Schale.FlatData.GroundExcel> CreateGroundExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -123,6 +124,7 @@ public struct GroundExcel : IFlatbufferObject
       Schale.FlatData.StageTopography StageTopography = Schale.FlatData.StageTopography.Street,
       Schale.FlatData.BulletType EnemyBulletType = Schale.FlatData.BulletType.Normal,
       Schale.FlatData.ArmorType EnemyArmorType = Schale.FlatData.ArmorType.LightArmor,
+      Schale.FlatData.ArmorType EnemySubArmorType = Schale.FlatData.ArmorType.LightArmor,
       long LevelNPC = 0,
       long LevelMinion = 0,
       long LevelElite = 0,
@@ -175,7 +177,7 @@ public struct GroundExcel : IFlatbufferObject
       VectorOffset AllyPassiveSkillLevelOffset = default(VectorOffset),
       VectorOffset EnemyPassiveSkillIdOffset = default(VectorOffset),
       VectorOffset EnemyPassiveSkillLevelOffset = default(VectorOffset)) {
-    builder.StartTable(59);
+    builder.StartTable(60);
     GroundExcel.AddCarrierSkillGroupId(builder, CarrierSkillGroupId);
     GroundExcel.AddBGMId(builder, BGMId);
     GroundExcel.AddTSSAirUnitHeight(builder, TSSAirUnitHeight);
@@ -220,6 +222,7 @@ public struct GroundExcel : IFlatbufferObject
     GroundExcel.AddShowNPCSkillCutIn(builder, ShowNPCSkillCutIn);
     GroundExcel.AddForcedSkillUse(builder, ForcedSkillUse);
     GroundExcel.AddForcedTacticSpeed(builder, ForcedTacticSpeed);
+    GroundExcel.AddEnemySubArmorType(builder, EnemySubArmorType);
     GroundExcel.AddEnemyArmorType(builder, EnemyArmorType);
     GroundExcel.AddEnemyBulletType(builder, EnemyBulletType);
     GroundExcel.AddStageTopography(builder, StageTopography);
@@ -238,7 +241,7 @@ public struct GroundExcel : IFlatbufferObject
     return GroundExcel.EndGroundExcel(builder);
   }
 
-  public static void StartGroundExcel(FlatBufferBuilder builder) { builder.StartTable(59); }
+  public static void StartGroundExcel(FlatBufferBuilder builder) { builder.StartTable(60); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddStageFileName(FlatBufferBuilder builder, VectorOffset stageFileNameOffset) { builder.AddOffset(1, stageFileNameOffset.Value, 0); }
   public static VectorOffset CreateStageFileNameVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
@@ -251,73 +254,74 @@ public struct GroundExcel : IFlatbufferObject
   public static void AddStageTopography(FlatBufferBuilder builder, Schale.FlatData.StageTopography stageTopography) { builder.AddInt(4, (int)stageTopography, 0); }
   public static void AddEnemyBulletType(FlatBufferBuilder builder, Schale.FlatData.BulletType enemyBulletType) { builder.AddInt(5, (int)enemyBulletType, 0); }
   public static void AddEnemyArmorType(FlatBufferBuilder builder, Schale.FlatData.ArmorType enemyArmorType) { builder.AddInt(6, (int)enemyArmorType, 0); }
-  public static void AddLevelNPC(FlatBufferBuilder builder, long levelNPC) { builder.AddLong(7, levelNPC, 0); }
-  public static void AddLevelMinion(FlatBufferBuilder builder, long levelMinion) { builder.AddLong(8, levelMinion, 0); }
-  public static void AddLevelElite(FlatBufferBuilder builder, long levelElite) { builder.AddLong(9, levelElite, 0); }
-  public static void AddLevelChampion(FlatBufferBuilder builder, long levelChampion) { builder.AddLong(10, levelChampion, 0); }
-  public static void AddLevelBoss(FlatBufferBuilder builder, long levelBoss) { builder.AddLong(11, levelBoss, 0); }
-  public static void AddObstacleLevel(FlatBufferBuilder builder, long obstacleLevel) { builder.AddLong(12, obstacleLevel, 0); }
-  public static void AddGradeNPC(FlatBufferBuilder builder, long gradeNPC) { builder.AddLong(13, gradeNPC, 0); }
-  public static void AddGradeMinion(FlatBufferBuilder builder, long gradeMinion) { builder.AddLong(14, gradeMinion, 0); }
-  public static void AddGradeElite(FlatBufferBuilder builder, long gradeElite) { builder.AddLong(15, gradeElite, 0); }
-  public static void AddGradeChampion(FlatBufferBuilder builder, long gradeChampion) { builder.AddLong(16, gradeChampion, 0); }
-  public static void AddGradeBoss(FlatBufferBuilder builder, long gradeBoss) { builder.AddLong(17, gradeBoss, 0); }
-  public static void AddPlayerSightPointAdd(FlatBufferBuilder builder, long playerSightPointAdd) { builder.AddLong(18, playerSightPointAdd, 0); }
-  public static void AddPlayerSightPointRate(FlatBufferBuilder builder, long playerSightPointRate) { builder.AddLong(19, playerSightPointRate, 0); }
-  public static void AddPlayerAttackRangeAdd(FlatBufferBuilder builder, long playerAttackRangeAdd) { builder.AddLong(20, playerAttackRangeAdd, 0); }
-  public static void AddPlayerAttackRangeRate(FlatBufferBuilder builder, long playerAttackRangeRate) { builder.AddLong(21, playerAttackRangeRate, 0); }
-  public static void AddEnemySightPointAdd(FlatBufferBuilder builder, long enemySightPointAdd) { builder.AddLong(22, enemySightPointAdd, 0); }
-  public static void AddEnemySightPointRate(FlatBufferBuilder builder, long enemySightPointRate) { builder.AddLong(23, enemySightPointRate, 0); }
-  public static void AddEnemyAttackRangeAdd(FlatBufferBuilder builder, long enemyAttackRangeAdd) { builder.AddLong(24, enemyAttackRangeAdd, 0); }
-  public static void AddEnemyAttackRangeRate(FlatBufferBuilder builder, long enemyAttackRangeRate) { builder.AddLong(25, enemyAttackRangeRate, 0); }
-  public static void AddPlayerSkillRangeAdd(FlatBufferBuilder builder, long playerSkillRangeAdd) { builder.AddLong(26, playerSkillRangeAdd, 0); }
-  public static void AddPlayerSkillRangeRate(FlatBufferBuilder builder, long playerSkillRangeRate) { builder.AddLong(27, playerSkillRangeRate, 0); }
-  public static void AddEnemySkillRangeAdd(FlatBufferBuilder builder, long enemySkillRangeAdd) { builder.AddLong(28, enemySkillRangeAdd, 0); }
-  public static void AddEnemySkillRangeRate(FlatBufferBuilder builder, long enemySkillRangeRate) { builder.AddLong(29, enemySkillRangeRate, 0); }
-  public static void AddPlayerMinimumPositionGapRate(FlatBufferBuilder builder, long playerMinimumPositionGapRate) { builder.AddLong(30, playerMinimumPositionGapRate, 0); }
-  public static void AddEnemyMinimumPositionGapRate(FlatBufferBuilder builder, long enemyMinimumPositionGapRate) { builder.AddLong(31, enemyMinimumPositionGapRate, 0); }
-  public static void AddPlayerSightRangeMax(FlatBufferBuilder builder, bool playerSightRangeMax) { builder.AddBool(32, playerSightRangeMax, false); }
-  public static void AddEnemySightRangeMax(FlatBufferBuilder builder, bool enemySightRangeMax) { builder.AddBool(33, enemySightRangeMax, false); }
-  public static void AddTSSAirUnitHeight(FlatBufferBuilder builder, long tSSAirUnitHeight) { builder.AddLong(34, tSSAirUnitHeight, 0); }
-  public static void AddIsPhaseBGM(FlatBufferBuilder builder, bool isPhaseBGM) { builder.AddBool(35, isPhaseBGM, false); }
-  public static void AddBGMId(FlatBufferBuilder builder, long bGMId) { builder.AddLong(36, bGMId, 0); }
-  public static void AddWarningUI(FlatBufferBuilder builder, bool warningUI) { builder.AddBool(37, warningUI, false); }
-  public static void AddTSSHatchOpen(FlatBufferBuilder builder, bool tSSHatchOpen) { builder.AddBool(38, tSSHatchOpen, false); }
-  public static void AddForcedTacticSpeed(FlatBufferBuilder builder, Schale.FlatData.TacticSpeed forcedTacticSpeed) { builder.AddInt(39, (int)forcedTacticSpeed, 0); }
-  public static void AddForcedSkillUse(FlatBufferBuilder builder, Schale.FlatData.TacticSkillUse forcedSkillUse) { builder.AddInt(40, (int)forcedSkillUse, 0); }
-  public static void AddShowNPCSkillCutIn(FlatBufferBuilder builder, Schale.FlatData.ShowSkillCutIn showNPCSkillCutIn) { builder.AddInt(41, (int)showNPCSkillCutIn, 0); }
-  public static void AddImmuneHitBeforeTimeOutEnd(FlatBufferBuilder builder, bool immuneHitBeforeTimeOutEnd) { builder.AddBool(42, immuneHitBeforeTimeOutEnd, false); }
-  public static void AddUIBattleHideFromScratch(FlatBufferBuilder builder, bool uIBattleHideFromScratch) { builder.AddBool(43, uIBattleHideFromScratch, false); }
-  public static void AddUIEnemyCount(FlatBufferBuilder builder, Schale.FlatData.UIEnemyCountType uIEnemyCount) { builder.AddInt(44, (int)uIEnemyCount, 0); }
-  public static void AddBattleReadyTimelinePath(FlatBufferBuilder builder, StringOffset battleReadyTimelinePathOffset) { builder.AddOffset(45, battleReadyTimelinePathOffset.Value, 0); }
-  public static void AddBeforeVictoryTimelinePath(FlatBufferBuilder builder, StringOffset beforeVictoryTimelinePathOffset) { builder.AddOffset(46, beforeVictoryTimelinePathOffset.Value, 0); }
-  public static void AddSkipBattleEnd(FlatBufferBuilder builder, bool skipBattleEnd) { builder.AddBool(47, skipBattleEnd, false); }
-  public static void AddHideNPCWhenBattleEnd(FlatBufferBuilder builder, bool hideNPCWhenBattleEnd) { builder.AddBool(48, hideNPCWhenBattleEnd, false); }
-  public static void AddCoverPointOff(FlatBufferBuilder builder, bool coverPointOff) { builder.AddBool(49, coverPointOff, false); }
-  public static void AddUIHpScale(FlatBufferBuilder builder, float uIHpScale) { builder.AddFloat(50, uIHpScale, 0.0f); }
-  public static void AddUIEmojiScale(FlatBufferBuilder builder, float uIEmojiScale) { builder.AddFloat(51, uIEmojiScale, 0.0f); }
-  public static void AddUISkillMainLogScale(FlatBufferBuilder builder, float uISkillMainLogScale) { builder.AddFloat(52, uISkillMainLogScale, 0.0f); }
-  public static void AddEffectCountLimit(FlatBufferBuilder builder, int effectCountLimit) { builder.AddInt(53, effectCountLimit, 0); }
-  public static void AddCarrierSkillGroupId(FlatBufferBuilder builder, long carrierSkillGroupId) { builder.AddLong(54, carrierSkillGroupId, 0); }
-  public static void AddAllyPassiveSkillId(FlatBufferBuilder builder, VectorOffset allyPassiveSkillIdOffset) { builder.AddOffset(55, allyPassiveSkillIdOffset.Value, 0); }
+  public static void AddEnemySubArmorType(FlatBufferBuilder builder, Schale.FlatData.ArmorType enemySubArmorType) { builder.AddInt(7, (int)enemySubArmorType, 0); }
+  public static void AddLevelNPC(FlatBufferBuilder builder, long levelNPC) { builder.AddLong(8, levelNPC, 0); }
+  public static void AddLevelMinion(FlatBufferBuilder builder, long levelMinion) { builder.AddLong(9, levelMinion, 0); }
+  public static void AddLevelElite(FlatBufferBuilder builder, long levelElite) { builder.AddLong(10, levelElite, 0); }
+  public static void AddLevelChampion(FlatBufferBuilder builder, long levelChampion) { builder.AddLong(11, levelChampion, 0); }
+  public static void AddLevelBoss(FlatBufferBuilder builder, long levelBoss) { builder.AddLong(12, levelBoss, 0); }
+  public static void AddObstacleLevel(FlatBufferBuilder builder, long obstacleLevel) { builder.AddLong(13, obstacleLevel, 0); }
+  public static void AddGradeNPC(FlatBufferBuilder builder, long gradeNPC) { builder.AddLong(14, gradeNPC, 0); }
+  public static void AddGradeMinion(FlatBufferBuilder builder, long gradeMinion) { builder.AddLong(15, gradeMinion, 0); }
+  public static void AddGradeElite(FlatBufferBuilder builder, long gradeElite) { builder.AddLong(16, gradeElite, 0); }
+  public static void AddGradeChampion(FlatBufferBuilder builder, long gradeChampion) { builder.AddLong(17, gradeChampion, 0); }
+  public static void AddGradeBoss(FlatBufferBuilder builder, long gradeBoss) { builder.AddLong(18, gradeBoss, 0); }
+  public static void AddPlayerSightPointAdd(FlatBufferBuilder builder, long playerSightPointAdd) { builder.AddLong(19, playerSightPointAdd, 0); }
+  public static void AddPlayerSightPointRate(FlatBufferBuilder builder, long playerSightPointRate) { builder.AddLong(20, playerSightPointRate, 0); }
+  public static void AddPlayerAttackRangeAdd(FlatBufferBuilder builder, long playerAttackRangeAdd) { builder.AddLong(21, playerAttackRangeAdd, 0); }
+  public static void AddPlayerAttackRangeRate(FlatBufferBuilder builder, long playerAttackRangeRate) { builder.AddLong(22, playerAttackRangeRate, 0); }
+  public static void AddEnemySightPointAdd(FlatBufferBuilder builder, long enemySightPointAdd) { builder.AddLong(23, enemySightPointAdd, 0); }
+  public static void AddEnemySightPointRate(FlatBufferBuilder builder, long enemySightPointRate) { builder.AddLong(24, enemySightPointRate, 0); }
+  public static void AddEnemyAttackRangeAdd(FlatBufferBuilder builder, long enemyAttackRangeAdd) { builder.AddLong(25, enemyAttackRangeAdd, 0); }
+  public static void AddEnemyAttackRangeRate(FlatBufferBuilder builder, long enemyAttackRangeRate) { builder.AddLong(26, enemyAttackRangeRate, 0); }
+  public static void AddPlayerSkillRangeAdd(FlatBufferBuilder builder, long playerSkillRangeAdd) { builder.AddLong(27, playerSkillRangeAdd, 0); }
+  public static void AddPlayerSkillRangeRate(FlatBufferBuilder builder, long playerSkillRangeRate) { builder.AddLong(28, playerSkillRangeRate, 0); }
+  public static void AddEnemySkillRangeAdd(FlatBufferBuilder builder, long enemySkillRangeAdd) { builder.AddLong(29, enemySkillRangeAdd, 0); }
+  public static void AddEnemySkillRangeRate(FlatBufferBuilder builder, long enemySkillRangeRate) { builder.AddLong(30, enemySkillRangeRate, 0); }
+  public static void AddPlayerMinimumPositionGapRate(FlatBufferBuilder builder, long playerMinimumPositionGapRate) { builder.AddLong(31, playerMinimumPositionGapRate, 0); }
+  public static void AddEnemyMinimumPositionGapRate(FlatBufferBuilder builder, long enemyMinimumPositionGapRate) { builder.AddLong(32, enemyMinimumPositionGapRate, 0); }
+  public static void AddPlayerSightRangeMax(FlatBufferBuilder builder, bool playerSightRangeMax) { builder.AddBool(33, playerSightRangeMax, false); }
+  public static void AddEnemySightRangeMax(FlatBufferBuilder builder, bool enemySightRangeMax) { builder.AddBool(34, enemySightRangeMax, false); }
+  public static void AddTSSAirUnitHeight(FlatBufferBuilder builder, long tSSAirUnitHeight) { builder.AddLong(35, tSSAirUnitHeight, 0); }
+  public static void AddIsPhaseBGM(FlatBufferBuilder builder, bool isPhaseBGM) { builder.AddBool(36, isPhaseBGM, false); }
+  public static void AddBGMId(FlatBufferBuilder builder, long bGMId) { builder.AddLong(37, bGMId, 0); }
+  public static void AddWarningUI(FlatBufferBuilder builder, bool warningUI) { builder.AddBool(38, warningUI, false); }
+  public static void AddTSSHatchOpen(FlatBufferBuilder builder, bool tSSHatchOpen) { builder.AddBool(39, tSSHatchOpen, false); }
+  public static void AddForcedTacticSpeed(FlatBufferBuilder builder, Schale.FlatData.TacticSpeed forcedTacticSpeed) { builder.AddInt(40, (int)forcedTacticSpeed, 0); }
+  public static void AddForcedSkillUse(FlatBufferBuilder builder, Schale.FlatData.TacticSkillUse forcedSkillUse) { builder.AddInt(41, (int)forcedSkillUse, 0); }
+  public static void AddShowNPCSkillCutIn(FlatBufferBuilder builder, Schale.FlatData.ShowSkillCutIn showNPCSkillCutIn) { builder.AddInt(42, (int)showNPCSkillCutIn, 0); }
+  public static void AddImmuneHitBeforeTimeOutEnd(FlatBufferBuilder builder, bool immuneHitBeforeTimeOutEnd) { builder.AddBool(43, immuneHitBeforeTimeOutEnd, false); }
+  public static void AddUIBattleHideFromScratch(FlatBufferBuilder builder, bool uIBattleHideFromScratch) { builder.AddBool(44, uIBattleHideFromScratch, false); }
+  public static void AddUIEnemyCount(FlatBufferBuilder builder, Schale.FlatData.UIEnemyCountType uIEnemyCount) { builder.AddInt(45, (int)uIEnemyCount, 0); }
+  public static void AddBattleReadyTimelinePath(FlatBufferBuilder builder, StringOffset battleReadyTimelinePathOffset) { builder.AddOffset(46, battleReadyTimelinePathOffset.Value, 0); }
+  public static void AddBeforeVictoryTimelinePath(FlatBufferBuilder builder, StringOffset beforeVictoryTimelinePathOffset) { builder.AddOffset(47, beforeVictoryTimelinePathOffset.Value, 0); }
+  public static void AddSkipBattleEnd(FlatBufferBuilder builder, bool skipBattleEnd) { builder.AddBool(48, skipBattleEnd, false); }
+  public static void AddHideNPCWhenBattleEnd(FlatBufferBuilder builder, bool hideNPCWhenBattleEnd) { builder.AddBool(49, hideNPCWhenBattleEnd, false); }
+  public static void AddCoverPointOff(FlatBufferBuilder builder, bool coverPointOff) { builder.AddBool(50, coverPointOff, false); }
+  public static void AddUIHpScale(FlatBufferBuilder builder, float uIHpScale) { builder.AddFloat(51, uIHpScale, 0.0f); }
+  public static void AddUIEmojiScale(FlatBufferBuilder builder, float uIEmojiScale) { builder.AddFloat(52, uIEmojiScale, 0.0f); }
+  public static void AddUISkillMainLogScale(FlatBufferBuilder builder, float uISkillMainLogScale) { builder.AddFloat(53, uISkillMainLogScale, 0.0f); }
+  public static void AddEffectCountLimit(FlatBufferBuilder builder, int effectCountLimit) { builder.AddInt(54, effectCountLimit, 0); }
+  public static void AddCarrierSkillGroupId(FlatBufferBuilder builder, long carrierSkillGroupId) { builder.AddLong(55, carrierSkillGroupId, 0); }
+  public static void AddAllyPassiveSkillId(FlatBufferBuilder builder, VectorOffset allyPassiveSkillIdOffset) { builder.AddOffset(56, allyPassiveSkillIdOffset.Value, 0); }
   public static VectorOffset CreateAllyPassiveSkillIdVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartAllyPassiveSkillIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddAllyPassiveSkillLevel(FlatBufferBuilder builder, VectorOffset allyPassiveSkillLevelOffset) { builder.AddOffset(56, allyPassiveSkillLevelOffset.Value, 0); }
+  public static void AddAllyPassiveSkillLevel(FlatBufferBuilder builder, VectorOffset allyPassiveSkillLevelOffset) { builder.AddOffset(57, allyPassiveSkillLevelOffset.Value, 0); }
   public static VectorOffset CreateAllyPassiveSkillLevelVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillLevelVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillLevelVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateAllyPassiveSkillLevelVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartAllyPassiveSkillLevelVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddEnemyPassiveSkillId(FlatBufferBuilder builder, VectorOffset enemyPassiveSkillIdOffset) { builder.AddOffset(57, enemyPassiveSkillIdOffset.Value, 0); }
+  public static void AddEnemyPassiveSkillId(FlatBufferBuilder builder, VectorOffset enemyPassiveSkillIdOffset) { builder.AddOffset(58, enemyPassiveSkillIdOffset.Value, 0); }
   public static VectorOffset CreateEnemyPassiveSkillIdVector(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddOffset(data[i].Value); return builder.EndVector(); }
   public static VectorOffset CreateEnemyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, StringOffset[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEnemyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, ArraySegment<StringOffset> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEnemyPassiveSkillIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<StringOffset>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartEnemyPassiveSkillIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddEnemyPassiveSkillLevel(FlatBufferBuilder builder, VectorOffset enemyPassiveSkillLevelOffset) { builder.AddOffset(58, enemyPassiveSkillLevelOffset.Value, 0); }
+  public static void AddEnemyPassiveSkillLevel(FlatBufferBuilder builder, VectorOffset enemyPassiveSkillLevelOffset) { builder.AddOffset(59, enemyPassiveSkillLevelOffset.Value, 0); }
   public static VectorOffset CreateEnemyPassiveSkillLevelVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateEnemyPassiveSkillLevelVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEnemyPassiveSkillLevelVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
@@ -342,6 +346,7 @@ public struct GroundExcel : IFlatbufferObject
     _o.StageTopography = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.StageTopography, key) : this.StageTopography;
     _o.EnemyBulletType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnemyBulletType, key) : this.EnemyBulletType;
     _o.EnemyArmorType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnemyArmorType, key) : this.EnemyArmorType;
+    _o.EnemySubArmorType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EnemySubArmorType, key) : this.EnemySubArmorType;
     _o.LevelNPC = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LevelNPC, key) : this.LevelNPC;
     _o.LevelMinion = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LevelMinion, key) : this.LevelMinion;
     _o.LevelElite = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.LevelElite, key) : this.LevelElite;
@@ -441,6 +446,7 @@ public struct GroundExcel : IFlatbufferObject
       _o.StageTopography,
       _o.EnemyBulletType,
       _o.EnemyArmorType,
+      _o.EnemySubArmorType,
       _o.LevelNPC,
       _o.LevelMinion,
       _o.LevelElite,
@@ -505,6 +511,7 @@ public class GroundExcelT
   public Schale.FlatData.StageTopography StageTopography { get; set; }
   public Schale.FlatData.BulletType EnemyBulletType { get; set; }
   public Schale.FlatData.ArmorType EnemyArmorType { get; set; }
+  public Schale.FlatData.ArmorType EnemySubArmorType { get; set; }
   public long LevelNPC { get; set; }
   public long LevelMinion { get; set; }
   public long LevelElite { get; set; }
@@ -566,6 +573,7 @@ public class GroundExcelT
     this.StageTopography = Schale.FlatData.StageTopography.Street;
     this.EnemyBulletType = Schale.FlatData.BulletType.Normal;
     this.EnemyArmorType = Schale.FlatData.ArmorType.LightArmor;
+    this.EnemySubArmorType = Schale.FlatData.ArmorType.LightArmor;
     this.LevelNPC = 0;
     this.LevelMinion = 0;
     this.LevelElite = 0;
@@ -634,58 +642,59 @@ static public class GroundExcelVerify
       && verifier.VerifyField(tablePos, 12 /*StageTopography*/, 4 /*Schale.FlatData.StageTopography*/, 4, false)
       && verifier.VerifyField(tablePos, 14 /*EnemyBulletType*/, 4 /*Schale.FlatData.BulletType*/, 4, false)
       && verifier.VerifyField(tablePos, 16 /*EnemyArmorType*/, 4 /*Schale.FlatData.ArmorType*/, 4, false)
-      && verifier.VerifyField(tablePos, 18 /*LevelNPC*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 20 /*LevelMinion*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 22 /*LevelElite*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 24 /*LevelChampion*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 26 /*LevelBoss*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 28 /*ObstacleLevel*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*GradeNPC*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 32 /*GradeMinion*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 34 /*GradeElite*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 36 /*GradeChampion*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 38 /*GradeBoss*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 40 /*PlayerSightPointAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 42 /*PlayerSightPointRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 44 /*PlayerAttackRangeAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 46 /*PlayerAttackRangeRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 48 /*EnemySightPointAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 50 /*EnemySightPointRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 52 /*EnemyAttackRangeAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 54 /*EnemyAttackRangeRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 56 /*PlayerSkillRangeAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 58 /*PlayerSkillRangeRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 60 /*EnemySkillRangeAdd*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 62 /*EnemySkillRangeRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 64 /*PlayerMinimumPositionGapRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 66 /*EnemyMinimumPositionGapRate*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 68 /*PlayerSightRangeMax*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 70 /*EnemySightRangeMax*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 72 /*TSSAirUnitHeight*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 74 /*IsPhaseBGM*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 76 /*BGMId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 78 /*WarningUI*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 80 /*TSSHatchOpen*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 82 /*ForcedTacticSpeed*/, 4 /*Schale.FlatData.TacticSpeed*/, 4, false)
-      && verifier.VerifyField(tablePos, 84 /*ForcedSkillUse*/, 4 /*Schale.FlatData.TacticSkillUse*/, 4, false)
-      && verifier.VerifyField(tablePos, 86 /*ShowNPCSkillCutIn*/, 4 /*Schale.FlatData.ShowSkillCutIn*/, 4, false)
-      && verifier.VerifyField(tablePos, 88 /*ImmuneHitBeforeTimeOutEnd*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 90 /*UIBattleHideFromScratch*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 92 /*UIEnemyCount*/, 4 /*Schale.FlatData.UIEnemyCountType*/, 4, false)
-      && verifier.VerifyString(tablePos, 94 /*BattleReadyTimelinePath*/, false)
-      && verifier.VerifyString(tablePos, 96 /*BeforeVictoryTimelinePath*/, false)
-      && verifier.VerifyField(tablePos, 98 /*SkipBattleEnd*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 100 /*HideNPCWhenBattleEnd*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 102 /*CoverPointOff*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 104 /*UIHpScale*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 106 /*UIEmojiScale*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 108 /*UISkillMainLogScale*/, 4 /*float*/, 4, false)
-      && verifier.VerifyField(tablePos, 110 /*EffectCountLimit*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 112 /*CarrierSkillGroupId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 114 /*AllyPassiveSkillId*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 116 /*AllyPassiveSkillLevel*/, 4 /*int*/, false)
-      && verifier.VerifyVectorOfStrings(tablePos, 118 /*EnemyPassiveSkillId*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 120 /*EnemyPassiveSkillLevel*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 18 /*EnemySubArmorType*/, 4 /*Schale.FlatData.ArmorType*/, 4, false)
+      && verifier.VerifyField(tablePos, 20 /*LevelNPC*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*LevelMinion*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 24 /*LevelElite*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 26 /*LevelChampion*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*LevelBoss*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 30 /*ObstacleLevel*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*GradeNPC*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 34 /*GradeMinion*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 36 /*GradeElite*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 38 /*GradeChampion*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 40 /*GradeBoss*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 42 /*PlayerSightPointAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*PlayerSightPointRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 46 /*PlayerAttackRangeAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 48 /*PlayerAttackRangeRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 50 /*EnemySightPointAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 52 /*EnemySightPointRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 54 /*EnemyAttackRangeAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 56 /*EnemyAttackRangeRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 58 /*PlayerSkillRangeAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 60 /*PlayerSkillRangeRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 62 /*EnemySkillRangeAdd*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 64 /*EnemySkillRangeRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 66 /*PlayerMinimumPositionGapRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 68 /*EnemyMinimumPositionGapRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 70 /*PlayerSightRangeMax*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 72 /*EnemySightRangeMax*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 74 /*TSSAirUnitHeight*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 76 /*IsPhaseBGM*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 78 /*BGMId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 80 /*WarningUI*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 82 /*TSSHatchOpen*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 84 /*ForcedTacticSpeed*/, 4 /*Schale.FlatData.TacticSpeed*/, 4, false)
+      && verifier.VerifyField(tablePos, 86 /*ForcedSkillUse*/, 4 /*Schale.FlatData.TacticSkillUse*/, 4, false)
+      && verifier.VerifyField(tablePos, 88 /*ShowNPCSkillCutIn*/, 4 /*Schale.FlatData.ShowSkillCutIn*/, 4, false)
+      && verifier.VerifyField(tablePos, 90 /*ImmuneHitBeforeTimeOutEnd*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 92 /*UIBattleHideFromScratch*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 94 /*UIEnemyCount*/, 4 /*Schale.FlatData.UIEnemyCountType*/, 4, false)
+      && verifier.VerifyString(tablePos, 96 /*BattleReadyTimelinePath*/, false)
+      && verifier.VerifyString(tablePos, 98 /*BeforeVictoryTimelinePath*/, false)
+      && verifier.VerifyField(tablePos, 100 /*SkipBattleEnd*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 102 /*HideNPCWhenBattleEnd*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 104 /*CoverPointOff*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 106 /*UIHpScale*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 108 /*UIEmojiScale*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 110 /*UISkillMainLogScale*/, 4 /*float*/, 4, false)
+      && verifier.VerifyField(tablePos, 112 /*EffectCountLimit*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 114 /*CarrierSkillGroupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 116 /*AllyPassiveSkillId*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 118 /*AllyPassiveSkillLevel*/, 4 /*int*/, false)
+      && verifier.VerifyVectorOfStrings(tablePos, 120 /*EnemyPassiveSkillId*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 122 /*EnemyPassiveSkillLevel*/, 4 /*int*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

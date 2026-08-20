@@ -21,50 +21,52 @@ public struct FieldSeasonExcel : IFlatbufferObject
   public FieldSeasonExcel __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public long UniqueId { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EventContentId { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EntryDateId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long InstantEntryDateId { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public string StartDate { get { int o = __p.__offset(12); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.FieldContentType FieldContentType { get { int o = __p.__offset(6); return o != 0 ? (Schale.FlatData.FieldContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.FieldContentType.Event; } }
+  public long EventContentId { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EntryDateId { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long InstantEntryDateId { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string StartDate { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetStartDateBytes() { return __p.__vector_as_span<byte>(12, 1); }
+  public Span<byte> GetStartDateBytes() { return __p.__vector_as_span<byte>(14, 1); }
 #else
-  public ArraySegment<byte>? GetStartDateBytes() { return __p.__vector_as_arraysegment(12); }
+  public ArraySegment<byte>? GetStartDateBytes() { return __p.__vector_as_arraysegment(14); }
 #endif
-  public byte[] GetStartDateArray() { return __p.__vector_as_array<byte>(12); }
-  public string EndDate { get { int o = __p.__offset(14); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetStartDateArray() { return __p.__vector_as_array<byte>(14); }
+  public string EndDate { get { int o = __p.__offset(16); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetEndDateBytes() { return __p.__vector_as_span<byte>(14, 1); }
+  public Span<byte> GetEndDateBytes() { return __p.__vector_as_span<byte>(16, 1); }
 #else
-  public ArraySegment<byte>? GetEndDateBytes() { return __p.__vector_as_arraysegment(14); }
+  public ArraySegment<byte>? GetEndDateBytes() { return __p.__vector_as_arraysegment(16); }
 #endif
-  public byte[] GetEndDateArray() { return __p.__vector_as_array<byte>(14); }
-  public long LobbyBGMChangeStageId { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long FieldPrefabControlID { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.FieldDialogType FieldGetKeywordCallDialogEnum { get { int o = __p.__offset(20); return o != 0 ? (Schale.FlatData.FieldDialogType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.FieldDialogType.None; } }
-  public string MasteryImagePath { get { int o = __p.__offset(22); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetEndDateArray() { return __p.__vector_as_array<byte>(16); }
+  public long LobbyBGMChangeStageId { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long FieldPrefabControlID { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.FieldDialogType FieldGetKeywordCallDialogEnum { get { int o = __p.__offset(22); return o != 0 ? (Schale.FlatData.FieldDialogType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.FieldDialogType.None; } }
+  public string MasteryImagePath { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetMasteryImagePathBytes() { return __p.__vector_as_span<byte>(22, 1); }
+  public Span<byte> GetMasteryImagePathBytes() { return __p.__vector_as_span<byte>(24, 1); }
 #else
-  public ArraySegment<byte>? GetMasteryImagePathBytes() { return __p.__vector_as_arraysegment(22); }
+  public ArraySegment<byte>? GetMasteryImagePathBytes() { return __p.__vector_as_arraysegment(24); }
 #endif
-  public byte[] GetMasteryImagePathArray() { return __p.__vector_as_array<byte>(22); }
-  public string FieldLobbyTitleImagePath { get { int o = __p.__offset(24); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetMasteryImagePathArray() { return __p.__vector_as_array<byte>(24); }
+  public string FieldLobbyTitleImagePath { get { int o = __p.__offset(26); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetFieldLobbyTitleImagePathBytes() { return __p.__vector_as_span<byte>(24, 1); }
+  public Span<byte> GetFieldLobbyTitleImagePathBytes() { return __p.__vector_as_span<byte>(26, 1); }
 #else
-  public ArraySegment<byte>? GetFieldLobbyTitleImagePathBytes() { return __p.__vector_as_arraysegment(24); }
+  public ArraySegment<byte>? GetFieldLobbyTitleImagePathBytes() { return __p.__vector_as_arraysegment(26); }
 #endif
-  public byte[] GetFieldLobbyTitleImagePathArray() { return __p.__vector_as_array<byte>(24); }
-  public string KeywordLogoImagePath { get { int o = __p.__offset(26); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetFieldLobbyTitleImagePathArray() { return __p.__vector_as_array<byte>(26); }
+  public string KeywordLogoImagePath { get { int o = __p.__offset(28); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetKeywordLogoImagePathBytes() { return __p.__vector_as_span<byte>(26, 1); }
+  public Span<byte> GetKeywordLogoImagePathBytes() { return __p.__vector_as_span<byte>(28, 1); }
 #else
-  public ArraySegment<byte>? GetKeywordLogoImagePathBytes() { return __p.__vector_as_arraysegment(26); }
+  public ArraySegment<byte>? GetKeywordLogoImagePathBytes() { return __p.__vector_as_arraysegment(28); }
 #endif
-  public byte[] GetKeywordLogoImagePathArray() { return __p.__vector_as_array<byte>(26); }
+  public byte[] GetKeywordLogoImagePathArray() { return __p.__vector_as_array<byte>(28); }
 
   public static Offset<Schale.FlatData.FieldSeasonExcel> CreateFieldSeasonExcel(FlatBufferBuilder builder,
       long UniqueId = 0,
+      Schale.FlatData.FieldContentType FieldContentType = Schale.FlatData.FieldContentType.Event,
       long EventContentId = 0,
       long EntryDateId = 0,
       long InstantEntryDateId = 0,
@@ -76,7 +78,7 @@ public struct FieldSeasonExcel : IFlatbufferObject
       StringOffset MasteryImagePathOffset = default(StringOffset),
       StringOffset FieldLobbyTitleImagePathOffset = default(StringOffset),
       StringOffset KeywordLogoImagePathOffset = default(StringOffset)) {
-    builder.StartTable(12);
+    builder.StartTable(13);
     FieldSeasonExcel.AddFieldPrefabControlID(builder, FieldPrefabControlID);
     FieldSeasonExcel.AddLobbyBGMChangeStageId(builder, LobbyBGMChangeStageId);
     FieldSeasonExcel.AddInstantEntryDateId(builder, InstantEntryDateId);
@@ -89,22 +91,24 @@ public struct FieldSeasonExcel : IFlatbufferObject
     FieldSeasonExcel.AddFieldGetKeywordCallDialogEnum(builder, FieldGetKeywordCallDialogEnum);
     FieldSeasonExcel.AddEndDate(builder, EndDateOffset);
     FieldSeasonExcel.AddStartDate(builder, StartDateOffset);
+    FieldSeasonExcel.AddFieldContentType(builder, FieldContentType);
     return FieldSeasonExcel.EndFieldSeasonExcel(builder);
   }
 
-  public static void StartFieldSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(12); }
+  public static void StartFieldSeasonExcel(FlatBufferBuilder builder) { builder.StartTable(13); }
   public static void AddUniqueId(FlatBufferBuilder builder, long uniqueId) { builder.AddLong(0, uniqueId, 0); }
-  public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(1, eventContentId, 0); }
-  public static void AddEntryDateId(FlatBufferBuilder builder, long entryDateId) { builder.AddLong(2, entryDateId, 0); }
-  public static void AddInstantEntryDateId(FlatBufferBuilder builder, long instantEntryDateId) { builder.AddLong(3, instantEntryDateId, 0); }
-  public static void AddStartDate(FlatBufferBuilder builder, StringOffset startDateOffset) { builder.AddOffset(4, startDateOffset.Value, 0); }
-  public static void AddEndDate(FlatBufferBuilder builder, StringOffset endDateOffset) { builder.AddOffset(5, endDateOffset.Value, 0); }
-  public static void AddLobbyBGMChangeStageId(FlatBufferBuilder builder, long lobbyBGMChangeStageId) { builder.AddLong(6, lobbyBGMChangeStageId, 0); }
-  public static void AddFieldPrefabControlID(FlatBufferBuilder builder, long fieldPrefabControlID) { builder.AddLong(7, fieldPrefabControlID, 0); }
-  public static void AddFieldGetKeywordCallDialogEnum(FlatBufferBuilder builder, Schale.FlatData.FieldDialogType fieldGetKeywordCallDialogEnum) { builder.AddInt(8, (int)fieldGetKeywordCallDialogEnum, 0); }
-  public static void AddMasteryImagePath(FlatBufferBuilder builder, StringOffset masteryImagePathOffset) { builder.AddOffset(9, masteryImagePathOffset.Value, 0); }
-  public static void AddFieldLobbyTitleImagePath(FlatBufferBuilder builder, StringOffset fieldLobbyTitleImagePathOffset) { builder.AddOffset(10, fieldLobbyTitleImagePathOffset.Value, 0); }
-  public static void AddKeywordLogoImagePath(FlatBufferBuilder builder, StringOffset keywordLogoImagePathOffset) { builder.AddOffset(11, keywordLogoImagePathOffset.Value, 0); }
+  public static void AddFieldContentType(FlatBufferBuilder builder, Schale.FlatData.FieldContentType fieldContentType) { builder.AddInt(1, (int)fieldContentType, 0); }
+  public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(2, eventContentId, 0); }
+  public static void AddEntryDateId(FlatBufferBuilder builder, long entryDateId) { builder.AddLong(3, entryDateId, 0); }
+  public static void AddInstantEntryDateId(FlatBufferBuilder builder, long instantEntryDateId) { builder.AddLong(4, instantEntryDateId, 0); }
+  public static void AddStartDate(FlatBufferBuilder builder, StringOffset startDateOffset) { builder.AddOffset(5, startDateOffset.Value, 0); }
+  public static void AddEndDate(FlatBufferBuilder builder, StringOffset endDateOffset) { builder.AddOffset(6, endDateOffset.Value, 0); }
+  public static void AddLobbyBGMChangeStageId(FlatBufferBuilder builder, long lobbyBGMChangeStageId) { builder.AddLong(7, lobbyBGMChangeStageId, 0); }
+  public static void AddFieldPrefabControlID(FlatBufferBuilder builder, long fieldPrefabControlID) { builder.AddLong(8, fieldPrefabControlID, 0); }
+  public static void AddFieldGetKeywordCallDialogEnum(FlatBufferBuilder builder, Schale.FlatData.FieldDialogType fieldGetKeywordCallDialogEnum) { builder.AddInt(9, (int)fieldGetKeywordCallDialogEnum, 0); }
+  public static void AddMasteryImagePath(FlatBufferBuilder builder, StringOffset masteryImagePathOffset) { builder.AddOffset(10, masteryImagePathOffset.Value, 0); }
+  public static void AddFieldLobbyTitleImagePath(FlatBufferBuilder builder, StringOffset fieldLobbyTitleImagePathOffset) { builder.AddOffset(11, fieldLobbyTitleImagePathOffset.Value, 0); }
+  public static void AddKeywordLogoImagePath(FlatBufferBuilder builder, StringOffset keywordLogoImagePathOffset) { builder.AddOffset(12, keywordLogoImagePathOffset.Value, 0); }
   public static Offset<Schale.FlatData.FieldSeasonExcel> EndFieldSeasonExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.FieldSeasonExcel>(o);
@@ -117,6 +121,7 @@ public struct FieldSeasonExcel : IFlatbufferObject
   public void UnPackTo(FieldSeasonExcelT _o) {
 		byte[] key = TableEncryptionService.CreateKey("FieldSeason");
     _o.UniqueId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.UniqueId, key) : this.UniqueId;
+    _o.FieldContentType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.FieldContentType, key) : this.FieldContentType;
     _o.EventContentId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EventContentId, key) : this.EventContentId;
     _o.EntryDateId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EntryDateId, key) : this.EntryDateId;
     _o.InstantEntryDateId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.InstantEntryDateId, key) : this.InstantEntryDateId;
@@ -139,6 +144,7 @@ public struct FieldSeasonExcel : IFlatbufferObject
     return CreateFieldSeasonExcel(
       builder,
       _o.UniqueId,
+      _o.FieldContentType,
       _o.EventContentId,
       _o.EntryDateId,
       _o.InstantEntryDateId,
@@ -156,6 +162,7 @@ public struct FieldSeasonExcel : IFlatbufferObject
 public class FieldSeasonExcelT
 {
   public long UniqueId { get; set; }
+  public Schale.FlatData.FieldContentType FieldContentType { get; set; }
   public long EventContentId { get; set; }
   public long EntryDateId { get; set; }
   public long InstantEntryDateId { get; set; }
@@ -170,6 +177,7 @@ public class FieldSeasonExcelT
 
   public FieldSeasonExcelT() {
     this.UniqueId = 0;
+    this.FieldContentType = Schale.FlatData.FieldContentType.Event;
     this.EventContentId = 0;
     this.EntryDateId = 0;
     this.InstantEntryDateId = 0;
@@ -191,17 +199,18 @@ static public class FieldSeasonExcelVerify
   {
     return verifier.VerifyTableStart(tablePos)
       && verifier.VerifyField(tablePos, 4 /*UniqueId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 6 /*EventContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 8 /*EntryDateId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 10 /*InstantEntryDateId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyString(tablePos, 12 /*StartDate*/, false)
-      && verifier.VerifyString(tablePos, 14 /*EndDate*/, false)
-      && verifier.VerifyField(tablePos, 16 /*LobbyBGMChangeStageId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 18 /*FieldPrefabControlID*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 20 /*FieldGetKeywordCallDialogEnum*/, 4 /*Schale.FlatData.FieldDialogType*/, 4, false)
-      && verifier.VerifyString(tablePos, 22 /*MasteryImagePath*/, false)
-      && verifier.VerifyString(tablePos, 24 /*FieldLobbyTitleImagePath*/, false)
-      && verifier.VerifyString(tablePos, 26 /*KeywordLogoImagePath*/, false)
+      && verifier.VerifyField(tablePos, 6 /*FieldContentType*/, 4 /*Schale.FlatData.FieldContentType*/, 4, false)
+      && verifier.VerifyField(tablePos, 8 /*EventContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 10 /*EntryDateId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 12 /*InstantEntryDateId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 14 /*StartDate*/, false)
+      && verifier.VerifyString(tablePos, 16 /*EndDate*/, false)
+      && verifier.VerifyField(tablePos, 18 /*LobbyBGMChangeStageId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 20 /*FieldPrefabControlID*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 22 /*FieldGetKeywordCallDialogEnum*/, 4 /*Schale.FlatData.FieldDialogType*/, 4, false)
+      && verifier.VerifyString(tablePos, 24 /*MasteryImagePath*/, false)
+      && verifier.VerifyString(tablePos, 26 /*FieldLobbyTitleImagePath*/, false)
+      && verifier.VerifyString(tablePos, 28 /*KeywordLogoImagePath*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

@@ -61,31 +61,33 @@ public struct ItemExcel : IFlatbufferObject
   public ArraySegment<byte>? GetTagsBytes() { return __p.__vector_as_arraysegment(46); }
 #endif
   public Schale.FlatData.Tag[] GetTagsArray() { int o = __p.__offset(46); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.Tag[] a = new Schale.FlatData.Tag[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.Tag)__p.bb.GetInt(p + i * 4); } return a; }
-  public long CraftQualityTier0 { get { int o = __p.__offset(48); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long CraftQualityTier1 { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long CraftQualityTier2 { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ShiftingCraftQuality { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int MaxGiftTags { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.ShopCategoryType ShopCategory(int j) { int o = __p.__offset(58); return o != 0 ? (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ShopCategoryType)0; }
-  public int ShopCategoryLength { get { int o = __p.__offset(58); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public bool IsCollaboration { get { int o = __p.__offset(48); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long CraftQualityTier0 { get { int o = __p.__offset(50); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftQualityTier1 { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long CraftQualityTier2 { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ShiftingCraftQuality { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int MaxGiftTags { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.ShopCategoryType ShopCategory(int j) { int o = __p.__offset(60); return o != 0 ? (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.ShopCategoryType)0; }
+  public int ShopCategoryLength { get { int o = __p.__offset(60); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.ShopCategoryType> GetShopCategoryBytes() { return __p.__vector_as_span<Schale.FlatData.ShopCategoryType>(58, 4); }
+  public Span<Schale.FlatData.ShopCategoryType> GetShopCategoryBytes() { return __p.__vector_as_span<Schale.FlatData.ShopCategoryType>(60, 4); }
 #else
-  public ArraySegment<byte>? GetShopCategoryBytes() { return __p.__vector_as_arraysegment(58); }
+  public ArraySegment<byte>? GetShopCategoryBytes() { return __p.__vector_as_arraysegment(60); }
 #endif
-  public Schale.FlatData.ShopCategoryType[] GetShopCategoryArray() { int o = __p.__offset(58); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ShopCategoryType[] a = new Schale.FlatData.ShopCategoryType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(p + i * 4); } return a; }
-  public string ExpirationDateTime { get { int o = __p.__offset(60); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public Schale.FlatData.ShopCategoryType[] GetShopCategoryArray() { int o = __p.__offset(60); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.ShopCategoryType[] a = new Schale.FlatData.ShopCategoryType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.ShopCategoryType)__p.bb.GetInt(p + i * 4); } return a; }
+  public string ExpirationDateTime { get { int o = __p.__offset(62); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetExpirationDateTimeBytes() { return __p.__vector_as_span<byte>(60, 1); }
+  public Span<byte> GetExpirationDateTimeBytes() { return __p.__vector_as_span<byte>(62, 1); }
 #else
-  public ArraySegment<byte>? GetExpirationDateTimeBytes() { return __p.__vector_as_arraysegment(60); }
+  public ArraySegment<byte>? GetExpirationDateTimeBytes() { return __p.__vector_as_arraysegment(62); }
 #endif
-  public byte[] GetExpirationDateTimeArray() { return __p.__vector_as_array<byte>(60); }
-  public int ExpirationNotifyDateIn { get { int o = __p.__offset(62); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long ShortcutTypeId { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.GachaTicketType GachaTicket { get { int o = __p.__offset(66); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GachaTicketType.None; } }
-  public long AlertPopupId { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long ShiftingCraftRecipe { get { int o = __p.__offset(70); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public byte[] GetExpirationDateTimeArray() { return __p.__vector_as_array<byte>(62); }
+  public int ExpirationNotifyDateIn { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public bool IsOverrideExpiration { get { int o = __p.__offset(66); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long ShortcutTypeId { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.GachaTicketType GachaTicket { get { int o = __p.__offset(70); return o != 0 ? (Schale.FlatData.GachaTicketType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.GachaTicketType.None; } }
+  public long AlertPopupId { get { int o = __p.__offset(72); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ShiftingCraftRecipe { get { int o = __p.__offset(74); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ItemExcel> CreateItemExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -110,6 +112,7 @@ public struct ItemExcel : IFlatbufferObject
       bool CanTierUpgrade = false,
       long TierUpgradeRecipeCraftId = 0,
       VectorOffset TagsOffset = default(VectorOffset),
+      bool isCollaboration = false,
       long CraftQualityTier0 = 0,
       long CraftQualityTier1 = 0,
       long CraftQualityTier2 = 0,
@@ -118,11 +121,12 @@ public struct ItemExcel : IFlatbufferObject
       VectorOffset ShopCategoryOffset = default(VectorOffset),
       StringOffset ExpirationDateTimeOffset = default(StringOffset),
       int ExpirationNotifyDateIn = 0,
+      bool IsOverrideExpiration = false,
       long ShortcutTypeId = 0,
       Schale.FlatData.GachaTicketType GachaTicket = Schale.FlatData.GachaTicketType.None,
       long AlertPopupId = 0,
       long ShiftingCraftRecipe = 0) {
-    builder.StartTable(34);
+    builder.StartTable(36);
     ItemExcel.AddShiftingCraftRecipe(builder, ShiftingCraftRecipe);
     ItemExcel.AddAlertPopupId(builder, AlertPopupId);
     ItemExcel.AddShortcutTypeId(builder, ShortcutTypeId);
@@ -155,12 +159,14 @@ public struct ItemExcel : IFlatbufferObject
     ItemExcel.AddLocalizeEtcId(builder, LocalizeEtcId);
     ItemExcel.AddProductionStep(builder, ProductionStep);
     ItemExcel.AddRarity(builder, Rarity);
+    ItemExcel.AddIsOverrideExpiration(builder, IsOverrideExpiration);
+    ItemExcel.AddIsCollaboration(builder, isCollaboration);
     ItemExcel.AddCanTierUpgrade(builder, CanTierUpgrade);
     ItemExcel.AddImmediateUse(builder, ImmediateUse);
     return ItemExcel.EndItemExcel(builder);
   }
 
-  public static void StartItemExcel(FlatBufferBuilder builder) { builder.StartTable(34); }
+  public static void StartItemExcel(FlatBufferBuilder builder) { builder.StartTable(36); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddGroupId(FlatBufferBuilder builder, long groupId) { builder.AddLong(1, groupId, 0); }
   public static void AddRarity(FlatBufferBuilder builder, Schale.FlatData.Rarity rarity) { builder.AddInt(2, (int)rarity, 0); }
@@ -188,23 +194,25 @@ public struct ItemExcel : IFlatbufferObject
   public static VectorOffset CreateTagsVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.Tag> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateTagsVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.Tag>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartTagsVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddCraftQualityTier0(FlatBufferBuilder builder, long craftQualityTier0) { builder.AddLong(22, craftQualityTier0, 0); }
-  public static void AddCraftQualityTier1(FlatBufferBuilder builder, long craftQualityTier1) { builder.AddLong(23, craftQualityTier1, 0); }
-  public static void AddCraftQualityTier2(FlatBufferBuilder builder, long craftQualityTier2) { builder.AddLong(24, craftQualityTier2, 0); }
-  public static void AddShiftingCraftQuality(FlatBufferBuilder builder, long shiftingCraftQuality) { builder.AddLong(25, shiftingCraftQuality, 0); }
-  public static void AddMaxGiftTags(FlatBufferBuilder builder, int maxGiftTags) { builder.AddInt(26, maxGiftTags, 0); }
-  public static void AddShopCategory(FlatBufferBuilder builder, VectorOffset shopCategoryOffset) { builder.AddOffset(27, shopCategoryOffset.Value, 0); }
+  public static void AddIsCollaboration(FlatBufferBuilder builder, bool isCollaboration) { builder.AddBool(22, isCollaboration, false); }
+  public static void AddCraftQualityTier0(FlatBufferBuilder builder, long craftQualityTier0) { builder.AddLong(23, craftQualityTier0, 0); }
+  public static void AddCraftQualityTier1(FlatBufferBuilder builder, long craftQualityTier1) { builder.AddLong(24, craftQualityTier1, 0); }
+  public static void AddCraftQualityTier2(FlatBufferBuilder builder, long craftQualityTier2) { builder.AddLong(25, craftQualityTier2, 0); }
+  public static void AddShiftingCraftQuality(FlatBufferBuilder builder, long shiftingCraftQuality) { builder.AddLong(26, shiftingCraftQuality, 0); }
+  public static void AddMaxGiftTags(FlatBufferBuilder builder, int maxGiftTags) { builder.AddInt(27, maxGiftTags, 0); }
+  public static void AddShopCategory(FlatBufferBuilder builder, VectorOffset shopCategoryOffset) { builder.AddOffset(28, shopCategoryOffset.Value, 0); }
   public static VectorOffset CreateShopCategoryVector(FlatBufferBuilder builder, Schale.FlatData.ShopCategoryType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateShopCategoryVectorBlock(FlatBufferBuilder builder, Schale.FlatData.ShopCategoryType[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateShopCategoryVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.ShopCategoryType> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateShopCategoryVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.ShopCategoryType>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartShopCategoryVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddExpirationDateTime(FlatBufferBuilder builder, StringOffset expirationDateTimeOffset) { builder.AddOffset(28, expirationDateTimeOffset.Value, 0); }
-  public static void AddExpirationNotifyDateIn(FlatBufferBuilder builder, int expirationNotifyDateIn) { builder.AddInt(29, expirationNotifyDateIn, 0); }
-  public static void AddShortcutTypeId(FlatBufferBuilder builder, long shortcutTypeId) { builder.AddLong(30, shortcutTypeId, 0); }
-  public static void AddGachaTicket(FlatBufferBuilder builder, Schale.FlatData.GachaTicketType gachaTicket) { builder.AddInt(31, (int)gachaTicket, 0); }
-  public static void AddAlertPopupId(FlatBufferBuilder builder, long alertPopupId) { builder.AddLong(32, alertPopupId, 0); }
-  public static void AddShiftingCraftRecipe(FlatBufferBuilder builder, long shiftingCraftRecipe) { builder.AddLong(33, shiftingCraftRecipe, 0); }
+  public static void AddExpirationDateTime(FlatBufferBuilder builder, StringOffset expirationDateTimeOffset) { builder.AddOffset(29, expirationDateTimeOffset.Value, 0); }
+  public static void AddExpirationNotifyDateIn(FlatBufferBuilder builder, int expirationNotifyDateIn) { builder.AddInt(30, expirationNotifyDateIn, 0); }
+  public static void AddIsOverrideExpiration(FlatBufferBuilder builder, bool isOverrideExpiration) { builder.AddBool(31, isOverrideExpiration, false); }
+  public static void AddShortcutTypeId(FlatBufferBuilder builder, long shortcutTypeId) { builder.AddLong(32, shortcutTypeId, 0); }
+  public static void AddGachaTicket(FlatBufferBuilder builder, Schale.FlatData.GachaTicketType gachaTicket) { builder.AddInt(33, (int)gachaTicket, 0); }
+  public static void AddAlertPopupId(FlatBufferBuilder builder, long alertPopupId) { builder.AddLong(34, alertPopupId, 0); }
+  public static void AddShiftingCraftRecipe(FlatBufferBuilder builder, long shiftingCraftRecipe) { builder.AddLong(35, shiftingCraftRecipe, 0); }
   public static Offset<Schale.FlatData.ItemExcel> EndItemExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ItemExcel>(o);
@@ -239,6 +247,7 @@ public struct ItemExcel : IFlatbufferObject
     _o.TierUpgradeRecipeCraftId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TierUpgradeRecipeCraftId, key) : this.TierUpgradeRecipeCraftId;
     _o.Tags = new List<Schale.FlatData.Tag>();
     for (var _j = 0; _j < this.TagsLength; ++_j) {_o.Tags.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Tags(_j), key) : this.Tags(_j));}
+    _o.IsCollaboration = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsCollaboration, key) : this.IsCollaboration;
     _o.CraftQualityTier0 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftQualityTier0, key) : this.CraftQualityTier0;
     _o.CraftQualityTier1 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftQualityTier1, key) : this.CraftQualityTier1;
     _o.CraftQualityTier2 = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.CraftQualityTier2, key) : this.CraftQualityTier2;
@@ -248,6 +257,7 @@ public struct ItemExcel : IFlatbufferObject
     for (var _j = 0; _j < this.ShopCategoryLength; ++_j) {_o.ShopCategory.Add(TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShopCategory(_j), key) : this.ShopCategory(_j));}
     _o.ExpirationDateTime = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpirationDateTime, key) : this.ExpirationDateTime;
     _o.ExpirationNotifyDateIn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ExpirationNotifyDateIn, key) : this.ExpirationNotifyDateIn;
+    _o.IsOverrideExpiration = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.IsOverrideExpiration, key) : this.IsOverrideExpiration;
     _o.ShortcutTypeId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ShortcutTypeId, key) : this.ShortcutTypeId;
     _o.GachaTicket = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.GachaTicket, key) : this.GachaTicket;
     _o.AlertPopupId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AlertPopupId, key) : this.AlertPopupId;
@@ -292,6 +302,7 @@ public struct ItemExcel : IFlatbufferObject
       _o.CanTierUpgrade,
       _o.TierUpgradeRecipeCraftId,
       _Tags,
+      _o.IsCollaboration,
       _o.CraftQualityTier0,
       _o.CraftQualityTier1,
       _o.CraftQualityTier2,
@@ -300,6 +311,7 @@ public struct ItemExcel : IFlatbufferObject
       _ShopCategory,
       _ExpirationDateTime,
       _o.ExpirationNotifyDateIn,
+      _o.IsOverrideExpiration,
       _o.ShortcutTypeId,
       _o.GachaTicket,
       _o.AlertPopupId,
@@ -331,6 +343,7 @@ public class ItemExcelT
   public bool CanTierUpgrade { get; set; }
   public long TierUpgradeRecipeCraftId { get; set; }
   public List<Schale.FlatData.Tag> Tags { get; set; }
+  public bool IsCollaboration { get; set; }
   public long CraftQualityTier0 { get; set; }
   public long CraftQualityTier1 { get; set; }
   public long CraftQualityTier2 { get; set; }
@@ -339,6 +352,7 @@ public class ItemExcelT
   public List<Schale.FlatData.ShopCategoryType> ShopCategory { get; set; }
   public string ExpirationDateTime { get; set; }
   public int ExpirationNotifyDateIn { get; set; }
+  public bool IsOverrideExpiration { get; set; }
   public long ShortcutTypeId { get; set; }
   public Schale.FlatData.GachaTicketType GachaTicket { get; set; }
   public long AlertPopupId { get; set; }
@@ -367,6 +381,7 @@ public class ItemExcelT
     this.CanTierUpgrade = false;
     this.TierUpgradeRecipeCraftId = 0;
     this.Tags = null;
+    this.IsCollaboration = false;
     this.CraftQualityTier0 = 0;
     this.CraftQualityTier1 = 0;
     this.CraftQualityTier2 = 0;
@@ -375,6 +390,7 @@ public class ItemExcelT
     this.ShopCategory = null;
     this.ExpirationDateTime = null;
     this.ExpirationNotifyDateIn = 0;
+    this.IsOverrideExpiration = false;
     this.ShortcutTypeId = 0;
     this.GachaTicket = Schale.FlatData.GachaTicketType.None;
     this.AlertPopupId = 0;
@@ -410,18 +426,20 @@ static public class ItemExcelVerify
       && verifier.VerifyField(tablePos, 42 /*CanTierUpgrade*/, 1 /*bool*/, 1, false)
       && verifier.VerifyField(tablePos, 44 /*TierUpgradeRecipeCraftId*/, 8 /*long*/, 8, false)
       && verifier.VerifyVectorOfData(tablePos, 46 /*Tags*/, 4 /*Schale.FlatData.Tag*/, false)
-      && verifier.VerifyField(tablePos, 48 /*CraftQualityTier0*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 50 /*CraftQualityTier1*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 52 /*CraftQualityTier2*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 54 /*ShiftingCraftQuality*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 56 /*MaxGiftTags*/, 4 /*int*/, 4, false)
-      && verifier.VerifyVectorOfData(tablePos, 58 /*ShopCategory*/, 4 /*Schale.FlatData.ShopCategoryType*/, false)
-      && verifier.VerifyString(tablePos, 60 /*ExpirationDateTime*/, false)
-      && verifier.VerifyField(tablePos, 62 /*ExpirationNotifyDateIn*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 64 /*ShortcutTypeId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 66 /*GachaTicket*/, 4 /*Schale.FlatData.GachaTicketType*/, 4, false)
-      && verifier.VerifyField(tablePos, 68 /*AlertPopupId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 70 /*ShiftingCraftRecipe*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 48 /*IsCollaboration*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 50 /*CraftQualityTier0*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 52 /*CraftQualityTier1*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 54 /*CraftQualityTier2*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 56 /*ShiftingCraftQuality*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 58 /*MaxGiftTags*/, 4 /*int*/, 4, false)
+      && verifier.VerifyVectorOfData(tablePos, 60 /*ShopCategory*/, 4 /*Schale.FlatData.ShopCategoryType*/, false)
+      && verifier.VerifyString(tablePos, 62 /*ExpirationDateTime*/, false)
+      && verifier.VerifyField(tablePos, 64 /*ExpirationNotifyDateIn*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 66 /*IsOverrideExpiration*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 68 /*ShortcutTypeId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 70 /*GachaTicket*/, 4 /*Schale.FlatData.GachaTicketType*/, 4, false)
+      && verifier.VerifyField(tablePos, 72 /*AlertPopupId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 74 /*ShiftingCraftRecipe*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

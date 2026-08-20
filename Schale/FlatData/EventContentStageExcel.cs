@@ -41,85 +41,86 @@ public struct EventContentStageExcel : IFlatbufferObject
   public long PrevStageId { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long OpenDate { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long OpenEventPoint { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long PrevStageSubEventId { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long OpenConditionScenarioId { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.EventContentType OpenConditionContentType { get { int o = __p.__offset(26); return o != 0 ? (Schale.FlatData.EventContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EventContentType.Stage; } }
-  public long OpenConditionContentId { get { int o = __p.__offset(28); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long BattleDuration { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.ParcelType StageEnterCostType { get { int o = __p.__offset(32); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
-  public long StageEnterCostId { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int StageEnterCostAmount { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public int StageEnterEchelonCount { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public long StarConditionTacticRankSCount { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long StarConditionTurnCount { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long EnterScenarioGroupId(int j) { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int EnterScenarioGroupIdLength { get { int o = __p.__offset(44); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long OpenConditionScenarioPermanentSubEventId { get { int o = __p.__offset(22); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long PrevStageSubEventId { get { int o = __p.__offset(24); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long OpenConditionScenarioId { get { int o = __p.__offset(26); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.EventContentType OpenConditionContentType { get { int o = __p.__offset(28); return o != 0 ? (Schale.FlatData.EventContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EventContentType.Stage; } }
+  public long OpenConditionContentId { get { int o = __p.__offset(30); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long BattleDuration { get { int o = __p.__offset(32); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ParcelType StageEnterCostType { get { int o = __p.__offset(34); return o != 0 ? (Schale.FlatData.ParcelType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ParcelType.None; } }
+  public long StageEnterCostId { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int StageEnterCostAmount { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public int StageEnterEchelonCount { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public long StarConditionTacticRankSCount { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long StarConditionTurnCount { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EnterScenarioGroupId(int j) { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int EnterScenarioGroupIdLength { get { int o = __p.__offset(46); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetEnterScenarioGroupIdBytes() { return __p.__vector_as_span<long>(44, 8); }
+  public Span<long> GetEnterScenarioGroupIdBytes() { return __p.__vector_as_span<long>(46, 8); }
 #else
-  public ArraySegment<byte>? GetEnterScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(44); }
+  public ArraySegment<byte>? GetEnterScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(46); }
 #endif
-  public long[] GetEnterScenarioGroupIdArray() { return __p.__vector_as_array<long>(44); }
-  public long ClearScenarioGroupId(int j) { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
-  public int ClearScenarioGroupIdLength { get { int o = __p.__offset(46); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public long[] GetEnterScenarioGroupIdArray() { return __p.__vector_as_array<long>(46); }
+  public long ClearScenarioGroupId(int j) { int o = __p.__offset(48); return o != 0 ? __p.bb.GetLong(__p.__vector(o) + j * 8) : (long)0; }
+  public int ClearScenarioGroupIdLength { get { int o = __p.__offset(48); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<long> GetClearScenarioGroupIdBytes() { return __p.__vector_as_span<long>(46, 8); }
+  public Span<long> GetClearScenarioGroupIdBytes() { return __p.__vector_as_span<long>(48, 8); }
 #else
-  public ArraySegment<byte>? GetClearScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(46); }
+  public ArraySegment<byte>? GetClearScenarioGroupIdBytes() { return __p.__vector_as_arraysegment(48); }
 #endif
-  public long[] GetClearScenarioGroupIdArray() { return __p.__vector_as_array<long>(46); }
-  public string StrategyMap { get { int o = __p.__offset(48); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public long[] GetClearScenarioGroupIdArray() { return __p.__vector_as_array<long>(48); }
+  public string StrategyMap { get { int o = __p.__offset(50); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetStrategyMapBytes() { return __p.__vector_as_span<byte>(48, 1); }
+  public Span<byte> GetStrategyMapBytes() { return __p.__vector_as_span<byte>(50, 1); }
 #else
-  public ArraySegment<byte>? GetStrategyMapBytes() { return __p.__vector_as_arraysegment(48); }
+  public ArraySegment<byte>? GetStrategyMapBytes() { return __p.__vector_as_arraysegment(50); }
 #endif
-  public byte[] GetStrategyMapArray() { return __p.__vector_as_array<byte>(48); }
-  public string StrategyMapBG { get { int o = __p.__offset(50); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetStrategyMapArray() { return __p.__vector_as_array<byte>(50); }
+  public string StrategyMapBG { get { int o = __p.__offset(52); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetStrategyMapBGBytes() { return __p.__vector_as_span<byte>(50, 1); }
+  public Span<byte> GetStrategyMapBGBytes() { return __p.__vector_as_span<byte>(52, 1); }
 #else
-  public ArraySegment<byte>? GetStrategyMapBGBytes() { return __p.__vector_as_arraysegment(50); }
+  public ArraySegment<byte>? GetStrategyMapBGBytes() { return __p.__vector_as_arraysegment(52); }
 #endif
-  public byte[] GetStrategyMapBGArray() { return __p.__vector_as_array<byte>(50); }
-  public long EventContentStageRewardId { get { int o = __p.__offset(52); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public int MaxTurn { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public Schale.FlatData.StageTopography StageTopography { get { int o = __p.__offset(56); return o != 0 ? (Schale.FlatData.StageTopography)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StageTopography.Street; } }
-  public int RecommandLevel { get { int o = __p.__offset(58); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
-  public string BgmId { get { int o = __p.__offset(60); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetStrategyMapBGArray() { return __p.__vector_as_array<byte>(52); }
+  public long EventContentStageRewardId { get { int o = __p.__offset(54); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public int MaxTurn { get { int o = __p.__offset(56); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public Schale.FlatData.StageTopography StageTopography { get { int o = __p.__offset(58); return o != 0 ? (Schale.FlatData.StageTopography)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StageTopography.Street; } }
+  public int RecommandLevel { get { int o = __p.__offset(60); return o != 0 ? __p.bb.GetInt(o + __p.bb_pos) : (int)0; } }
+  public string BgmId { get { int o = __p.__offset(62); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBgmIdBytes() { return __p.__vector_as_span<byte>(60, 1); }
+  public Span<byte> GetBgmIdBytes() { return __p.__vector_as_span<byte>(62, 1); }
 #else
-  public ArraySegment<byte>? GetBgmIdBytes() { return __p.__vector_as_arraysegment(60); }
+  public ArraySegment<byte>? GetBgmIdBytes() { return __p.__vector_as_arraysegment(62); }
 #endif
-  public byte[] GetBgmIdArray() { return __p.__vector_as_array<byte>(60); }
-  public Schale.FlatData.StrategyEnvironment StrategyEnvironment { get { int o = __p.__offset(62); return o != 0 ? (Schale.FlatData.StrategyEnvironment)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StrategyEnvironment.None; } }
-  public long GroundID { get { int o = __p.__offset(64); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public Schale.FlatData.ContentType ContentType { get { int o = __p.__offset(66); return o != 0 ? (Schale.FlatData.ContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ContentType.None; } }
-  public long BGMId { get { int o = __p.__offset(68); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool InstantClear { get { int o = __p.__offset(70); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public long BuffContentId { get { int o = __p.__offset(72); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public long FixedEchelonId { get { int o = __p.__offset(74); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
-  public bool ChallengeDisplay { get { int o = __p.__offset(76); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public Schale.FlatData.StarGoalType StarGoal(int j) { int o = __p.__offset(78); return o != 0 ? (Schale.FlatData.StarGoalType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.StarGoalType)0; }
-  public int StarGoalLength { get { int o = __p.__offset(78); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public byte[] GetBgmIdArray() { return __p.__vector_as_array<byte>(62); }
+  public Schale.FlatData.StrategyEnvironment StrategyEnvironment { get { int o = __p.__offset(64); return o != 0 ? (Schale.FlatData.StrategyEnvironment)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.StrategyEnvironment.None; } }
+  public long GroundID { get { int o = __p.__offset(66); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public Schale.FlatData.ContentType ContentType { get { int o = __p.__offset(68); return o != 0 ? (Schale.FlatData.ContentType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.ContentType.None; } }
+  public long BGMId { get { int o = __p.__offset(70); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool InstantClear { get { int o = __p.__offset(72); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public long BuffContentId { get { int o = __p.__offset(74); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long FixedEchelonId { get { int o = __p.__offset(76); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public bool ChallengeDisplay { get { int o = __p.__offset(78); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public Schale.FlatData.StarGoalType StarGoal(int j) { int o = __p.__offset(80); return o != 0 ? (Schale.FlatData.StarGoalType)__p.bb.GetInt(__p.__vector(o) + j * 4) : (Schale.FlatData.StarGoalType)0; }
+  public int StarGoalLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<Schale.FlatData.StarGoalType> GetStarGoalBytes() { return __p.__vector_as_span<Schale.FlatData.StarGoalType>(78, 4); }
+  public Span<Schale.FlatData.StarGoalType> GetStarGoalBytes() { return __p.__vector_as_span<Schale.FlatData.StarGoalType>(80, 4); }
 #else
-  public ArraySegment<byte>? GetStarGoalBytes() { return __p.__vector_as_arraysegment(78); }
+  public ArraySegment<byte>? GetStarGoalBytes() { return __p.__vector_as_arraysegment(80); }
 #endif
-  public Schale.FlatData.StarGoalType[] GetStarGoalArray() { int o = __p.__offset(78); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.StarGoalType[] a = new Schale.FlatData.StarGoalType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.StarGoalType)__p.bb.GetInt(p + i * 4); } return a; }
-  public int StarGoalAmount(int j) { int o = __p.__offset(80); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
-  public int StarGoalAmountLength { get { int o = __p.__offset(80); return o != 0 ? __p.__vector_len(o) : 0; } }
+  public Schale.FlatData.StarGoalType[] GetStarGoalArray() { int o = __p.__offset(80); if (o == 0) return null; int p = __p.__vector(o); int l = __p.__vector_len(o); Schale.FlatData.StarGoalType[] a = new Schale.FlatData.StarGoalType[l]; for (int i = 0; i < l; i++) { a[i] = (Schale.FlatData.StarGoalType)__p.bb.GetInt(p + i * 4); } return a; }
+  public int StarGoalAmount(int j) { int o = __p.__offset(82); return o != 0 ? __p.bb.GetInt(__p.__vector(o) + j * 4) : (int)0; }
+  public int StarGoalAmountLength { get { int o = __p.__offset(82); return o != 0 ? __p.__vector_len(o) : 0; } }
 #if ENABLE_SPAN_T
-  public Span<int> GetStarGoalAmountBytes() { return __p.__vector_as_span<int>(80, 4); }
+  public Span<int> GetStarGoalAmountBytes() { return __p.__vector_as_span<int>(82, 4); }
 #else
-  public ArraySegment<byte>? GetStarGoalAmountBytes() { return __p.__vector_as_arraysegment(80); }
+  public ArraySegment<byte>? GetStarGoalAmountBytes() { return __p.__vector_as_arraysegment(82); }
 #endif
-  public int[] GetStarGoalAmountArray() { return __p.__vector_as_array<int>(80); }
-  public bool IsDefeatBattle { get { int o = __p.__offset(82); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
-  public uint StageHint { get { int o = __p.__offset(84); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public Schale.FlatData.EchelonExtensionType EchelonExtensionType { get { int o = __p.__offset(86); return o != 0 ? (Schale.FlatData.EchelonExtensionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EchelonExtensionType.Base; } }
+  public int[] GetStarGoalAmountArray() { return __p.__vector_as_array<int>(82); }
+  public bool IsDefeatBattle { get { int o = __p.__offset(84); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public uint StageHint { get { int o = __p.__offset(86); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public Schale.FlatData.EchelonExtensionType EchelonExtensionType { get { int o = __p.__offset(88); return o != 0 ? (Schale.FlatData.EchelonExtensionType)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.EchelonExtensionType.Base; } }
 
   public static Offset<Schale.FlatData.EventContentStageExcel> CreateEventContentStageExcel(FlatBufferBuilder builder,
       long Id = 0,
@@ -131,6 +132,7 @@ public struct EventContentStageExcel : IFlatbufferObject
       long PrevStageId = 0,
       long OpenDate = 0,
       long OpenEventPoint = 0,
+      long OpenConditionScenarioPermanentSubEventId = 0,
       long PrevStageSubEventId = 0,
       long OpenConditionScenarioId = 0,
       Schale.FlatData.EventContentType OpenConditionContentType = Schale.FlatData.EventContentType.Stage,
@@ -164,7 +166,7 @@ public struct EventContentStageExcel : IFlatbufferObject
       bool IsDefeatBattle = false,
       uint StageHint = 0,
       Schale.FlatData.EchelonExtensionType EchelonExtensionType = Schale.FlatData.EchelonExtensionType.Base) {
-    builder.StartTable(42);
+    builder.StartTable(43);
     EventContentStageExcel.AddFixedEchelonId(builder, FixedEchelonId);
     EventContentStageExcel.AddBuffContentId(builder, BuffContentId);
     EventContentStageExcel.AddBGMId(builder, BGMId);
@@ -177,6 +179,7 @@ public struct EventContentStageExcel : IFlatbufferObject
     EventContentStageExcel.AddOpenConditionContentId(builder, OpenConditionContentId);
     EventContentStageExcel.AddOpenConditionScenarioId(builder, OpenConditionScenarioId);
     EventContentStageExcel.AddPrevStageSubEventId(builder, PrevStageSubEventId);
+    EventContentStageExcel.AddOpenConditionScenarioPermanentSubEventId(builder, OpenConditionScenarioPermanentSubEventId);
     EventContentStageExcel.AddOpenEventPoint(builder, OpenEventPoint);
     EventContentStageExcel.AddOpenDate(builder, OpenDate);
     EventContentStageExcel.AddPrevStageId(builder, PrevStageId);
@@ -210,7 +213,7 @@ public struct EventContentStageExcel : IFlatbufferObject
     return EventContentStageExcel.EndEventContentStageExcel(builder);
   }
 
-  public static void StartEventContentStageExcel(FlatBufferBuilder builder) { builder.StartTable(42); }
+  public static void StartEventContentStageExcel(FlatBufferBuilder builder) { builder.StartTable(43); }
   public static void AddId(FlatBufferBuilder builder, long id) { builder.AddLong(0, id, 0); }
   public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(1, nameOffset.Value, 0); }
   public static void AddEventContentId(FlatBufferBuilder builder, long eventContentId) { builder.AddLong(2, eventContentId, 0); }
@@ -220,59 +223,60 @@ public struct EventContentStageExcel : IFlatbufferObject
   public static void AddPrevStageId(FlatBufferBuilder builder, long prevStageId) { builder.AddLong(6, prevStageId, 0); }
   public static void AddOpenDate(FlatBufferBuilder builder, long openDate) { builder.AddLong(7, openDate, 0); }
   public static void AddOpenEventPoint(FlatBufferBuilder builder, long openEventPoint) { builder.AddLong(8, openEventPoint, 0); }
-  public static void AddPrevStageSubEventId(FlatBufferBuilder builder, long prevStageSubEventId) { builder.AddLong(9, prevStageSubEventId, 0); }
-  public static void AddOpenConditionScenarioId(FlatBufferBuilder builder, long openConditionScenarioId) { builder.AddLong(10, openConditionScenarioId, 0); }
-  public static void AddOpenConditionContentType(FlatBufferBuilder builder, Schale.FlatData.EventContentType openConditionContentType) { builder.AddInt(11, (int)openConditionContentType, 0); }
-  public static void AddOpenConditionContentId(FlatBufferBuilder builder, long openConditionContentId) { builder.AddLong(12, openConditionContentId, 0); }
-  public static void AddBattleDuration(FlatBufferBuilder builder, long battleDuration) { builder.AddLong(13, battleDuration, 0); }
-  public static void AddStageEnterCostType(FlatBufferBuilder builder, Schale.FlatData.ParcelType stageEnterCostType) { builder.AddInt(14, (int)stageEnterCostType, 0); }
-  public static void AddStageEnterCostId(FlatBufferBuilder builder, long stageEnterCostId) { builder.AddLong(15, stageEnterCostId, 0); }
-  public static void AddStageEnterCostAmount(FlatBufferBuilder builder, int stageEnterCostAmount) { builder.AddInt(16, stageEnterCostAmount, 0); }
-  public static void AddStageEnterEchelonCount(FlatBufferBuilder builder, int stageEnterEchelonCount) { builder.AddInt(17, stageEnterEchelonCount, 0); }
-  public static void AddStarConditionTacticRankSCount(FlatBufferBuilder builder, long starConditionTacticRankSCount) { builder.AddLong(18, starConditionTacticRankSCount, 0); }
-  public static void AddStarConditionTurnCount(FlatBufferBuilder builder, long starConditionTurnCount) { builder.AddLong(19, starConditionTurnCount, 0); }
-  public static void AddEnterScenarioGroupId(FlatBufferBuilder builder, VectorOffset enterScenarioGroupIdOffset) { builder.AddOffset(20, enterScenarioGroupIdOffset.Value, 0); }
+  public static void AddOpenConditionScenarioPermanentSubEventId(FlatBufferBuilder builder, long openConditionScenarioPermanentSubEventId) { builder.AddLong(9, openConditionScenarioPermanentSubEventId, 0); }
+  public static void AddPrevStageSubEventId(FlatBufferBuilder builder, long prevStageSubEventId) { builder.AddLong(10, prevStageSubEventId, 0); }
+  public static void AddOpenConditionScenarioId(FlatBufferBuilder builder, long openConditionScenarioId) { builder.AddLong(11, openConditionScenarioId, 0); }
+  public static void AddOpenConditionContentType(FlatBufferBuilder builder, Schale.FlatData.EventContentType openConditionContentType) { builder.AddInt(12, (int)openConditionContentType, 0); }
+  public static void AddOpenConditionContentId(FlatBufferBuilder builder, long openConditionContentId) { builder.AddLong(13, openConditionContentId, 0); }
+  public static void AddBattleDuration(FlatBufferBuilder builder, long battleDuration) { builder.AddLong(14, battleDuration, 0); }
+  public static void AddStageEnterCostType(FlatBufferBuilder builder, Schale.FlatData.ParcelType stageEnterCostType) { builder.AddInt(15, (int)stageEnterCostType, 0); }
+  public static void AddStageEnterCostId(FlatBufferBuilder builder, long stageEnterCostId) { builder.AddLong(16, stageEnterCostId, 0); }
+  public static void AddStageEnterCostAmount(FlatBufferBuilder builder, int stageEnterCostAmount) { builder.AddInt(17, stageEnterCostAmount, 0); }
+  public static void AddStageEnterEchelonCount(FlatBufferBuilder builder, int stageEnterEchelonCount) { builder.AddInt(18, stageEnterEchelonCount, 0); }
+  public static void AddStarConditionTacticRankSCount(FlatBufferBuilder builder, long starConditionTacticRankSCount) { builder.AddLong(19, starConditionTacticRankSCount, 0); }
+  public static void AddStarConditionTurnCount(FlatBufferBuilder builder, long starConditionTurnCount) { builder.AddLong(20, starConditionTurnCount, 0); }
+  public static void AddEnterScenarioGroupId(FlatBufferBuilder builder, VectorOffset enterScenarioGroupIdOffset) { builder.AddOffset(21, enterScenarioGroupIdOffset.Value, 0); }
   public static VectorOffset CreateEnterScenarioGroupIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateEnterScenarioGroupIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEnterScenarioGroupIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateEnterScenarioGroupIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartEnterScenarioGroupIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddClearScenarioGroupId(FlatBufferBuilder builder, VectorOffset clearScenarioGroupIdOffset) { builder.AddOffset(21, clearScenarioGroupIdOffset.Value, 0); }
+  public static void AddClearScenarioGroupId(FlatBufferBuilder builder, VectorOffset clearScenarioGroupIdOffset) { builder.AddOffset(22, clearScenarioGroupIdOffset.Value, 0); }
   public static VectorOffset CreateClearScenarioGroupIdVector(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); for (int i = data.Length - 1; i >= 0; i--) builder.AddLong(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateClearScenarioGroupIdVectorBlock(FlatBufferBuilder builder, long[] data) { builder.StartVector(8, data.Length, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateClearScenarioGroupIdVectorBlock(FlatBufferBuilder builder, ArraySegment<long> data) { builder.StartVector(8, data.Count, 8); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateClearScenarioGroupIdVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<long>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartClearScenarioGroupIdVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(8, numElems, 8); }
-  public static void AddStrategyMap(FlatBufferBuilder builder, StringOffset strategyMapOffset) { builder.AddOffset(22, strategyMapOffset.Value, 0); }
-  public static void AddStrategyMapBG(FlatBufferBuilder builder, StringOffset strategyMapBGOffset) { builder.AddOffset(23, strategyMapBGOffset.Value, 0); }
-  public static void AddEventContentStageRewardId(FlatBufferBuilder builder, long eventContentStageRewardId) { builder.AddLong(24, eventContentStageRewardId, 0); }
-  public static void AddMaxTurn(FlatBufferBuilder builder, int maxTurn) { builder.AddInt(25, maxTurn, 0); }
-  public static void AddStageTopography(FlatBufferBuilder builder, Schale.FlatData.StageTopography stageTopography) { builder.AddInt(26, (int)stageTopography, 0); }
-  public static void AddRecommandLevel(FlatBufferBuilder builder, int recommandLevel) { builder.AddInt(27, recommandLevel, 0); }
-  public static void AddBgmId(FlatBufferBuilder builder, StringOffset bgmIdOffset) { builder.AddOffset(28, bgmIdOffset.Value, 0); }
-  public static void AddStrategyEnvironment(FlatBufferBuilder builder, Schale.FlatData.StrategyEnvironment strategyEnvironment) { builder.AddInt(29, (int)strategyEnvironment, 0); }
-  public static void AddGroundID(FlatBufferBuilder builder, long groundID) { builder.AddLong(30, groundID, 0); }
-  public static void AddContentType(FlatBufferBuilder builder, Schale.FlatData.ContentType contentType) { builder.AddInt(31, (int)contentType, 0); }
-  public static void AddBGMId(FlatBufferBuilder builder, long bGMId) { builder.AddLong(32, bGMId, 0); }
-  public static void AddInstantClear(FlatBufferBuilder builder, bool instantClear) { builder.AddBool(33, instantClear, false); }
-  public static void AddBuffContentId(FlatBufferBuilder builder, long buffContentId) { builder.AddLong(34, buffContentId, 0); }
-  public static void AddFixedEchelonId(FlatBufferBuilder builder, long fixedEchelonId) { builder.AddLong(35, fixedEchelonId, 0); }
-  public static void AddChallengeDisplay(FlatBufferBuilder builder, bool challengeDisplay) { builder.AddBool(36, challengeDisplay, false); }
-  public static void AddStarGoal(FlatBufferBuilder builder, VectorOffset starGoalOffset) { builder.AddOffset(37, starGoalOffset.Value, 0); }
+  public static void AddStrategyMap(FlatBufferBuilder builder, StringOffset strategyMapOffset) { builder.AddOffset(23, strategyMapOffset.Value, 0); }
+  public static void AddStrategyMapBG(FlatBufferBuilder builder, StringOffset strategyMapBGOffset) { builder.AddOffset(24, strategyMapBGOffset.Value, 0); }
+  public static void AddEventContentStageRewardId(FlatBufferBuilder builder, long eventContentStageRewardId) { builder.AddLong(25, eventContentStageRewardId, 0); }
+  public static void AddMaxTurn(FlatBufferBuilder builder, int maxTurn) { builder.AddInt(26, maxTurn, 0); }
+  public static void AddStageTopography(FlatBufferBuilder builder, Schale.FlatData.StageTopography stageTopography) { builder.AddInt(27, (int)stageTopography, 0); }
+  public static void AddRecommandLevel(FlatBufferBuilder builder, int recommandLevel) { builder.AddInt(28, recommandLevel, 0); }
+  public static void AddBgmId(FlatBufferBuilder builder, StringOffset bgmIdOffset) { builder.AddOffset(29, bgmIdOffset.Value, 0); }
+  public static void AddStrategyEnvironment(FlatBufferBuilder builder, Schale.FlatData.StrategyEnvironment strategyEnvironment) { builder.AddInt(30, (int)strategyEnvironment, 0); }
+  public static void AddGroundID(FlatBufferBuilder builder, long groundID) { builder.AddLong(31, groundID, 0); }
+  public static void AddContentType(FlatBufferBuilder builder, Schale.FlatData.ContentType contentType) { builder.AddInt(32, (int)contentType, 0); }
+  public static void AddBGMId(FlatBufferBuilder builder, long bGMId) { builder.AddLong(33, bGMId, 0); }
+  public static void AddInstantClear(FlatBufferBuilder builder, bool instantClear) { builder.AddBool(34, instantClear, false); }
+  public static void AddBuffContentId(FlatBufferBuilder builder, long buffContentId) { builder.AddLong(35, buffContentId, 0); }
+  public static void AddFixedEchelonId(FlatBufferBuilder builder, long fixedEchelonId) { builder.AddLong(36, fixedEchelonId, 0); }
+  public static void AddChallengeDisplay(FlatBufferBuilder builder, bool challengeDisplay) { builder.AddBool(37, challengeDisplay, false); }
+  public static void AddStarGoal(FlatBufferBuilder builder, VectorOffset starGoalOffset) { builder.AddOffset(38, starGoalOffset.Value, 0); }
   public static VectorOffset CreateStarGoalVector(FlatBufferBuilder builder, Schale.FlatData.StarGoalType[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt((int)data[i]); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalVectorBlock(FlatBufferBuilder builder, Schale.FlatData.StarGoalType[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalVectorBlock(FlatBufferBuilder builder, ArraySegment<Schale.FlatData.StarGoalType> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<Schale.FlatData.StarGoalType>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartStarGoalVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddStarGoalAmount(FlatBufferBuilder builder, VectorOffset starGoalAmountOffset) { builder.AddOffset(38, starGoalAmountOffset.Value, 0); }
+  public static void AddStarGoalAmount(FlatBufferBuilder builder, VectorOffset starGoalAmountOffset) { builder.AddOffset(39, starGoalAmountOffset.Value, 0); }
   public static VectorOffset CreateStarGoalAmountVector(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); for (int i = data.Length - 1; i >= 0; i--) builder.AddInt(data[i]); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalAmountVectorBlock(FlatBufferBuilder builder, int[] data) { builder.StartVector(4, data.Length, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalAmountVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateStarGoalAmountVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartStarGoalAmountVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddIsDefeatBattle(FlatBufferBuilder builder, bool isDefeatBattle) { builder.AddBool(39, isDefeatBattle, false); }
-  public static void AddStageHint(FlatBufferBuilder builder, uint stageHint) { builder.AddUint(40, stageHint, 0); }
-  public static void AddEchelonExtensionType(FlatBufferBuilder builder, Schale.FlatData.EchelonExtensionType echelonExtensionType) { builder.AddInt(41, (int)echelonExtensionType, 0); }
+  public static void AddIsDefeatBattle(FlatBufferBuilder builder, bool isDefeatBattle) { builder.AddBool(40, isDefeatBattle, false); }
+  public static void AddStageHint(FlatBufferBuilder builder, uint stageHint) { builder.AddUint(41, stageHint, 0); }
+  public static void AddEchelonExtensionType(FlatBufferBuilder builder, Schale.FlatData.EchelonExtensionType echelonExtensionType) { builder.AddInt(42, (int)echelonExtensionType, 0); }
   public static Offset<Schale.FlatData.EventContentStageExcel> EndEventContentStageExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.EventContentStageExcel>(o);
@@ -293,6 +297,7 @@ public struct EventContentStageExcel : IFlatbufferObject
     _o.PrevStageId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PrevStageId, key) : this.PrevStageId;
     _o.OpenDate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenDate, key) : this.OpenDate;
     _o.OpenEventPoint = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenEventPoint, key) : this.OpenEventPoint;
+    _o.OpenConditionScenarioPermanentSubEventId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenConditionScenarioPermanentSubEventId, key) : this.OpenConditionScenarioPermanentSubEventId;
     _o.PrevStageSubEventId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PrevStageSubEventId, key) : this.PrevStageSubEventId;
     _o.OpenConditionScenarioId = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenConditionScenarioId, key) : this.OpenConditionScenarioId;
     _o.OpenConditionContentType = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.OpenConditionContentType, key) : this.OpenConditionContentType;
@@ -369,6 +374,7 @@ public struct EventContentStageExcel : IFlatbufferObject
       _o.PrevStageId,
       _o.OpenDate,
       _o.OpenEventPoint,
+      _o.OpenConditionScenarioPermanentSubEventId,
       _o.PrevStageSubEventId,
       _o.OpenConditionScenarioId,
       _o.OpenConditionContentType,
@@ -416,6 +422,7 @@ public class EventContentStageExcelT
   public long PrevStageId { get; set; }
   public long OpenDate { get; set; }
   public long OpenEventPoint { get; set; }
+  public long OpenConditionScenarioPermanentSubEventId { get; set; }
   public long PrevStageSubEventId { get; set; }
   public long OpenConditionScenarioId { get; set; }
   public Schale.FlatData.EventContentType OpenConditionContentType { get; set; }
@@ -460,6 +467,7 @@ public class EventContentStageExcelT
     this.PrevStageId = 0;
     this.OpenDate = 0;
     this.OpenEventPoint = 0;
+    this.OpenConditionScenarioPermanentSubEventId = 0;
     this.PrevStageSubEventId = 0;
     this.OpenConditionScenarioId = 0;
     this.OpenConditionContentType = Schale.FlatData.EventContentType.Stage;
@@ -511,39 +519,40 @@ static public class EventContentStageExcelVerify
       && verifier.VerifyField(tablePos, 16 /*PrevStageId*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 18 /*OpenDate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 20 /*OpenEventPoint*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 22 /*PrevStageSubEventId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 24 /*OpenConditionScenarioId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 26 /*OpenConditionContentType*/, 4 /*Schale.FlatData.EventContentType*/, 4, false)
-      && verifier.VerifyField(tablePos, 28 /*OpenConditionContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 30 /*BattleDuration*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 32 /*StageEnterCostType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
-      && verifier.VerifyField(tablePos, 34 /*StageEnterCostId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 36 /*StageEnterCostAmount*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 38 /*StageEnterEchelonCount*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 40 /*StarConditionTacticRankSCount*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 42 /*StarConditionTurnCount*/, 8 /*long*/, 8, false)
-      && verifier.VerifyVectorOfData(tablePos, 44 /*EnterScenarioGroupId*/, 8 /*long*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 46 /*ClearScenarioGroupId*/, 8 /*long*/, false)
-      && verifier.VerifyString(tablePos, 48 /*StrategyMap*/, false)
-      && verifier.VerifyString(tablePos, 50 /*StrategyMapBG*/, false)
-      && verifier.VerifyField(tablePos, 52 /*EventContentStageRewardId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 54 /*MaxTurn*/, 4 /*int*/, 4, false)
-      && verifier.VerifyField(tablePos, 56 /*StageTopography*/, 4 /*Schale.FlatData.StageTopography*/, 4, false)
-      && verifier.VerifyField(tablePos, 58 /*RecommandLevel*/, 4 /*int*/, 4, false)
-      && verifier.VerifyString(tablePos, 60 /*BgmId*/, false)
-      && verifier.VerifyField(tablePos, 62 /*StrategyEnvironment*/, 4 /*Schale.FlatData.StrategyEnvironment*/, 4, false)
-      && verifier.VerifyField(tablePos, 64 /*GroundID*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 66 /*ContentType*/, 4 /*Schale.FlatData.ContentType*/, 4, false)
-      && verifier.VerifyField(tablePos, 68 /*BGMId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 70 /*InstantClear*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 72 /*BuffContentId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 74 /*FixedEchelonId*/, 8 /*long*/, 8, false)
-      && verifier.VerifyField(tablePos, 76 /*ChallengeDisplay*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyVectorOfData(tablePos, 78 /*StarGoal*/, 4 /*Schale.FlatData.StarGoalType*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 80 /*StarGoalAmount*/, 4 /*int*/, false)
-      && verifier.VerifyField(tablePos, 82 /*IsDefeatBattle*/, 1 /*bool*/, 1, false)
-      && verifier.VerifyField(tablePos, 84 /*StageHint*/, 4 /*uint*/, 4, false)
-      && verifier.VerifyField(tablePos, 86 /*EchelonExtensionType*/, 4 /*Schale.FlatData.EchelonExtensionType*/, 4, false)
+      && verifier.VerifyField(tablePos, 22 /*OpenConditionScenarioPermanentSubEventId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 24 /*PrevStageSubEventId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 26 /*OpenConditionScenarioId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 28 /*OpenConditionContentType*/, 4 /*Schale.FlatData.EventContentType*/, 4, false)
+      && verifier.VerifyField(tablePos, 30 /*OpenConditionContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 32 /*BattleDuration*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 34 /*StageEnterCostType*/, 4 /*Schale.FlatData.ParcelType*/, 4, false)
+      && verifier.VerifyField(tablePos, 36 /*StageEnterCostId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 38 /*StageEnterCostAmount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 40 /*StageEnterEchelonCount*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 42 /*StarConditionTacticRankSCount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*StarConditionTurnCount*/, 8 /*long*/, 8, false)
+      && verifier.VerifyVectorOfData(tablePos, 46 /*EnterScenarioGroupId*/, 8 /*long*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 48 /*ClearScenarioGroupId*/, 8 /*long*/, false)
+      && verifier.VerifyString(tablePos, 50 /*StrategyMap*/, false)
+      && verifier.VerifyString(tablePos, 52 /*StrategyMapBG*/, false)
+      && verifier.VerifyField(tablePos, 54 /*EventContentStageRewardId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 56 /*MaxTurn*/, 4 /*int*/, 4, false)
+      && verifier.VerifyField(tablePos, 58 /*StageTopography*/, 4 /*Schale.FlatData.StageTopography*/, 4, false)
+      && verifier.VerifyField(tablePos, 60 /*RecommandLevel*/, 4 /*int*/, 4, false)
+      && verifier.VerifyString(tablePos, 62 /*BgmId*/, false)
+      && verifier.VerifyField(tablePos, 64 /*StrategyEnvironment*/, 4 /*Schale.FlatData.StrategyEnvironment*/, 4, false)
+      && verifier.VerifyField(tablePos, 66 /*GroundID*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 68 /*ContentType*/, 4 /*Schale.FlatData.ContentType*/, 4, false)
+      && verifier.VerifyField(tablePos, 70 /*BGMId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 72 /*InstantClear*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 74 /*BuffContentId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 76 /*FixedEchelonId*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 78 /*ChallengeDisplay*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyVectorOfData(tablePos, 80 /*StarGoal*/, 4 /*Schale.FlatData.StarGoalType*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 82 /*StarGoalAmount*/, 4 /*int*/, false)
+      && verifier.VerifyField(tablePos, 84 /*IsDefeatBattle*/, 1 /*bool*/, 1, false)
+      && verifier.VerifyField(tablePos, 86 /*StageHint*/, 4 /*uint*/, 4, false)
+      && verifier.VerifyField(tablePos, 88 /*EchelonExtensionType*/, 4 /*Schale.FlatData.EchelonExtensionType*/, 4, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

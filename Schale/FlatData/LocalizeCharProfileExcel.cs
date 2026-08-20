@@ -232,461 +232,496 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
 #endif
   public byte[] GetPersonalNameRubyEnArray() { return __p.__vector_as_array<byte>(64); }
   public Schale.FlatData.Club Club { get { int o = __p.__offset(66); return o != 0 ? (Schale.FlatData.Club)__p.bb.GetInt(o + __p.bb_pos) : Schale.FlatData.Club.None; } }
-  public string SchoolYearKr { get { int o = __p.__offset(68); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string ClubNameForGachaKr { get { int o = __p.__offset(68); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSchoolYearKrBytes() { return __p.__vector_as_span<byte>(68, 1); }
+  public Span<byte> GetClubNameForGachaKrBytes() { return __p.__vector_as_span<byte>(68, 1); }
 #else
-  public ArraySegment<byte>? GetSchoolYearKrBytes() { return __p.__vector_as_arraysegment(68); }
+  public ArraySegment<byte>? GetClubNameForGachaKrBytes() { return __p.__vector_as_arraysegment(68); }
 #endif
-  public byte[] GetSchoolYearKrArray() { return __p.__vector_as_array<byte>(68); }
-  public string SchoolYearJp { get { int o = __p.__offset(70); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetClubNameForGachaKrArray() { return __p.__vector_as_array<byte>(68); }
+  public string ClubNameForGachaJp { get { int o = __p.__offset(70); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSchoolYearJpBytes() { return __p.__vector_as_span<byte>(70, 1); }
+  public Span<byte> GetClubNameForGachaJpBytes() { return __p.__vector_as_span<byte>(70, 1); }
 #else
-  public ArraySegment<byte>? GetSchoolYearJpBytes() { return __p.__vector_as_arraysegment(70); }
+  public ArraySegment<byte>? GetClubNameForGachaJpBytes() { return __p.__vector_as_arraysegment(70); }
 #endif
-  public byte[] GetSchoolYearJpArray() { return __p.__vector_as_array<byte>(70); }
-  public string SchoolYearTh { get { int o = __p.__offset(72); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetClubNameForGachaJpArray() { return __p.__vector_as_array<byte>(70); }
+  public string ClubNameForGachaTh { get { int o = __p.__offset(72); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSchoolYearThBytes() { return __p.__vector_as_span<byte>(72, 1); }
+  public Span<byte> GetClubNameForGachaThBytes() { return __p.__vector_as_span<byte>(72, 1); }
 #else
-  public ArraySegment<byte>? GetSchoolYearThBytes() { return __p.__vector_as_arraysegment(72); }
+  public ArraySegment<byte>? GetClubNameForGachaThBytes() { return __p.__vector_as_arraysegment(72); }
 #endif
-  public byte[] GetSchoolYearThArray() { return __p.__vector_as_array<byte>(72); }
-  public string SchoolYearTw { get { int o = __p.__offset(74); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetClubNameForGachaThArray() { return __p.__vector_as_array<byte>(72); }
+  public string ClubNameForGachaTw { get { int o = __p.__offset(74); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSchoolYearTwBytes() { return __p.__vector_as_span<byte>(74, 1); }
+  public Span<byte> GetClubNameForGachaTwBytes() { return __p.__vector_as_span<byte>(74, 1); }
 #else
-  public ArraySegment<byte>? GetSchoolYearTwBytes() { return __p.__vector_as_arraysegment(74); }
+  public ArraySegment<byte>? GetClubNameForGachaTwBytes() { return __p.__vector_as_arraysegment(74); }
 #endif
-  public byte[] GetSchoolYearTwArray() { return __p.__vector_as_array<byte>(74); }
-  public string SchoolYearEn { get { int o = __p.__offset(76); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetClubNameForGachaTwArray() { return __p.__vector_as_array<byte>(74); }
+  public string ClubNameForGachaEn { get { int o = __p.__offset(76); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetSchoolYearEnBytes() { return __p.__vector_as_span<byte>(76, 1); }
+  public Span<byte> GetClubNameForGachaEnBytes() { return __p.__vector_as_span<byte>(76, 1); }
 #else
-  public ArraySegment<byte>? GetSchoolYearEnBytes() { return __p.__vector_as_arraysegment(76); }
+  public ArraySegment<byte>? GetClubNameForGachaEnBytes() { return __p.__vector_as_arraysegment(76); }
 #endif
-  public byte[] GetSchoolYearEnArray() { return __p.__vector_as_array<byte>(76); }
-  public string CharacterAgeKr { get { int o = __p.__offset(78); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetClubNameForGachaEnArray() { return __p.__vector_as_array<byte>(76); }
+  public string SchoolYearKr { get { int o = __p.__offset(78); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterAgeKrBytes() { return __p.__vector_as_span<byte>(78, 1); }
+  public Span<byte> GetSchoolYearKrBytes() { return __p.__vector_as_span<byte>(78, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterAgeKrBytes() { return __p.__vector_as_arraysegment(78); }
+  public ArraySegment<byte>? GetSchoolYearKrBytes() { return __p.__vector_as_arraysegment(78); }
 #endif
-  public byte[] GetCharacterAgeKrArray() { return __p.__vector_as_array<byte>(78); }
-  public string CharacterAgeJp { get { int o = __p.__offset(80); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSchoolYearKrArray() { return __p.__vector_as_array<byte>(78); }
+  public string SchoolYearJp { get { int o = __p.__offset(80); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterAgeJpBytes() { return __p.__vector_as_span<byte>(80, 1); }
+  public Span<byte> GetSchoolYearJpBytes() { return __p.__vector_as_span<byte>(80, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterAgeJpBytes() { return __p.__vector_as_arraysegment(80); }
+  public ArraySegment<byte>? GetSchoolYearJpBytes() { return __p.__vector_as_arraysegment(80); }
 #endif
-  public byte[] GetCharacterAgeJpArray() { return __p.__vector_as_array<byte>(80); }
-  public string CharacterAgeTh { get { int o = __p.__offset(82); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSchoolYearJpArray() { return __p.__vector_as_array<byte>(80); }
+  public string SchoolYearTh { get { int o = __p.__offset(82); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterAgeThBytes() { return __p.__vector_as_span<byte>(82, 1); }
+  public Span<byte> GetSchoolYearThBytes() { return __p.__vector_as_span<byte>(82, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterAgeThBytes() { return __p.__vector_as_arraysegment(82); }
+  public ArraySegment<byte>? GetSchoolYearThBytes() { return __p.__vector_as_arraysegment(82); }
 #endif
-  public byte[] GetCharacterAgeThArray() { return __p.__vector_as_array<byte>(82); }
-  public string CharacterAgeTw { get { int o = __p.__offset(84); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSchoolYearThArray() { return __p.__vector_as_array<byte>(82); }
+  public string SchoolYearTw { get { int o = __p.__offset(84); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterAgeTwBytes() { return __p.__vector_as_span<byte>(84, 1); }
+  public Span<byte> GetSchoolYearTwBytes() { return __p.__vector_as_span<byte>(84, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterAgeTwBytes() { return __p.__vector_as_arraysegment(84); }
+  public ArraySegment<byte>? GetSchoolYearTwBytes() { return __p.__vector_as_arraysegment(84); }
 #endif
-  public byte[] GetCharacterAgeTwArray() { return __p.__vector_as_array<byte>(84); }
-  public string CharacterAgeEn { get { int o = __p.__offset(86); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSchoolYearTwArray() { return __p.__vector_as_array<byte>(84); }
+  public string SchoolYearEn { get { int o = __p.__offset(86); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterAgeEnBytes() { return __p.__vector_as_span<byte>(86, 1); }
+  public Span<byte> GetSchoolYearEnBytes() { return __p.__vector_as_span<byte>(86, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterAgeEnBytes() { return __p.__vector_as_arraysegment(86); }
+  public ArraySegment<byte>? GetSchoolYearEnBytes() { return __p.__vector_as_arraysegment(86); }
 #endif
-  public byte[] GetCharacterAgeEnArray() { return __p.__vector_as_array<byte>(86); }
-  public string BirthDay { get { int o = __p.__offset(88); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetSchoolYearEnArray() { return __p.__vector_as_array<byte>(86); }
+  public string CharacterAgeKr { get { int o = __p.__offset(88); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthDayBytes() { return __p.__vector_as_span<byte>(88, 1); }
+  public Span<byte> GetCharacterAgeKrBytes() { return __p.__vector_as_span<byte>(88, 1); }
 #else
-  public ArraySegment<byte>? GetBirthDayBytes() { return __p.__vector_as_arraysegment(88); }
+  public ArraySegment<byte>? GetCharacterAgeKrBytes() { return __p.__vector_as_arraysegment(88); }
 #endif
-  public byte[] GetBirthDayArray() { return __p.__vector_as_array<byte>(88); }
-  public string BirthdayKr { get { int o = __p.__offset(90); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterAgeKrArray() { return __p.__vector_as_array<byte>(88); }
+  public string CharacterAgeJp { get { int o = __p.__offset(90); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthdayKrBytes() { return __p.__vector_as_span<byte>(90, 1); }
+  public Span<byte> GetCharacterAgeJpBytes() { return __p.__vector_as_span<byte>(90, 1); }
 #else
-  public ArraySegment<byte>? GetBirthdayKrBytes() { return __p.__vector_as_arraysegment(90); }
+  public ArraySegment<byte>? GetCharacterAgeJpBytes() { return __p.__vector_as_arraysegment(90); }
 #endif
-  public byte[] GetBirthdayKrArray() { return __p.__vector_as_array<byte>(90); }
-  public string BirthdayJp { get { int o = __p.__offset(92); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterAgeJpArray() { return __p.__vector_as_array<byte>(90); }
+  public string CharacterAgeTh { get { int o = __p.__offset(92); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthdayJpBytes() { return __p.__vector_as_span<byte>(92, 1); }
+  public Span<byte> GetCharacterAgeThBytes() { return __p.__vector_as_span<byte>(92, 1); }
 #else
-  public ArraySegment<byte>? GetBirthdayJpBytes() { return __p.__vector_as_arraysegment(92); }
+  public ArraySegment<byte>? GetCharacterAgeThBytes() { return __p.__vector_as_arraysegment(92); }
 #endif
-  public byte[] GetBirthdayJpArray() { return __p.__vector_as_array<byte>(92); }
-  public string BirthdayTh { get { int o = __p.__offset(94); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterAgeThArray() { return __p.__vector_as_array<byte>(92); }
+  public string CharacterAgeTw { get { int o = __p.__offset(94); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthdayThBytes() { return __p.__vector_as_span<byte>(94, 1); }
+  public Span<byte> GetCharacterAgeTwBytes() { return __p.__vector_as_span<byte>(94, 1); }
 #else
-  public ArraySegment<byte>? GetBirthdayThBytes() { return __p.__vector_as_arraysegment(94); }
+  public ArraySegment<byte>? GetCharacterAgeTwBytes() { return __p.__vector_as_arraysegment(94); }
 #endif
-  public byte[] GetBirthdayThArray() { return __p.__vector_as_array<byte>(94); }
-  public string BirthdayTw { get { int o = __p.__offset(96); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterAgeTwArray() { return __p.__vector_as_array<byte>(94); }
+  public string CharacterAgeEn { get { int o = __p.__offset(96); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthdayTwBytes() { return __p.__vector_as_span<byte>(96, 1); }
+  public Span<byte> GetCharacterAgeEnBytes() { return __p.__vector_as_span<byte>(96, 1); }
 #else
-  public ArraySegment<byte>? GetBirthdayTwBytes() { return __p.__vector_as_arraysegment(96); }
+  public ArraySegment<byte>? GetCharacterAgeEnBytes() { return __p.__vector_as_arraysegment(96); }
 #endif
-  public byte[] GetBirthdayTwArray() { return __p.__vector_as_array<byte>(96); }
-  public string BirthdayEn { get { int o = __p.__offset(98); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterAgeEnArray() { return __p.__vector_as_array<byte>(96); }
+  public string BirthDay { get { int o = __p.__offset(98); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetBirthdayEnBytes() { return __p.__vector_as_span<byte>(98, 1); }
+  public Span<byte> GetBirthDayBytes() { return __p.__vector_as_span<byte>(98, 1); }
 #else
-  public ArraySegment<byte>? GetBirthdayEnBytes() { return __p.__vector_as_arraysegment(98); }
+  public ArraySegment<byte>? GetBirthDayBytes() { return __p.__vector_as_arraysegment(98); }
 #endif
-  public byte[] GetBirthdayEnArray() { return __p.__vector_as_array<byte>(98); }
-  public string CharHeightKr { get { int o = __p.__offset(100); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthDayArray() { return __p.__vector_as_array<byte>(98); }
+  public string BirthdayKr { get { int o = __p.__offset(100); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharHeightKrBytes() { return __p.__vector_as_span<byte>(100, 1); }
+  public Span<byte> GetBirthdayKrBytes() { return __p.__vector_as_span<byte>(100, 1); }
 #else
-  public ArraySegment<byte>? GetCharHeightKrBytes() { return __p.__vector_as_arraysegment(100); }
+  public ArraySegment<byte>? GetBirthdayKrBytes() { return __p.__vector_as_arraysegment(100); }
 #endif
-  public byte[] GetCharHeightKrArray() { return __p.__vector_as_array<byte>(100); }
-  public string CharHeightJp { get { int o = __p.__offset(102); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthdayKrArray() { return __p.__vector_as_array<byte>(100); }
+  public string BirthdayJp { get { int o = __p.__offset(102); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharHeightJpBytes() { return __p.__vector_as_span<byte>(102, 1); }
+  public Span<byte> GetBirthdayJpBytes() { return __p.__vector_as_span<byte>(102, 1); }
 #else
-  public ArraySegment<byte>? GetCharHeightJpBytes() { return __p.__vector_as_arraysegment(102); }
+  public ArraySegment<byte>? GetBirthdayJpBytes() { return __p.__vector_as_arraysegment(102); }
 #endif
-  public byte[] GetCharHeightJpArray() { return __p.__vector_as_array<byte>(102); }
-  public string CharHeightTh { get { int o = __p.__offset(104); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthdayJpArray() { return __p.__vector_as_array<byte>(102); }
+  public string BirthdayTh { get { int o = __p.__offset(104); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharHeightThBytes() { return __p.__vector_as_span<byte>(104, 1); }
+  public Span<byte> GetBirthdayThBytes() { return __p.__vector_as_span<byte>(104, 1); }
 #else
-  public ArraySegment<byte>? GetCharHeightThBytes() { return __p.__vector_as_arraysegment(104); }
+  public ArraySegment<byte>? GetBirthdayThBytes() { return __p.__vector_as_arraysegment(104); }
 #endif
-  public byte[] GetCharHeightThArray() { return __p.__vector_as_array<byte>(104); }
-  public string CharHeightTw { get { int o = __p.__offset(106); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthdayThArray() { return __p.__vector_as_array<byte>(104); }
+  public string BirthdayTw { get { int o = __p.__offset(106); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharHeightTwBytes() { return __p.__vector_as_span<byte>(106, 1); }
+  public Span<byte> GetBirthdayTwBytes() { return __p.__vector_as_span<byte>(106, 1); }
 #else
-  public ArraySegment<byte>? GetCharHeightTwBytes() { return __p.__vector_as_arraysegment(106); }
+  public ArraySegment<byte>? GetBirthdayTwBytes() { return __p.__vector_as_arraysegment(106); }
 #endif
-  public byte[] GetCharHeightTwArray() { return __p.__vector_as_array<byte>(106); }
-  public string CharHeightEn { get { int o = __p.__offset(108); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthdayTwArray() { return __p.__vector_as_array<byte>(106); }
+  public string BirthdayEn { get { int o = __p.__offset(108); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharHeightEnBytes() { return __p.__vector_as_span<byte>(108, 1); }
+  public Span<byte> GetBirthdayEnBytes() { return __p.__vector_as_span<byte>(108, 1); }
 #else
-  public ArraySegment<byte>? GetCharHeightEnBytes() { return __p.__vector_as_arraysegment(108); }
+  public ArraySegment<byte>? GetBirthdayEnBytes() { return __p.__vector_as_arraysegment(108); }
 #endif
-  public byte[] GetCharHeightEnArray() { return __p.__vector_as_array<byte>(108); }
-  public string DesignerNameKr { get { int o = __p.__offset(110); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetBirthdayEnArray() { return __p.__vector_as_array<byte>(108); }
+  public string CharHeightKr { get { int o = __p.__offset(110); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetDesignerNameKrBytes() { return __p.__vector_as_span<byte>(110, 1); }
+  public Span<byte> GetCharHeightKrBytes() { return __p.__vector_as_span<byte>(110, 1); }
 #else
-  public ArraySegment<byte>? GetDesignerNameKrBytes() { return __p.__vector_as_arraysegment(110); }
+  public ArraySegment<byte>? GetCharHeightKrBytes() { return __p.__vector_as_arraysegment(110); }
 #endif
-  public byte[] GetDesignerNameKrArray() { return __p.__vector_as_array<byte>(110); }
-  public string DesignerNameJp { get { int o = __p.__offset(112); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharHeightKrArray() { return __p.__vector_as_array<byte>(110); }
+  public string CharHeightJp { get { int o = __p.__offset(112); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetDesignerNameJpBytes() { return __p.__vector_as_span<byte>(112, 1); }
+  public Span<byte> GetCharHeightJpBytes() { return __p.__vector_as_span<byte>(112, 1); }
 #else
-  public ArraySegment<byte>? GetDesignerNameJpBytes() { return __p.__vector_as_arraysegment(112); }
+  public ArraySegment<byte>? GetCharHeightJpBytes() { return __p.__vector_as_arraysegment(112); }
 #endif
-  public byte[] GetDesignerNameJpArray() { return __p.__vector_as_array<byte>(112); }
-  public string DesignerNameTh { get { int o = __p.__offset(114); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharHeightJpArray() { return __p.__vector_as_array<byte>(112); }
+  public string CharHeightTh { get { int o = __p.__offset(114); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetDesignerNameThBytes() { return __p.__vector_as_span<byte>(114, 1); }
+  public Span<byte> GetCharHeightThBytes() { return __p.__vector_as_span<byte>(114, 1); }
 #else
-  public ArraySegment<byte>? GetDesignerNameThBytes() { return __p.__vector_as_arraysegment(114); }
+  public ArraySegment<byte>? GetCharHeightThBytes() { return __p.__vector_as_arraysegment(114); }
 #endif
-  public byte[] GetDesignerNameThArray() { return __p.__vector_as_array<byte>(114); }
-  public string DesignerNameTw { get { int o = __p.__offset(116); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharHeightThArray() { return __p.__vector_as_array<byte>(114); }
+  public string CharHeightTw { get { int o = __p.__offset(116); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetDesignerNameTwBytes() { return __p.__vector_as_span<byte>(116, 1); }
+  public Span<byte> GetCharHeightTwBytes() { return __p.__vector_as_span<byte>(116, 1); }
 #else
-  public ArraySegment<byte>? GetDesignerNameTwBytes() { return __p.__vector_as_arraysegment(116); }
+  public ArraySegment<byte>? GetCharHeightTwBytes() { return __p.__vector_as_arraysegment(116); }
 #endif
-  public byte[] GetDesignerNameTwArray() { return __p.__vector_as_array<byte>(116); }
-  public string DesignerNameEn { get { int o = __p.__offset(118); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharHeightTwArray() { return __p.__vector_as_array<byte>(116); }
+  public string CharHeightEn { get { int o = __p.__offset(118); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetDesignerNameEnBytes() { return __p.__vector_as_span<byte>(118, 1); }
+  public Span<byte> GetCharHeightEnBytes() { return __p.__vector_as_span<byte>(118, 1); }
 #else
-  public ArraySegment<byte>? GetDesignerNameEnBytes() { return __p.__vector_as_arraysegment(118); }
+  public ArraySegment<byte>? GetCharHeightEnBytes() { return __p.__vector_as_arraysegment(118); }
 #endif
-  public byte[] GetDesignerNameEnArray() { return __p.__vector_as_array<byte>(118); }
-  public string IllustratorNameKr { get { int o = __p.__offset(120); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharHeightEnArray() { return __p.__vector_as_array<byte>(118); }
+  public string DesignerNameKr { get { int o = __p.__offset(120); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIllustratorNameKrBytes() { return __p.__vector_as_span<byte>(120, 1); }
+  public Span<byte> GetDesignerNameKrBytes() { return __p.__vector_as_span<byte>(120, 1); }
 #else
-  public ArraySegment<byte>? GetIllustratorNameKrBytes() { return __p.__vector_as_arraysegment(120); }
+  public ArraySegment<byte>? GetDesignerNameKrBytes() { return __p.__vector_as_arraysegment(120); }
 #endif
-  public byte[] GetIllustratorNameKrArray() { return __p.__vector_as_array<byte>(120); }
-  public string IllustratorNameJp { get { int o = __p.__offset(122); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetDesignerNameKrArray() { return __p.__vector_as_array<byte>(120); }
+  public string DesignerNameJp { get { int o = __p.__offset(122); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIllustratorNameJpBytes() { return __p.__vector_as_span<byte>(122, 1); }
+  public Span<byte> GetDesignerNameJpBytes() { return __p.__vector_as_span<byte>(122, 1); }
 #else
-  public ArraySegment<byte>? GetIllustratorNameJpBytes() { return __p.__vector_as_arraysegment(122); }
+  public ArraySegment<byte>? GetDesignerNameJpBytes() { return __p.__vector_as_arraysegment(122); }
 #endif
-  public byte[] GetIllustratorNameJpArray() { return __p.__vector_as_array<byte>(122); }
-  public string IllustratorNameTh { get { int o = __p.__offset(124); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetDesignerNameJpArray() { return __p.__vector_as_array<byte>(122); }
+  public string DesignerNameTh { get { int o = __p.__offset(124); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIllustratorNameThBytes() { return __p.__vector_as_span<byte>(124, 1); }
+  public Span<byte> GetDesignerNameThBytes() { return __p.__vector_as_span<byte>(124, 1); }
 #else
-  public ArraySegment<byte>? GetIllustratorNameThBytes() { return __p.__vector_as_arraysegment(124); }
+  public ArraySegment<byte>? GetDesignerNameThBytes() { return __p.__vector_as_arraysegment(124); }
 #endif
-  public byte[] GetIllustratorNameThArray() { return __p.__vector_as_array<byte>(124); }
-  public string IllustratorNameTw { get { int o = __p.__offset(126); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetDesignerNameThArray() { return __p.__vector_as_array<byte>(124); }
+  public string DesignerNameTw { get { int o = __p.__offset(126); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIllustratorNameTwBytes() { return __p.__vector_as_span<byte>(126, 1); }
+  public Span<byte> GetDesignerNameTwBytes() { return __p.__vector_as_span<byte>(126, 1); }
 #else
-  public ArraySegment<byte>? GetIllustratorNameTwBytes() { return __p.__vector_as_arraysegment(126); }
+  public ArraySegment<byte>? GetDesignerNameTwBytes() { return __p.__vector_as_arraysegment(126); }
 #endif
-  public byte[] GetIllustratorNameTwArray() { return __p.__vector_as_array<byte>(126); }
-  public string IllustratorNameEn { get { int o = __p.__offset(128); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetDesignerNameTwArray() { return __p.__vector_as_array<byte>(126); }
+  public string DesignerNameEn { get { int o = __p.__offset(128); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetIllustratorNameEnBytes() { return __p.__vector_as_span<byte>(128, 1); }
+  public Span<byte> GetDesignerNameEnBytes() { return __p.__vector_as_span<byte>(128, 1); }
 #else
-  public ArraySegment<byte>? GetIllustratorNameEnBytes() { return __p.__vector_as_arraysegment(128); }
+  public ArraySegment<byte>? GetDesignerNameEnBytes() { return __p.__vector_as_arraysegment(128); }
 #endif
-  public byte[] GetIllustratorNameEnArray() { return __p.__vector_as_array<byte>(128); }
-  public string CharacterVoiceKr { get { int o = __p.__offset(130); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetDesignerNameEnArray() { return __p.__vector_as_array<byte>(128); }
+  public string IllustratorNameKr { get { int o = __p.__offset(130); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterVoiceKrBytes() { return __p.__vector_as_span<byte>(130, 1); }
+  public Span<byte> GetIllustratorNameKrBytes() { return __p.__vector_as_span<byte>(130, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterVoiceKrBytes() { return __p.__vector_as_arraysegment(130); }
+  public ArraySegment<byte>? GetIllustratorNameKrBytes() { return __p.__vector_as_arraysegment(130); }
 #endif
-  public byte[] GetCharacterVoiceKrArray() { return __p.__vector_as_array<byte>(130); }
-  public string CharacterVoiceJp { get { int o = __p.__offset(132); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIllustratorNameKrArray() { return __p.__vector_as_array<byte>(130); }
+  public string IllustratorNameJp { get { int o = __p.__offset(132); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterVoiceJpBytes() { return __p.__vector_as_span<byte>(132, 1); }
+  public Span<byte> GetIllustratorNameJpBytes() { return __p.__vector_as_span<byte>(132, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterVoiceJpBytes() { return __p.__vector_as_arraysegment(132); }
+  public ArraySegment<byte>? GetIllustratorNameJpBytes() { return __p.__vector_as_arraysegment(132); }
 #endif
-  public byte[] GetCharacterVoiceJpArray() { return __p.__vector_as_array<byte>(132); }
-  public string CharacterVoiceTh { get { int o = __p.__offset(134); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIllustratorNameJpArray() { return __p.__vector_as_array<byte>(132); }
+  public string IllustratorNameTh { get { int o = __p.__offset(134); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterVoiceThBytes() { return __p.__vector_as_span<byte>(134, 1); }
+  public Span<byte> GetIllustratorNameThBytes() { return __p.__vector_as_span<byte>(134, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterVoiceThBytes() { return __p.__vector_as_arraysegment(134); }
+  public ArraySegment<byte>? GetIllustratorNameThBytes() { return __p.__vector_as_arraysegment(134); }
 #endif
-  public byte[] GetCharacterVoiceThArray() { return __p.__vector_as_array<byte>(134); }
-  public string CharacterVoiceTw { get { int o = __p.__offset(136); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIllustratorNameThArray() { return __p.__vector_as_array<byte>(134); }
+  public string IllustratorNameTw { get { int o = __p.__offset(136); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterVoiceTwBytes() { return __p.__vector_as_span<byte>(136, 1); }
+  public Span<byte> GetIllustratorNameTwBytes() { return __p.__vector_as_span<byte>(136, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterVoiceTwBytes() { return __p.__vector_as_arraysegment(136); }
+  public ArraySegment<byte>? GetIllustratorNameTwBytes() { return __p.__vector_as_arraysegment(136); }
 #endif
-  public byte[] GetCharacterVoiceTwArray() { return __p.__vector_as_array<byte>(136); }
-  public string CharacterVoiceEn { get { int o = __p.__offset(138); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIllustratorNameTwArray() { return __p.__vector_as_array<byte>(136); }
+  public string IllustratorNameEn { get { int o = __p.__offset(138); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterVoiceEnBytes() { return __p.__vector_as_span<byte>(138, 1); }
+  public Span<byte> GetIllustratorNameEnBytes() { return __p.__vector_as_span<byte>(138, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterVoiceEnBytes() { return __p.__vector_as_arraysegment(138); }
+  public ArraySegment<byte>? GetIllustratorNameEnBytes() { return __p.__vector_as_arraysegment(138); }
 #endif
-  public byte[] GetCharacterVoiceEnArray() { return __p.__vector_as_array<byte>(138); }
-  public string KRCharacterVoiceKr { get { int o = __p.__offset(140); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetIllustratorNameEnArray() { return __p.__vector_as_array<byte>(138); }
+  public string CharacterVoiceKr { get { int o = __p.__offset(140); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetKRCharacterVoiceKrBytes() { return __p.__vector_as_span<byte>(140, 1); }
+  public Span<byte> GetCharacterVoiceKrBytes() { return __p.__vector_as_span<byte>(140, 1); }
 #else
-  public ArraySegment<byte>? GetKRCharacterVoiceKrBytes() { return __p.__vector_as_arraysegment(140); }
+  public ArraySegment<byte>? GetCharacterVoiceKrBytes() { return __p.__vector_as_arraysegment(140); }
 #endif
-  public byte[] GetKRCharacterVoiceKrArray() { return __p.__vector_as_array<byte>(140); }
-  public string KRCharacterVoiceTh { get { int o = __p.__offset(142); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterVoiceKrArray() { return __p.__vector_as_array<byte>(140); }
+  public string CharacterVoiceJp { get { int o = __p.__offset(142); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetKRCharacterVoiceThBytes() { return __p.__vector_as_span<byte>(142, 1); }
+  public Span<byte> GetCharacterVoiceJpBytes() { return __p.__vector_as_span<byte>(142, 1); }
 #else
-  public ArraySegment<byte>? GetKRCharacterVoiceThBytes() { return __p.__vector_as_arraysegment(142); }
+  public ArraySegment<byte>? GetCharacterVoiceJpBytes() { return __p.__vector_as_arraysegment(142); }
 #endif
-  public byte[] GetKRCharacterVoiceThArray() { return __p.__vector_as_array<byte>(142); }
-  public string KRCharacterVoiceTw { get { int o = __p.__offset(144); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterVoiceJpArray() { return __p.__vector_as_array<byte>(142); }
+  public string CharacterVoiceTh { get { int o = __p.__offset(144); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetKRCharacterVoiceTwBytes() { return __p.__vector_as_span<byte>(144, 1); }
+  public Span<byte> GetCharacterVoiceThBytes() { return __p.__vector_as_span<byte>(144, 1); }
 #else
-  public ArraySegment<byte>? GetKRCharacterVoiceTwBytes() { return __p.__vector_as_arraysegment(144); }
+  public ArraySegment<byte>? GetCharacterVoiceThBytes() { return __p.__vector_as_arraysegment(144); }
 #endif
-  public byte[] GetKRCharacterVoiceTwArray() { return __p.__vector_as_array<byte>(144); }
-  public string KRCharacterVoiceEn { get { int o = __p.__offset(146); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterVoiceThArray() { return __p.__vector_as_array<byte>(144); }
+  public string CharacterVoiceTw { get { int o = __p.__offset(146); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetKRCharacterVoiceEnBytes() { return __p.__vector_as_span<byte>(146, 1); }
+  public Span<byte> GetCharacterVoiceTwBytes() { return __p.__vector_as_span<byte>(146, 1); }
 #else
-  public ArraySegment<byte>? GetKRCharacterVoiceEnBytes() { return __p.__vector_as_arraysegment(146); }
+  public ArraySegment<byte>? GetCharacterVoiceTwBytes() { return __p.__vector_as_arraysegment(146); }
 #endif
-  public byte[] GetKRCharacterVoiceEnArray() { return __p.__vector_as_array<byte>(146); }
-  public string HobbyKr { get { int o = __p.__offset(148); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterVoiceTwArray() { return __p.__vector_as_array<byte>(146); }
+  public string CharacterVoiceEn { get { int o = __p.__offset(148); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHobbyKrBytes() { return __p.__vector_as_span<byte>(148, 1); }
+  public Span<byte> GetCharacterVoiceEnBytes() { return __p.__vector_as_span<byte>(148, 1); }
 #else
-  public ArraySegment<byte>? GetHobbyKrBytes() { return __p.__vector_as_arraysegment(148); }
+  public ArraySegment<byte>? GetCharacterVoiceEnBytes() { return __p.__vector_as_arraysegment(148); }
 #endif
-  public byte[] GetHobbyKrArray() { return __p.__vector_as_array<byte>(148); }
-  public string HobbyJp { get { int o = __p.__offset(150); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetCharacterVoiceEnArray() { return __p.__vector_as_array<byte>(148); }
+  public string KRCharacterVoiceKr { get { int o = __p.__offset(150); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHobbyJpBytes() { return __p.__vector_as_span<byte>(150, 1); }
+  public Span<byte> GetKRCharacterVoiceKrBytes() { return __p.__vector_as_span<byte>(150, 1); }
 #else
-  public ArraySegment<byte>? GetHobbyJpBytes() { return __p.__vector_as_arraysegment(150); }
+  public ArraySegment<byte>? GetKRCharacterVoiceKrBytes() { return __p.__vector_as_arraysegment(150); }
 #endif
-  public byte[] GetHobbyJpArray() { return __p.__vector_as_array<byte>(150); }
-  public string HobbyTh { get { int o = __p.__offset(152); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetKRCharacterVoiceKrArray() { return __p.__vector_as_array<byte>(150); }
+  public string KRCharacterVoiceTh { get { int o = __p.__offset(152); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHobbyThBytes() { return __p.__vector_as_span<byte>(152, 1); }
+  public Span<byte> GetKRCharacterVoiceThBytes() { return __p.__vector_as_span<byte>(152, 1); }
 #else
-  public ArraySegment<byte>? GetHobbyThBytes() { return __p.__vector_as_arraysegment(152); }
+  public ArraySegment<byte>? GetKRCharacterVoiceThBytes() { return __p.__vector_as_arraysegment(152); }
 #endif
-  public byte[] GetHobbyThArray() { return __p.__vector_as_array<byte>(152); }
-  public string HobbyTw { get { int o = __p.__offset(154); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetKRCharacterVoiceThArray() { return __p.__vector_as_array<byte>(152); }
+  public string KRCharacterVoiceTw { get { int o = __p.__offset(154); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHobbyTwBytes() { return __p.__vector_as_span<byte>(154, 1); }
+  public Span<byte> GetKRCharacterVoiceTwBytes() { return __p.__vector_as_span<byte>(154, 1); }
 #else
-  public ArraySegment<byte>? GetHobbyTwBytes() { return __p.__vector_as_arraysegment(154); }
+  public ArraySegment<byte>? GetKRCharacterVoiceTwBytes() { return __p.__vector_as_arraysegment(154); }
 #endif
-  public byte[] GetHobbyTwArray() { return __p.__vector_as_array<byte>(154); }
-  public string HobbyEn { get { int o = __p.__offset(156); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetKRCharacterVoiceTwArray() { return __p.__vector_as_array<byte>(154); }
+  public string KRCharacterVoiceEn { get { int o = __p.__offset(156); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetHobbyEnBytes() { return __p.__vector_as_span<byte>(156, 1); }
+  public Span<byte> GetKRCharacterVoiceEnBytes() { return __p.__vector_as_span<byte>(156, 1); }
 #else
-  public ArraySegment<byte>? GetHobbyEnBytes() { return __p.__vector_as_arraysegment(156); }
+  public ArraySegment<byte>? GetKRCharacterVoiceEnBytes() { return __p.__vector_as_arraysegment(156); }
 #endif
-  public byte[] GetHobbyEnArray() { return __p.__vector_as_array<byte>(156); }
-  public string WeaponNameKr { get { int o = __p.__offset(158); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetKRCharacterVoiceEnArray() { return __p.__vector_as_array<byte>(156); }
+  public string HobbyKr { get { int o = __p.__offset(158); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponNameKrBytes() { return __p.__vector_as_span<byte>(158, 1); }
+  public Span<byte> GetHobbyKrBytes() { return __p.__vector_as_span<byte>(158, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponNameKrBytes() { return __p.__vector_as_arraysegment(158); }
+  public ArraySegment<byte>? GetHobbyKrBytes() { return __p.__vector_as_arraysegment(158); }
 #endif
-  public byte[] GetWeaponNameKrArray() { return __p.__vector_as_array<byte>(158); }
-  public string WeaponDescKr { get { int o = __p.__offset(160); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetHobbyKrArray() { return __p.__vector_as_array<byte>(158); }
+  public string HobbyJp { get { int o = __p.__offset(160); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponDescKrBytes() { return __p.__vector_as_span<byte>(160, 1); }
+  public Span<byte> GetHobbyJpBytes() { return __p.__vector_as_span<byte>(160, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponDescKrBytes() { return __p.__vector_as_arraysegment(160); }
+  public ArraySegment<byte>? GetHobbyJpBytes() { return __p.__vector_as_arraysegment(160); }
 #endif
-  public byte[] GetWeaponDescKrArray() { return __p.__vector_as_array<byte>(160); }
-  public string WeaponNameJp { get { int o = __p.__offset(162); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetHobbyJpArray() { return __p.__vector_as_array<byte>(160); }
+  public string HobbyTh { get { int o = __p.__offset(162); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponNameJpBytes() { return __p.__vector_as_span<byte>(162, 1); }
+  public Span<byte> GetHobbyThBytes() { return __p.__vector_as_span<byte>(162, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponNameJpBytes() { return __p.__vector_as_arraysegment(162); }
+  public ArraySegment<byte>? GetHobbyThBytes() { return __p.__vector_as_arraysegment(162); }
 #endif
-  public byte[] GetWeaponNameJpArray() { return __p.__vector_as_array<byte>(162); }
-  public string WeaponDescJp { get { int o = __p.__offset(164); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetHobbyThArray() { return __p.__vector_as_array<byte>(162); }
+  public string HobbyTw { get { int o = __p.__offset(164); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponDescJpBytes() { return __p.__vector_as_span<byte>(164, 1); }
+  public Span<byte> GetHobbyTwBytes() { return __p.__vector_as_span<byte>(164, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponDescJpBytes() { return __p.__vector_as_arraysegment(164); }
+  public ArraySegment<byte>? GetHobbyTwBytes() { return __p.__vector_as_arraysegment(164); }
 #endif
-  public byte[] GetWeaponDescJpArray() { return __p.__vector_as_array<byte>(164); }
-  public string WeaponNameTh { get { int o = __p.__offset(166); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetHobbyTwArray() { return __p.__vector_as_array<byte>(164); }
+  public string HobbyEn { get { int o = __p.__offset(166); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponNameThBytes() { return __p.__vector_as_span<byte>(166, 1); }
+  public Span<byte> GetHobbyEnBytes() { return __p.__vector_as_span<byte>(166, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponNameThBytes() { return __p.__vector_as_arraysegment(166); }
+  public ArraySegment<byte>? GetHobbyEnBytes() { return __p.__vector_as_arraysegment(166); }
 #endif
-  public byte[] GetWeaponNameThArray() { return __p.__vector_as_array<byte>(166); }
-  public string WeaponDescTh { get { int o = __p.__offset(168); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetHobbyEnArray() { return __p.__vector_as_array<byte>(166); }
+  public string WeaponNameKr { get { int o = __p.__offset(168); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponDescThBytes() { return __p.__vector_as_span<byte>(168, 1); }
+  public Span<byte> GetWeaponNameKrBytes() { return __p.__vector_as_span<byte>(168, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponDescThBytes() { return __p.__vector_as_arraysegment(168); }
+  public ArraySegment<byte>? GetWeaponNameKrBytes() { return __p.__vector_as_arraysegment(168); }
 #endif
-  public byte[] GetWeaponDescThArray() { return __p.__vector_as_array<byte>(168); }
-  public string WeaponNameTw { get { int o = __p.__offset(170); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponNameKrArray() { return __p.__vector_as_array<byte>(168); }
+  public string WeaponDescKr { get { int o = __p.__offset(170); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponNameTwBytes() { return __p.__vector_as_span<byte>(170, 1); }
+  public Span<byte> GetWeaponDescKrBytes() { return __p.__vector_as_span<byte>(170, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponNameTwBytes() { return __p.__vector_as_arraysegment(170); }
+  public ArraySegment<byte>? GetWeaponDescKrBytes() { return __p.__vector_as_arraysegment(170); }
 #endif
-  public byte[] GetWeaponNameTwArray() { return __p.__vector_as_array<byte>(170); }
-  public string WeaponDescTw { get { int o = __p.__offset(172); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponDescKrArray() { return __p.__vector_as_array<byte>(170); }
+  public string WeaponNameJp { get { int o = __p.__offset(172); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponDescTwBytes() { return __p.__vector_as_span<byte>(172, 1); }
+  public Span<byte> GetWeaponNameJpBytes() { return __p.__vector_as_span<byte>(172, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponDescTwBytes() { return __p.__vector_as_arraysegment(172); }
+  public ArraySegment<byte>? GetWeaponNameJpBytes() { return __p.__vector_as_arraysegment(172); }
 #endif
-  public byte[] GetWeaponDescTwArray() { return __p.__vector_as_array<byte>(172); }
-  public string WeaponNameEn { get { int o = __p.__offset(174); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponNameJpArray() { return __p.__vector_as_array<byte>(172); }
+  public string WeaponDescJp { get { int o = __p.__offset(174); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponNameEnBytes() { return __p.__vector_as_span<byte>(174, 1); }
+  public Span<byte> GetWeaponDescJpBytes() { return __p.__vector_as_span<byte>(174, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponNameEnBytes() { return __p.__vector_as_arraysegment(174); }
+  public ArraySegment<byte>? GetWeaponDescJpBytes() { return __p.__vector_as_arraysegment(174); }
 #endif
-  public byte[] GetWeaponNameEnArray() { return __p.__vector_as_array<byte>(174); }
-  public string WeaponDescEn { get { int o = __p.__offset(176); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponDescJpArray() { return __p.__vector_as_array<byte>(174); }
+  public string WeaponNameTh { get { int o = __p.__offset(176); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetWeaponDescEnBytes() { return __p.__vector_as_span<byte>(176, 1); }
+  public Span<byte> GetWeaponNameThBytes() { return __p.__vector_as_span<byte>(176, 1); }
 #else
-  public ArraySegment<byte>? GetWeaponDescEnBytes() { return __p.__vector_as_arraysegment(176); }
+  public ArraySegment<byte>? GetWeaponNameThBytes() { return __p.__vector_as_arraysegment(176); }
 #endif
-  public byte[] GetWeaponDescEnArray() { return __p.__vector_as_array<byte>(176); }
-  public string ProfileIntroductionKr { get { int o = __p.__offset(178); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponNameThArray() { return __p.__vector_as_array<byte>(176); }
+  public string WeaponDescTh { get { int o = __p.__offset(178); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProfileIntroductionKrBytes() { return __p.__vector_as_span<byte>(178, 1); }
+  public Span<byte> GetWeaponDescThBytes() { return __p.__vector_as_span<byte>(178, 1); }
 #else
-  public ArraySegment<byte>? GetProfileIntroductionKrBytes() { return __p.__vector_as_arraysegment(178); }
+  public ArraySegment<byte>? GetWeaponDescThBytes() { return __p.__vector_as_arraysegment(178); }
 #endif
-  public byte[] GetProfileIntroductionKrArray() { return __p.__vector_as_array<byte>(178); }
-  public string ProfileIntroductionJp { get { int o = __p.__offset(180); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponDescThArray() { return __p.__vector_as_array<byte>(178); }
+  public string WeaponNameTw { get { int o = __p.__offset(180); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProfileIntroductionJpBytes() { return __p.__vector_as_span<byte>(180, 1); }
+  public Span<byte> GetWeaponNameTwBytes() { return __p.__vector_as_span<byte>(180, 1); }
 #else
-  public ArraySegment<byte>? GetProfileIntroductionJpBytes() { return __p.__vector_as_arraysegment(180); }
+  public ArraySegment<byte>? GetWeaponNameTwBytes() { return __p.__vector_as_arraysegment(180); }
 #endif
-  public byte[] GetProfileIntroductionJpArray() { return __p.__vector_as_array<byte>(180); }
-  public string ProfileIntroductionTh { get { int o = __p.__offset(182); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponNameTwArray() { return __p.__vector_as_array<byte>(180); }
+  public string WeaponDescTw { get { int o = __p.__offset(182); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProfileIntroductionThBytes() { return __p.__vector_as_span<byte>(182, 1); }
+  public Span<byte> GetWeaponDescTwBytes() { return __p.__vector_as_span<byte>(182, 1); }
 #else
-  public ArraySegment<byte>? GetProfileIntroductionThBytes() { return __p.__vector_as_arraysegment(182); }
+  public ArraySegment<byte>? GetWeaponDescTwBytes() { return __p.__vector_as_arraysegment(182); }
 #endif
-  public byte[] GetProfileIntroductionThArray() { return __p.__vector_as_array<byte>(182); }
-  public string ProfileIntroductionTw { get { int o = __p.__offset(184); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponDescTwArray() { return __p.__vector_as_array<byte>(182); }
+  public string WeaponNameEn { get { int o = __p.__offset(184); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProfileIntroductionTwBytes() { return __p.__vector_as_span<byte>(184, 1); }
+  public Span<byte> GetWeaponNameEnBytes() { return __p.__vector_as_span<byte>(184, 1); }
 #else
-  public ArraySegment<byte>? GetProfileIntroductionTwBytes() { return __p.__vector_as_arraysegment(184); }
+  public ArraySegment<byte>? GetWeaponNameEnBytes() { return __p.__vector_as_arraysegment(184); }
 #endif
-  public byte[] GetProfileIntroductionTwArray() { return __p.__vector_as_array<byte>(184); }
-  public string ProfileIntroductionEn { get { int o = __p.__offset(186); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponNameEnArray() { return __p.__vector_as_array<byte>(184); }
+  public string WeaponDescEn { get { int o = __p.__offset(186); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetProfileIntroductionEnBytes() { return __p.__vector_as_span<byte>(186, 1); }
+  public Span<byte> GetWeaponDescEnBytes() { return __p.__vector_as_span<byte>(186, 1); }
 #else
-  public ArraySegment<byte>? GetProfileIntroductionEnBytes() { return __p.__vector_as_arraysegment(186); }
+  public ArraySegment<byte>? GetWeaponDescEnBytes() { return __p.__vector_as_arraysegment(186); }
 #endif
-  public byte[] GetProfileIntroductionEnArray() { return __p.__vector_as_array<byte>(186); }
-  public string CharacterSSRNewKr { get { int o = __p.__offset(188); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetWeaponDescEnArray() { return __p.__vector_as_array<byte>(186); }
+  public string ProfileIntroductionKr { get { int o = __p.__offset(188); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterSSRNewKrBytes() { return __p.__vector_as_span<byte>(188, 1); }
+  public Span<byte> GetProfileIntroductionKrBytes() { return __p.__vector_as_span<byte>(188, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterSSRNewKrBytes() { return __p.__vector_as_arraysegment(188); }
+  public ArraySegment<byte>? GetProfileIntroductionKrBytes() { return __p.__vector_as_arraysegment(188); }
 #endif
-  public byte[] GetCharacterSSRNewKrArray() { return __p.__vector_as_array<byte>(188); }
-  public string CharacterSSRNewJp { get { int o = __p.__offset(190); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetProfileIntroductionKrArray() { return __p.__vector_as_array<byte>(188); }
+  public string ProfileIntroductionJp { get { int o = __p.__offset(190); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterSSRNewJpBytes() { return __p.__vector_as_span<byte>(190, 1); }
+  public Span<byte> GetProfileIntroductionJpBytes() { return __p.__vector_as_span<byte>(190, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterSSRNewJpBytes() { return __p.__vector_as_arraysegment(190); }
+  public ArraySegment<byte>? GetProfileIntroductionJpBytes() { return __p.__vector_as_arraysegment(190); }
 #endif
-  public byte[] GetCharacterSSRNewJpArray() { return __p.__vector_as_array<byte>(190); }
-  public string CharacterSSRNewTh { get { int o = __p.__offset(192); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetProfileIntroductionJpArray() { return __p.__vector_as_array<byte>(190); }
+  public string ProfileIntroductionTh { get { int o = __p.__offset(192); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterSSRNewThBytes() { return __p.__vector_as_span<byte>(192, 1); }
+  public Span<byte> GetProfileIntroductionThBytes() { return __p.__vector_as_span<byte>(192, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterSSRNewThBytes() { return __p.__vector_as_arraysegment(192); }
+  public ArraySegment<byte>? GetProfileIntroductionThBytes() { return __p.__vector_as_arraysegment(192); }
 #endif
-  public byte[] GetCharacterSSRNewThArray() { return __p.__vector_as_array<byte>(192); }
-  public string CharacterSSRNewTw { get { int o = __p.__offset(194); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetProfileIntroductionThArray() { return __p.__vector_as_array<byte>(192); }
+  public string ProfileIntroductionTw { get { int o = __p.__offset(194); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterSSRNewTwBytes() { return __p.__vector_as_span<byte>(194, 1); }
+  public Span<byte> GetProfileIntroductionTwBytes() { return __p.__vector_as_span<byte>(194, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterSSRNewTwBytes() { return __p.__vector_as_arraysegment(194); }
+  public ArraySegment<byte>? GetProfileIntroductionTwBytes() { return __p.__vector_as_arraysegment(194); }
 #endif
-  public byte[] GetCharacterSSRNewTwArray() { return __p.__vector_as_array<byte>(194); }
-  public string CharacterSSRNewEn { get { int o = __p.__offset(196); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public byte[] GetProfileIntroductionTwArray() { return __p.__vector_as_array<byte>(194); }
+  public string ProfileIntroductionEn { get { int o = __p.__offset(196); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetCharacterSSRNewEnBytes() { return __p.__vector_as_span<byte>(196, 1); }
+  public Span<byte> GetProfileIntroductionEnBytes() { return __p.__vector_as_span<byte>(196, 1); }
 #else
-  public ArraySegment<byte>? GetCharacterSSRNewEnBytes() { return __p.__vector_as_arraysegment(196); }
+  public ArraySegment<byte>? GetProfileIntroductionEnBytes() { return __p.__vector_as_arraysegment(196); }
 #endif
-  public byte[] GetCharacterSSRNewEnArray() { return __p.__vector_as_array<byte>(196); }
+  public byte[] GetProfileIntroductionEnArray() { return __p.__vector_as_array<byte>(196); }
+  public string CharacterSSRNewKr { get { int o = __p.__offset(198); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharacterSSRNewKrBytes() { return __p.__vector_as_span<byte>(198, 1); }
+#else
+  public ArraySegment<byte>? GetCharacterSSRNewKrBytes() { return __p.__vector_as_arraysegment(198); }
+#endif
+  public byte[] GetCharacterSSRNewKrArray() { return __p.__vector_as_array<byte>(198); }
+  public string CharacterSSRNewJp { get { int o = __p.__offset(200); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharacterSSRNewJpBytes() { return __p.__vector_as_span<byte>(200, 1); }
+#else
+  public ArraySegment<byte>? GetCharacterSSRNewJpBytes() { return __p.__vector_as_arraysegment(200); }
+#endif
+  public byte[] GetCharacterSSRNewJpArray() { return __p.__vector_as_array<byte>(200); }
+  public string CharacterSSRNewTh { get { int o = __p.__offset(202); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharacterSSRNewThBytes() { return __p.__vector_as_span<byte>(202, 1); }
+#else
+  public ArraySegment<byte>? GetCharacterSSRNewThBytes() { return __p.__vector_as_arraysegment(202); }
+#endif
+  public byte[] GetCharacterSSRNewThArray() { return __p.__vector_as_array<byte>(202); }
+  public string CharacterSSRNewTw { get { int o = __p.__offset(204); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharacterSSRNewTwBytes() { return __p.__vector_as_span<byte>(204, 1); }
+#else
+  public ArraySegment<byte>? GetCharacterSSRNewTwBytes() { return __p.__vector_as_arraysegment(204); }
+#endif
+  public byte[] GetCharacterSSRNewTwArray() { return __p.__vector_as_array<byte>(204); }
+  public string CharacterSSRNewEn { get { int o = __p.__offset(206); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetCharacterSSRNewEnBytes() { return __p.__vector_as_span<byte>(206, 1); }
+#else
+  public ArraySegment<byte>? GetCharacterSSRNewEnBytes() { return __p.__vector_as_arraysegment(206); }
+#endif
+  public byte[] GetCharacterSSRNewEnArray() { return __p.__vector_as_array<byte>(206); }
 
   public static Offset<Schale.FlatData.LocalizeCharProfileExcel> CreateLocalizeCharProfileExcel(FlatBufferBuilder builder,
       long CharacterId = 0,
@@ -721,6 +756,11 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
       StringOffset PersonalNameEnOffset = default(StringOffset),
       StringOffset PersonalNameRubyEnOffset = default(StringOffset),
       Schale.FlatData.Club Club = Schale.FlatData.Club.None,
+      StringOffset ClubNameForGachaKrOffset = default(StringOffset),
+      StringOffset ClubNameForGachaJpOffset = default(StringOffset),
+      StringOffset ClubNameForGachaThOffset = default(StringOffset),
+      StringOffset ClubNameForGachaTwOffset = default(StringOffset),
+      StringOffset ClubNameForGachaEnOffset = default(StringOffset),
       StringOffset SchoolYearKrOffset = default(StringOffset),
       StringOffset SchoolYearJpOffset = default(StringOffset),
       StringOffset SchoolYearThOffset = default(StringOffset),
@@ -786,7 +826,7 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
       StringOffset CharacterSSRNewThOffset = default(StringOffset),
       StringOffset CharacterSSRNewTwOffset = default(StringOffset),
       StringOffset CharacterSSRNewEnOffset = default(StringOffset)) {
-    builder.StartTable(97);
+    builder.StartTable(102);
     LocalizeCharProfileExcel.AddCharacterId(builder, CharacterId);
     LocalizeCharProfileExcel.AddCharacterSSRNewEn(builder, CharacterSSRNewEnOffset);
     LocalizeCharProfileExcel.AddCharacterSSRNewTw(builder, CharacterSSRNewTwOffset);
@@ -853,6 +893,11 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
     LocalizeCharProfileExcel.AddSchoolYearTh(builder, SchoolYearThOffset);
     LocalizeCharProfileExcel.AddSchoolYearJp(builder, SchoolYearJpOffset);
     LocalizeCharProfileExcel.AddSchoolYearKr(builder, SchoolYearKrOffset);
+    LocalizeCharProfileExcel.AddClubNameForGachaEn(builder, ClubNameForGachaEnOffset);
+    LocalizeCharProfileExcel.AddClubNameForGachaTw(builder, ClubNameForGachaTwOffset);
+    LocalizeCharProfileExcel.AddClubNameForGachaTh(builder, ClubNameForGachaThOffset);
+    LocalizeCharProfileExcel.AddClubNameForGachaJp(builder, ClubNameForGachaJpOffset);
+    LocalizeCharProfileExcel.AddClubNameForGachaKr(builder, ClubNameForGachaKrOffset);
     LocalizeCharProfileExcel.AddClub(builder, Club);
     LocalizeCharProfileExcel.AddPersonalNameRubyEn(builder, PersonalNameRubyEnOffset);
     LocalizeCharProfileExcel.AddPersonalNameEn(builder, PersonalNameEnOffset);
@@ -887,7 +932,7 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
     return LocalizeCharProfileExcel.EndLocalizeCharProfileExcel(builder);
   }
 
-  public static void StartLocalizeCharProfileExcel(FlatBufferBuilder builder) { builder.StartTable(97); }
+  public static void StartLocalizeCharProfileExcel(FlatBufferBuilder builder) { builder.StartTable(102); }
   public static void AddCharacterId(FlatBufferBuilder builder, long characterId) { builder.AddLong(0, characterId, 0); }
   public static void AddStatusMessageKr(FlatBufferBuilder builder, StringOffset statusMessageKrOffset) { builder.AddOffset(1, statusMessageKrOffset.Value, 0); }
   public static void AddStatusMessageJp(FlatBufferBuilder builder, StringOffset statusMessageJpOffset) { builder.AddOffset(2, statusMessageJpOffset.Value, 0); }
@@ -920,71 +965,76 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
   public static void AddPersonalNameEn(FlatBufferBuilder builder, StringOffset personalNameEnOffset) { builder.AddOffset(29, personalNameEnOffset.Value, 0); }
   public static void AddPersonalNameRubyEn(FlatBufferBuilder builder, StringOffset personalNameRubyEnOffset) { builder.AddOffset(30, personalNameRubyEnOffset.Value, 0); }
   public static void AddClub(FlatBufferBuilder builder, Schale.FlatData.Club club) { builder.AddInt(31, (int)club, 0); }
-  public static void AddSchoolYearKr(FlatBufferBuilder builder, StringOffset schoolYearKrOffset) { builder.AddOffset(32, schoolYearKrOffset.Value, 0); }
-  public static void AddSchoolYearJp(FlatBufferBuilder builder, StringOffset schoolYearJpOffset) { builder.AddOffset(33, schoolYearJpOffset.Value, 0); }
-  public static void AddSchoolYearTh(FlatBufferBuilder builder, StringOffset schoolYearThOffset) { builder.AddOffset(34, schoolYearThOffset.Value, 0); }
-  public static void AddSchoolYearTw(FlatBufferBuilder builder, StringOffset schoolYearTwOffset) { builder.AddOffset(35, schoolYearTwOffset.Value, 0); }
-  public static void AddSchoolYearEn(FlatBufferBuilder builder, StringOffset schoolYearEnOffset) { builder.AddOffset(36, schoolYearEnOffset.Value, 0); }
-  public static void AddCharacterAgeKr(FlatBufferBuilder builder, StringOffset characterAgeKrOffset) { builder.AddOffset(37, characterAgeKrOffset.Value, 0); }
-  public static void AddCharacterAgeJp(FlatBufferBuilder builder, StringOffset characterAgeJpOffset) { builder.AddOffset(38, characterAgeJpOffset.Value, 0); }
-  public static void AddCharacterAgeTh(FlatBufferBuilder builder, StringOffset characterAgeThOffset) { builder.AddOffset(39, characterAgeThOffset.Value, 0); }
-  public static void AddCharacterAgeTw(FlatBufferBuilder builder, StringOffset characterAgeTwOffset) { builder.AddOffset(40, characterAgeTwOffset.Value, 0); }
-  public static void AddCharacterAgeEn(FlatBufferBuilder builder, StringOffset characterAgeEnOffset) { builder.AddOffset(41, characterAgeEnOffset.Value, 0); }
-  public static void AddBirthDay(FlatBufferBuilder builder, StringOffset birthDayOffset) { builder.AddOffset(42, birthDayOffset.Value, 0); }
-  public static void AddBirthdayKr(FlatBufferBuilder builder, StringOffset birthdayKrOffset) { builder.AddOffset(43, birthdayKrOffset.Value, 0); }
-  public static void AddBirthdayJp(FlatBufferBuilder builder, StringOffset birthdayJpOffset) { builder.AddOffset(44, birthdayJpOffset.Value, 0); }
-  public static void AddBirthdayTh(FlatBufferBuilder builder, StringOffset birthdayThOffset) { builder.AddOffset(45, birthdayThOffset.Value, 0); }
-  public static void AddBirthdayTw(FlatBufferBuilder builder, StringOffset birthdayTwOffset) { builder.AddOffset(46, birthdayTwOffset.Value, 0); }
-  public static void AddBirthdayEn(FlatBufferBuilder builder, StringOffset birthdayEnOffset) { builder.AddOffset(47, birthdayEnOffset.Value, 0); }
-  public static void AddCharHeightKr(FlatBufferBuilder builder, StringOffset charHeightKrOffset) { builder.AddOffset(48, charHeightKrOffset.Value, 0); }
-  public static void AddCharHeightJp(FlatBufferBuilder builder, StringOffset charHeightJpOffset) { builder.AddOffset(49, charHeightJpOffset.Value, 0); }
-  public static void AddCharHeightTh(FlatBufferBuilder builder, StringOffset charHeightThOffset) { builder.AddOffset(50, charHeightThOffset.Value, 0); }
-  public static void AddCharHeightTw(FlatBufferBuilder builder, StringOffset charHeightTwOffset) { builder.AddOffset(51, charHeightTwOffset.Value, 0); }
-  public static void AddCharHeightEn(FlatBufferBuilder builder, StringOffset charHeightEnOffset) { builder.AddOffset(52, charHeightEnOffset.Value, 0); }
-  public static void AddDesignerNameKr(FlatBufferBuilder builder, StringOffset designerNameKrOffset) { builder.AddOffset(53, designerNameKrOffset.Value, 0); }
-  public static void AddDesignerNameJp(FlatBufferBuilder builder, StringOffset designerNameJpOffset) { builder.AddOffset(54, designerNameJpOffset.Value, 0); }
-  public static void AddDesignerNameTh(FlatBufferBuilder builder, StringOffset designerNameThOffset) { builder.AddOffset(55, designerNameThOffset.Value, 0); }
-  public static void AddDesignerNameTw(FlatBufferBuilder builder, StringOffset designerNameTwOffset) { builder.AddOffset(56, designerNameTwOffset.Value, 0); }
-  public static void AddDesignerNameEn(FlatBufferBuilder builder, StringOffset designerNameEnOffset) { builder.AddOffset(57, designerNameEnOffset.Value, 0); }
-  public static void AddIllustratorNameKr(FlatBufferBuilder builder, StringOffset illustratorNameKrOffset) { builder.AddOffset(58, illustratorNameKrOffset.Value, 0); }
-  public static void AddIllustratorNameJp(FlatBufferBuilder builder, StringOffset illustratorNameJpOffset) { builder.AddOffset(59, illustratorNameJpOffset.Value, 0); }
-  public static void AddIllustratorNameTh(FlatBufferBuilder builder, StringOffset illustratorNameThOffset) { builder.AddOffset(60, illustratorNameThOffset.Value, 0); }
-  public static void AddIllustratorNameTw(FlatBufferBuilder builder, StringOffset illustratorNameTwOffset) { builder.AddOffset(61, illustratorNameTwOffset.Value, 0); }
-  public static void AddIllustratorNameEn(FlatBufferBuilder builder, StringOffset illustratorNameEnOffset) { builder.AddOffset(62, illustratorNameEnOffset.Value, 0); }
-  public static void AddCharacterVoiceKr(FlatBufferBuilder builder, StringOffset characterVoiceKrOffset) { builder.AddOffset(63, characterVoiceKrOffset.Value, 0); }
-  public static void AddCharacterVoiceJp(FlatBufferBuilder builder, StringOffset characterVoiceJpOffset) { builder.AddOffset(64, characterVoiceJpOffset.Value, 0); }
-  public static void AddCharacterVoiceTh(FlatBufferBuilder builder, StringOffset characterVoiceThOffset) { builder.AddOffset(65, characterVoiceThOffset.Value, 0); }
-  public static void AddCharacterVoiceTw(FlatBufferBuilder builder, StringOffset characterVoiceTwOffset) { builder.AddOffset(66, characterVoiceTwOffset.Value, 0); }
-  public static void AddCharacterVoiceEn(FlatBufferBuilder builder, StringOffset characterVoiceEnOffset) { builder.AddOffset(67, characterVoiceEnOffset.Value, 0); }
-  public static void AddKRCharacterVoiceKr(FlatBufferBuilder builder, StringOffset kRCharacterVoiceKrOffset) { builder.AddOffset(68, kRCharacterVoiceKrOffset.Value, 0); }
-  public static void AddKRCharacterVoiceTh(FlatBufferBuilder builder, StringOffset kRCharacterVoiceThOffset) { builder.AddOffset(69, kRCharacterVoiceThOffset.Value, 0); }
-  public static void AddKRCharacterVoiceTw(FlatBufferBuilder builder, StringOffset kRCharacterVoiceTwOffset) { builder.AddOffset(70, kRCharacterVoiceTwOffset.Value, 0); }
-  public static void AddKRCharacterVoiceEn(FlatBufferBuilder builder, StringOffset kRCharacterVoiceEnOffset) { builder.AddOffset(71, kRCharacterVoiceEnOffset.Value, 0); }
-  public static void AddHobbyKr(FlatBufferBuilder builder, StringOffset hobbyKrOffset) { builder.AddOffset(72, hobbyKrOffset.Value, 0); }
-  public static void AddHobbyJp(FlatBufferBuilder builder, StringOffset hobbyJpOffset) { builder.AddOffset(73, hobbyJpOffset.Value, 0); }
-  public static void AddHobbyTh(FlatBufferBuilder builder, StringOffset hobbyThOffset) { builder.AddOffset(74, hobbyThOffset.Value, 0); }
-  public static void AddHobbyTw(FlatBufferBuilder builder, StringOffset hobbyTwOffset) { builder.AddOffset(75, hobbyTwOffset.Value, 0); }
-  public static void AddHobbyEn(FlatBufferBuilder builder, StringOffset hobbyEnOffset) { builder.AddOffset(76, hobbyEnOffset.Value, 0); }
-  public static void AddWeaponNameKr(FlatBufferBuilder builder, StringOffset weaponNameKrOffset) { builder.AddOffset(77, weaponNameKrOffset.Value, 0); }
-  public static void AddWeaponDescKr(FlatBufferBuilder builder, StringOffset weaponDescKrOffset) { builder.AddOffset(78, weaponDescKrOffset.Value, 0); }
-  public static void AddWeaponNameJp(FlatBufferBuilder builder, StringOffset weaponNameJpOffset) { builder.AddOffset(79, weaponNameJpOffset.Value, 0); }
-  public static void AddWeaponDescJp(FlatBufferBuilder builder, StringOffset weaponDescJpOffset) { builder.AddOffset(80, weaponDescJpOffset.Value, 0); }
-  public static void AddWeaponNameTh(FlatBufferBuilder builder, StringOffset weaponNameThOffset) { builder.AddOffset(81, weaponNameThOffset.Value, 0); }
-  public static void AddWeaponDescTh(FlatBufferBuilder builder, StringOffset weaponDescThOffset) { builder.AddOffset(82, weaponDescThOffset.Value, 0); }
-  public static void AddWeaponNameTw(FlatBufferBuilder builder, StringOffset weaponNameTwOffset) { builder.AddOffset(83, weaponNameTwOffset.Value, 0); }
-  public static void AddWeaponDescTw(FlatBufferBuilder builder, StringOffset weaponDescTwOffset) { builder.AddOffset(84, weaponDescTwOffset.Value, 0); }
-  public static void AddWeaponNameEn(FlatBufferBuilder builder, StringOffset weaponNameEnOffset) { builder.AddOffset(85, weaponNameEnOffset.Value, 0); }
-  public static void AddWeaponDescEn(FlatBufferBuilder builder, StringOffset weaponDescEnOffset) { builder.AddOffset(86, weaponDescEnOffset.Value, 0); }
-  public static void AddProfileIntroductionKr(FlatBufferBuilder builder, StringOffset profileIntroductionKrOffset) { builder.AddOffset(87, profileIntroductionKrOffset.Value, 0); }
-  public static void AddProfileIntroductionJp(FlatBufferBuilder builder, StringOffset profileIntroductionJpOffset) { builder.AddOffset(88, profileIntroductionJpOffset.Value, 0); }
-  public static void AddProfileIntroductionTh(FlatBufferBuilder builder, StringOffset profileIntroductionThOffset) { builder.AddOffset(89, profileIntroductionThOffset.Value, 0); }
-  public static void AddProfileIntroductionTw(FlatBufferBuilder builder, StringOffset profileIntroductionTwOffset) { builder.AddOffset(90, profileIntroductionTwOffset.Value, 0); }
-  public static void AddProfileIntroductionEn(FlatBufferBuilder builder, StringOffset profileIntroductionEnOffset) { builder.AddOffset(91, profileIntroductionEnOffset.Value, 0); }
-  public static void AddCharacterSSRNewKr(FlatBufferBuilder builder, StringOffset characterSSRNewKrOffset) { builder.AddOffset(92, characterSSRNewKrOffset.Value, 0); }
-  public static void AddCharacterSSRNewJp(FlatBufferBuilder builder, StringOffset characterSSRNewJpOffset) { builder.AddOffset(93, characterSSRNewJpOffset.Value, 0); }
-  public static void AddCharacterSSRNewTh(FlatBufferBuilder builder, StringOffset characterSSRNewThOffset) { builder.AddOffset(94, characterSSRNewThOffset.Value, 0); }
-  public static void AddCharacterSSRNewTw(FlatBufferBuilder builder, StringOffset characterSSRNewTwOffset) { builder.AddOffset(95, characterSSRNewTwOffset.Value, 0); }
-  public static void AddCharacterSSRNewEn(FlatBufferBuilder builder, StringOffset characterSSRNewEnOffset) { builder.AddOffset(96, characterSSRNewEnOffset.Value, 0); }
+  public static void AddClubNameForGachaKr(FlatBufferBuilder builder, StringOffset clubNameForGachaKrOffset) { builder.AddOffset(32, clubNameForGachaKrOffset.Value, 0); }
+  public static void AddClubNameForGachaJp(FlatBufferBuilder builder, StringOffset clubNameForGachaJpOffset) { builder.AddOffset(33, clubNameForGachaJpOffset.Value, 0); }
+  public static void AddClubNameForGachaTh(FlatBufferBuilder builder, StringOffset clubNameForGachaThOffset) { builder.AddOffset(34, clubNameForGachaThOffset.Value, 0); }
+  public static void AddClubNameForGachaTw(FlatBufferBuilder builder, StringOffset clubNameForGachaTwOffset) { builder.AddOffset(35, clubNameForGachaTwOffset.Value, 0); }
+  public static void AddClubNameForGachaEn(FlatBufferBuilder builder, StringOffset clubNameForGachaEnOffset) { builder.AddOffset(36, clubNameForGachaEnOffset.Value, 0); }
+  public static void AddSchoolYearKr(FlatBufferBuilder builder, StringOffset schoolYearKrOffset) { builder.AddOffset(37, schoolYearKrOffset.Value, 0); }
+  public static void AddSchoolYearJp(FlatBufferBuilder builder, StringOffset schoolYearJpOffset) { builder.AddOffset(38, schoolYearJpOffset.Value, 0); }
+  public static void AddSchoolYearTh(FlatBufferBuilder builder, StringOffset schoolYearThOffset) { builder.AddOffset(39, schoolYearThOffset.Value, 0); }
+  public static void AddSchoolYearTw(FlatBufferBuilder builder, StringOffset schoolYearTwOffset) { builder.AddOffset(40, schoolYearTwOffset.Value, 0); }
+  public static void AddSchoolYearEn(FlatBufferBuilder builder, StringOffset schoolYearEnOffset) { builder.AddOffset(41, schoolYearEnOffset.Value, 0); }
+  public static void AddCharacterAgeKr(FlatBufferBuilder builder, StringOffset characterAgeKrOffset) { builder.AddOffset(42, characterAgeKrOffset.Value, 0); }
+  public static void AddCharacterAgeJp(FlatBufferBuilder builder, StringOffset characterAgeJpOffset) { builder.AddOffset(43, characterAgeJpOffset.Value, 0); }
+  public static void AddCharacterAgeTh(FlatBufferBuilder builder, StringOffset characterAgeThOffset) { builder.AddOffset(44, characterAgeThOffset.Value, 0); }
+  public static void AddCharacterAgeTw(FlatBufferBuilder builder, StringOffset characterAgeTwOffset) { builder.AddOffset(45, characterAgeTwOffset.Value, 0); }
+  public static void AddCharacterAgeEn(FlatBufferBuilder builder, StringOffset characterAgeEnOffset) { builder.AddOffset(46, characterAgeEnOffset.Value, 0); }
+  public static void AddBirthDay(FlatBufferBuilder builder, StringOffset birthDayOffset) { builder.AddOffset(47, birthDayOffset.Value, 0); }
+  public static void AddBirthdayKr(FlatBufferBuilder builder, StringOffset birthdayKrOffset) { builder.AddOffset(48, birthdayKrOffset.Value, 0); }
+  public static void AddBirthdayJp(FlatBufferBuilder builder, StringOffset birthdayJpOffset) { builder.AddOffset(49, birthdayJpOffset.Value, 0); }
+  public static void AddBirthdayTh(FlatBufferBuilder builder, StringOffset birthdayThOffset) { builder.AddOffset(50, birthdayThOffset.Value, 0); }
+  public static void AddBirthdayTw(FlatBufferBuilder builder, StringOffset birthdayTwOffset) { builder.AddOffset(51, birthdayTwOffset.Value, 0); }
+  public static void AddBirthdayEn(FlatBufferBuilder builder, StringOffset birthdayEnOffset) { builder.AddOffset(52, birthdayEnOffset.Value, 0); }
+  public static void AddCharHeightKr(FlatBufferBuilder builder, StringOffset charHeightKrOffset) { builder.AddOffset(53, charHeightKrOffset.Value, 0); }
+  public static void AddCharHeightJp(FlatBufferBuilder builder, StringOffset charHeightJpOffset) { builder.AddOffset(54, charHeightJpOffset.Value, 0); }
+  public static void AddCharHeightTh(FlatBufferBuilder builder, StringOffset charHeightThOffset) { builder.AddOffset(55, charHeightThOffset.Value, 0); }
+  public static void AddCharHeightTw(FlatBufferBuilder builder, StringOffset charHeightTwOffset) { builder.AddOffset(56, charHeightTwOffset.Value, 0); }
+  public static void AddCharHeightEn(FlatBufferBuilder builder, StringOffset charHeightEnOffset) { builder.AddOffset(57, charHeightEnOffset.Value, 0); }
+  public static void AddDesignerNameKr(FlatBufferBuilder builder, StringOffset designerNameKrOffset) { builder.AddOffset(58, designerNameKrOffset.Value, 0); }
+  public static void AddDesignerNameJp(FlatBufferBuilder builder, StringOffset designerNameJpOffset) { builder.AddOffset(59, designerNameJpOffset.Value, 0); }
+  public static void AddDesignerNameTh(FlatBufferBuilder builder, StringOffset designerNameThOffset) { builder.AddOffset(60, designerNameThOffset.Value, 0); }
+  public static void AddDesignerNameTw(FlatBufferBuilder builder, StringOffset designerNameTwOffset) { builder.AddOffset(61, designerNameTwOffset.Value, 0); }
+  public static void AddDesignerNameEn(FlatBufferBuilder builder, StringOffset designerNameEnOffset) { builder.AddOffset(62, designerNameEnOffset.Value, 0); }
+  public static void AddIllustratorNameKr(FlatBufferBuilder builder, StringOffset illustratorNameKrOffset) { builder.AddOffset(63, illustratorNameKrOffset.Value, 0); }
+  public static void AddIllustratorNameJp(FlatBufferBuilder builder, StringOffset illustratorNameJpOffset) { builder.AddOffset(64, illustratorNameJpOffset.Value, 0); }
+  public static void AddIllustratorNameTh(FlatBufferBuilder builder, StringOffset illustratorNameThOffset) { builder.AddOffset(65, illustratorNameThOffset.Value, 0); }
+  public static void AddIllustratorNameTw(FlatBufferBuilder builder, StringOffset illustratorNameTwOffset) { builder.AddOffset(66, illustratorNameTwOffset.Value, 0); }
+  public static void AddIllustratorNameEn(FlatBufferBuilder builder, StringOffset illustratorNameEnOffset) { builder.AddOffset(67, illustratorNameEnOffset.Value, 0); }
+  public static void AddCharacterVoiceKr(FlatBufferBuilder builder, StringOffset characterVoiceKrOffset) { builder.AddOffset(68, characterVoiceKrOffset.Value, 0); }
+  public static void AddCharacterVoiceJp(FlatBufferBuilder builder, StringOffset characterVoiceJpOffset) { builder.AddOffset(69, characterVoiceJpOffset.Value, 0); }
+  public static void AddCharacterVoiceTh(FlatBufferBuilder builder, StringOffset characterVoiceThOffset) { builder.AddOffset(70, characterVoiceThOffset.Value, 0); }
+  public static void AddCharacterVoiceTw(FlatBufferBuilder builder, StringOffset characterVoiceTwOffset) { builder.AddOffset(71, characterVoiceTwOffset.Value, 0); }
+  public static void AddCharacterVoiceEn(FlatBufferBuilder builder, StringOffset characterVoiceEnOffset) { builder.AddOffset(72, characterVoiceEnOffset.Value, 0); }
+  public static void AddKRCharacterVoiceKr(FlatBufferBuilder builder, StringOffset kRCharacterVoiceKrOffset) { builder.AddOffset(73, kRCharacterVoiceKrOffset.Value, 0); }
+  public static void AddKRCharacterVoiceTh(FlatBufferBuilder builder, StringOffset kRCharacterVoiceThOffset) { builder.AddOffset(74, kRCharacterVoiceThOffset.Value, 0); }
+  public static void AddKRCharacterVoiceTw(FlatBufferBuilder builder, StringOffset kRCharacterVoiceTwOffset) { builder.AddOffset(75, kRCharacterVoiceTwOffset.Value, 0); }
+  public static void AddKRCharacterVoiceEn(FlatBufferBuilder builder, StringOffset kRCharacterVoiceEnOffset) { builder.AddOffset(76, kRCharacterVoiceEnOffset.Value, 0); }
+  public static void AddHobbyKr(FlatBufferBuilder builder, StringOffset hobbyKrOffset) { builder.AddOffset(77, hobbyKrOffset.Value, 0); }
+  public static void AddHobbyJp(FlatBufferBuilder builder, StringOffset hobbyJpOffset) { builder.AddOffset(78, hobbyJpOffset.Value, 0); }
+  public static void AddHobbyTh(FlatBufferBuilder builder, StringOffset hobbyThOffset) { builder.AddOffset(79, hobbyThOffset.Value, 0); }
+  public static void AddHobbyTw(FlatBufferBuilder builder, StringOffset hobbyTwOffset) { builder.AddOffset(80, hobbyTwOffset.Value, 0); }
+  public static void AddHobbyEn(FlatBufferBuilder builder, StringOffset hobbyEnOffset) { builder.AddOffset(81, hobbyEnOffset.Value, 0); }
+  public static void AddWeaponNameKr(FlatBufferBuilder builder, StringOffset weaponNameKrOffset) { builder.AddOffset(82, weaponNameKrOffset.Value, 0); }
+  public static void AddWeaponDescKr(FlatBufferBuilder builder, StringOffset weaponDescKrOffset) { builder.AddOffset(83, weaponDescKrOffset.Value, 0); }
+  public static void AddWeaponNameJp(FlatBufferBuilder builder, StringOffset weaponNameJpOffset) { builder.AddOffset(84, weaponNameJpOffset.Value, 0); }
+  public static void AddWeaponDescJp(FlatBufferBuilder builder, StringOffset weaponDescJpOffset) { builder.AddOffset(85, weaponDescJpOffset.Value, 0); }
+  public static void AddWeaponNameTh(FlatBufferBuilder builder, StringOffset weaponNameThOffset) { builder.AddOffset(86, weaponNameThOffset.Value, 0); }
+  public static void AddWeaponDescTh(FlatBufferBuilder builder, StringOffset weaponDescThOffset) { builder.AddOffset(87, weaponDescThOffset.Value, 0); }
+  public static void AddWeaponNameTw(FlatBufferBuilder builder, StringOffset weaponNameTwOffset) { builder.AddOffset(88, weaponNameTwOffset.Value, 0); }
+  public static void AddWeaponDescTw(FlatBufferBuilder builder, StringOffset weaponDescTwOffset) { builder.AddOffset(89, weaponDescTwOffset.Value, 0); }
+  public static void AddWeaponNameEn(FlatBufferBuilder builder, StringOffset weaponNameEnOffset) { builder.AddOffset(90, weaponNameEnOffset.Value, 0); }
+  public static void AddWeaponDescEn(FlatBufferBuilder builder, StringOffset weaponDescEnOffset) { builder.AddOffset(91, weaponDescEnOffset.Value, 0); }
+  public static void AddProfileIntroductionKr(FlatBufferBuilder builder, StringOffset profileIntroductionKrOffset) { builder.AddOffset(92, profileIntroductionKrOffset.Value, 0); }
+  public static void AddProfileIntroductionJp(FlatBufferBuilder builder, StringOffset profileIntroductionJpOffset) { builder.AddOffset(93, profileIntroductionJpOffset.Value, 0); }
+  public static void AddProfileIntroductionTh(FlatBufferBuilder builder, StringOffset profileIntroductionThOffset) { builder.AddOffset(94, profileIntroductionThOffset.Value, 0); }
+  public static void AddProfileIntroductionTw(FlatBufferBuilder builder, StringOffset profileIntroductionTwOffset) { builder.AddOffset(95, profileIntroductionTwOffset.Value, 0); }
+  public static void AddProfileIntroductionEn(FlatBufferBuilder builder, StringOffset profileIntroductionEnOffset) { builder.AddOffset(96, profileIntroductionEnOffset.Value, 0); }
+  public static void AddCharacterSSRNewKr(FlatBufferBuilder builder, StringOffset characterSSRNewKrOffset) { builder.AddOffset(97, characterSSRNewKrOffset.Value, 0); }
+  public static void AddCharacterSSRNewJp(FlatBufferBuilder builder, StringOffset characterSSRNewJpOffset) { builder.AddOffset(98, characterSSRNewJpOffset.Value, 0); }
+  public static void AddCharacterSSRNewTh(FlatBufferBuilder builder, StringOffset characterSSRNewThOffset) { builder.AddOffset(99, characterSSRNewThOffset.Value, 0); }
+  public static void AddCharacterSSRNewTw(FlatBufferBuilder builder, StringOffset characterSSRNewTwOffset) { builder.AddOffset(100, characterSSRNewTwOffset.Value, 0); }
+  public static void AddCharacterSSRNewEn(FlatBufferBuilder builder, StringOffset characterSSRNewEnOffset) { builder.AddOffset(101, characterSSRNewEnOffset.Value, 0); }
   public static Offset<Schale.FlatData.LocalizeCharProfileExcel> EndLocalizeCharProfileExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.LocalizeCharProfileExcel>(o);
@@ -1028,6 +1078,11 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
     _o.PersonalNameEn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PersonalNameEn, key) : this.PersonalNameEn;
     _o.PersonalNameRubyEn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.PersonalNameRubyEn, key) : this.PersonalNameRubyEn;
     _o.Club = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.Club, key) : this.Club;
+    _o.ClubNameForGachaKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClubNameForGachaKr, key) : this.ClubNameForGachaKr;
+    _o.ClubNameForGachaJp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClubNameForGachaJp, key) : this.ClubNameForGachaJp;
+    _o.ClubNameForGachaTh = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClubNameForGachaTh, key) : this.ClubNameForGachaTh;
+    _o.ClubNameForGachaTw = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClubNameForGachaTw, key) : this.ClubNameForGachaTw;
+    _o.ClubNameForGachaEn = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ClubNameForGachaEn, key) : this.ClubNameForGachaEn;
     _o.SchoolYearKr = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SchoolYearKr, key) : this.SchoolYearKr;
     _o.SchoolYearJp = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SchoolYearJp, key) : this.SchoolYearJp;
     _o.SchoolYearTh = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.SchoolYearTh, key) : this.SchoolYearTh;
@@ -1126,6 +1181,11 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
     var _FamilyNameRubyEn = _o.FamilyNameRubyEn == null ? default(StringOffset) : builder.CreateString(_o.FamilyNameRubyEn);
     var _PersonalNameEn = _o.PersonalNameEn == null ? default(StringOffset) : builder.CreateString(_o.PersonalNameEn);
     var _PersonalNameRubyEn = _o.PersonalNameRubyEn == null ? default(StringOffset) : builder.CreateString(_o.PersonalNameRubyEn);
+    var _ClubNameForGachaKr = _o.ClubNameForGachaKr == null ? default(StringOffset) : builder.CreateString(_o.ClubNameForGachaKr);
+    var _ClubNameForGachaJp = _o.ClubNameForGachaJp == null ? default(StringOffset) : builder.CreateString(_o.ClubNameForGachaJp);
+    var _ClubNameForGachaTh = _o.ClubNameForGachaTh == null ? default(StringOffset) : builder.CreateString(_o.ClubNameForGachaTh);
+    var _ClubNameForGachaTw = _o.ClubNameForGachaTw == null ? default(StringOffset) : builder.CreateString(_o.ClubNameForGachaTw);
+    var _ClubNameForGachaEn = _o.ClubNameForGachaEn == null ? default(StringOffset) : builder.CreateString(_o.ClubNameForGachaEn);
     var _SchoolYearKr = _o.SchoolYearKr == null ? default(StringOffset) : builder.CreateString(_o.SchoolYearKr);
     var _SchoolYearJp = _o.SchoolYearJp == null ? default(StringOffset) : builder.CreateString(_o.SchoolYearJp);
     var _SchoolYearTh = _o.SchoolYearTh == null ? default(StringOffset) : builder.CreateString(_o.SchoolYearTh);
@@ -1225,6 +1285,11 @@ public struct LocalizeCharProfileExcel : IFlatbufferObject
       _PersonalNameEn,
       _PersonalNameRubyEn,
       _o.Club,
+      _ClubNameForGachaKr,
+      _ClubNameForGachaJp,
+      _ClubNameForGachaTh,
+      _ClubNameForGachaTw,
+      _ClubNameForGachaEn,
       _SchoolYearKr,
       _SchoolYearJp,
       _SchoolYearTh,
@@ -1327,6 +1392,11 @@ public class LocalizeCharProfileExcelT
   public string PersonalNameEn { get; set; }
   public string PersonalNameRubyEn { get; set; }
   public Schale.FlatData.Club Club { get; set; }
+  public string ClubNameForGachaKr { get; set; }
+  public string ClubNameForGachaJp { get; set; }
+  public string ClubNameForGachaTh { get; set; }
+  public string ClubNameForGachaTw { get; set; }
+  public string ClubNameForGachaEn { get; set; }
   public string SchoolYearKr { get; set; }
   public string SchoolYearJp { get; set; }
   public string SchoolYearTh { get; set; }
@@ -1426,6 +1496,11 @@ public class LocalizeCharProfileExcelT
     this.PersonalNameEn = null;
     this.PersonalNameRubyEn = null;
     this.Club = Schale.FlatData.Club.None;
+    this.ClubNameForGachaKr = null;
+    this.ClubNameForGachaJp = null;
+    this.ClubNameForGachaTh = null;
+    this.ClubNameForGachaTw = null;
+    this.ClubNameForGachaEn = null;
     this.SchoolYearKr = null;
     this.SchoolYearJp = null;
     this.SchoolYearTh = null;
@@ -1532,71 +1607,76 @@ static public class LocalizeCharProfileExcelVerify
       && verifier.VerifyString(tablePos, 62 /*PersonalNameEn*/, false)
       && verifier.VerifyString(tablePos, 64 /*PersonalNameRubyEn*/, false)
       && verifier.VerifyField(tablePos, 66 /*Club*/, 4 /*Schale.FlatData.Club*/, 4, false)
-      && verifier.VerifyString(tablePos, 68 /*SchoolYearKr*/, false)
-      && verifier.VerifyString(tablePos, 70 /*SchoolYearJp*/, false)
-      && verifier.VerifyString(tablePos, 72 /*SchoolYearTh*/, false)
-      && verifier.VerifyString(tablePos, 74 /*SchoolYearTw*/, false)
-      && verifier.VerifyString(tablePos, 76 /*SchoolYearEn*/, false)
-      && verifier.VerifyString(tablePos, 78 /*CharacterAgeKr*/, false)
-      && verifier.VerifyString(tablePos, 80 /*CharacterAgeJp*/, false)
-      && verifier.VerifyString(tablePos, 82 /*CharacterAgeTh*/, false)
-      && verifier.VerifyString(tablePos, 84 /*CharacterAgeTw*/, false)
-      && verifier.VerifyString(tablePos, 86 /*CharacterAgeEn*/, false)
-      && verifier.VerifyString(tablePos, 88 /*BirthDay*/, false)
-      && verifier.VerifyString(tablePos, 90 /*BirthdayKr*/, false)
-      && verifier.VerifyString(tablePos, 92 /*BirthdayJp*/, false)
-      && verifier.VerifyString(tablePos, 94 /*BirthdayTh*/, false)
-      && verifier.VerifyString(tablePos, 96 /*BirthdayTw*/, false)
-      && verifier.VerifyString(tablePos, 98 /*BirthdayEn*/, false)
-      && verifier.VerifyString(tablePos, 100 /*CharHeightKr*/, false)
-      && verifier.VerifyString(tablePos, 102 /*CharHeightJp*/, false)
-      && verifier.VerifyString(tablePos, 104 /*CharHeightTh*/, false)
-      && verifier.VerifyString(tablePos, 106 /*CharHeightTw*/, false)
-      && verifier.VerifyString(tablePos, 108 /*CharHeightEn*/, false)
-      && verifier.VerifyString(tablePos, 110 /*DesignerNameKr*/, false)
-      && verifier.VerifyString(tablePos, 112 /*DesignerNameJp*/, false)
-      && verifier.VerifyString(tablePos, 114 /*DesignerNameTh*/, false)
-      && verifier.VerifyString(tablePos, 116 /*DesignerNameTw*/, false)
-      && verifier.VerifyString(tablePos, 118 /*DesignerNameEn*/, false)
-      && verifier.VerifyString(tablePos, 120 /*IllustratorNameKr*/, false)
-      && verifier.VerifyString(tablePos, 122 /*IllustratorNameJp*/, false)
-      && verifier.VerifyString(tablePos, 124 /*IllustratorNameTh*/, false)
-      && verifier.VerifyString(tablePos, 126 /*IllustratorNameTw*/, false)
-      && verifier.VerifyString(tablePos, 128 /*IllustratorNameEn*/, false)
-      && verifier.VerifyString(tablePos, 130 /*CharacterVoiceKr*/, false)
-      && verifier.VerifyString(tablePos, 132 /*CharacterVoiceJp*/, false)
-      && verifier.VerifyString(tablePos, 134 /*CharacterVoiceTh*/, false)
-      && verifier.VerifyString(tablePos, 136 /*CharacterVoiceTw*/, false)
-      && verifier.VerifyString(tablePos, 138 /*CharacterVoiceEn*/, false)
-      && verifier.VerifyString(tablePos, 140 /*KRCharacterVoiceKr*/, false)
-      && verifier.VerifyString(tablePos, 142 /*KRCharacterVoiceTh*/, false)
-      && verifier.VerifyString(tablePos, 144 /*KRCharacterVoiceTw*/, false)
-      && verifier.VerifyString(tablePos, 146 /*KRCharacterVoiceEn*/, false)
-      && verifier.VerifyString(tablePos, 148 /*HobbyKr*/, false)
-      && verifier.VerifyString(tablePos, 150 /*HobbyJp*/, false)
-      && verifier.VerifyString(tablePos, 152 /*HobbyTh*/, false)
-      && verifier.VerifyString(tablePos, 154 /*HobbyTw*/, false)
-      && verifier.VerifyString(tablePos, 156 /*HobbyEn*/, false)
-      && verifier.VerifyString(tablePos, 158 /*WeaponNameKr*/, false)
-      && verifier.VerifyString(tablePos, 160 /*WeaponDescKr*/, false)
-      && verifier.VerifyString(tablePos, 162 /*WeaponNameJp*/, false)
-      && verifier.VerifyString(tablePos, 164 /*WeaponDescJp*/, false)
-      && verifier.VerifyString(tablePos, 166 /*WeaponNameTh*/, false)
-      && verifier.VerifyString(tablePos, 168 /*WeaponDescTh*/, false)
-      && verifier.VerifyString(tablePos, 170 /*WeaponNameTw*/, false)
-      && verifier.VerifyString(tablePos, 172 /*WeaponDescTw*/, false)
-      && verifier.VerifyString(tablePos, 174 /*WeaponNameEn*/, false)
-      && verifier.VerifyString(tablePos, 176 /*WeaponDescEn*/, false)
-      && verifier.VerifyString(tablePos, 178 /*ProfileIntroductionKr*/, false)
-      && verifier.VerifyString(tablePos, 180 /*ProfileIntroductionJp*/, false)
-      && verifier.VerifyString(tablePos, 182 /*ProfileIntroductionTh*/, false)
-      && verifier.VerifyString(tablePos, 184 /*ProfileIntroductionTw*/, false)
-      && verifier.VerifyString(tablePos, 186 /*ProfileIntroductionEn*/, false)
-      && verifier.VerifyString(tablePos, 188 /*CharacterSSRNewKr*/, false)
-      && verifier.VerifyString(tablePos, 190 /*CharacterSSRNewJp*/, false)
-      && verifier.VerifyString(tablePos, 192 /*CharacterSSRNewTh*/, false)
-      && verifier.VerifyString(tablePos, 194 /*CharacterSSRNewTw*/, false)
-      && verifier.VerifyString(tablePos, 196 /*CharacterSSRNewEn*/, false)
+      && verifier.VerifyString(tablePos, 68 /*ClubNameForGachaKr*/, false)
+      && verifier.VerifyString(tablePos, 70 /*ClubNameForGachaJp*/, false)
+      && verifier.VerifyString(tablePos, 72 /*ClubNameForGachaTh*/, false)
+      && verifier.VerifyString(tablePos, 74 /*ClubNameForGachaTw*/, false)
+      && verifier.VerifyString(tablePos, 76 /*ClubNameForGachaEn*/, false)
+      && verifier.VerifyString(tablePos, 78 /*SchoolYearKr*/, false)
+      && verifier.VerifyString(tablePos, 80 /*SchoolYearJp*/, false)
+      && verifier.VerifyString(tablePos, 82 /*SchoolYearTh*/, false)
+      && verifier.VerifyString(tablePos, 84 /*SchoolYearTw*/, false)
+      && verifier.VerifyString(tablePos, 86 /*SchoolYearEn*/, false)
+      && verifier.VerifyString(tablePos, 88 /*CharacterAgeKr*/, false)
+      && verifier.VerifyString(tablePos, 90 /*CharacterAgeJp*/, false)
+      && verifier.VerifyString(tablePos, 92 /*CharacterAgeTh*/, false)
+      && verifier.VerifyString(tablePos, 94 /*CharacterAgeTw*/, false)
+      && verifier.VerifyString(tablePos, 96 /*CharacterAgeEn*/, false)
+      && verifier.VerifyString(tablePos, 98 /*BirthDay*/, false)
+      && verifier.VerifyString(tablePos, 100 /*BirthdayKr*/, false)
+      && verifier.VerifyString(tablePos, 102 /*BirthdayJp*/, false)
+      && verifier.VerifyString(tablePos, 104 /*BirthdayTh*/, false)
+      && verifier.VerifyString(tablePos, 106 /*BirthdayTw*/, false)
+      && verifier.VerifyString(tablePos, 108 /*BirthdayEn*/, false)
+      && verifier.VerifyString(tablePos, 110 /*CharHeightKr*/, false)
+      && verifier.VerifyString(tablePos, 112 /*CharHeightJp*/, false)
+      && verifier.VerifyString(tablePos, 114 /*CharHeightTh*/, false)
+      && verifier.VerifyString(tablePos, 116 /*CharHeightTw*/, false)
+      && verifier.VerifyString(tablePos, 118 /*CharHeightEn*/, false)
+      && verifier.VerifyString(tablePos, 120 /*DesignerNameKr*/, false)
+      && verifier.VerifyString(tablePos, 122 /*DesignerNameJp*/, false)
+      && verifier.VerifyString(tablePos, 124 /*DesignerNameTh*/, false)
+      && verifier.VerifyString(tablePos, 126 /*DesignerNameTw*/, false)
+      && verifier.VerifyString(tablePos, 128 /*DesignerNameEn*/, false)
+      && verifier.VerifyString(tablePos, 130 /*IllustratorNameKr*/, false)
+      && verifier.VerifyString(tablePos, 132 /*IllustratorNameJp*/, false)
+      && verifier.VerifyString(tablePos, 134 /*IllustratorNameTh*/, false)
+      && verifier.VerifyString(tablePos, 136 /*IllustratorNameTw*/, false)
+      && verifier.VerifyString(tablePos, 138 /*IllustratorNameEn*/, false)
+      && verifier.VerifyString(tablePos, 140 /*CharacterVoiceKr*/, false)
+      && verifier.VerifyString(tablePos, 142 /*CharacterVoiceJp*/, false)
+      && verifier.VerifyString(tablePos, 144 /*CharacterVoiceTh*/, false)
+      && verifier.VerifyString(tablePos, 146 /*CharacterVoiceTw*/, false)
+      && verifier.VerifyString(tablePos, 148 /*CharacterVoiceEn*/, false)
+      && verifier.VerifyString(tablePos, 150 /*KRCharacterVoiceKr*/, false)
+      && verifier.VerifyString(tablePos, 152 /*KRCharacterVoiceTh*/, false)
+      && verifier.VerifyString(tablePos, 154 /*KRCharacterVoiceTw*/, false)
+      && verifier.VerifyString(tablePos, 156 /*KRCharacterVoiceEn*/, false)
+      && verifier.VerifyString(tablePos, 158 /*HobbyKr*/, false)
+      && verifier.VerifyString(tablePos, 160 /*HobbyJp*/, false)
+      && verifier.VerifyString(tablePos, 162 /*HobbyTh*/, false)
+      && verifier.VerifyString(tablePos, 164 /*HobbyTw*/, false)
+      && verifier.VerifyString(tablePos, 166 /*HobbyEn*/, false)
+      && verifier.VerifyString(tablePos, 168 /*WeaponNameKr*/, false)
+      && verifier.VerifyString(tablePos, 170 /*WeaponDescKr*/, false)
+      && verifier.VerifyString(tablePos, 172 /*WeaponNameJp*/, false)
+      && verifier.VerifyString(tablePos, 174 /*WeaponDescJp*/, false)
+      && verifier.VerifyString(tablePos, 176 /*WeaponNameTh*/, false)
+      && verifier.VerifyString(tablePos, 178 /*WeaponDescTh*/, false)
+      && verifier.VerifyString(tablePos, 180 /*WeaponNameTw*/, false)
+      && verifier.VerifyString(tablePos, 182 /*WeaponDescTw*/, false)
+      && verifier.VerifyString(tablePos, 184 /*WeaponNameEn*/, false)
+      && verifier.VerifyString(tablePos, 186 /*WeaponDescEn*/, false)
+      && verifier.VerifyString(tablePos, 188 /*ProfileIntroductionKr*/, false)
+      && verifier.VerifyString(tablePos, 190 /*ProfileIntroductionJp*/, false)
+      && verifier.VerifyString(tablePos, 192 /*ProfileIntroductionTh*/, false)
+      && verifier.VerifyString(tablePos, 194 /*ProfileIntroductionTw*/, false)
+      && verifier.VerifyString(tablePos, 196 /*ProfileIntroductionEn*/, false)
+      && verifier.VerifyString(tablePos, 198 /*CharacterSSRNewKr*/, false)
+      && verifier.VerifyString(tablePos, 200 /*CharacterSSRNewJp*/, false)
+      && verifier.VerifyString(tablePos, 202 /*CharacterSSRNewTh*/, false)
+      && verifier.VerifyString(tablePos, 204 /*CharacterSSRNewTw*/, false)
+      && verifier.VerifyString(tablePos, 206 /*CharacterSSRNewEn*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

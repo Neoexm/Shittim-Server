@@ -27,6 +27,13 @@ public struct TerrainAdaptationFactorExcel : IFlatbufferObject
   public long AccuracyFactor { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long DodgeFactor { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long AttackPowerFactor { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public string TerrainFactorDescription { get { int o = __p.__offset(18); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetTerrainFactorDescriptionBytes() { return __p.__vector_as_span<byte>(18, 1); }
+#else
+  public ArraySegment<byte>? GetTerrainFactorDescriptionBytes() { return __p.__vector_as_arraysegment(18); }
+#endif
+  public byte[] GetTerrainFactorDescriptionArray() { return __p.__vector_as_array<byte>(18); }
 
   public static Offset<Schale.FlatData.TerrainAdaptationFactorExcel> CreateTerrainAdaptationFactorExcel(FlatBufferBuilder builder,
       Schale.FlatData.StageTopography TerrainAdaptation = Schale.FlatData.StageTopography.Street,
@@ -35,19 +42,21 @@ public struct TerrainAdaptationFactorExcel : IFlatbufferObject
       long BlockFactor = 0,
       long AccuracyFactor = 0,
       long DodgeFactor = 0,
-      long AttackPowerFactor = 0) {
-    builder.StartTable(7);
+      long AttackPowerFactor = 0,
+      StringOffset TerrainFactorDescriptionOffset = default(StringOffset)) {
+    builder.StartTable(8);
     TerrainAdaptationFactorExcel.AddAttackPowerFactor(builder, AttackPowerFactor);
     TerrainAdaptationFactorExcel.AddDodgeFactor(builder, DodgeFactor);
     TerrainAdaptationFactorExcel.AddAccuracyFactor(builder, AccuracyFactor);
     TerrainAdaptationFactorExcel.AddBlockFactor(builder, BlockFactor);
     TerrainAdaptationFactorExcel.AddShotFactor(builder, ShotFactor);
+    TerrainAdaptationFactorExcel.AddTerrainFactorDescription(builder, TerrainFactorDescriptionOffset);
     TerrainAdaptationFactorExcel.AddTerrainAdaptationStat(builder, TerrainAdaptationStat);
     TerrainAdaptationFactorExcel.AddTerrainAdaptation(builder, TerrainAdaptation);
     return TerrainAdaptationFactorExcel.EndTerrainAdaptationFactorExcel(builder);
   }
 
-  public static void StartTerrainAdaptationFactorExcel(FlatBufferBuilder builder) { builder.StartTable(7); }
+  public static void StartTerrainAdaptationFactorExcel(FlatBufferBuilder builder) { builder.StartTable(8); }
   public static void AddTerrainAdaptation(FlatBufferBuilder builder, Schale.FlatData.StageTopography terrainAdaptation) { builder.AddInt(0, (int)terrainAdaptation, 0); }
   public static void AddTerrainAdaptationStat(FlatBufferBuilder builder, Schale.FlatData.TerrainAdaptationStat terrainAdaptationStat) { builder.AddInt(1, (int)terrainAdaptationStat, 0); }
   public static void AddShotFactor(FlatBufferBuilder builder, long shotFactor) { builder.AddLong(2, shotFactor, 0); }
@@ -55,6 +64,7 @@ public struct TerrainAdaptationFactorExcel : IFlatbufferObject
   public static void AddAccuracyFactor(FlatBufferBuilder builder, long accuracyFactor) { builder.AddLong(4, accuracyFactor, 0); }
   public static void AddDodgeFactor(FlatBufferBuilder builder, long dodgeFactor) { builder.AddLong(5, dodgeFactor, 0); }
   public static void AddAttackPowerFactor(FlatBufferBuilder builder, long attackPowerFactor) { builder.AddLong(6, attackPowerFactor, 0); }
+  public static void AddTerrainFactorDescription(FlatBufferBuilder builder, StringOffset terrainFactorDescriptionOffset) { builder.AddOffset(7, terrainFactorDescriptionOffset.Value, 0); }
   public static Offset<Schale.FlatData.TerrainAdaptationFactorExcel> EndTerrainAdaptationFactorExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.TerrainAdaptationFactorExcel>(o);
@@ -73,9 +83,11 @@ public struct TerrainAdaptationFactorExcel : IFlatbufferObject
     _o.AccuracyFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AccuracyFactor, key) : this.AccuracyFactor;
     _o.DodgeFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.DodgeFactor, key) : this.DodgeFactor;
     _o.AttackPowerFactor = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.AttackPowerFactor, key) : this.AttackPowerFactor;
+    _o.TerrainFactorDescription = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.TerrainFactorDescription, key) : this.TerrainFactorDescription;
   }
   public static Offset<Schale.FlatData.TerrainAdaptationFactorExcel> Pack(FlatBufferBuilder builder, TerrainAdaptationFactorExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.TerrainAdaptationFactorExcel>);
+    var _TerrainFactorDescription = _o.TerrainFactorDescription == null ? default(StringOffset) : builder.CreateString(_o.TerrainFactorDescription);
     return CreateTerrainAdaptationFactorExcel(
       builder,
       _o.TerrainAdaptation,
@@ -84,7 +96,8 @@ public struct TerrainAdaptationFactorExcel : IFlatbufferObject
       _o.BlockFactor,
       _o.AccuracyFactor,
       _o.DodgeFactor,
-      _o.AttackPowerFactor);
+      _o.AttackPowerFactor,
+      _TerrainFactorDescription);
   }
 }
 
@@ -97,6 +110,7 @@ public class TerrainAdaptationFactorExcelT
   public long AccuracyFactor { get; set; }
   public long DodgeFactor { get; set; }
   public long AttackPowerFactor { get; set; }
+  public string TerrainFactorDescription { get; set; }
 
   public TerrainAdaptationFactorExcelT() {
     this.TerrainAdaptation = Schale.FlatData.StageTopography.Street;
@@ -106,6 +120,7 @@ public class TerrainAdaptationFactorExcelT
     this.AccuracyFactor = 0;
     this.DodgeFactor = 0;
     this.AttackPowerFactor = 0;
+    this.TerrainFactorDescription = null;
   }
 }
 
@@ -122,6 +137,7 @@ static public class TerrainAdaptationFactorExcelVerify
       && verifier.VerifyField(tablePos, 12 /*AccuracyFactor*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 14 /*DodgeFactor*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 16 /*AttackPowerFactor*/, 8 /*long*/, 8, false)
+      && verifier.VerifyString(tablePos, 18 /*TerrainFactorDescription*/, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }

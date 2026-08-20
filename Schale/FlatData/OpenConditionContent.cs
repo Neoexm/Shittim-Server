@@ -66,6 +66,8 @@ public enum OpenConditionContent : int
   MiniGameDefense = 56,
   MiniGameCCG = 57,
   Main_L_1_5 = 58,
+  Main_SNS = 59,
+  PermanentRaid = 60,
 };
 
 

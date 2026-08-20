@@ -52,6 +52,7 @@ public class ExcelLayoutDriftTests
         var service = new ExcelTableService();
 
         var getTable = typeof(ExcelTableService).GetMethod(nameof(ExcelTableService.GetTable))!;
+        var isComplete = typeof(ExcelTableService).GetMethod(nameof(ExcelTableService.IsTableComplete))!;
         var shortfalls = new List<string>();
 
         foreach (var table in Report.Where(t => TablesTheServerReads.Contains(t.Name)).OrderBy(t => t.Name))
@@ -62,7 +63,13 @@ public class ExcelLayoutDriftTests
                 .Invoke(service, [false, table.Source == "ExcelDB"])!;
 
             if (loaded.Count != table.Rows)
+            {
                 shortfalls.Add($"{table.Name} ({table.Source}): loaded {loaded.Count} of {table.Rows} shipped row(s)");
+
+                // LoginSync deletes owned characters that CharacterExcel has no row for, so a table that quietly came up short has to answer for it - otherwise the drift above turns into permanent data loss on every login.
+                Assert.False((bool)isComplete.MakeGenericMethod(model).Invoke(service, [])!,
+                    $"{table.Name} dropped rows and IsTableComplete still reports it whole.");
+            }
         }
 
         Assert.True(shortfalls.Count == 0,

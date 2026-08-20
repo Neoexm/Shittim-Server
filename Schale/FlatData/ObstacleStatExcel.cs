@@ -44,6 +44,10 @@ public struct ObstacleStatExcel : IFlatbufferObject
   public long ReduceExDamagedRate { get { int o = __p.__offset(34); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ReduceBasicsDamagedRate { get { int o = __p.__offset(36); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
   public long ReduceWeakDamagedRate { get { int o = __p.__offset(38); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long WeakDamagedRatio { get { int o = __p.__offset(40); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long EffectiveDamagedRatio { get { int o = __p.__offset(42); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long NormalDamagedRatio { get { int o = __p.__offset(44); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
+  public long ResistDamagedRatio { get { int o = __p.__offset(46); return o != 0 ? __p.bb.GetLong(o + __p.bb_pos) : (long)0; } }
 
   public static Offset<Schale.FlatData.ObstacleStatExcel> CreateObstacleStatExcel(FlatBufferBuilder builder,
       uint StringID = 0,
@@ -63,8 +67,16 @@ public struct ObstacleStatExcel : IFlatbufferObject
       long EnhanceNormalArmorRate = 0,
       long ReduceExDamagedRate = 0,
       long ReduceBasicsDamagedRate = 0,
-      long ReduceWeakDamagedRate = 0) {
-    builder.StartTable(18);
+      long ReduceWeakDamagedRate = 0,
+      long WeakDamagedRatio = 0,
+      long EffectiveDamagedRatio = 0,
+      long NormalDamagedRatio = 0,
+      long ResistDamagedRatio = 0) {
+    builder.StartTable(22);
+    ObstacleStatExcel.AddResistDamagedRatio(builder, ResistDamagedRatio);
+    ObstacleStatExcel.AddNormalDamagedRatio(builder, NormalDamagedRatio);
+    ObstacleStatExcel.AddEffectiveDamagedRatio(builder, EffectiveDamagedRatio);
+    ObstacleStatExcel.AddWeakDamagedRatio(builder, WeakDamagedRatio);
     ObstacleStatExcel.AddReduceWeakDamagedRate(builder, ReduceWeakDamagedRate);
     ObstacleStatExcel.AddReduceBasicsDamagedRate(builder, ReduceBasicsDamagedRate);
     ObstacleStatExcel.AddReduceExDamagedRate(builder, ReduceExDamagedRate);
@@ -86,7 +98,7 @@ public struct ObstacleStatExcel : IFlatbufferObject
     return ObstacleStatExcel.EndObstacleStatExcel(builder);
   }
 
-  public static void StartObstacleStatExcel(FlatBufferBuilder builder) { builder.StartTable(18); }
+  public static void StartObstacleStatExcel(FlatBufferBuilder builder) { builder.StartTable(22); }
   public static void AddStringID(FlatBufferBuilder builder, uint stringID) { builder.AddUint(0, stringID, 0); }
   public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(1, nameOffset.Value, 0); }
   public static void AddMaxHP1(FlatBufferBuilder builder, long maxHP1) { builder.AddLong(2, maxHP1, 0); }
@@ -105,6 +117,10 @@ public struct ObstacleStatExcel : IFlatbufferObject
   public static void AddReduceExDamagedRate(FlatBufferBuilder builder, long reduceExDamagedRate) { builder.AddLong(15, reduceExDamagedRate, 0); }
   public static void AddReduceBasicsDamagedRate(FlatBufferBuilder builder, long reduceBasicsDamagedRate) { builder.AddLong(16, reduceBasicsDamagedRate, 0); }
   public static void AddReduceWeakDamagedRate(FlatBufferBuilder builder, long reduceWeakDamagedRate) { builder.AddLong(17, reduceWeakDamagedRate, 0); }
+  public static void AddWeakDamagedRatio(FlatBufferBuilder builder, long weakDamagedRatio) { builder.AddLong(18, weakDamagedRatio, 0); }
+  public static void AddEffectiveDamagedRatio(FlatBufferBuilder builder, long effectiveDamagedRatio) { builder.AddLong(19, effectiveDamagedRatio, 0); }
+  public static void AddNormalDamagedRatio(FlatBufferBuilder builder, long normalDamagedRatio) { builder.AddLong(20, normalDamagedRatio, 0); }
+  public static void AddResistDamagedRatio(FlatBufferBuilder builder, long resistDamagedRatio) { builder.AddLong(21, resistDamagedRatio, 0); }
   public static Offset<Schale.FlatData.ObstacleStatExcel> EndObstacleStatExcel(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Schale.FlatData.ObstacleStatExcel>(o);
@@ -134,6 +150,10 @@ public struct ObstacleStatExcel : IFlatbufferObject
     _o.ReduceExDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceExDamagedRate, key) : this.ReduceExDamagedRate;
     _o.ReduceBasicsDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceBasicsDamagedRate, key) : this.ReduceBasicsDamagedRate;
     _o.ReduceWeakDamagedRate = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ReduceWeakDamagedRate, key) : this.ReduceWeakDamagedRate;
+    _o.WeakDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.WeakDamagedRatio, key) : this.WeakDamagedRatio;
+    _o.EffectiveDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.EffectiveDamagedRatio, key) : this.EffectiveDamagedRatio;
+    _o.NormalDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.NormalDamagedRatio, key) : this.NormalDamagedRatio;
+    _o.ResistDamagedRatio = TableEncryptionService.UseEncryption ? TableEncryptionService.Convert(this.ResistDamagedRatio, key) : this.ResistDamagedRatio;
   }
   public static Offset<Schale.FlatData.ObstacleStatExcel> Pack(FlatBufferBuilder builder, ObstacleStatExcelT _o) {
     if (_o == null) return default(Offset<Schale.FlatData.ObstacleStatExcel>);
@@ -157,7 +177,11 @@ public struct ObstacleStatExcel : IFlatbufferObject
       _o.EnhanceNormalArmorRate,
       _o.ReduceExDamagedRate,
       _o.ReduceBasicsDamagedRate,
-      _o.ReduceWeakDamagedRate);
+      _o.ReduceWeakDamagedRate,
+      _o.WeakDamagedRatio,
+      _o.EffectiveDamagedRatio,
+      _o.NormalDamagedRatio,
+      _o.ResistDamagedRatio);
   }
 }
 
@@ -181,6 +205,10 @@ public class ObstacleStatExcelT
   public long ReduceExDamagedRate { get; set; }
   public long ReduceBasicsDamagedRate { get; set; }
   public long ReduceWeakDamagedRate { get; set; }
+  public long WeakDamagedRatio { get; set; }
+  public long EffectiveDamagedRatio { get; set; }
+  public long NormalDamagedRatio { get; set; }
+  public long ResistDamagedRatio { get; set; }
 
   public ObstacleStatExcelT() {
     this.StringID = 0;
@@ -201,6 +229,10 @@ public class ObstacleStatExcelT
     this.ReduceExDamagedRate = 0;
     this.ReduceBasicsDamagedRate = 0;
     this.ReduceWeakDamagedRate = 0;
+    this.WeakDamagedRatio = 0;
+    this.EffectiveDamagedRatio = 0;
+    this.NormalDamagedRatio = 0;
+    this.ResistDamagedRatio = 0;
   }
 }
 
@@ -228,6 +260,10 @@ static public class ObstacleStatExcelVerify
       && verifier.VerifyField(tablePos, 34 /*ReduceExDamagedRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 36 /*ReduceBasicsDamagedRate*/, 8 /*long*/, 8, false)
       && verifier.VerifyField(tablePos, 38 /*ReduceWeakDamagedRate*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 40 /*WeakDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 42 /*EffectiveDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 44 /*NormalDamagedRatio*/, 8 /*long*/, 8, false)
+      && verifier.VerifyField(tablePos, 46 /*ResistDamagedRatio*/, 8 /*long*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }
