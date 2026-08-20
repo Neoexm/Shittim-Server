@@ -18,7 +18,9 @@ namespace Shittim.Commands
         [Argument(0, @"^(list|load|export|help)$", "The operation to perform", ArgumentFlags.IgnoreCase)]
         public string Operation { get; set; } = string.Empty;
 
-        [Argument(1, @"^.*$", "The file name of the packet json saved or Operation", ArgumentFlags.IgnoreCase)]
+        // Optional so `list` and `help` can run; `load` and `export` check for it themselves.
+        [Argument(1, @"^.*$", "The file name of the packet json saved or Operation",
+                  ArgumentFlags.Optional | ArgumentFlags.IgnoreCase)]
         public string DataFileName { get; set; } = string.Empty;
 
         public static string accountDataDir = Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), "AccountData");
@@ -31,7 +33,15 @@ namespace Shittim.Commands
             using var context = await connection.Context.CreateDbContextAsync();
             var account = context.GetAccount(connection.AccountServerId);
 
-            switch (Operation.ToLower())
+            var operation = Operation.ToLower();
+            if ((operation == "load" || operation == "export") && string.IsNullOrWhiteSpace(DataFileName))
+            {
+                await connection.SendChatMessage($"'{operation}' needs a file name.");
+                await connection.SendChatMessage("Usage: !accountdata <list|load|export|help> <file_name>");
+                return;
+            }
+
+            switch (operation)
             {
                 case "list":
                     await ListData();
@@ -72,20 +82,61 @@ namespace Shittim.Commands
             account.Level = accountAuthData.AccountDB.Level;
             account.Exp = accountAuthData.AccountDB.Exp;
             account.RepresentCharacterServerId = accountAuthData.AccountDB.RepresentCharacterServerId;
+            account.Comment = accountAuthData.AccountDB.Comment;
+            account.CallName = accountAuthData.AccountDB.CallName;
 
-            Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
-
-            foreach (var character in accountLoginSyncData.CharacterListResponse.CharacterDBs)
+            // Assigned field by field rather than mapped, so the row keeps its own ServerId and AccountServerId.
+            var incomingCurrency = accountLoginSyncData.AccountCurrencySyncResponse?.AccountCurrencyDB;
+            if (incomingCurrency?.CurrencyDict != null)
             {
-                oldToNewCharacterServerId.Add(character.ServerId, connection.Mapper.Map<CharacterDBServer>(character));
+                // Time-charged currencies recharge as (now - UpdateTime) / interval, so timestamps from a server whose clock is ahead of this one make the recharge subtract; restamping resumes it from the import instead.
+                var chargedAt = account.GameSettings.ServerDateTime();
+                var updateTimes = (incomingCurrency.UpdateTimeDict ?? [])
+                    .ToDictionary(entry => entry.Key, _ => chargedAt);
+
+                var currency = context.GetAccountCurrencies(connection.AccountServerId).FirstOrDefault();
+                if (currency != null)
+                {
+                    currency.CurrencyDict = incomingCurrency.CurrencyDict;
+                    currency.UpdateTimeDict = updateTimes;
+                    currency.AccountLevel = incomingCurrency.AccountLevel;
+                    currency.AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum;
+                }
+                else
+                {
+                    context.Currencies.Add(new AccountCurrencyDBServer
+                    {
+                        AccountServerId = connection.AccountServerId,
+                        CurrencyDict = incomingCurrency.CurrencyDict,
+                        UpdateTimeDict = updateTimes,
+                        AccountLevel = incomingCurrency.AccountLevel,
+                        AcademyLocationRankSum = incomingCurrency.AcademyLocationRankSum,
+                    });
+                }
+                await context.SaveChangesAsync();
             }
 
             context.Characters.RemoveRange(context.Characters.Where(x => x.AccountServerId == connection.AccountServerId));
-            var characterData = connection.Mapper.Map<List<CharacterDBServer>>(accountLoginSyncData.CharacterListResponse.CharacterDBs);
+
+            // ServerId keys a table shared by every account, so the save's own ids collide on a second import; zero them and let the database assign. The map must hold the inserted instances, since everything pointing at a character reads its new id back out of here after the save.
+            var sourceCharacters = accountLoginSyncData.CharacterListResponse.CharacterDBs.ToList();
+            var characterData = connection.Mapper.Map<List<CharacterDBServer>>(sourceCharacters);
+            Dictionary<long, CharacterDBServer> oldToNewCharacterServerId = new();
+            for (var i = 0; i < sourceCharacters.Count; i++)
+            {
+                oldToNewCharacterServerId[sourceCharacters[i].ServerId] = characterData[i];
+                characterData[i].ServerId = 0;
+            }
+
             var charactersAdded = context.AddCharacters(connection.AccountServerId, characterData.ToArray());
             await context.SaveChangesAsync();
 
+            if (oldToNewCharacterServerId.TryGetValue(account.RepresentCharacterServerId, out var represent))
+                account.RepresentCharacterServerId = represent.ServerId;
+
             context.Weapons.RemoveRange(context.Weapons.Where(x => x.AccountServerId == connection.AccountServerId));
+            // AddWeapons, AddGears, AddItems and AddEquipment pick insert vs merge with a DB query, which still returns rows only marked Deleted, so without flushing first they merge onto a doomed row and the incoming one is lost.
+            await context.SaveChangesAsync();
 
             foreach (var weapon in accountLoginSyncData.CharacterListResponse.WeaponDBs)
             {
@@ -96,6 +147,7 @@ namespace Shittim.Commands
             }
 
             var weaponData = connection.Mapper.Map<List<WeaponDBServer>>(accountLoginSyncData.CharacterListResponse.WeaponDBs);
+            weaponData.ForEach(x => x.ServerId = 0);
             context.AddWeapons(connection.AccountServerId, weaponData.ToArray());
             await context.SaveChangesAsync();
 
@@ -111,14 +163,19 @@ namespace Shittim.Commands
                     await connection.SendChatMessage("Could not find any packet associated with item data.");
                 }
             }
-            else
+
+            // Outside the if/else above so a list recovered from the separate packet is written too, not only one taken from the login bundle.
+            if (accountLoginSyncData.ItemListResponse?.ItemDBs != null)
             {
                 context.Items.RemoveRange(context.Items.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+                accountLoginSyncData.ItemListResponse.ItemDBs.ForEach(x => x.ServerId = 0);
                 context.AddItems(connection.AccountServerId, accountLoginSyncData.ItemListResponse.ItemDBs.ToArray());
             }
             await context.SaveChangesAsync();
 
             context.Gears.RemoveRange(context.Gears.Where(x => x.AccountServerId == connection.AccountServerId));
+            await context.SaveChangesAsync();
 
             foreach (var gear in accountLoginSyncData.CharacterGearListResponse.GearDBs)
             {
@@ -129,19 +186,23 @@ namespace Shittim.Commands
             }
 
             var gearData = connection.Mapper.Map<List<GearDBServer>>(accountLoginSyncData.CharacterGearListResponse.GearDBs);
+            gearData.ForEach(x => x.ServerId = 0);
             context.AddGears(connection.AccountServerId, gearData.ToArray());
             await context.SaveChangesAsync();
 
-            Dictionary<long, EquipmentDB> oldToNewEquipmentServerId = new Dictionary<long, EquipmentDB>();
-
             context.Equipments.RemoveRange(context.GetAccountEquipments(connection.AccountServerId));
+            await context.SaveChangesAsync();
 
-            foreach (var equipment in accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs)
+            // As with characters: zero the key, and keep the inserted instances so the characters below can find what their gear became.
+            var sourceEquipment = accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs.ToList();
+            var equipmentData = connection.Mapper.Map<List<EquipmentDBServer>>(sourceEquipment);
+            Dictionary<long, EquipmentDBServer> oldToNewEquipmentServerId = new();
+            for (var i = 0; i < sourceEquipment.Count; i++)
             {
-                oldToNewEquipmentServerId.Add(equipment.ServerId, equipment);
+                oldToNewEquipmentServerId[sourceEquipment[i].ServerId] = equipmentData[i];
+                equipmentData[i].ServerId = 0;
             }
 
-            var equipmentData = connection.Mapper.Map<List<EquipmentDBServer>>(accountLoginSyncData.EquipmentItemListResponse.EquipmentDBs);
             context.AddEquipment(connection.AccountServerId, equipmentData.ToArray());
             await context.SaveChangesAsync();
 
@@ -158,6 +219,7 @@ namespace Shittim.Commands
 
             context.MemoryLobbies.RemoveRange(context.MemoryLobbies.Where(x => x.AccountServerId == connection.AccountServerId));
             var memoryLobbyData = connection.Mapper.Map<List<MemoryLobbyDBServer>>(accountLoginSyncData.MemoryLobbyListResponse.MemoryLobbyDBs);
+            memoryLobbyData.ForEach(x => x.ServerId = 0);
             context.AddMemoryLobbies(connection.AccountServerId, memoryLobbyData.ToArray());
 
             Dictionary<long, long> oldCafeDbIdToCafeId = new();
@@ -200,6 +262,7 @@ namespace Shittim.Commands
             }
 
             var furnitureData = connection.Mapper.Map<List<FurnitureDBServer>>(accountLoginSyncData.CafeGetInfoResponse.FurnitureDBs);
+            furnitureData.ForEach(x => x.ServerId = 0);
             context.AddFurnitures(connection.AccountServerId, furnitureData.ToArray());
             await context.SaveChangesAsync();
 
@@ -245,7 +308,210 @@ namespace Shittim.Commands
             }
 
             var echelonData = connection.Mapper.Map<List<EchelonDBServer>>(accountLoginSyncData.EchelonListResponse.EchelonDBs);
+            echelonData.ForEach(x => x.ServerId = 0);
             context.AddEchelons(connection.AccountServerId, echelonData.ToArray());
+
+            await context.SaveChangesAsync();
+
+            // Without story and campaign progress the account is max level with every content gate still shut. These rows carry no cross-references, so re-owning them is enough.
+            var scenarioList = accountLoginSyncData.ScenarioListResponse;
+            if (scenarioList != null)
+            {
+                context.ScenarioHistories.RemoveRange(context.ScenarioHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.ScenarioGroupHistories.RemoveRange(context.ScenarioGroupHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var scenarioHistories = connection.Mapper.Map<List<ScenarioHistoryDBServer>>(scenarioList.ScenarioHistoryDBs ?? []);
+                foreach (var row in scenarioHistories) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ScenarioHistories.AddRange(scenarioHistories);
+
+                var scenarioGroups = connection.Mapper.Map<List<ScenarioGroupHistoryDBServer>>(scenarioList.ScenarioGroupHistoryDBs ?? []);
+                foreach (var row in scenarioGroups) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ScenarioGroupHistories.AddRange(scenarioGroups);
+
+                await context.SaveChangesAsync();
+            }
+
+            var campaignList = accountLoginSyncData.CampaignListResponse;
+            if (campaignList != null)
+            {
+                context.CampaignStageHistories.RemoveRange(context.CampaignStageHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.CampaignChapterClearRewardHistories.RemoveRange(context.CampaignChapterClearRewardHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                context.StrategyObjectHistories.RemoveRange(context.StrategyObjectHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var stageHistories = connection.Mapper.Map<List<CampaignStageHistoryDBServer>>(campaignList.StageHistoryDBs ?? []);
+                foreach (var row in stageHistories) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CampaignStageHistories.AddRange(stageHistories);
+
+                var chapterRewards = connection.Mapper.Map<List<CampaignChapterClearRewardHistoryDBServer>>(campaignList.CampaignChapterClearRewardHistoryDBs ?? []);
+                foreach (var row in chapterRewards) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CampaignChapterClearRewardHistories.AddRange(chapterRewards);
+
+                var strategyObjects = connection.Mapper.Map<List<StrategyObjectHistoryDBServer>>(campaignList.StrategyObjecthistoryDBs ?? []);
+                foreach (var row in strategyObjects) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.StrategyObjectHistories.AddRange(strategyObjects);
+
+                await context.SaveChangesAsync();
+            }
+
+            var costumeList = accountLoginSyncData.CharacterListResponse?.CostumeDBs;
+            if (costumeList != null)
+            {
+                context.Costumes.RemoveRange(context.Costumes.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var costumes = connection.Mapper.Map<List<CostumeDBServer>>(costumeList);
+                foreach (var row in costumes)
+                {
+                    if (oldToNewCharacterServerId.TryGetValue(row.BoundCharacterServerId, out var owner))
+                        row.BoundCharacterServerId = owner.ServerId;
+                    row.ServerId = 0;
+                    row.AccountServerId = connection.AccountServerId;
+                }
+                context.Costumes.AddRange(costumes);
+                await context.SaveChangesAsync();
+            }
+
+            var emblemList = accountLoginSyncData.AttachmentEmblemListResponse?.EmblemDBs;
+            if (emblemList != null)
+            {
+                context.Emblems.RemoveRange(context.Emblems.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var emblems = connection.Mapper.Map<List<EmblemDBServer>>(emblemList);
+                foreach (var row in emblems) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.Emblems.AddRange(emblems);
+                await context.SaveChangesAsync();
+            }
+
+            var momotalkList = accountLoginSyncData.MomotalkOutlineResponse?.MomoTalkOutLineDBs;
+            if (momotalkList != null)
+            {
+                context.MomoTalkOutLines.RemoveRange(context.MomoTalkOutLines.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var momotalks = connection.Mapper.Map<List<MomoTalkOutLineDBServer>>(momotalkList);
+                foreach (var row in momotalks)
+                {
+                    // CharacterDBId is a character ServerId, so it moves with the roster.
+                    if (oldToNewCharacterServerId.TryGetValue(row.CharacterDBId, out var owner))
+                        row.CharacterDBId = owner.ServerId;
+                    row.ServerId = 0;
+                    row.AccountServerId = connection.AccountServerId;
+                }
+                context.MomoTalkOutLines.AddRange(momotalks);
+                await context.SaveChangesAsync();
+            }
+
+            var eventPermanentList = accountLoginSyncData.EventContentPermanentListResponse?.PermanentDBs;
+            if (eventPermanentList != null)
+            {
+                context.EventContentPermanents.RemoveRange(context.EventContentPermanents.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var permanents = connection.Mapper.Map<List<EventContentPermanentDBServer>>(eventPermanentList);
+                foreach (var row in permanents) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.EventContentPermanents.AddRange(permanents);
+                await context.SaveChangesAsync();
+            }
+
+            var stickerBook = accountLoginSyncData.StickerListResponse?.StickerBookDB;
+            if (stickerBook != null)
+            {
+                context.StickerBooks.RemoveRange(context.StickerBooks.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var book = connection.Mapper.Map<StickerBookDBServer>(stickerBook);
+                book.ServerId = 0;
+                book.AccountServerId = connection.AccountServerId;
+                context.StickerBooks.Add(book);
+                await context.SaveChangesAsync();
+            }
+
+            var multiFloorRaids = accountLoginSyncData.MultiFloorRaidSyncResponse?.MultiFloorRaidDBs;
+            if (multiFloorRaids != null)
+            {
+                context.MultiFloorRaids.RemoveRange(context.MultiFloorRaids.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<MultiFloorRaidDBServer>>(multiFloorRaids);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.MultiFloorRaids.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
+            var freeRecruits = accountLoginSyncData.ShopGachaRecruitListResponse?.ShopFreeRecruitHistoryDBs;
+            if (freeRecruits != null)
+            {
+                context.ShopFreeRecruitHistories.RemoveRange(context.ShopFreeRecruitHistories.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<ShopFreeRecruitHistoryDBServer>>(freeRecruits);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.ShopFreeRecruitHistories.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
+            // CraftPresetSlotDBs from the same response have no server table.
+            var craftInfos = accountLoginSyncData.CraftInfoListResponse?.CraftInfos;
+            if (craftInfos != null)
+            {
+                context.CraftInfos.RemoveRange(context.CraftInfos.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var rows = connection.Mapper.Map<List<CraftInfoDBServer>>(craftInfos);
+                foreach (var row in rows) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.CraftInfos.AddRange(rows);
+                await context.SaveChangesAsync();
+            }
+
+            var idCardBackgrounds = accountLoginSyncData.IdCardBackgroundDBs;
+            if (idCardBackgrounds != null)
+            {
+                context.IdCardBackgrounds.RemoveRange(context.IdCardBackgrounds.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var backgrounds = connection.Mapper.Map<List<IdCardBackgroundDBServer>>(idCardBackgrounds);
+                foreach (var row in backgrounds) { row.ServerId = 0; row.AccountServerId = connection.AccountServerId; }
+                context.IdCardBackgrounds.AddRange(backgrounds);
+                await context.SaveChangesAsync();
+            }
+
+            var idCard = accountLoginSyncData.FriendIdCardDB;
+            if (idCard != null)
+            {
+                // Settings live on the account as JSON, the same shape FriendHandler writes. FriendCode, Level and LastConnectTime identify the account on this server, so they are not copied.
+                var card = account.ContentInfo.IdCard;
+                card.Comment = idCard.Comment;
+                card.RepresentCharacterUniqueId = idCard.RepresentCharacterUniqueId;
+                card.RepresentCharacterCostumeId = idCard.RepresentCharacterCostumeId;
+                card.CardBackgroundId = idCard.CardBackgroundId;
+                card.SearchPermission = idCard.SearchPermission;
+                card.AutoAcceptFriendRequest = idCard.AutoAcceptFriendRequest;
+                card.ShowAccountLevel = idCard.ShowAccountLevel;
+                card.ShowFriendCode = idCard.ShowFriendCode;
+                card.ShowRaidRanking = idCard.ShowRaidRanking;
+                card.ShowArenaRanking = idCard.ShowArenaRanking;
+                card.ShowEliminateRaidRanking = idCard.ShowEliminateRaidRanking;
+                card.ShowMultiFloorRaidClearedDifficulty = idCard.ShowMultiFloorRaidClearedDifficulty;
+
+                context.Entry(account).Property(x => x.ContentInfo).IsModified = true;
+                await context.SaveChangesAsync();
+            }
+
+            var attachment = accountLoginSyncData.AttachmentGetResponse?.AccountAttachmentDB;
+            if (attachment != null)
+            {
+                context.AccountAttachments.RemoveRange(context.AccountAttachments.Where(x => x.AccountServerId == connection.AccountServerId));
+                await context.SaveChangesAsync();
+
+                var row = connection.Mapper.Map<AccountAttachmentDBServer>(attachment);
+                row.ServerId = 0;
+                row.AccountServerId = connection.AccountServerId;
+                context.AccountAttachments.Add(row);
+                await context.SaveChangesAsync();
+            }
 
             await context.SaveChangesAsync();
             await connection.SendChatMessage("Successfully Loaded All Data from the save file.");

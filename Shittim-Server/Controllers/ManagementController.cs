@@ -48,6 +48,39 @@ public class ManagementController : ControllerBase
         _mapper = mapper;
     }
 
+    public class UploadAccountDataRequest
+    {
+        public string Name { get; set; } = "";
+        public string Content { get; set; } = "";
+    }
+
+    // Store a profile in the folder `accountdata load` reads. Takes content rather than a path so it works when the Control Center and the server are on different machines.
+    [HttpPost("accountdata/upload")]
+    public IActionResult UploadAccountData([FromBody] UploadAccountDataRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { error = "name and content are required" });
+
+        // Reject directory parts rather than stripping them, so the write cannot escape.
+        var name = request.Name.Trim();
+        if (name != Path.GetFileName(name) || name.Contains(".."))
+            return BadRequest(new { error = "name must be a bare file name, without directories" });
+        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return BadRequest(new { error = "name contains characters that are not valid in a file name" });
+        if (!name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "name must be a .json file" });
+
+        try { using var _ = JsonDocument.Parse(request.Content); }
+        catch (JsonException e) { return BadRequest(new { error = $"not valid JSON: {e.Message}" }); }
+
+        var dir = AccountDataCommand.accountDataDir;
+        Directory.CreateDirectory(dir);
+        var dest = Path.Combine(dir, name);
+        System.IO.File.WriteAllText(dest, request.Content);
+
+        return Ok(new { success = true, name });
+    }
+
     [HttpGet("status")]
     public async Task<IActionResult> Status()
     {

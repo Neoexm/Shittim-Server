@@ -102,6 +102,8 @@ export const api = {
 
   command: (uid, command) => req('POST', '/api/admin/command', { uid, command }),
 
+  accountDataUpload: (b) => req('POST', '/api/admin/accountdata/upload', b),
+
   staticItems: (q) => req('GET', `/api/admin/static/items?limit=400&search=${encodeURIComponent(q || '')}`),
   staticCharacters: (q) => req('GET', `/api/admin/static/characters?limit=600&search=${encodeURIComponent(q || '')}`),
   staticEquipment: (q) => req('GET', `/api/admin/static/equipment?limit=400&search=${encodeURIComponent(q || '')}`),

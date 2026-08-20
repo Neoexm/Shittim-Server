@@ -98,6 +98,9 @@ namespace Shittim.Utils
 		public MultiFloorRaidSyncResponse MultiFloorRaidSyncResponse { get; set; }
 		public long FriendCount { get; set; }
 		public string FriendCode { get; set; }
+		// Spliced onto the bundle by the exporter; they arrive in the friend-list packet.
+		public FriendIdCardDB FriendIdCardDB { get; set; }
+		public List<IdCardBackgroundDB> IdCardBackgroundDBs { get; set; }
 	}
 
 	public class ImportItemListRequest

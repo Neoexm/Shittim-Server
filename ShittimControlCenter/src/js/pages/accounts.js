@@ -189,20 +189,70 @@ export default {
         notifyRestart();
       }
 
+      async function pickProfile() {
+        if (!window.host?.pickAccountData) { toast('File picker unavailable', 'bad'); return null; }
+        const picked = await window.host.pickAccountData();
+        if (!picked || picked.canceled) return null;
+        if (!picked.ok) { toast(picked.error || 'Could not read that file', 'bad'); return null; }
+        try {
+          const up = await api.accountDataUpload({ name: picked.name, content: picked.content });
+          return up?.name || picked.name;
+        } catch (e) { toast(e.message, 'bad'); return null; }
+      }
+
+      function profilePicker(onPick) {
+        const chosen = el('span.muted', { text: 'No file chosen', style: { fontSize: '12px' } });
+        const browse = button('Browse...', { variant: 'ghost', sm: true, iconName: 'folder',
+          onClick: async () => {
+            const name = await pickProfile();
+            if (!name) return;
+            chosen.textContent = name;
+            chosen.classList.remove('muted');
+            onPick(name);
+          } });
+        return { row: el('div.row', { style: { gap: '10px', alignItems: 'center' } }, browse, chosen), chosen };
+      }
+
+      // The load reports failure in its output rather than as an HTTP error.
+      async function loadProfile(uid, file) {
+        const r = await api.command(uid, `accountdata load ${file}`);
+        const out = String(r?.output || '').trim();
+        if (out && !/successfully/i.test(out)) throw new Error(out);
+      }
+
+      // Only ever creates a new account: loading over one the client has already logged into leaves it holding stale cached state and the level it shows stops matching the server.
       function openCreate() {
         const nick = input({ value: 'Sensei' });
+
+        let file = null;
+        const picker = profilePicker((name) => { file = name; syncHint(); });
+        const hint = el('div.muted', { style: { fontSize: '12px', marginTop: '10px' } });
+        const syncHint = () => {
+          hint.textContent = file
+            ? 'This profile is loaded into the new account. Nothing existing is touched.'
+            : 'Optional. Leave empty for a fresh account, or pick an exported profile.';
+        };
+        syncHint();
+
         const create = button('Create account', { variant: 'primary', iconName: 'plus' });
         const cancel = button('Cancel', { variant: 'ghost' });
-        const ref = modal({ title: 'New account', body: el('div', {}, field('Nickname', nick)),
-          footer: [cancel, create] });
+        const ref = modal({
+          title: 'New account',
+          body: el('div', {}, field('Nickname', nick), field('Import a profile', picker.row), hint),
+          footer: [cancel, create],
+        });
         cancel.addEventListener('click', ref.close);
+
         create.addEventListener('click', async () => {
           create.disabled = true;
           try {
             const r = await api.accountCreate({ nickname: nick.value.trim() || 'Sensei' });
-            ref.close(); toast(`Created "${nick.value}" (#${r.serverId})`, 'good');
+            if (file) await loadProfile(r.serverId, file);
+            ref.close();
+            toast(file ? `Created #${r.serverId} from "${file}"` : `Created "${nick.value}" (#${r.serverId})`, 'good');
             store.set({ targetId: r.serverId });
             await loadList();
+            if (file) notifyRestart();
           } catch (e) { toast(e.message, 'bad'); create.disabled = false; }
         });
       }

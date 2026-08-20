@@ -148,6 +148,20 @@ namespace Schale.MappingProfiles
             CreateMap<CostumeDB, CostumeDBServer>();
             CreateMap<StickerDB, StickerDBServer>();
             CreateMap<AccountAttachmentDB, AccountAttachmentDBServer>();
+
+            // Import direction for the rows accountdata load restores.
+            CreateMap<ScenarioHistoryDB, ScenarioHistoryDBServer>();
+            CreateMap<ScenarioGroupHistoryDB, ScenarioGroupHistoryDBServer>();
+            CreateMap<CampaignStageHistoryDB, CampaignStageHistoryDBServer>();
+            CreateMap<CampaignChapterClearRewardHistoryDB, CampaignChapterClearRewardHistoryDBServer>();
+            CreateMap<StrategyObjectHistoryDB, StrategyObjectHistoryDBServer>();
+
+            CreateMap<MomoTalkOutLineDB, MomoTalkOutLineDBServer>();
+            CreateMap<EventContentPermanentDB, EventContentPermanentDBServer>();
+            CreateMap<StickerBookDB, StickerBookDBServer>();
+            CreateMap<ShopFreeRecruitHistoryDB, ShopFreeRecruitHistoryDBServer>();
+            CreateMap<CraftInfoDB, CraftInfoDBServer>();
+            CreateMap<MultiFloorRaidDB, MultiFloorRaidDBServer>();
         }
 
         private void ConfigureNestedDTOMappings()

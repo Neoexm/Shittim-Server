@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('host', {
   paths: () => ipcRenderer.invoke('paths:resolve'),
+  pickAccountData: () => ipcRenderer.invoke('accountdata:pick'),
   settingsRead: () => ipcRenderer.invoke('settings:read'),
   settingsWrite: (patch) => ipcRenderer.invoke('settings:write', patch),
 

@@ -1046,6 +1046,27 @@ async function buildDiagnosticInfo() {
   ].join('\r\n');
 }
 
+// Returns the chosen profile's name and content; the renderer uploads it, since the server only loads from its own folder and may not be on this machine.
+async function pickAccountDataFile() {
+  const res = await dialog.showOpenDialog({
+    title: 'Import profile',
+    defaultPath: documentsDir(),
+    filters: [{ name: 'Account profile', extensions: ['json'] }],
+    properties: ['openFile'],
+  });
+  if (res.canceled || !res.filePaths?.length) return { ok: false, canceled: true };
+
+  const file = res.filePaths[0];
+  try {
+    const content = fs.readFileSync(file, 'utf8');
+    try { JSON.parse(content); }
+    catch { return { ok: false, error: `${path.basename(file)} is not valid JSON` }; }
+    return { ok: true, name: path.basename(file), content };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 async function exportLogs() {
   const p = resolvePaths();
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+$/, '');
@@ -1282,6 +1303,7 @@ function createWindow() {
   return win;
 }
 
+ipcMain.handle('accountdata:pick', () => pickAccountDataFile());
 ipcMain.handle('paths:resolve', () => resolvePaths());
 ipcMain.handle('settings:read', () => loadSettings());
 // The renderer writes window geometry through here and does not wait on it, so a failure is reported rather than thrown back at it.
