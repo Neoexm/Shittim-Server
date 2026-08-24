@@ -40,7 +40,11 @@ public class WorldRaidSyncService : BackgroundService
                     logger.LogInformation("World raid coordinator is reachable again");
                 }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            // HttpClient reports its own request timeout as TaskCanceledException,
+            // which also derives from OperationCanceledException.  Only let an
+            // actual host shutdown escape; a coordinator timeout is an ordinary
+            // offline condition and must not bring down the game server.
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
                 // one line the first time, then quiet - a coordinator that is down for the night would otherwise fill the log at every poll
                 if (!offline)
