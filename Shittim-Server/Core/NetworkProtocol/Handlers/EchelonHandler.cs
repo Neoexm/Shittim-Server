@@ -70,7 +70,11 @@ public class EchelonHandler : ProtocolHandlerBase
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
         response.PresetGroupDBs = db.GetAccountEchelonPresetGroups(account.ServerId)
-            .Where(g => g.ExtensionType == request.EchelonExtensionType)
+            // One tab is rendered per group, so a group with a negative index (written by older
+            // builds that stored the client's -1 sentinel) shows up as a phantom tab and leaves the
+            // client unable to decide which tab is selected.
+            .Where(g => g.ExtensionType == request.EchelonExtensionType && g.GroupIndex >= 0)
+            .OrderBy(g => g.GroupIndex)
             .ToMapList(_mapper).ToArray();
         if (account.GameSettings.EnableMultiFloorRaid)
             response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
@@ -86,9 +90,12 @@ public class EchelonHandler : ProtocolHandlerBase
     {
         var account = await _sessionService.GetAuthenticatedUser(db, request.SessionKey);
 
-        await _echelonManager.SaveEchelonPreset(db, account, request.PresetDB);
+        var savedPreset = await _echelonManager.SaveEchelonPreset(db, account, request.PresetDB);
 
-        response.PresetDB = request.PresetDB;
+        // Echo the persisted row, not the request: the client sends Index/-1 and GroupIndex/-1 for
+        // "save into the current slot", and handing those back leaves it unable to match the preset
+        // it just created - the squad screen then stops responding.
+        response.PresetDB = savedPreset.ToMap(_mapper);
         if (account.GameSettings.EnableMultiFloorRaid)
             response.ServerTimeTicks = MultiFloorRaidHandler.MultiFloorRaidDateTime.Ticks;
 

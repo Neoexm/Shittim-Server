@@ -1096,6 +1096,12 @@ namespace Schale.MX.GameLogic.DBModel
 
     public class EchelonPresetGroupDB
     {
+        // GroupIndex identifies a tab and Index identifies a slot inside it. The gateway serializes
+        // with DefaultValueHandling.Ignore, so a 0-valued GroupIndex/Index vanished from the payload
+        // and the client could not match a preset back to the tab or card it belongs to: the squad
+        // modal then showed the raw name template ("Unit {0}"), placeholder units, and every tab as
+        // selected. Both values are always meaningful, so always send them.
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public int GroupIndex { get; set; }
         public EchelonExtensionType ExtensionType { get; set; }
         public string? GroupLabel { get; set; }
@@ -1105,7 +1111,10 @@ namespace Schale.MX.GameLogic.DBModel
 
     public class EchelonPresetDB
     {
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public int GroupIndex { get; set; }
+
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
         public int Index { get; set; }
         public string? Label { get; set; }
         public long LeaderUniqueId { get; set; }
