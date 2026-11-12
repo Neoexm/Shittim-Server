@@ -86,6 +86,9 @@ namespace Shittim_Server.Managers
             }
             else
             {
+                // Label carries a rename: there is no preset-rename protocol, so the client sends
+                // Echelon_PresetSave with the new name and the slot it belongs to.
+                existing.Label = presetGroup.Label;
                 existing.LeaderUniqueId = presetGroup.LeaderUniqueId;
                 existing.TSSInteractionUniqueId = 0;
                 existing.StrikerUniqueIds = presetGroup.StrikerUniqueIds;
