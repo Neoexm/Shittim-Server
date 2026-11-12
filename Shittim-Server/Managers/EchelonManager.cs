@@ -26,16 +26,40 @@ namespace Shittim_Server.Managers
         {
             var presetGroup = mapper.Map<EchelonPresetDBServer>(presetData);
             var existing = EchelonService.GetEchelonPreset(context, account.ServerId, presetGroup);
-            existing.LeaderUniqueId = presetGroup.LeaderUniqueId;
-            existing.TSSInteractionUniqueId = 0;
-            existing.StrikerUniqueIds = presetGroup.StrikerUniqueIds;
-            existing.SpecialUniqueIds = presetGroup.SpecialUniqueIds;
-            existing.CombatStyleIndex = presetGroup.CombatStyleIndex;
-            existing.MulliganUniqueIds = presetGroup.MulliganUniqueIds;
+
+            if (existing == null)
+            {
+                // Echelon_PresetSave is also what the client calls when adding a preset, and on that
+                // path the row does not exist yet. Treating it as an update dereferenced null.
+                presetGroup.AccountServerId = account.ServerId;
+                context.EchelonPresets.Add(presetGroup);
+            }
+            else
+            {
+                existing.LeaderUniqueId = presetGroup.LeaderUniqueId;
+                existing.TSSInteractionUniqueId = 0;
+                existing.StrikerUniqueIds = presetGroup.StrikerUniqueIds;
+                existing.SpecialUniqueIds = presetGroup.SpecialUniqueIds;
+                existing.CombatStyleIndex = presetGroup.CombatStyleIndex;
+                existing.MulliganUniqueIds = presetGroup.MulliganUniqueIds;
+            }
 
             await context.SaveChangesAsync();
 
             var echelonPresetGroup = EchelonService.GetEchelonPresetGroup(context, account.ServerId, presetGroup);
+            if (echelonPresetGroup == null)
+            {
+                // A preset can be saved into a group the account has never persisted; without the
+                // group row the dictionary below would dereference null as well.
+                echelonPresetGroup = new EchelonPresetGroupDBServer
+                {
+                    GroupIndex = presetGroup.GroupIndex,
+                    ExtensionType = presetGroup.ExtensionType,
+                };
+                context.AddEchelonPresetGroups(account.ServerId, echelonPresetGroup);
+                await context.SaveChangesAsync();
+            }
+
             echelonPresetGroup.PresetDBs = await context.GetAccountEchelonPresets(account.ServerId)
                 .Where(x => x.GroupIndex == presetGroup.GroupIndex && x.ExtensionType == presetGroup.ExtensionType)
                 .GroupBy(x => x.Index).Select(g => g.First())
